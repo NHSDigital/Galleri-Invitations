@@ -39,10 +39,10 @@ jobs:
     uses: ./.github/workflows/cloc-repository.yaml
   scan-dependencies:
     uses: ./.github/workflows/scan-dependencies.yaml
+  unit-tests:
+      uses: ./.github/workflows/unit-tests.yaml
   # sonarcloud-scan:
   #     uses: ./.github/workflows/sonarcloud-scan.yaml
-  # unit-tests:
-  #     uses: ./.github/workflows/unit-tests.yaml
   cicd-pipeline-test:
     runs-on: ubuntu-latest
     needs:
