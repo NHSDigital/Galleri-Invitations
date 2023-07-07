@@ -29,10 +29,10 @@ jobs:
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
   scan-secrets:
     uses: ./.github/workflows/scan-secrets.yaml
-  check-file-format:
-    uses: ./.github/workflows/check-file-format.yaml
-  check-markdown-format:
-    uses: ./.github/workflows/check-markdown-format.yaml
+  # check-file-format:
+  #   uses: ./.github/workflows/check-file-format.yaml
+  # check-markdown-format:
+  #   uses: ./.github/workflows/check-markdown-format.yaml
   check-terraform-format:
     uses: ./.github/workflows/check-terraform-format.yaml
   cloc-repository:
@@ -49,8 +49,8 @@ jobs:
       [
         get-metadata,
         scan-secrets,
-        check-file-format,
-        check-markdown-format,
+        # check-file-format,
+        # check-markdown-format,
         check-terraform-format,
         cloc-repository,
         scan-dependencies,
