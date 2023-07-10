@@ -13,3 +13,4 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
+    target-branch: "zain-setup-repo-branch"
