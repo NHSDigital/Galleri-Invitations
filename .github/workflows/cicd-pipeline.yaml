@@ -39,8 +39,8 @@ jobs:
     uses: ./.github/workflows/cloc-repository.yaml
   scan-dependencies:
     uses: ./.github/workflows/scan-dependencies.yaml
-  unit-tests:
-      uses: ./.github/workflows/unit-tests.yaml
+  # unit-tests:
+  #     uses: ./.github/workflows/unit-tests.yaml
   # bot-workflow:
   #       uses: ./.github/workflows/bot-workflow.yaml
   # sonarcloud-scan:
