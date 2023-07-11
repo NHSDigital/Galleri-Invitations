@@ -9,3 +9,8 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
+    # point dependabot to our develop branch. TODO add a wildcard to the end so it screens for each of our develop branchs from sprints
+    target-branch: "develop"
+    # Labels on pull requests for version updates only
+    labels:
+      - "dependencies"
