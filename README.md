@@ -1,6 +1,6 @@
 # Repository Template
 
-This is a repo containing the code for the Galleri Invitations Algorithm.
+This is a repo containing the code for the Galleri Invitations Algorithm
 
 ## Table of Contents
 
