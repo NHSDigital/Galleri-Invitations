@@ -9,7 +9,8 @@ This is a repo containing the code for the Galleri Invitations Algorithm
   - [Installation](#installation)
     - [Prerequisites](#prerequisites)
   - [Usage](#usage)
-  - [Configuration](#configuration)
+    - [Configuration](#configuration)
+  - [Contributing](#contributing)
   - [Contacts](#contacts)
   - [Licence](#licence)
 
@@ -48,7 +49,7 @@ Before pushing to the repo, the developer must run the following commands to run
   -Dsonar.organization=nhsdigital \
   -Dsonar.projectKey=galleri-invitations \
   -Dsonar.sources=. \
-  -Dsonar.host.url=https://sonarcloud.io
+  -Dsonar.host.url=<https://sonarcloud.io>
 
 ### Configuration
 
@@ -63,4 +64,3 @@ Maintainers: David Lavender, Zain Malik, Mandeep Sandhu
 ## Licence
 
 > The [LICENCE.md](./LICENCE.md) file will need to be updated with the correct year and owner
-
