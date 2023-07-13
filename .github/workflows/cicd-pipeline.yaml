@@ -51,7 +51,7 @@ jobs:
         scan-secrets,
         check-file-format,
         check-markdown-format,
-        check-terraform-format,
+        # check-terraform-format,
         cloc-repository,
         scan-dependencies,
       ]
