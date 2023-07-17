@@ -44,8 +44,7 @@ jobs:
 
       - name: Terraform Destroy
         id: destroy
-        run: terraform destroy
-        continue-on-error: true
+        run: terraform destroy -auto-approve
 
       - name: Terraform Validate
         id: validate
