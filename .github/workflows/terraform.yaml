@@ -35,6 +35,11 @@ jobs:
         run: terraform fmt -check
         continue-on-error: true
 
+      - name: Terraform Destroy
+        id: destroy
+        run: terraform destroy
+        continue-on-error: true
+
       - name: Terraform Init
         id: init
         env:
