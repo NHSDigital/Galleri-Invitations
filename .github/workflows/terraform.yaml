@@ -91,11 +91,11 @@ jobs:
 #         body: output
 #       })
 
-      - name: Terraform Plan Status
-        if: steps.plan.outcome == 'failure'
-        run:
-          echo Terraform Plan Status has failed
-          exit 1
+      # - name: Terraform Plan Status
+      #   if: steps.plan.outcome == 'failure'
+      #   run:
+      #     echo Terraform Plan Status has failed
+      #     exit 1
 
-      - name: Terraform Apply
-        run: terraform apply -auto-approve -input=false
+      # - name: Terraform Apply
+      #   run: terraform apply -auto-approve -input=false
