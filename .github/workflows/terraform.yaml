@@ -34,12 +34,14 @@ jobs:
       - name: Flatten Terrafrom Directory
         id: flatten
         run:
-          mv ./*/* . && rm -rf resources
+          mv ./*/* .
+          rm -rf resources
 
       - name: Terraform fmt
         id: fmt
         run:
-          ls && terraform fmt -check
+          ls
+          terraform fmt -check
         continue-on-error: true
 
       - name: Terraform Init
