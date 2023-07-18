@@ -34,8 +34,7 @@ jobs:
       - name: Terraform fmt
         id: fmt
         run:
-          ls
-          terraform fmt -check
+          ls && terraform fmt -check
         continue-on-error: true
 
       - name: Terraform Init
