@@ -33,13 +33,13 @@ jobs:
 
       - name: Flatten Terrafrom Directory
         id: flatten
-        run:
+        run: |
           mv ./*/* .
           rm -rf resources
 
       - name: Terraform fmt
         id: fmt
-        run:
+        run: |
           ls
           terraform fmt -check
         continue-on-error: true
