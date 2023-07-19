@@ -25,12 +25,12 @@ resource "aws_dynamodb_table" "sdrs-table" {
     type = "S"
   }
 
- attribute {
+  attribute {
     name = "current posting"
     type = "S"
   }
 
- attribute {
+  attribute {
     name = "current posting business effective from date"
     type = "S"
   }
@@ -89,17 +89,17 @@ resource "aws_dynamodb_table" "sdrs-table" {
     type = "S"
   }
 
-    attribute {
+  attribute {
     name = "address line 3"
     type = "S"
   }
 
-    attribute {
+  attribute {
     name = "address line 4"
     type = "S"
   }
 
-    attribute {
+  attribute {
     name = "address line 5"
     type = "S"
   }
@@ -199,3 +199,4 @@ resource "aws_dynamodb_table" "sdrs-table" {
     Environment = "dev"
   }
 }
+
