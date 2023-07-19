@@ -38,7 +38,7 @@ resource "aws_dynamodb_table" "gp-practice-table" {
   global_secondary_index {
     name               = "EmailPhoneIndex"
     hash_key           = "address line 1"
-    range_key          = "e-mail address (home)"
+    range_key          = "postcode"
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "INCLUDE"
