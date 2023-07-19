@@ -1,0 +1,73 @@
+name: "Terraform action"
+on:
+  workflow_call:
+
+permissions:
+      id-token: write # This is required for aws oidc connection
+      contents: read # This is required for actions/checkout
+env:
+  TF_LOG: INFO
+  AWS_REGION: ${{ vars.AWS_REGION }}
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./terraform/environment/dev
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials from AWS account
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHub-OIDC-TERRAFORM
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Flatten Terrafrom Directory
+        id: flatten
+        run: |
+          mv ./*/* .
+          rm -rf resources
+
+      - name: Terraform fmt
+        id: fmt
+        run:
+          terraform fmt -check
+        continue-on-error: true
+
+      - name: Terraform Init
+        id: init
+        env:
+          AWS_BUCKET_NAME: ${{ vars.AWS_BUCKET_NAME }}
+          AWS_BUCKET_KEY_NAME: ${{ vars.AWS_BUCKET_KEY_NAME }}
+        run: terraform init -backend-config="bucket=${AWS_BUCKET_NAME}" -backend-config="key=${AWS_BUCKET_KEY_NAME}" -backend-config="region=${AWS_REGION}"
+
+      - name: Terraform Destroy
+        id: destroy
+        run: terraform destroy -auto-approve
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        id: plan
+        run:
+          terraform plan -no-color
+
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run:
+          echo Terraform Plan Status has failed
+          exit 1
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -input=false
