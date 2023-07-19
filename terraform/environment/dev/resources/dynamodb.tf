@@ -31,6 +31,10 @@ resource "aws_dynamodb_table" "sdrs-table" {
     enabled        = false
   }
 
+  point_in_time_recovery {
+    enabled = true
+  }
+
   global_secondary_index {
     name               = "EmailPhoneIndex"
     hash_key           = "e-mail address (home)"
