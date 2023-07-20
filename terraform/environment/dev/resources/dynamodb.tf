@@ -31,7 +31,7 @@ resource "aws_dynamodb_table" "participating-icb-table" {
 }
 
 resource "aws_iam_policy" "dynamodb_policy" {
-  name        = "DynamoDB Policy"
+  name        = "DynamoDBPolicy"
   description = "Policy for allowing create, update, and delete actions on DynamoDB table"
 
   policy = jsonencode({
@@ -52,7 +52,7 @@ resource "aws_iam_policy" "dynamodb_policy" {
 
 
 resource "aws_iam_policy_attachment" "dynamodb_attachment" {
-  name       = "MyDynamoDBPolicyAttachment"
+  name       = "DynamoDBPolicyAttachment"
   policy_arn = aws_iam_policy.dynamodb_policy.arn
   entities   = ["${env.AWS_ASSUME_ROLE}"]
 }
