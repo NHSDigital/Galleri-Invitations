@@ -3,6 +3,7 @@ resource "aws_dynamodb_table" "participating-icb-table" {
   billing_mode   = "PROVISIONED"
   read_capacity  = 20
   write_capacity = 20
+  hash_key       = "icb code"
 
   attribute {
     name = "icb code"
