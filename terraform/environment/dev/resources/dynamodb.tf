@@ -28,4 +28,27 @@ resource "aws_dynamodb_table" "participating-icb-table" {
     Name        = "dynamodb-table-participating-icb"
     Environment = "dev"
   }
+
+  policy = <<-EOF
+  {
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": "${env.AWS_ROLE_ARN}"
+          },
+          "Action": [
+            "dynamodb:PutItem",
+            "dynamodb:UpdateItem",
+            "dynamodb:DeleteItem"
+          ],
+          "Resource": "arn:aws:dynamodb:${env.AWS_REGION_NAME}:table/aws_dynamodb_table.participating-icb-table.name"
+        }
+      ]
+    }
+EOF
+
 }
+
