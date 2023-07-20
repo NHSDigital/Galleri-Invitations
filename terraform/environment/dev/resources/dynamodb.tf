@@ -28,27 +28,32 @@ resource "aws_dynamodb_table" "participating-icb-table" {
     Name        = "dynamodb-table-participating-icb"
     Environment = "dev"
   }
+}
 
-  policy = <<-EOF
-  {
-    {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Effect": "Allow",
-          "Principal": {
-            "AWS": "${env.AWS_ROLE_ARN}"
-          },
-          "Action": [
-            "dynamodb:PutItem",
-            "dynamodb:UpdateItem",
-            "dynamodb:DeleteItem"
-          ],
-          "Resource": "arn:aws:dynamodb:${env.AWS_REGION_NAME}:table/aws_dynamodb_table.participating-icb-table.name"
-        }
-      ]
-    }
-EOF
+resource "aws_iam_policy" "dynamodb_policy" {
+  name        = "DynamoDB Policy"
+  description = "Policy for allowing create, update, and delete actions on DynamoDB table"
 
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect  = "Allow"
+        Action  = [
+          "dynamodb:PutItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:DeleteItem",
+        ]
+        Resource = aws_dynamodb_table.participating-icb-table.arn
+      }
+    ]
+  })
+}
+
+
+resource "aws_iam_policy_attachment" "dynamodb_attachment" {
+  name       = "MyDynamoDBPolicyAttachment"
+  policy_arn = aws_iam_policy.dynamodb_policy.arn
+  entities   = ["${env.AWS_ASSUME_ROLE}"]
 }
 
