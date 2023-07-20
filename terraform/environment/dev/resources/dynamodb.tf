@@ -18,6 +18,11 @@ resource "aws_dynamodb_table" "participating-icb-table" {
     enabled = true
   }
 
+  server_side_encryption {
+    enabled = true
+    kms_key_arn =
+  }
+
   tags = {
     Name        = "dynamodb-table-participating-icb"
     Environment = "dev"
