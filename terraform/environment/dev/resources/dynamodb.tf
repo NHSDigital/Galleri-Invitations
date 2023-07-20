@@ -38,8 +38,8 @@ resource "aws_iam_policy" "dynamodb_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect  = "Allow"
-        Action  = [
+        Effect = "Allow"
+        Action = [
           "dynamodb:PutItem",
           "dynamodb:UpdateItem",
           "dynamodb:DeleteItem",
