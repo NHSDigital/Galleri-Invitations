@@ -23,6 +23,7 @@ resource "aws_dynamodb_table" "sdrs_table" {
 
   attribute {
     name = "emailAddressHome"
+    type = "S"
   }
 
   global_secondary_index {
