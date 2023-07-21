@@ -21,7 +21,7 @@ resource "aws_dynamodb_table" "participating-icb-table" {
 
   server_side_encryption {
     enabled     = true
-    kms_key_arn = aws_kms_key.my_kms_key.arn
+    kms_key_arn = aws_kms_key.dynamodb_kms_key.arn
   }
 
   tags = {
