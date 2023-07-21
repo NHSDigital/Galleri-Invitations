@@ -1,5 +1,5 @@
-resource "aws_dynamodb_table" "sdrs-table" {
-  name           = "SDRS"
+resource "aws_dynamodb_table" "sdrs_table" {
+  name           = "sdrs"
   billing_mode   = "PROVISIONED"
   read_capacity  = 20
   write_capacity = 20
@@ -23,16 +23,6 @@ resource "aws_dynamodb_table" "sdrs-table" {
 
   attribute {
     name = "emailAddressHome"
-    type = "S"
-  }
-
-  ttl {
-    attribute_name = "TimeToExist"
-    enabled        = false
-  }
-
-  point_in_time_recovery {
-    enabled = true
   }
 
   global_secondary_index {
@@ -45,9 +35,46 @@ resource "aws_dynamodb_table" "sdrs-table" {
     non_key_attributes = ["nhsNumber"]
   }
 
+  server_side_encryption {
+    enabled     = true
+    kms_key_arn = aws_kms_key.dynamodb_kms_key.arn
+  }
+
   tags = {
-    Name        = "dynamodb-table-sdrs"
+    Name        = "dynamodb_table_sdrs"
     Environment = "dev"
+  }
+}
+
+resource "aws_dynamodb_table" "participating_icb_table" {
+  name           = "participating_icb"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 20
+  hash_key       = "icbCode"
+
+  attribute {
+    name = "icbCode"
+    type = "S"
+  }
+
+  ttl {
+    attribute_name = "TimeToExist"
+    enabled        = false
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  server_side_encryption {
+    enabled     = true
+    kms_key_arn = aws_kms_key.dynamodb_kms_key.arn
+  }
+
+  tags = {
+    Name        = "dynamodb_table_participating_icb"
+    Environment = "Dev"
   }
 }
 
