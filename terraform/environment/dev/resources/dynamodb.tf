@@ -1,5 +1,5 @@
-resource "aws_dynamodb_table" "participating-icb-table" {
-  name           = "participating-icb"
+resource "aws_dynamodb_table" "participating_icb_table" {
+  name           = "participating_icb"
   billing_mode   = "PROVISIONED"
   read_capacity  = 20
   write_capacity = 20
@@ -25,7 +25,7 @@ resource "aws_dynamodb_table" "participating-icb-table" {
   }
 
   tags = {
-    Name        = "dynamodb-table-participating-icb"
+    Name        = "dynamodb_table_participating_icb"
     Environment = "Dev"
   }
 }
