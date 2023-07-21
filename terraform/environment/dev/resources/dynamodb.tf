@@ -3,26 +3,26 @@ resource "aws_dynamodb_table" "sdrs-table" {
   billing_mode   = "PROVISIONED"
   read_capacity  = 20
   write_capacity = 20
-  hash_key       = "nhs number"
-  range_key      = "given name"
+  hash_key       = "nhsNumber"
+  range_key      = "givenName"
 
   attribute {
-    name = "nhs number"
+    name = "nhsNumber"
     type = "N"
   }
 
   attribute {
-    name = "given name"
+    name = "givenName"
     type = "S"
   }
 
   attribute {
-    name = "telephone number (mobile)"
+    name = "telephoneNumberMobile"
     type = "S"
   }
 
   attribute {
-    name = "e-mail address (home)"
+    name = "emailAddressHome"
     type = "S"
   }
 
@@ -37,12 +37,12 @@ resource "aws_dynamodb_table" "sdrs-table" {
 
   global_secondary_index {
     name               = "EmailPhoneIndex"
-    hash_key           = "e-mail address (home)"
-    range_key          = "telephone number (mobile)"
+    hash_key           = "emailAddressHome"
+    range_key          = "telephoneNumberMobile"
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "INCLUDE"
-    non_key_attributes = ["nhs number"]
+    non_key_attributes = ["nhsNumber"]
   }
 
   tags = {
