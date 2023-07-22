@@ -37,7 +37,7 @@ resource "aws_dynamodb_table" "sdrs_table" {
   }
 
   server_side_encryption {
-    enabled     = true
+    enabled = true
   }
 
   tags = {
@@ -68,8 +68,7 @@ resource "aws_dynamodb_table" "participating_icb_table" {
   }
 
   server_side_encryption {
-    enabled     = true
-    kms_key_arn = aws_kms_key.dynamodb_kms_key.arn
+    enabled = true
   }
 
   tags = {
