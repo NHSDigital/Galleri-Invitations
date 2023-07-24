@@ -27,13 +27,17 @@ resource "aws_dynamodb_table" "sdrs_table" {
   }
 
   global_secondary_index {
-    name               = "EmailPhoneIndex"
+    name               = "emailPhoneIndex"
     hash_key           = "emailAddressHome"
     range_key          = "telephoneNumberMobile"
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "INCLUDE"
     non_key_attributes = ["nhsNumber"]
+  }
+
+    point_in_time_recovery {
+    enabled = true
   }
 
   server_side_encryption {
