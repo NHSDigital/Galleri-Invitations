@@ -82,7 +82,7 @@ resource "aws_dynamodb_table" "participating_icb_table" {
 }
 
 
-resource "aws_dynamodb_table" "gp-practice-table" {
+resource "aws_dynamodb_table" "gp_practice_table" {
   name           = "gp_practice"
   billing_mode   = "PROVISIONED"
   read_capacity  = 20
@@ -129,7 +129,7 @@ resource "aws_dynamodb_table" "gp-practice-table" {
   }
 
   tags = {
-    Name        = "dynamodb-table-gp-practice"
+    Name        = "dynamodb_table_gp_practice"
     Environment = "dev"
   }
 }
