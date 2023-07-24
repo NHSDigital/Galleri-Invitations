@@ -45,7 +45,7 @@ resource "aws_dynamodb_table" "sdrs_table" {
   }
 
   tags = {
-    Name        = "DynamodbTableSdrs"
+    Name        = "Dynamodb Table Sdrs"
     Environment = "dev"
   }
 }
@@ -76,7 +76,7 @@ resource "aws_dynamodb_table" "participating_icb_table" {
   }
 
   tags = {
-    Name        = "DynamodbTableParticipatingIcb"
+    Name        = "Dynamodb Table Participating Icb"
     Environment = "dev"
   }
 }
@@ -129,7 +129,7 @@ resource "aws_dynamodb_table" "gp_practice_table" {
   }
 
   tags = {
-    Name        = "DynamodbTableGpPractice"
+    Name        = "Dynamodb Table Gp Practice"
     Environment = "dev"
   }
 }
