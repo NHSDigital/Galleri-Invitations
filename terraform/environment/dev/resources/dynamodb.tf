@@ -134,33 +134,33 @@ resource "aws_dynamodb_table" "gp_practice_table" {
   }
 }
 
-  resource "aws_dynamodb_table" "imb_table" {
-  name           = "imd"
+  resource "aws_dynamodb_table" "imd_table" {
+  name           = "Imd"
   billing_mode   = "PROVISIONED"
   read_capacity  = 20
   write_capacity = 20
-  hash_key       = "imdId"
-  range_key      = "imdName"
+  hash_key       = "LsoaCode"
+  range_key      = "LsoaName"
 
   attribute {
-    name = "imdId"
+    name = "LsoaCode"
     type = "S"
   }
 
   attribute {
-    name = "participantId"
+    name = "LsoaName"
     type = "S"
   }
 
   attribute {
-    name = "imdScore"
-    type = "S"
+    name = "ImdRank"
+    type = "N"
   }
 
   global_secondary_index {
-    name               = "imdIndex"
-    hash_key           = "imdId"
-    range_key          = "participantId"
+    name               = "ImdRankImdDecileIndex"
+    hash_key           = "ImdRank"
+    range_key          = "ImdDecile"
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "INCLUDE"
