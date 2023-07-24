@@ -77,7 +77,7 @@ resource "aws_dynamodb_table" "participating_icb_table" {
 
   tags = {
     Name        = "dynamodb_table_participating_icb"
-    Environment = "Dev"
+    Environment = "dev"
   }
 }
 
