@@ -1,4 +1,3 @@
-
 resource "aws_dynamodb_table" "sdrs_table" {
   name           = "sdrs"
   billing_mode   = "PROVISIONED"
@@ -77,7 +76,7 @@ resource "aws_dynamodb_table" "participating_icb_table" {
   }
 
   tags = {
-    Name        = "dynamodb-table-gp-practice"
+    Name        = "dynamodb_table_participating_icb"
     Environment = "dev"
   }
 }
@@ -130,7 +129,7 @@ resource "aws_dynamodb_table" "gp-practice-table" {
   }
 
   tags = {
-    Name        = "dynamodb_table_participating_icb"
+    Name        = "dynamodb-table-gp-practice"
     Environment = "dev"
   }
 }
