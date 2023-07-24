@@ -133,3 +133,50 @@ resource "aws_dynamodb_table" "gp_practice_table" {
     Environment = "dev"
   }
 }
+
+  resource "aws_dynamodb_table" "imb_table" {
+  name           = "imd"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 20
+  hash_key       = "imdId"
+  range_key      = "imdName"
+
+  attribute {
+    name = "imdId"
+    type = "S"
+  }
+
+  attribute {
+    name = "participantId"
+    type = "S"
+  }
+
+  attribute {
+    name = "imdScore"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name               = "imdIndex"
+    hash_key           = "imdId"
+    range_key          = "participantId"
+    write_capacity     = 10
+    read_capacity      = 10
+    projection_type    = "INCLUDE"
+    non_key_attributes = ["ImdId"]
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  server_side_encryption {
+    enabled = true
+  }
+
+  tags = {
+    Name        = "Dynamodb Table Imd"
+    Environment = "dev"
+  }
+}
