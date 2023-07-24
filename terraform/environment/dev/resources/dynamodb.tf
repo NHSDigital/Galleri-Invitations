@@ -1,39 +1,39 @@
 resource "aws_dynamodb_table" "sdrs_table" {
-  name           = "sdrs"
+  name           = "Sdrs"
   billing_mode   = "PROVISIONED"
   read_capacity  = 20
   write_capacity = 20
-  hash_key       = "nhsNumber"
-  range_key      = "givenName"
+  hash_key       = "NhsNumber"
+  range_key      = "GivenName"
 
   attribute {
-    name = "nhsNumber"
+    name = "NhsNumber"
     type = "N"
   }
 
   attribute {
-    name = "givenName"
+    name = "GivenName"
     type = "S"
   }
 
   attribute {
-    name = "telephoneNumberMobile"
+    name = "TelephoneNumberMobile"
     type = "S"
   }
 
   attribute {
-    name = "emailAddressHome"
+    name = "EmailAddressHome"
     type = "S"
   }
 
   global_secondary_index {
-    name               = "emailPhoneIndex"
-    hash_key           = "emailAddressHome"
-    range_key          = "telephoneNumberMobile"
+    name               = "EmailPhoneIndex"
+    hash_key           = "EmailAddressHome"
+    range_key          = "TelephoneNumberMobile"
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "INCLUDE"
-    non_key_attributes = ["nhsNumber"]
+    non_key_attributes = ["NhsNumber"]
   }
 
   point_in_time_recovery {
@@ -45,20 +45,20 @@ resource "aws_dynamodb_table" "sdrs_table" {
   }
 
   tags = {
-    Name        = "dynamodb_table_sdrs"
+    Name        = "DynamodbTableSdrs"
     Environment = "dev"
   }
 }
 
 resource "aws_dynamodb_table" "participating_icb_table" {
-  name           = "participating_icb"
+  name           = "ParticipatingIcb"
   billing_mode   = "PROVISIONED"
   read_capacity  = 20
   write_capacity = 20
-  hash_key       = "icbCode"
+  hash_key       = "IcbCode"
 
   attribute {
-    name = "icbCode"
+    name = "IcbCode"
     type = "S"
   }
 
@@ -76,48 +76,48 @@ resource "aws_dynamodb_table" "participating_icb_table" {
   }
 
   tags = {
-    Name        = "dynamodb_table_participating_icb"
+    Name        = "DynamodbTableParticipatingIcb"
     Environment = "dev"
   }
 }
 
 
 resource "aws_dynamodb_table" "gp_practice_table" {
-  name           = "gp_practice"
+  name           = "GpPractice"
   billing_mode   = "PROVISIONED"
   read_capacity  = 20
   write_capacity = 20
-  hash_key       = "gpPracticeId"
-  range_key      = "gpPracticeName"
+  hash_key       = "GpPracticeId"
+  range_key      = "GpPracticeName"
 
   attribute {
-    name = "gpPracticeId"
+    name = "GpPracticeId"
     type = "S"
   }
 
   attribute {
-    name = "gpPracticeName"
+    name = "GpPracticeName"
     type = "S"
   }
 
   attribute {
-    name = "addressLine1"
+    name = "AddressLine1"
     type = "S"
   }
 
   attribute {
-    name = "postcode"
+    name = "Postcode"
     type = "S"
   }
 
   global_secondary_index {
-    name               = "addressLine1PostcodeIndex"
-    hash_key           = "addressLine1"
-    range_key          = "postcode"
+    name               = "AddressLine1PostcodeIndex"
+    hash_key           = "AddressLine1"
+    range_key          = "Postcode"
     write_capacity     = 10
     read_capacity      = 10
     projection_type    = "INCLUDE"
-    non_key_attributes = ["gpPracticeId"]
+    non_key_attributes = ["GpPracticeId"]
   }
 
   point_in_time_recovery {
@@ -129,7 +129,7 @@ resource "aws_dynamodb_table" "gp_practice_table" {
   }
 
   tags = {
-    Name        = "dynamodb_table_gp_practice"
+    Name        = "DynamodbTableGpPractice"
     Environment = "dev"
   }
 }
