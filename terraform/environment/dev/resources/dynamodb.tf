@@ -36,7 +36,7 @@ resource "aws_dynamodb_table" "sdrs_table" {
     non_key_attributes = ["nhsNumber"]
   }
 
-    point_in_time_recovery {
+  point_in_time_recovery {
     enabled = true
   }
 
