@@ -134,7 +134,7 @@ resource "aws_dynamodb_table" "gp_practice_table" {
   }
 }
 
-  resource "aws_dynamodb_table" "imd_table" {
+resource "aws_dynamodb_table" "imd_table" {
   name           = "Imd"
   billing_mode   = "PROVISIONED"
   read_capacity  = 20
