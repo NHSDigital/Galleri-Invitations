@@ -32,8 +32,6 @@ resource "aws_dynamodb_table" "sdrs_table" {
     range_key          = "TelephoneNumberMobile"
     write_capacity     = 10
     read_capacity      = 10
-    projection_type    = "INCLUDE"
-    non_key_attributes = ["NhsNumber"]
   }
 
   point_in_time_recovery {
@@ -81,7 +79,6 @@ resource "aws_dynamodb_table" "participating_icb_table" {
   }
 }
 
-
 resource "aws_dynamodb_table" "gp_practice_table" {
   name           = "GpPractice"
   billing_mode   = "PROVISIONED"
@@ -116,8 +113,6 @@ resource "aws_dynamodb_table" "gp_practice_table" {
     range_key          = "Postcode"
     write_capacity     = 10
     read_capacity      = 10
-    projection_type    = "INCLUDE"
-    non_key_attributes = ["GpPracticeId"]
   }
 
   point_in_time_recovery {
@@ -157,19 +152,12 @@ resource "aws_dynamodb_table" "imd_table" {
     type = "N"
   }
 
-  attribute {
-    name = "ImdDecile"
-    type = "N"
-  }
-
   global_secondary_index {
     name               = "ImdRankImdDecileIndex"
     hash_key           = "ImdRank"
-    range_key          = "ImdDecile"
+    range_key          = "LsoaName"
     write_capacity     = 10
     read_capacity      = 10
-    projection_type    = "INCLUDE"
-    non_key_attributes = ["ImdId"]
   }
 
   point_in_time_recovery {
