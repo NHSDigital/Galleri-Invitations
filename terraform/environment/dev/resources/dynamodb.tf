@@ -27,13 +27,12 @@ resource "aws_dynamodb_table" "sdrs_table" {
   }
 
   global_secondary_index {
-    name               = "EmailPhoneIndex"
-    hash_key           = "EmailAddressHome"
-    range_key          = "TelephoneNumberMobile"
-    write_capacity     = 10
-    read_capacity      = 10
-    projection_type    = "INCLUDE"
-    non_key_attributes = ["NhsNumber"]
+    name            = "EmailPhoneIndex"
+    hash_key        = "EmailAddressHome"
+    range_key       = "TelephoneNumberMobile"
+    write_capacity  = 10
+    read_capacity   = 10
+    projection_type = "KEYS_ONLY"
   }
 
   point_in_time_recovery {
@@ -62,11 +61,6 @@ resource "aws_dynamodb_table" "participating_icb_table" {
     type = "S"
   }
 
-  ttl {
-    attribute_name = "TimeToExist"
-    enabled        = false
-  }
-
   point_in_time_recovery {
     enabled = true
   }
@@ -80,7 +74,6 @@ resource "aws_dynamodb_table" "participating_icb_table" {
     Environment = "dev"
   }
 }
-
 
 resource "aws_dynamodb_table" "gp_practice_table" {
   name           = "GpPractice"
@@ -111,13 +104,12 @@ resource "aws_dynamodb_table" "gp_practice_table" {
   }
 
   global_secondary_index {
-    name               = "AddressLine1PostcodeIndex"
-    hash_key           = "AddressLine1"
-    range_key          = "Postcode"
-    write_capacity     = 10
-    read_capacity      = 10
-    projection_type    = "INCLUDE"
-    non_key_attributes = ["GpPracticeId"]
+    name            = "AddressLine1PostcodeIndex"
+    hash_key        = "AddressLine1"
+    range_key       = "Postcode"
+    write_capacity  = 10
+    read_capacity   = 10
+    projection_type = "KEYS_ONLY"
   }
 
   point_in_time_recovery {
@@ -152,20 +144,18 @@ resource "aws_dynamodb_table" "phlebotomy_site_table" {
     type = "S"
   }
 
-
   attribute {
     name = "Postcode"
     type = "S"
   }
 
   global_secondary_index {
-    name               = "ClinicIdPostcodeIndex"
-    hash_key           = "ClinicId"
-    range_key          = "Postcode"
-    write_capacity     = 10
-    read_capacity      = 10
-    projection_type    = "INCLUDE"
-    non_key_attributes = ["ClinicId"]
+    name            = "ClinicIdPostcodeIndex"
+    hash_key        = "ClinicId"
+    range_key       = "Postcode"
+    write_capacity  = 10
+    read_capacity   = 10
+    projection_type = "KEYS_ONLY"
   }
 
   point_in_time_recovery {
@@ -178,6 +168,52 @@ resource "aws_dynamodb_table" "phlebotomy_site_table" {
 
   tags = {
     Name        = "Dynamodb Table Phlebotomy Site"
+    Environment = "dev"
+  }
+}
+
+resource "aws_dynamodb_table" "imd_table" {
+  name           = "Imd"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 20
+  hash_key       = "LsoaCode"
+  range_key      = "LsoaName"
+
+  attribute {
+    name = "LsoaCode"
+    type = "S"
+  }
+
+  attribute {
+    name = "LsoaName"
+    type = "S"
+  }
+
+  attribute {
+    name = "ImdRank"
+    type = "N"
+  }
+
+  global_secondary_index {
+    name            = "ImdRankImdDecileIndex"
+    hash_key        = "ImdRank"
+    range_key       = "LsoaName"
+    write_capacity  = 10
+    read_capacity   = 10
+    projection_type = "KEYS_ONLY"
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  server_side_encryption {
+    enabled = true
+  }
+
+  tags = {
+    Name        = "Dynamodb Table Imd"
     Environment = "dev"
   }
 }
