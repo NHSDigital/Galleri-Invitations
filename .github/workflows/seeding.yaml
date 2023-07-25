@@ -1,0 +1,16 @@
+name: Seeding data
+
+on:
+  workflow_call:
+
+jobs:
+  cicd-pipeline-test:
+    uses: ./.github/workflows/cicd-pipeline.yaml
+
+  seeding-data-stage:
+    runs-on: ubuntu-latest
+    needs:
+      [
+        cicd-pipeline-test
+      ]
+    timeout-minutes: 10
