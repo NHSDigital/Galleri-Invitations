@@ -35,6 +35,11 @@ resource "aws_dynamodb_table" "sdrs_table" {
     projection_type = "KEYS_ONLY"
   }
 
+  ttl {
+    attribute_name = "TimeToExist"
+    enabled        = false
+  }
+
   point_in_time_recovery {
     enabled = true
   }
@@ -117,6 +122,11 @@ resource "aws_dynamodb_table" "gp_practice_table" {
     projection_type = "KEYS_ONLY"
   }
 
+  ttl {
+    attribute_name = "TimeToExist"
+    enabled        = false
+  }
+
   point_in_time_recovery {
     enabled = true
   }
@@ -149,7 +159,6 @@ resource "aws_dynamodb_table" "phlebotomy_site_table" {
     type = "S"
   }
 
-
   attribute {
     name = "Postcode"
     type = "S"
@@ -162,6 +171,11 @@ resource "aws_dynamodb_table" "phlebotomy_site_table" {
     write_capacity  = 10
     read_capacity   = 10
     projection_type = "KEYS_ONLY"
+  }
+
+  ttl {
+    attribute_name = "TimeToExist"
+    enabled        = false
   }
 
   point_in_time_recovery {
@@ -208,6 +222,11 @@ resource "aws_dynamodb_table" "imd_table" {
     write_capacity  = 10
     read_capacity   = 10
     projection_type = "KEYS_ONLY"
+  }
+
+  ttl {
+    attribute_name = "TimeToExist"
+    enabled        = false
   }
 
   point_in_time_recovery {
