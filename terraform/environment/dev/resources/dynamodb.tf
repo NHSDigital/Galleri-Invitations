@@ -156,13 +156,12 @@ resource "aws_dynamodb_table" "phlebotomy_site_table" {
   }
 
   global_secondary_index {
-    name               = "ClinicIdPostcodeIndex"
-    hash_key           = "ClinicId"
-    range_key          = "Postcode"
-    write_capacity     = 10
-    read_capacity      = 10
-    projection_type    = "INCLUDE"
-    non_key_attributes = ["ClinicId"]
+    name            = "ClinicIdPostcodeIndex"
+    hash_key        = "ClinicId"
+    range_key       = "Postcode"
+    write_capacity  = 10
+    read_capacity   = 10
+    projection_type = "KEYS_ONLY"
   }
 
   point_in_time_recovery {
