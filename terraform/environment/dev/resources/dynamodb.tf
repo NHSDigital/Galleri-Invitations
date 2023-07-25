@@ -157,6 +157,11 @@ resource "aws_dynamodb_table" "imd_table" {
     type = "N"
   }
 
+  attribute {
+    name = "ImdDecile"
+    type = "N"
+  }
+
   global_secondary_index {
     name               = "ImdRankImdDecileIndex"
     hash_key           = "ImdRank"
