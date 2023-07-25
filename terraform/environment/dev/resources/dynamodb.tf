@@ -131,3 +131,50 @@ resource "aws_dynamodb_table" "gp_practice_table" {
   }
 }
 
+resource "aws_dynamodb_table" "phlebotomy_site_table" {
+  name           = "PhlebotomySite"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 20
+  hash_key       = "ClinicId"
+  range_key      = "ClinicName"
+
+  attribute {
+    name = "ClinicId"
+    type = "S"
+  }
+
+  attribute {
+    name = "ClinicName"
+    type = "S"
+  }
+
+
+  attribute {
+    name = "Postcode"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name               = "ClinicIdPostcodeIndex"
+    hash_key           = "ClinicId"
+    range_key          = "Postcode"
+    write_capacity     = 10
+    read_capacity      = 10
+    projection_type    = "INCLUDE"
+    non_key_attributes = ["ClinicId"]
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  server_side_encryption {
+    enabled = true
+  }
+
+  tags = {
+    Name        = "Dynamodb Table Phlebotomy Site"
+    Environment = "dev"
+  }
+}
