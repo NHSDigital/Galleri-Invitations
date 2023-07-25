@@ -35,11 +35,6 @@ resource "aws_dynamodb_table" "sdrs_table" {
     projection_type = "KEYS_ONLY"
   }
 
-  ttl {
-    attribute_name = "TimeToExist"
-    enabled        = false
-  }
-
   point_in_time_recovery {
     enabled = true
   }
@@ -64,11 +59,6 @@ resource "aws_dynamodb_table" "participating_icb_table" {
   attribute {
     name = "IcbCode"
     type = "S"
-  }
-
-  ttl {
-    attribute_name = "TimeToExist"
-    enabled        = false
   }
 
   point_in_time_recovery {
@@ -122,11 +112,6 @@ resource "aws_dynamodb_table" "gp_practice_table" {
     projection_type = "KEYS_ONLY"
   }
 
-  ttl {
-    attribute_name = "TimeToExist"
-    enabled        = false
-  }
-
   point_in_time_recovery {
     enabled = true
   }
@@ -173,11 +158,6 @@ resource "aws_dynamodb_table" "phlebotomy_site_table" {
     projection_type = "KEYS_ONLY"
   }
 
-  ttl {
-    attribute_name = "TimeToExist"
-    enabled        = false
-  }
-
   point_in_time_recovery {
     enabled = true
   }
@@ -222,11 +202,6 @@ resource "aws_dynamodb_table" "imd_table" {
     write_capacity  = 10
     read_capacity   = 10
     projection_type = "KEYS_ONLY"
-  }
-
-  ttl {
-    attribute_name = "TimeToExist"
-    enabled        = false
   }
 
   point_in_time_recovery {
