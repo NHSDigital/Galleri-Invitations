@@ -40,11 +40,9 @@ jobs:
     uses: ./.github/workflows/cloc-repository.yaml
   scan-dependencies:
     uses: ./.github/workflows/scan-dependencies.yaml
-  terraform:
-      uses: ./.github/workflows/terraform.yaml
   # sonarcloud-scan:
   #     uses: ./.github/workflows/sonarcloud-scan.yaml
-  cicd-pipeline-test:
+  terraform:
     runs-on: ubuntu-latest
     needs:
       [
@@ -55,6 +53,24 @@ jobs:
         check-terraform-format,
         cloc-repository,
         scan-dependencies,
+      ]
+    timeout-minutes: 10
+    steps:
+      - uses: ./.github/workflows/terraform.yaml
+  seeding-tables:
+    runs-on: ubuntu-latest
+    needs:
+      [
+        terraform
+      ]
+    timeout-minutes: 10
+    steps:
+      - uses: ./.github/workflows/seeding.yaml
+  cicd-pipeline-test:
+    runs-on: ubuntu-latest
+    needs:
+      [
+        seeding-tables
       ]
     timeout-minutes: 10
     steps:
@@ -71,12 +87,3 @@ jobs:
       # - name: Run Tests ...
       #   run: |
       #     ?
-  seeding-tables:
-    runs-on: ubuntu-latest
-    needs:
-      [
-        cicd-pipeline-test
-      ]
-    timeout-minutes: 10
-    steps:
-      - uses: ./.github/workflows/seeding.yaml
