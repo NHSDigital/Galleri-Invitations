@@ -27,11 +27,12 @@ resource "aws_dynamodb_table" "sdrs_table" {
   }
 
   global_secondary_index {
-    name           = "EmailPhoneIndex"
-    hash_key       = "EmailAddressHome"
-    range_key      = "TelephoneNumberMobile"
-    write_capacity = 10
-    read_capacity  = 10
+    name            = "EmailPhoneIndex"
+    hash_key        = "EmailAddressHome"
+    range_key       = "TelephoneNumberMobile"
+    write_capacity  = 10
+    read_capacity   = 10
+    projection_type = "KEYS_ONLY"
   }
 
   point_in_time_recovery {
@@ -108,11 +109,12 @@ resource "aws_dynamodb_table" "gp_practice_table" {
   }
 
   global_secondary_index {
-    name           = "AddressLine1PostcodeIndex"
-    hash_key       = "AddressLine1"
-    range_key      = "Postcode"
-    write_capacity = 10
-    read_capacity  = 10
+    name            = "AddressLine1PostcodeIndex"
+    hash_key        = "AddressLine1"
+    range_key       = "Postcode"
+    write_capacity  = 10
+    read_capacity   = 10
+    projection_type = "KEYS_ONLY"
   }
 
   point_in_time_recovery {
@@ -153,11 +155,12 @@ resource "aws_dynamodb_table" "imd_table" {
   }
 
   global_secondary_index {
-    name           = "ImdRankImdDecileIndex"
-    hash_key       = "ImdRank"
-    range_key      = "LsoaName"
-    write_capacity = 10
-    read_capacity  = 10
+    name            = "ImdRankImdDecileIndex"
+    hash_key        = "ImdRank"
+    range_key       = "LsoaName"
+    write_capacity  = 10
+    read_capacity   = 10
+    projection_type = "KEYS_ONLY"
   }
 
   point_in_time_recovery {
