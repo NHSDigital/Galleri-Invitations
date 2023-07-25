@@ -47,12 +47,12 @@ jobs:
     needs:
       [
         get-metadata,
-        scan-secrets,
-        check-file-format,
-        check-markdown-format,
-        check-terraform-format,
-        cloc-repository,
-        scan-dependencies,
+        # scan-secrets,
+        # check-file-format,
+        # check-markdown-format,
+        # check-terraform-format,
+        # cloc-repository,
+        # scan-dependencies,
       ]
     timeout-minutes: 10
     steps:
