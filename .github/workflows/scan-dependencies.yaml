@@ -6,7 +6,12 @@ on:
 jobs:
   scan-dependencies:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
+      - id: datetime
+        run: echo "value=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v3
       - run: |
           ./scripts/sbom-generator.sh
@@ -20,10 +25,9 @@ jobs:
         with:
           name: cve-scan.json
           path: ./cve-scan.json
-      # - uses: aws-actions/configure-aws-credentials@v2
-      #   with:
-      #     role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ vars.AWS_ROLE_NAME }}
-      #     aws-region: ${{ vars.AWS_REGION }}
-      # - run: |
-      #     aws s3 cp ./sbom-spdx.json s3://?
-      #     aws s3 cp ./cve-scan.json s3://?
+      - uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.IDP_AWS_ACCOUNT_ID }}:role/${{ secrets.IDP_AWS_ROLE_NAME }}
+          aws-region: ${{ secrets.IDP_AWS_REGION }}
+      - run: |
+          aws s3 cp ./sbom-spdx.json ${{ secrets.IDP_SBOM_BUCKET_ENDPOINT }}/${{ steps.datetime.outputs.value }}-sbom-spdx.json
