@@ -94,4 +94,4 @@ jobs:
 
       - name: seeding stage
         run: |
-          ./scripts/githooks/pipeline/seed-data.sh
+          ./scripts/pipeline/seed-data.sh
