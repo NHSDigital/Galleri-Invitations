@@ -1,11 +1,27 @@
-name: hello-world
+name: Seeding Table Data
+
 on:
   workflow_call:
+
 jobs:
-  my-job:
+  Seed-data:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
-      - name: my-step
-        run: echo "Hello World!"
+        with:
+          fetch-depth: 0
+
+      - name: Configure AWS credentials from AWS account
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHub-OIDC-TERRAFORM
+
+      - name: Seed table data
+        run: |
+            ./scripts/githooks/seed-data.sh
+
+
+
