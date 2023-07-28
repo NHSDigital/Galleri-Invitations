@@ -42,8 +42,6 @@ jobs:
   #   uses: ./.github/workflows/scan-dependencies.yaml
   terraform:
       uses: ./.github/workflows/terraform.yaml
-  seeding:
-    uses: ./.github/workflows/seeding.yaml
   # sonarcloud-scan:
   #     uses: ./.github/workflows/sonarcloud-scan.yaml
   cicd-pipeline-test:
@@ -51,6 +49,7 @@ jobs:
     needs:
       [
         get-metadata,
+        terraform
         # scan-secrets,
         # check-file-format,
         # check-markdown-format,
@@ -73,3 +72,5 @@ jobs:
       # - name: Run Tests ...
       #   run: |
       #     ?
+  seeding:
+    uses: ./.github/workflows/seeding.yaml
