@@ -28,7 +28,7 @@ function main() {
 #   if [[ "$1" =~ ^(true|yes|y|on|1|TRUE|YES|Y|ON)$ ]]; then
 #     return 0
 #   else
-#     return 1
+#     return
 #   fi
 # }
 
