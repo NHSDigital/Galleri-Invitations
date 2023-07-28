@@ -81,9 +81,9 @@ jobs:
   #     ]
   #   uses: ./.github/workflows/terraform.yaml
   seeding:
-    needs:
-      [
-        terraform,
-      ]
+    # needs:
+    #   [
+    #     terraform,
+    #   ]
     uses: ./.github/workflows/seeding.yaml
 
