@@ -130,7 +130,7 @@ jobs:
           #   }'
 
             batch-write-item --request-items \
-            PutRequest": {
+            "PutRequest": {
               "Item": {
                 "NhsNumber": {"N": "999999999"},
                 "GivenName": {"S": "Zain"},
