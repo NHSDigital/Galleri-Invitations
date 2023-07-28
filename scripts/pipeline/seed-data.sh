@@ -10,13 +10,13 @@ set -e
 # ==============================================================================
 
 function main() {
-  echo directory before download
-  ls test-data
 
   aws s3 cp s3://participating-icb/Participating_ICBs.csv ./test-data
 
-  echo directory after download
-  ls test-data
+  cat ./test-data/Participating_ICBs.csv
+
+  # need to run the csv file and package data into a .json format like
+  # the file.json below
 
   echo $PWD
   aws dynamodb batch-write-item --request-items \
