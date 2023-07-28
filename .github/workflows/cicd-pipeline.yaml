@@ -87,4 +87,10 @@ jobs:
       ]
     timeout-minutes: 10
     steps:
-      - uses: ./.github/workflows/seeding.yaml
+      - name: Git checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: seeding stage
+        uses: ./.github/workflows/seeding.yaml
