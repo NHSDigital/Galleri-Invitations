@@ -110,8 +110,7 @@ jobs:
       - name: seeding stage
         run: |
           aws dynamodb batch-write-item --request-items \
-            "Sdrs" : [
-              {
+            "Sdrs" :
                 "PutRequest": {
                   "Item": {
                     "NhsNumber": {
@@ -128,7 +127,6 @@ jobs:
                     }
                   }
                 }
-              }
-            ]
+
 
 
