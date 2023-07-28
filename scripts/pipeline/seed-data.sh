@@ -11,12 +11,12 @@ set -e
 
 function main() {
   echo directory before download
-  ls
+  ls test-data
 
   aws s3 cp s3://participating-icb/Participating_ICBs.csv ./test-data
 
   echo directory after download
-  ls
+  ls test-data
 
   echo $PWD
   aws dynamodb batch-write-item --request-items \
