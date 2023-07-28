@@ -217,3 +217,49 @@ resource "aws_dynamodb_table" "imd_table" {
     Environment = "dev"
   }
 }
+
+resource "aws_dynamodb_table" "population_table" {
+  name           = "Population"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 20
+  hash_key       = "PersonId"
+  range_key      = "LsoaCode"
+
+  attribute {
+    name = "PersonId"
+    type = "S"
+  }
+
+  attribute {
+    name = "LsoaCode"
+    type = "N"
+  }
+
+  attribute {
+    name = "NhsNumber"
+    type = "N"
+  }
+
+  global_secondary_index {
+    name            = "PersonId"
+    hash_key        = "NhsNumber"
+    range_key       = "LsoaCode"
+    write_capacity  = 10
+    read_capacity   = 10
+    projection_type = "KEYS_ONLY"
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  server_side_encryption {
+    enabled = true
+  }
+
+  tags = {
+    Name        = "Dynamodb Table Population"
+    Environment = "dev"
+  }
+}
