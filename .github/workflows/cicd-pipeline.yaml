@@ -73,7 +73,15 @@ jobs:
       #   run: |
       #     ?
   terraform:
-    uses: ./.github/workflows/terraform.yaml
+    runs-on: ubuntu-latest
+    needs:
+      [
+        cicd-pipeline-test
+      ]
+    timeout-minutes: 10
+    steps:
+      - name: Terraforming Resources
+        uses: ./.github/workflows/terraform.yaml
   seeding:
     permissions:
       id-token: write
