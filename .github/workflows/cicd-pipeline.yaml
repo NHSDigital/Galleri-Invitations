@@ -7,9 +7,6 @@ on:
       - main
     types: [opened, synchronize, reopened]
 
-env:
-  AWS_REGION: ${{ vars.AWS_REGION }}
-
 jobs:
   get-metadata:
     runs-on: ubuntu-latest
@@ -24,11 +21,16 @@ jobs:
       - id: metadata
         run: |
           datetime=$(date -u +'%Y-%m-%dT%H:%M:%S%z')
-          echo "build_datetime=$datetime" >> $GITHUB_OUTPUT
-          echo "build_timestamp=$(date --date=$datetime -u +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
-          echo "build_epoch=$(date --date=$datetime -u +'%s')" >> $GITHUB_OUTPUT
-          echo "nodejs_version=$(grep nodejs .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
-          echo "python_version=$(grep python .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
+          echo "build_datetime=$datetime"
+            >> $GITHUB_OUTPUT
+          echo "build_timestamp=$(date --date=$datetime -u +'%Y%m%d%H%M%S')"
+            >> $GITHUB_OUTPUT
+          echo "build_epoch=$(date --date=$datetime -u +'%s')"
+            >> $GITHUB_OUTPUT
+          echo "nodejs_version=$(grep nodejs .tool-versions | cut -f2 -d' ')"
+            >> $GITHUB_OUTPUT
+          echo "python_version=$(grep python .tool-versions | cut -f2 -d' ')"
+            >> $GITHUB_OUTPUT
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')"
             >> $GITHUB_OUTPUT
   scan-secrets:
@@ -84,16 +86,4 @@ jobs:
         terraform,
       ]
     uses: ./.github/workflows/seeding.yaml
-  aux:
-    runs-on: ubuntu-latest
-    needs:
-      [
-        seeding
-      ]
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v3
-      - name: Complete
-        run: |
-          echo Done
 

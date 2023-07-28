@@ -7,13 +7,6 @@ set -e
 # Usage:
 #   $ ./seed-data.sh
 #
-# Options:
-#   CHECK_ONLY=true # Do not format, run check only, default is `false`
-#   VERBOSE=true    # Show all the executed commands, default is `false`
-
-# ==============================================================================
-
-
 # ==============================================================================
 
 function main() {
@@ -23,18 +16,7 @@ function main() {
           file://$PWD/test-data/file.json
 }
 
-# function is-arg-true() {
-
-#   if [[ "$1" =~ ^(true|yes|y|on|1|TRUE|YES|Y|ON)$ ]]; then
-#     return 0
-#   else
-#     return
-#   fi
-# }
-
 # ==============================================================================
-
-# is-arg-true "$VERBOSE" && set -x
 
 main $*
 
