@@ -38,9 +38,12 @@ jobs:
   cloc-repository:
     uses: ./.github/workflows/cloc-repository.yaml
   scan-dependencies:
+    permissions:
+      id-token: write
+      contents: read
     uses: ./.github/workflows/scan-dependencies.yaml
   terraform:
-      uses: ./.github/workflows/terraform.yaml
+    uses: ./.github/workflows/terraform.yaml
   # sonarcloud-scan:
   #     uses: ./.github/workflows/sonarcloud-scan.yaml
   cicd-pipeline-test:
