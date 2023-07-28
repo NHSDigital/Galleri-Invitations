@@ -43,8 +43,6 @@ jobs:
     uses: ./.github/workflows/cloc-repository.yaml
   scan-dependencies:
     uses: ./.github/workflows/scan-dependencies.yaml
-  terraform:
-      uses: ./.github/workflows/terraform.yaml
   # sonarcloud-scan:
   #     uses: ./.github/workflows/sonarcloud-scan.yaml
   cicd-pipeline-test:
@@ -75,10 +73,16 @@ jobs:
       # - name: Run Tests ...
       #   run: |
       #     ?
-  seeding:
+  terraform:
     needs:
       [
         cicd-pipeline-test,
+      ]
+      uses: ./.github/workflows/terraform.yaml
+  seeding:
+    needs:
+      [
+        terraform,
       ]
     uses: ./.github/workflows/seeding.yaml
   aux:
