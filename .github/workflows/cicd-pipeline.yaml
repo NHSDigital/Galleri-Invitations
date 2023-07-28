@@ -110,7 +110,7 @@ jobs:
       - name: seeding stage
         run: |
           aws dynamodb batch-write-item --request-items \
-          file://$PWD/file.json
+          file://$PWD/test-data/file.json
 
 
 
