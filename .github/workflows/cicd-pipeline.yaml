@@ -73,4 +73,18 @@ jobs:
       #   run: |
       #     ?
   seeding:
-    uses: ./.github/workflows/seeding.yaml
+    runs-on: ubuntu-latest
+    needs:
+      [
+        get-metadata,
+        terraform
+        # scan-secrets,
+        # check-file-format,
+        # check-markdown-format,
+        # check-terraform-format,
+        # cloc-repository,
+        # scan-dependencies,
+      ]
+    timeout-minutes: 10
+    steps:
+      - uses: ./.github/workflows/seeding.yaml
