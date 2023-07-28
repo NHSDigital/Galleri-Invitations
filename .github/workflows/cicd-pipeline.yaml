@@ -109,5 +109,5 @@ jobs:
 
       - name: Run Seed Data Script
         run:
-          ./scripts/githooks/seed-data.sh
+          ./scripts/pipeline/seed-data.sh
 
