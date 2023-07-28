@@ -109,22 +109,31 @@ jobs:
 
       - name: seeding stage
         run: |
-          aws dynamodb put-item \
-            --table-name Sdrs  \
-            --item \
-            '{
-              "NhsNumber": {"N": "999999999"},
-              "GivenName": {"S": "Zain"},
-              "TelephoneNumberMobile": {"S": "0800800800A"},
-              "EmailAddressHome": {"S": "no_email@email.com"}
-            }'
+          # aws dynamodb transact-write-items \
+          #   --table-name Sdrs  \
+          #   --item \
+          #   '{
+          #     "NhsNumber": {"N": "999999999"},
+          #     "GivenName": {"S": "Zain"},
+          #     "TelephoneNumberMobile": {"S": "0800800800A"},
+          #     "EmailAddressHome": {"S": "no_email@email.com"}
+          #   }'
 
-            aws dynamodb put-item \
-            --table-name Sdrs  \
-            --item \
-            '{
-              "NhsNumber": {"N": "111111111"},
-              "GivenName": {"S": "Manny"},
-              "TelephoneNumberMobile": {"S": "1911911911B"},
-              "EmailAddressHome": {"S": "dummy_email@dummyemail.com"}
-            }'
+          #   aws dynamodb put-item \
+          #   --table-name Sdrs  \
+          #   --item \
+          #   '{
+          #     "NhsNumber": {"N": "111111111"},
+          #     "GivenName": {"S": "Manny"},
+          #     "TelephoneNumberMobile": {"S": "1911911911B"},
+          #     "EmailAddressHome": {"S": "dummy_email@dummyemail.com"}
+          #   }'
+
+            batch-write-item --request-items \
+            PutRequest": {
+              "Item": {
+                "NhsNumber": {"N": "999999999"},
+                "GivenName": {"S": "Zain"},
+                "TelephoneNumberMobile": {"S": "0800800800A"},
+                "EmailAddressHome": {"S": "no_email@email.com"}
+              }
