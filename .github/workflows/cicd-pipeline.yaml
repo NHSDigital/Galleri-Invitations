@@ -129,7 +129,7 @@ jobs:
           #     "EmailAddressHome": {"S": "dummy_email@dummyemail.com"}
           #   }'
 
-            batch-write-item --request-items \
+          aws dynamodb batch-write-item --request-items \
             "PutRequest": {
               "Item": {
                 "NhsNumber": {"N": "999999999"},
