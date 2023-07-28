@@ -76,29 +76,17 @@ jobs:
       #   run: |
       #     ?
   seeding:
-    permissions:
-      id-token: write
-      contents: read
+    uses: ./.github/workflows/terraform.yaml
+  aux:
     runs-on: ubuntu-latest
     needs:
       [
-        cicd-pipeline-test
+        seeding
       ]
     timeout-minutes: 10
     steps:
-      - name: Git Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Configure AWS credentials from AWS account
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-          role-session-name: GitHub-OIDC-TERRAFORM
-
-      - name: Run Seed Data Script
-        run:
-          ./scripts/pipeline/seed-data.sh
+      - uses: actions/checkout@v3
+      - name: Complete
+        run: |
+          echo Done
 
