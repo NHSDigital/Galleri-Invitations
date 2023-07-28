@@ -90,17 +90,19 @@ jobs:
       ]
     timeout-minutes: 10
     steps:
-      - name: Git checkout
+      - name: Git Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: run seed
-        uses:
-          ./.github/workflows/seeding.yaml
+      - name: Configure AWS credentials from AWS account
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHub-OIDC-TERRAFORM
 
-
-
-
-
+      - name: Run Seed Data Script
+        run:
+          ./scripts/githooks/seed-data.sh
 
