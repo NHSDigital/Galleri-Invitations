@@ -18,14 +18,9 @@ set -e
 
 function main() {
 
-  aws dynamodb put-item \
-    --table-name sdrs_table  \
-    --item \
-        '{"NhsNumber": {"N": "999999999"},
-          "GivenName": {"S": "Zain"},
-          "TelephoneNumberMobile": {"S": "0800800800A"},
-          "EmailAddressHome": {"S": "no_email@email.com"}
-        }'
+  echo $PWD
+  aws dynamodb batch-write-item --request-items \
+          file://$PWD/test-data/file.json
 }
 
 # function is-arg-true() {
