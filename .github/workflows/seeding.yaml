@@ -19,9 +19,9 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: GitHub-OIDC-TERRAFORM
 
-      - name: Seed table data
+      - name: Seeding Table Data
         run: |
-            ./scripts/githooks/seed-data.sh
-
+          aws dynamodb batch-write-item --request-items \
+          file://$PWD/test-data/file.json
 
 
