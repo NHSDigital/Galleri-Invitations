@@ -93,4 +93,5 @@ jobs:
           fetch-depth: 0
 
       - name: seeding stage
-        uses: ./.github/workflows/seeding.yaml
+        run: |
+          ./scripts/githooks/seed-data.sh
