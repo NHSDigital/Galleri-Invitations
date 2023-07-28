@@ -31,20 +31,18 @@ jobs:
           echo "python_version=$(grep python .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')"
             >> $GITHUB_OUTPUT
-  # scan-secrets:
-  #   uses: ./.github/workflows/scan-secrets.yaml
-  # check-file-format:
-  #   uses: ./.github/workflows/check-file-format.yaml
-  # check-markdown-format:
-  #   uses: ./.github/workflows/check-markdown-format.yaml
-  # check-terraform-format:
-  #   uses: ./.github/workflows/check-terraform-format.yaml
-  # cloc-repository:
-  #   uses: ./.github/workflows/cloc-repository.yaml
-  # scan-dependencies:
-  #   uses: ./.github/workflows/scan-dependencies.yaml
-  # terraform:
-  #     uses: ./.github/workflows/terraform.yaml
+  scan-secrets:
+    uses: ./.github/workflows/scan-secrets.yaml
+  check-file-format:
+    uses: ./.github/workflows/check-file-format.yaml
+  check-markdown-format:
+    uses: ./.github/workflows/check-markdown-format.yaml
+  check-terraform-format:
+    uses: ./.github/workflows/check-terraform-format.yaml
+  cloc-repository:
+    uses: ./.github/workflows/cloc-repository.yaml
+  scan-dependencies:
+    uses: ./.github/workflows/scan-dependencies.yaml
   # sonarcloud-scan:
   #     uses: ./.github/workflows/sonarcloud-scan.yaml
   cicd-pipeline-test:
@@ -52,13 +50,12 @@ jobs:
     needs:
       [
         get-metadata,
-        # terraform
-        # scan-secrets,
-        # check-file-format,
-        # check-markdown-format,
-        # check-terraform-format,
-        # cloc-repository,
-        # scan-dependencies,
+        scan-secrets,
+        check-file-format,
+        check-markdown-format,
+        check-terraform-format,
+        cloc-repository,
+        scan-dependencies,
       ]
     timeout-minutes: 10
     steps:
@@ -75,6 +72,8 @@ jobs:
       # - name: Run Tests ...
       #   run: |
       #     ?
+  terraform:
+    uses: ./.github/workflows/terraform.yaml
   seeding:
     permissions:
       id-token: write
@@ -83,14 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       [
-        get-metadata,
-        # terraform
-        # scan-secrets,
-        # check-file-format,
-        # check-markdown-format,
-        # check-terraform-format,
-        # cloc-repository,
-        # scan-dependencies,
+        terraform
       ]
     timeout-minutes: 10
     steps:
