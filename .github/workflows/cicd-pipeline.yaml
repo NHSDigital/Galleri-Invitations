@@ -31,13 +31,6 @@ jobs:
           echo "python_version=$(grep python .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')"
             >> $GITHUB_OUTPUT
-
-      - name: Configure AWS credentials from AWS account
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-          role-session-name: GitHub-OIDC-TERRAFORM
   # scan-secrets:
   #   uses: ./.github/workflows/scan-secrets.yaml
   # check-file-format:
@@ -96,12 +89,31 @@ jobs:
         # scan-dependencies,
       ]
     timeout-minutes: 10
+
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
+      - name: Configure AWS credentials from AWS account
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHub-OIDC-TERRAFORM
+
       - name: seeding stage
         run: |
-          ./scripts/pipeline/seed-data.sh
+          aws dynamodb put-item \
+            --table-name sdrs_table  \
+            --item \
+            '{"NhsNumber": {"N": "999999999"},
+              "GivenName": {"S": "Zain"},
+              "TelephoneNumberMobile": {"S": "0800800800A"},
+              "EmailAddressHome": {"S": "no_email@email.com"}
+            }'
