@@ -77,7 +77,7 @@ jobs:
     needs:
       [
         get-metadata,
-        terraform
+        # terraform
         # scan-secrets,
         # check-file-format,
         # check-markdown-format,
