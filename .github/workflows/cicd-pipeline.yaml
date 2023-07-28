@@ -81,6 +81,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       [
+        cicd-pipeline-test,
         seeding
       ]
     timeout-minutes: 10
