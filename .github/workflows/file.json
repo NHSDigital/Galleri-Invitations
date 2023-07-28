@@ -1,0 +1,21 @@
+{
+  "Sdrs" :
+    {
+      "PutRequest": {
+        "Item": {
+          "NhsNumber": {
+            "N": "999999999"
+          },
+          "GivenName": {
+            "S": "Zain"
+          },
+          "TelephoneNumberMobile": {
+            "S": "0800800800A"
+          },
+          "EmailAddressHome": {
+            "S": "no_email@email.com"
+          }
+        }
+      }
+    }
+}
