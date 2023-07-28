@@ -1,5 +1,5 @@
 {
-  "Sdrs" :
+  "Sdrs" :[
     {
       "PutRequest": {
         "Item": {
@@ -17,5 +17,24 @@
           }
         }
       }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "NhsNumber": {
+            "N": "111111111"
+          },
+          "GivenName": {
+            "S": "Mandeep"
+          },
+          "TelephoneNumberMobile": {
+            "S": "1911911911B"
+          },
+          "EmailAddressHome": {
+            "S": "some_email@live.net"
+          }
+        }
+      }
     }
+  ]
 }
