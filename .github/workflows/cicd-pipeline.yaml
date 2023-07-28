@@ -7,6 +7,9 @@ on:
       - main
     types: [opened, synchronize, reopened]
 
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+
 jobs:
   get-metadata:
     runs-on: ubuntu-latest
@@ -28,6 +31,13 @@ jobs:
           echo "python_version=$(grep python .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')"
             >> $GITHUB_OUTPUT
+
+      - name: Configure AWS credentials from AWS account
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHub-OIDC-TERRAFORM
   # scan-secrets:
   #   uses: ./.github/workflows/scan-secrets.yaml
   # check-file-format:
