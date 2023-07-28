@@ -40,8 +40,8 @@ jobs:
   #   uses: ./.github/workflows/cloc-repository.yaml
   # scan-dependencies:
   #   uses: ./.github/workflows/scan-dependencies.yaml
-  terraform:
-      uses: ./.github/workflows/terraform.yaml
+  # terraform:
+  #     uses: ./.github/workflows/terraform.yaml
   # sonarcloud-scan:
   #     uses: ./.github/workflows/sonarcloud-scan.yaml
   cicd-pipeline-test:
@@ -49,7 +49,7 @@ jobs:
     needs:
       [
         get-metadata,
-        terraform
+        # terraform
         # scan-secrets,
         # check-file-format,
         # check-markdown-format,
