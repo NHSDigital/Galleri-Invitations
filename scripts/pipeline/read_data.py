@@ -49,6 +49,7 @@ def read_file_participating_icb(file_path):
             )
     json_file = { "ParticipatingIcb" : output}
     json_object = json.dumps(json_file, indent=4)
+    print(json_object)
     # create json file
     file_location = os.getcwd() + '/test-data/participating_icb.json'
     with open(file_location, "w") as outfile:
