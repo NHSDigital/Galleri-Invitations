@@ -1,1 +1,1 @@
-python ./read_data.py
+python /scripts/pipeline/read_data.py

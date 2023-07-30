@@ -49,7 +49,7 @@ def read_file_participating_icb(file):
     json_file = { "ParticipatingIcb" : output}
     json_object = json.dumps(json_file, indent=4)
     # create json file
-    with open("../../test-data/participating_icb.json", "w") as outfile:
+    with open("/test-data/participating_icb.json", "w") as outfile:
         outfile.write(json_object)
 
 read_file_participating_icb('Participating_ICBs.csv')
