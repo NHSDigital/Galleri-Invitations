@@ -1,5 +1,6 @@
 import csv
 import json
+import os
 
 # format
 # {
@@ -52,4 +53,5 @@ def read_file_participating_icb(file):
     with open("/test-data/participating_icb.json", "w") as outfile:
         outfile.write(json_object)
 
-read_file_participating_icb('Participating_ICBs.csv')
+path_to_file = os.getcwd() + '/Participating_ICBs.csv'
+read_file_participating_icb(path_to_file)
