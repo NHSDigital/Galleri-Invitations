@@ -27,21 +27,21 @@ def read_file_participating_icb(file_path):
         csvreader = csv.reader(file)
         output = []
         for row in csvreader:
-            iD = str(row[0])
-            icbCode = str(row[1])
-            board = str(row[2])
+            Id = str(row[0])
+            IcbCode = str(row[1])
+            Board = str(row[2])
             output.append(
                 {
                     "PutRequest": {
                         "Item": {
-                            "id": {
-                                "N": f"{iD}"
+                            "Id": {
+                                "N": f"{Id}"
                             },
-                            "icbCode": {
-                                "S": f"{icbCode}"
+                            "IcbCode": {
+                                "S": f"{IcbCode}"
                             },
-                            "board": {
-                                "S": f"{board}"
+                            "Board": {
+                                "S": f"{Board}"
                             }
                         }
                     }
