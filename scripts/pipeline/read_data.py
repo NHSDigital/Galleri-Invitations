@@ -22,8 +22,8 @@ import os
 #     }
 # }
 
-def read_file_participating_icb(file):
-    with open(f"./{file}", 'r') as file:
+def read_file_participating_icb(file_path):
+    with open(file_path, 'r') as file:
         csvreader = csv.reader(file)
         output = []
         for row in csvreader:
@@ -53,5 +53,5 @@ def read_file_participating_icb(file):
     with open("/test-data/participating_icb.json", "w") as outfile:
         outfile.write(json_object)
 
-path_to_file = os.getcwd() + '/Participating_ICBs.csv'
+path_to_file = os.getcwd() + 'test-data/Participating_ICBs.csv'
 read_file_participating_icb(path_to_file)
