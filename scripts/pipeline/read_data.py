@@ -23,7 +23,7 @@ import os
 # }
 
 def read_file_participating_icb(file_path):
-    with open(file_path, 'r') as file:
+    with open(file_path, 'r', encoding='utf-8-sig') as file:
         csvreader = csv.reader(file)
         output = []
         for row in csvreader:
