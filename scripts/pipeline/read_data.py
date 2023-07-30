@@ -53,5 +53,5 @@ def read_file_participating_icb(file_path):
     with open("/test-data/participating_icb.json", "w") as outfile:
         outfile.write(json_object)
 
-path_to_file = os.getcwd() + 'test-data/Participating_ICBs.csv'
+path_to_file = os.getcwd() + '/test-data/Participating_ICBs.csv'
 read_file_participating_icb(path_to_file)
