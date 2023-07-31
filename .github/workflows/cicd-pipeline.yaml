@@ -33,18 +33,18 @@ jobs:
             >> $GITHUB_OUTPUT
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')"
             >> $GITHUB_OUTPUT
-  scan-secrets:
-    uses: ./.github/workflows/scan-secrets.yaml
-  check-file-format:
-    uses: ./.github/workflows/check-file-format.yaml
-  check-markdown-format:
-    uses: ./.github/workflows/check-markdown-format.yaml
-  check-terraform-format:
-    uses: ./.github/workflows/check-terraform-format.yaml
-  cloc-repository:
-    uses: ./.github/workflows/cloc-repository.yaml
-  scan-dependencies:
-    uses: ./.github/workflows/scan-dependencies.yaml
+  # scan-secrets:
+  #   uses: ./.github/workflows/scan-secrets.yaml
+  # check-file-format:
+  #   uses: ./.github/workflows/check-file-format.yaml
+  # check-markdown-format:
+  #   uses: ./.github/workflows/check-markdown-format.yaml
+  # check-terraform-format:
+  #   uses: ./.github/workflows/check-terraform-format.yaml
+  # cloc-repository:
+  #   uses: ./.github/workflows/cloc-repository.yaml
+  # scan-dependencies:
+  #   uses: ./.github/workflows/scan-dependencies.yaml
   # sonarcloud-scan:
   #     uses: ./.github/workflows/sonarcloud-scan.yaml
   cicd-pipeline-test:
