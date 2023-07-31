@@ -1,9 +1,4 @@
-import csv
-import json
-import os
-
 from scripts.pipeline.data_cleanse.generate_participating_icb_data import format_dynamodb_json
-
 
 test_csv_data = [
     [1, 'AAA', 'NHS test board'],

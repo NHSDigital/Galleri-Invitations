@@ -14,16 +14,9 @@ function main() {
 
   aws s3 cp s3://participating-icb/Participating_ICBs.csv ./test-data
 
-  echo printing directory root
-  ls
-
-  echo printing test data directory
-
-  ls $PWD/test-data/
-
   source $PWD/scripts/pipeline/create-data-files.sh
 
-  echo Finished creating data
+  echo Succefully created data
 
   aws dynamodb batch-write-item --request-items \
           file://$PWD/test-data/participating_icb.json
