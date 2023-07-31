@@ -17,7 +17,7 @@ function main() {
   ls
 
   echo printing test data directory
-  ls test-data/
+  ls $PWD/test-data/
 
   source $PWD/scripts/pipeline/create-data-files.sh
 
