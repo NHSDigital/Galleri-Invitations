@@ -11,7 +11,6 @@ set -e
 
 function main() {
 
-  echo $PWD
   aws dynamodb batch-write-item --request-items \
           file://$PWD/test-data/file.json
 }
