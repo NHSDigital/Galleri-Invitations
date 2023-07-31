@@ -10,6 +10,7 @@ set -e
 # ==============================================================================
 
 function main() {
+  mkdir test-data
 
   aws s3 cp s3://participating-icb/Participating_ICBs.csv ./test-data
 
@@ -17,6 +18,7 @@ function main() {
   ls
 
   echo printing test data directory
+
   ls $PWD/test-data/
 
   source $PWD/scripts/pipeline/create-data-files.sh
