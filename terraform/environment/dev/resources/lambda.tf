@@ -64,7 +64,7 @@ data "archive_file" "data_filter_gridall_imd_lambda" {
 }
 
 resource "aws_s3_object" "data_filter_gridall_imd_lambda" {
-  bucket = aws_s3_bucket.lambda_bucket.id
+  bucket = aws_s3_bucket.galleri_lambda_bucket.id
 
   key    = "data_filter_gridall_imd.zip"
   source = data.archive_file.data_filter_gridall_imd_lambda.output_path
