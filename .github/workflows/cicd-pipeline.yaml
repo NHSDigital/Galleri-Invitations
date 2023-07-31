@@ -88,8 +88,10 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.10.12'
+
       - name: Run python unit test
         run: |
+            pip install pytest
             python -m pytest ./scripts/pipeline/unit_tests/test_generate_participating_icb_data.py
   terraform:
     needs:
