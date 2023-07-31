@@ -2,26 +2,6 @@ import csv
 import json
 import os
 
-# format
-# {
-#     "PutRequest": {
-#     "Item": {
-#         "NhsNumber": {
-#         "N": "999999999"
-#         },
-#         "GivenName": {
-#         "S": "Zain"
-#         },
-#         "TelephoneNumberMobile": {
-#         "S": "0800800800A"
-#         },
-#         "EmailAddressHome": {
-#         "S": "no_email@email.com"
-#         }
-#     }
-#     }
-# }
-
 def generate_participating_icb_json(file_path, table_name):
     with open(file_path, 'r', encoding='utf-8-sig') as file:
         csvreader = csv.reader(file)
@@ -39,7 +19,8 @@ def generate_participating_icb_json(file_path, table_name):
 
 def format_dynamodb_json(csvreader):
     output = []
-    # extract relavant information from row and format
+
+    # extract relevant information from row and format
     # in dynamodb json
     for row in csvreader:
         Id = str(row[0])

@@ -96,7 +96,6 @@ jobs:
   terraform:
     needs:
       [
-
         unit-test
       ]
     uses: ./.github/workflows/terraform.yaml
