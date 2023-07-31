@@ -38,6 +38,7 @@ resource "aws_iam_role_policy_attachment" "data_filter_gridall_imd_policy" {
 
 resource "aws_lambda_function" "data_filter_gridall_imd" {
   function_name = "dataFilterLambda"
+  filename      = data.archive_file.data_filter_gridall_imd_lambda.output_path
 
   s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
   s3_key    = aws_s3_object.data_filter_gridall_imd_lambda.key
@@ -59,7 +60,7 @@ resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
 data "archive_file" "data_filter_gridall_imd_lambda" {
   type = "zip"
 
-  source_file = "${path.root}/data_filter_gridall_imd"
+  source_file = "${path.root}/lambda/imdGridal/dataFilterLambda"
   output_path = "${path.root}/data_filter_gridall_imd.zip"
 }
 
