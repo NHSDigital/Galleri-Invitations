@@ -59,8 +59,8 @@ resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
 data "archive_file" "data_filter_gridall_imd_lambda" {
   type = "zip"
 
-  source_file = "../${path.module}/data_filter_gridall_imd"
-  output_path = "../${path.module}/data_filter_gridall_imd.zip"
+  source_file = "${path.root}/data_filter_gridall_imd"
+  output_path = "${path.root}/data_filter_gridall_imd.zip"
 }
 
 resource "aws_s3_object" "data_filter_gridall_imd_lambda" {
