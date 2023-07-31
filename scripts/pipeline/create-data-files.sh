@@ -1,1 +1,1 @@
-python $PWD/scripts/pipeline/read_data.py
+python $PWD/scripts/pipeline/generate_participating_icb_data.py
