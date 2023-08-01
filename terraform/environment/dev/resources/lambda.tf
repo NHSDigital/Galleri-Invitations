@@ -33,7 +33,7 @@ resource "aws_iam_role" "data_filter_gridall_imd" {
 
 resource "aws_iam_role_policy_attachment" "data_filter_gridall_imd_policy" {
   role       = aws_iam_role.data_filter_gridall_imd.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+  policy_arn = "arn:aws:iam::136293001324:role/github-oidc-invitations-role"
 }
 
 resource "aws_lambda_function" "data_filter_gridall_imd" {
