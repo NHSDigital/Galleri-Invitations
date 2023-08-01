@@ -16,7 +16,7 @@ function main() {
 
   source $PWD/scripts/pipeline/create-data-files.sh
 
-  echo Succefully created data
+  echo Succefully created test data
 
   aws dynamodb batch-write-item --request-items \
           file://$PWD/test-data/participating_icb.json
