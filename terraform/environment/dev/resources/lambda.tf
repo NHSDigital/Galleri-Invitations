@@ -61,7 +61,7 @@ data "archive_file" "data_filter_gridall_imd_lambda" {
   type = "zip"
 
   source_file = "./lambda/imdGridal/dataFilterLambda"
-  output_path = "./data_filter_gridall_imd.zip"
+  output_path = "./lambda/data_filter_gridall_imd.zip"
 }
 
 resource "aws_s3_object" "data_filter_gridall_imd_lambda" {
