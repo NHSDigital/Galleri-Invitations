@@ -54,10 +54,13 @@ jobs:
       - name: Terraform Destroy
         id: destroy
         run: |
+          echo ----------------
           echo terraform destroy pwd
           pwd
-          echo whats in folder
-          ls
+          echo ----------------
+          echo whats in imdGridallfolder
+          ls imdGridall/
+          echo ----------------
           terraform destroy -auto-approve
 
       - name: Terraform Validate
