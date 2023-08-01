@@ -70,6 +70,7 @@ resource "aws_lambda_function" "data_filter_gridall_imd" {
   s3_key    = aws_s3_object.data_filter_gridall_imd_lambda.key
 
   source_code_hash = data.archive_file.data_filter_gridall_imd_lambda.output_base64sha256
+  depends_on       = [archive_file.data_filter_gridall_imd_lambda]
 }
 
 resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
