@@ -58,8 +58,8 @@ jobs:
           echo terraform destroy pwd
           pwd
           echo ----------------
-          echo whats in imdGridallfolder
-          ls imdGridall/
+          echo whats in the current directory
+          ls
           echo ----------------
           terraform destroy -auto-approve
 
