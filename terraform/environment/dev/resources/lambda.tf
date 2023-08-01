@@ -16,19 +16,19 @@ resource "aws_iam_role" "data_filter_gridall_imd" {
   name = "data-filter-gridall-imd"
 
   assume_role_policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-POLICY
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Principal": {
+          "Service": "lambda.amazonaws.com"
+        },
+        "Action": "sts:AssumeRole"
+      }
+    ]
+  }
+  POLICY
 }
 
 resource "aws_iam_role_policy_attachment" "data_filter_gridall_imd_policy" {
@@ -60,8 +60,8 @@ resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
 data "archive_file" "data_filter_gridall_imd_lambda" {
   type = "zip"
 
-  source_file = "${path.module}/lambda/imdGridal/dataFilterLambda"
-  output_path = "${path.module}/lambda/data_filter_gridall_imd.zip"
+  source_file = "${path.module}/lambda/imdGridal/dataFilterLambda.js"
+  output_path = "${path.module}/lambda/imdGridal/dataFilterLambda.zip"
 }
 
 resource "aws_s3_object" "data_filter_gridall_imd_lambda" {
