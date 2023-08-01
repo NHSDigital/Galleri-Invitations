@@ -60,6 +60,13 @@ resource "aws_iam_role_policy_attachment" "data_filter_gridall_imd_policy" {
   policy_arn = aws_iam_policy.iam_policy_for_lambda.arn
 }
 
+data "archive_file" "data_filter_gridall_imd_lambda" {
+  type = "zip"
+
+  source_dir  = "${path.root}/../lambda/imdGridall/"
+  output_path = "${path.root}/../lambda/imdGridall/dataFilterLambda.zip"
+}
+
 resource "aws_lambda_function" "data_filter_gridall_imd" {
   function_name = "dataFilterLambda"
   role          = aws_iam_role.data_filter_gridall_imd.arn
@@ -77,13 +84,6 @@ resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
   name = "/aws/lambda/${aws_lambda_function.data_filter_gridall_imd.function_name}"
 
   retention_in_days = 14
-}
-
-data "archive_file" "data_filter_gridall_imd_lambda" {
-  type = "zip"
-
-  source_dir  = "${path.root}/../lambda/imdGridall/"
-  output_path = "${path.root}/../lambda/imdGridall/dataFilterLambda.zip"
 }
 
 
