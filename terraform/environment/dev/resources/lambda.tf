@@ -37,7 +37,6 @@ resource "aws_iam_role_policy_attachment" "data_filter_gridall_imd_policy" {
 }
 
 resource "aws_lambda_function" "data_filter_gridall_imd" {
-  filename      = data.archive_file.data_filter_gridall_imd_lambda.output_path
   function_name = "dataFilterLambda"
   role          = aws_iam_role.data_filter_gridall_imd.arn
   handler       = "function.handler"
