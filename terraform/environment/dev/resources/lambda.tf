@@ -37,18 +37,16 @@ resource "aws_iam_role_policy_attachment" "data_filter_gridall_imd_policy" {
 }
 
 resource "aws_lambda_function" "data_filter_gridall_imd" {
-  function_name = "dataFilterLambda"
   filename      = data.archive_file.data_filter_gridall_imd_lambda.output_path
+  function_name = "dataFilterLambda"
+  role          = aws_iam_role.data_filter_gridall_imd.arn
+  handler       = "function.handler"
+  runtime       = "nodejs18.x"
 
   s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
   s3_key    = aws_s3_object.data_filter_gridall_imd_lambda.key
 
-  runtime = "nodejs18.x"
-  handler = "function.handler"
-
   source_code_hash = data.archive_file.data_filter_gridall_imd_lambda.output_base64sha256
-
-  role = aws_iam_role.data_filter_gridall_imd.arn
 }
 
 resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
@@ -60,9 +58,10 @@ resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
 data "archive_file" "data_filter_gridall_imd_lambda" {
   type = "zip"
 
-  source_file = "${path.cwd}/dataFilterLambda"
-  output_path = "/home/runner/work/Galleri-Invitations/Galleri-Invitations/lambda/imdGridalldataFilterLambda.zip"
+  source_file = "${path.cwd}/../lambda/imdGridall/dataFilterLambda"
+  output_path = "${path.cwd}/../lambda/imdGridall/dataFilterLambda.zip"
 }
+
 
 resource "aws_s3_object" "data_filter_gridall_imd_lambda" {
   bucket = aws_s3_bucket.galleri_lambda_bucket.id
