@@ -31,9 +31,33 @@ resource "aws_iam_role" "data_filter_gridall_imd" {
   POLICY
 }
 
+resource "aws_iam_policy" "iam_policy_for_lambda" {
+
+  name        = "aws_iam_policy_for_terraform_aws_lambda_role"
+  path        = "/"
+  description = "AWS IAM Policy for managing aws lambda role"
+  policy      = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:*:*:*",
+      "Effect": "Allow"
+    }
+  ]
+}
+EOF
+}
+
+
 resource "aws_iam_role_policy_attachment" "data_filter_gridall_imd_policy" {
   role       = aws_iam_role.data_filter_gridall_imd.name
-  policy_arn = "arn:aws:iam::136293001324:role/github-oidc-invitations-role"
+  policy_arn = aws_iam_policy.iam_policy_for_lambda.arn
 }
 
 resource "aws_lambda_function" "data_filter_gridall_imd" {
