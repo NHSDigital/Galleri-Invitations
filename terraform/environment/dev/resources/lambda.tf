@@ -63,8 +63,8 @@ resource "aws_iam_role_policy_attachment" "data_filter_gridall_imd_policy" {
 data "archive_file" "data_filter_gridall_imd_lambda" {
   type = "zip"
 
-  source_dir  = "${path.root}/../lambda/imdGridall/"
-  output_path = "${path.root}/../lambda/imdGridall/dataFilterLambda.zip"
+  source_dir  = "../${path.module}/lambda/imdGridall/"
+  output_path = "../${path.module}/lambda/imdGridall/dataFilterLambda.zip"
 }
 
 resource "aws_lambda_function" "data_filter_gridall_imd" {
