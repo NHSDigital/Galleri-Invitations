@@ -5,6 +5,7 @@ on:
   pull_request:
     branches:
       - main
+      - develop*
     types: [opened, synchronize, reopened]
 
 jobs:
@@ -74,10 +75,29 @@ jobs:
       # - name: Run Tests ...
       #   run: |
       #     ?
+  unit-test:
+    runs-on: ubuntu-latest
+    needs:
+      [
+      cicd-pipeline-test
+      ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up the python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10.12'
+
+      - name: Run python unit test
+        run: |
+            pip install pytest
+            python -m pytest ./scripts/pipeline/unit_tests/test_generate_participating_icb_data.py
   terraform:
     needs:
       [
-        cicd-pipeline-test,
+        unit-test
       ]
     uses: ./.github/workflows/terraform.yaml
   seeding:
