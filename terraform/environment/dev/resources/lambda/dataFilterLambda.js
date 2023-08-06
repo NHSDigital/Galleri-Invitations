@@ -62,7 +62,7 @@ const parseCsvToArray = async (csvString) => {
           // console.log('Row = '+ JSON.stringify(gridall_element, null, 4) + '\at Row number = ' + row_counter +
           //   '\nCumulative Total = ' + participating_postcode_counter)
           dataArray.push(gridall_element);
-          if (participating_postcode_counter % 10000 == 0) {
+          if (participating_postcode_counter % 50000 == 0) {
             console.log(`Currently at ${participating_postcode_counter}`)
           }
         }
@@ -139,18 +139,18 @@ const uploadStream = (s3, { Bucket, Key }) => {
 
 
 export const handler = async () => {
-  const dataArrayChunk1 = []
-  const dataArrayChunk2 = []
-  const dataArrayChunk3 = []
+  let dataArrayChunk1 = []
+  let dataArrayChunk2 = []
+  let dataArrayChunk3 = []
+  const bucketName = "galleri-ons-data";
   // Chunk 1
   try {
-      const bucketName = "galleri-ons-data";
       const key = "gridall/chunk_data/chunk_1.csv";
 
       console.log("ENTERING CHUNK 1")
       const csvStringChunk1 = await readCsvFromS3(bucketName, key);
 
-      console.log("DONE READING CHUNK 2. NOW PARSING")
+      console.log("DONE READING CHUNK 1. NOW PARSING")
       dataArrayChunk1 = await parseCsvToArray(csvStringChunk1);
       console.log("Array of CSV rows:", dataArrayChunk1.length);
     } catch (error) {
@@ -159,14 +159,13 @@ export const handler = async () => {
 
   // Chunk 2
   try {
-      const bucketName = "galleri-ons-data";
       const key = "gridall/chunk_data/chunk_2.csv";
 
       console.log("ENTERING CHUNK 2")
       const csvStringChunk2 = await readCsvFromS3(bucketName, key);
 
       console.log("DONE READING CHUNK 2.- NOW PARSING")
-      dataArrayChunk2 = await parseCsvToArray(csvStringChunk2);
+      dataArrayChunk2 = await parseCsvToArray(csvStringChunk2)
       console.log("Array of CSV rows:", dataArrayChunk2.length);
     } catch (error) {
       console.error("Error in Chunk_2:", error);
@@ -174,14 +173,13 @@ export const handler = async () => {
 
   // Chunk 3
   try {
-    const bucketName = "galleri-ons-data";
     const key = "gridall/chunk_data/chunk_3.csv";
 
     console.log("ENTERING CHUNK 3")
-    csvStringChunk3 = await readCsvFromS3(bucketName, key);
+    const csvStringChunk3 = await readCsvFromS3(bucketName, key);
 
     console.log("DONE READING CHUNK 3. NOW PARSING")
-    const dataArrayChunk3 = await parseCsvToArray(csvStringChunk3);
+    dataArrayChunk3 = await parseCsvToArray(csvStringChunk3);
     console.log("Array of CSV rows:", dataArrayChunk3.length);
   } catch (error) {
     console.error("Error in Chunk_3:", error);
@@ -192,35 +190,15 @@ export const handler = async () => {
   console.log(`Total number of participating postcodes ${combinedData.length}`)
 
   const filteredGridallFileString = generateCsvString(combinedData)
-  // Upload the file to S3
-  try {
-    try {
-      writeToFile(filteredGridallFileString)
-    } catch (error) {
-      console.error('failed trying to write csv to file', error)
-    }
-
-    const { writeStream, promise } =
-      uploadStream(client, {Bucket: 'galleri-ons-data', Key: 'gridall/tempFilteredGridallFile.csv'});
-    const readStream = fs.createReadStream('/tmp/tempFilteredGridallFile.csv');
-
-    const pipeline = readStream.pipe(writeStream);
-
-    promise.then(() => {
-      console.log('upload completed successfully');
-    }).catch((err) => {
-      console.log('upload failed.', err.message);
-    });
-  } catch (error) {
-    console.error('failed trying to upload filtered Gridall file to s3', error)
-  }
+  const firstCoupleLines = filteredGridallFileString.slice(0, 500);
+  console.log(firstCoupleLines)
 
   // Upload the file to S3
   console.log('attempting upload')
   const command = new PutObjectCommand({
     Bucket: "galleri-ons-data",
     Key: "filteredGridallFile.csv",
-    Body: /tmp/filteredGridallFileString.csv,
+    Body: filteredGridallFileString,
   });
 
   try {
@@ -233,5 +211,5 @@ export const handler = async () => {
     console.error(err);
   }
 
-  }
+}
 
