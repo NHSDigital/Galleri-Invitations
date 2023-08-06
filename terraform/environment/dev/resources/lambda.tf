@@ -38,7 +38,6 @@ resource "aws_iam_policy" "iam_policy_for_lambda" {
   description = "AWS IAM Policy for managing aws lambda role"
   policy      = <<EOF
 {
-  "Version": "2012-10-17",
   "Statement": [
     {
       "Action": [
@@ -46,10 +45,21 @@ resource "aws_iam_policy" "iam_policy_for_lambda" {
         "logs:CreateLogStream",
         "logs:PutLogEvents"
       ],
-      "Resource": "arn:aws:logs:*:*:*",
-      "Effect": "Allow"
+      "Effect": "Allow",
+      "Resource": "arn:aws:logs:*:*:*"
+    },
+    {
+      "Sid": "AllowS3Access",
+      "Effect": "Allow",
+      "Action": [
+        "s3:*"
+      ],
+      "Resource": [
+        "arn:aws:s3:::galleri-ons-data"
+      ]
     }
-  ]
+  ],
+  "Version": "2012-10-17"
 }
 EOF
 }
@@ -63,15 +73,35 @@ resource "aws_iam_role_policy_attachment" "data_filter_gridall_imd_policy" {
 data "archive_file" "data_filter_gridall_imd_lambda" {
   type = "zip"
 
-  source_dir  = "../${path.module}/lambda/imdGridall/"
-  output_path = "../${path.module}/lambda/imdGridall/dataFilterLambda.zip"
+  source_dir  = "${path.cwd}/lambda/"
+  output_path = "${path.cwd}/lambda/dataFilterLambda.zip"
+}
+
+# Provisioner to install dependencies in lambda package before upload it.
+resource "null_resource" "main" {
+
+  triggers = {
+    updated_at = timestamp()
+  }
+
+  # remove the provisioner and just ensure you run npm install locally
+  provisioner "local-exec" {
+    command = <<EOF
+    # npm install
+    EOF
+
+    working_dir = "${path.module}/lambda"
+  }
 }
 
 resource "aws_lambda_function" "data_filter_gridall_imd" {
   function_name = "dataFilterLambda"
   role          = aws_iam_role.data_filter_gridall_imd.arn
-  handler       = "function.handler"
+  handler       = "dataFilterLambda.handler"
   runtime       = "nodejs18.x"
+  timeout       = 900
+  memory_size   = 4096
+
 
   s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
   s3_key    = aws_s3_object.data_filter_gridall_imd_lambda.key
