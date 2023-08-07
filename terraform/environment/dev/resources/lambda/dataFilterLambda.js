@@ -1,7 +1,6 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
 import csv from 'csv-parser';
-import fs from 'fs'
 
 const client = new S3Client({});
 
@@ -12,7 +11,6 @@ const participatingIcbs = new Set([
   'QU9', 'QNQ', 'QXU', 'QNX'
 ]);
 
-
 const readCsvFromS3 = async (bucketName, key) => {
   const command = new GetObjectCommand({
     Bucket: bucketName,
@@ -21,195 +19,134 @@ const readCsvFromS3 = async (bucketName, key) => {
 
   const response = await client.send(command);
 
-  // The Body object also has 'transformToByteArray' and 'transformToWebStream' methods.
-  // const str = await response.Body.transformToString();
-
   return response.Body.transformToString();
 };
 
-const parseCsvToArray = async (csvString) => {
-  let dataArray = [];
-  let row_counter = 0
-  let participating_postcode_counter = 0
+const pushCsvToS3 = async (bucketName, key, body) => {
+  const command = new PutObjectCommand({
+    Bucket: bucketName,
+    Key: key,
+    Body: body,
+  });
+
+  try {
+    const response = await client.send(command);
+    console.log('Succeeded');
+    return response;
+  } catch (err) {
+    console.log('Failed', err);
+    throw err;
+  }
+};
+
+const parseCsvToArray = async (csvString, processFunction) => {
+  const dataArray = [];
+  let row_counter = 0;
+  let participating_counter = 0;
+
   return new Promise((resolve, reject) => {
     Readable.from(csvString)
       .pipe(csv())
       .on("data", (row) => {
-        // Only including data with; an active postcode, in England and part of a participating ICB
-        row_counter++
-        if (row.DOTERM === '' && row.CTRY === 'E92000001' && participatingIcbs.has(row.ICB) ) {
-          // remove columns that are not needed
-          participating_postcode_counter++
-
-          const gridall_element = {
-            "POSTCODE" : row.PCD2,
-            "POSTCODE_2" : row.PCDS,
-            "LOCAL_AUT_ORG" : row.ODSLAUA,
-            "NHS_ENG_REGION" : row.NHSER,
-            "SUB_ICB" : row.SICB,
-            "CANCER_REGISTRY" : row.CANREG,
-            "EASTING_1M" : row.OSEAST1M,
-            "NORTHING_1M" : row.OSNRTH1M,
-            "LSOA_2011" : row.LSOA11,
-            "MSOA_2011": row.MSOA11,
-            "CANCER_ALLIANCE" : row.CALNCV,
-            "ICB" : row.ICB,
-            "OA_2021" : row.OA21,
-            "LSOA_2021" : row.LSOA21,
-            "MSOA_2021" : row.MSOA21
-          }
-
-          // console.log('Row = '+ JSON.stringify(gridall_element, null, 4) + '\at Row number = ' + row_counter +
-          //   '\nCumulative Total = ' + participating_postcode_counter)
-          dataArray.push(gridall_element);
-          if (participating_postcode_counter % 50000 == 0) {
-            console.log(`Currently at ${participating_postcode_counter}`)
-          }
-        }
+        row_counter++;
+        participating_counter = processFunction(dataArray, row, participating_counter);
       })
       .on("end", () => {
-        console.log("CSV parsing finished, \nRow count = " + row_counter +
-          "\nNumber of postcodes highlighted = " + participating_postcode_counter);
-          resolve(dataArray)
+        console.log("CSV parsing finished, \nRow count =", row_counter, "\nNumber of participating items =", participating_counter);
+        resolve(dataArray);
       })
       .on("error", (err) => {
-        reject(err); // Reject the promise with the error if any error occurs during parsing
+        reject(err);
       });
-    })
-  // return dataArray;
+  });
 };
 
-const generateCsvString = (filteredGridallArray) => {
-  return [
-    [
-      "POSTCODE",
-      "POSTCODE_2",
-      "LOCAL_AUT_ORG",
-      "NHS_ENG_REGION",
-      "SUB_ICB",
-      "CANCER_REGISTRY",
-      "EASTING_1M",
-      "NORTHING_1M",
-      "LSOA_2011",
-      "MSOA_2011",
-      "CANCER_ALLIANCE",
-      "ICB",
-      "OA_2021",
-      "LSOA_2021",
-      "MSOA_2021"
-    ],
-    ...filteredGridallArray.map(element => [
-      element.POSTCODE,
-      element.POSTCODE_2,
-      element.LOCAL_AUT_ORG,
-      element.NHS_ENG_REGION,
-      element.SUB_ICB,
-      element.CANCER_REGISTRY,
-      element.EASTING_1M,
-      element.NORTHING_1M,
-      element.LSOA_2011,
-      element.MSOA_2011,
-      element.CANCER_ALLIANCE,
-      element.ICB,
-      element.OA_2021,
-      element.LSOA_2021,
-      element.MSOA_2021
-    ])
-  ]
-  .map(e => e.join(","))
-  .join("\n");
-}
+const processGridallRow = (dataArray, row, participating_counter) => {
+  if (row.DOTERM === '' && row.CTRY === 'E92000001' && participatingIcbs.has(row.ICB) ){
 
-const writeToFile = (csvString) => {
-  try {
-    fs.writeFileSync('/tmp/tempFilteredGridallFile.csv', csvString);
-    // file written successfully
-  } catch (err) {
-    console.error(err);
+    const gridall_element = {
+      "POSTCODE" : row.PCD2,
+      "POSTCODE_2" : row.PCDS,
+      "LOCAL_AUT_ORG" : row.ODSLAUA,
+      "NHS_ENG_REGION" : row.NHSER,
+      "SUB_ICB" : row.SICB,
+      "CANCER_REGISTRY" : row.CANREG,
+      "EASTING_1M" : row.OSEAST1M,
+      "NORTHING_1M" : row.OSNRTH1M,
+      "LSOA_2011" : row.LSOA11,
+      "MSOA_2011": row.MSOA11,
+      "CANCER_ALLIANCE" : row.CALNCV,
+      "ICB" : row.ICB,
+      "OA_2021" : row.OA21,
+      "LSOA_2021" : row.LSOA21,
+      "MSOA_2021" : row.MSOA21
+    };
+
+    dataArray.push(gridall_element);
+    participating_counter++;
   }
-}
+  return participating_counter;
+};
 
-const uploadStream = (s3, { Bucket, Key }) => {
-  const pass = new stream.PassThrough();
-  return {
-    writeStream: pass,
-    promise: s3.upload({ Bucket, Key, Body: pass }).promise(),
+const processImdRow = (dataArray, row, participating_counter) => {
+  const IMD_RANK = row['Index of Multiple Deprivation (IMD) Rank'].replace(/,/g, '')
+
+  // remove columns that are not needed
+  const imd_element = {
+    "LSOA_CODE" : Object.values(row)[0], // has a weird character at the beginning
+    "LSOA_NAME" : row['LSOA name (2011)'],
+    "IMD_RANK" : IMD_RANK,
+    "IMD_DECILE" : row['Index of Multiple Deprivation (IMD) Decile']
   };
-}
 
+  dataArray.push(imd_element);
+  participating_counter++;
+};
+
+const generateCsvString = (header, dataArray) => {
+  return [
+    header,
+    ...dataArray.map(element => Object.values(element).join(","))
+  ].join("\n");
+};
 
 export const handler = async () => {
-  let dataArrayChunk1 = []
-  let dataArrayChunk2 = []
-  let dataArrayChunk3 = []
   const bucketName = "galleri-ons-data";
-  // Chunk 1
+
   try {
-      const key = "gridall/chunk_data/chunk_1.csv";
+    const gridallKeys = [
+      "gridall/chunk_data/chunk_1.csv",
+      "gridall/chunk_data/chunk_2.csv",
+      "gridall/chunk_data/chunk_3.csv"
+    ];
 
-      console.log("ENTERING CHUNK 1")
-      const csvStringChunk1 = await readCsvFromS3(bucketName, key);
+    const gridallPromises = gridallKeys.map(async (gridallKey) => {
+      const gridallCsvString = await readCsvFromS3(bucketName, gridallKey);
+      return parseCsvToArray(gridallCsvString, processGridallRow);
+    });
 
-      console.log("DONE READING CHUNK 1. NOW PARSING")
-      dataArrayChunk1 = await parseCsvToArray(csvStringChunk1);
-      console.log("Array of CSV rows:", dataArrayChunk1.length);
-    } catch (error) {
-      console.error("Error in Chunk_1:", error);
-    }
+    const gridallDataArrayChunks = await Promise.all(gridallPromises);
+    const gridallCombinedData = [].concat(...gridallDataArrayChunks);
 
-  // Chunk 2
-  try {
-      const key = "gridall/chunk_data/chunk_2.csv";
+    const filteredGridallFileString = generateCsvString(
+      "POSTCODE,POSTCODE_2,LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,EASTING_1M,NORTHING_1M,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021,", // Header
+      gridallCombinedData
+    );
 
-      console.log("ENTERING CHUNK 2")
-      const csvStringChunk2 = await readCsvFromS3(bucketName, key);
+    await pushCsvToS3(bucketName, "filteredGridallFile.csv", filteredGridallFileString);
 
-      console.log("DONE READING CHUNK 2.- NOW PARSING")
-      dataArrayChunk2 = await parseCsvToArray(csvStringChunk2)
-      console.log("Array of CSV rows:", dataArrayChunk2.length);
-    } catch (error) {
-      console.error("Error in Chunk_2:", error);
-    }
+    const imdKey = "imd/IMD2019_Index_of_Multiple_Deprivation.csv";
+    const imdCsvString = await readCsvFromS3(bucketName, imdKey);
+    const imdDataArray = await parseCsvToArray(imdCsvString, processImdRow);
 
-  // Chunk 3
-  try {
-    const key = "gridall/chunk_data/chunk_3.csv";
+    const filteredImdFileString = generateCsvString(
+      "LSOA_CODE,LSOA_NAME,IMD_RANK,IMD_DECILE", // Header
+      imdDataArray
+    );
 
-    console.log("ENTERING CHUNK 3")
-    const csvStringChunk3 = await readCsvFromS3(bucketName, key);
+    await pushCsvToS3(bucketName, "filteredImdFile.csv", filteredImdFileString);
 
-    console.log("DONE READING CHUNK 3. NOW PARSING")
-    dataArrayChunk3 = await parseCsvToArray(csvStringChunk3);
-    console.log("Array of CSV rows:", dataArrayChunk3.length);
   } catch (error) {
-    console.error("Error in Chunk_3:", error);
+    console.error(error);
   }
-
-  // concat three arrays
-  const combinedData = dataArrayChunk1.concat(dataArrayChunk2, dataArrayChunk3)
-  console.log(`Total number of participating postcodes ${combinedData.length}`)
-
-  const filteredGridallFileString = generateCsvString(combinedData)
-  const firstCoupleLines = filteredGridallFileString.slice(0, 500);
-  console.log(firstCoupleLines)
-
-  // Upload the file to S3
-  console.log('attempting upload')
-  const command = new PutObjectCommand({
-    Bucket: "galleri-ons-data",
-    Key: "filteredGridallFile.csv",
-    Body: filteredGridallFileString,
-  });
-
-  try {
-    console.log('attempting to send upload')
-    const response = await client.send(command);
-    console.log('succeeded')
-    console.log(response);
-  } catch (err) {
-    console.log('failed')
-    console.error(err);
-  }
-
-}
-
+};
