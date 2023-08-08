@@ -2,6 +2,7 @@ import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3
 import { Readable } from 'stream';
 import csv from 'csv-parser';
 
+
 const client = new S3Client({});
 
 const participatingIcbs = new Set([
@@ -52,7 +53,6 @@ const parseCsvToArray = async (csvString, processFunction) => {
         participating_counter = processFunction(dataArray, row, participating_counter);
       })
       .on("end", () => {
-        console.log("CSV parsing finished, \nRow count =", row_counter, "\nNumber of participating items =", participating_counter);
         resolve(dataArray);
       })
       .on("error", (err) => {
@@ -60,6 +60,8 @@ const parseCsvToArray = async (csvString, processFunction) => {
       });
   });
 };
+
+module.exports = { parseCsvToArray };
 
 const processGridallRow = (dataArray, row, participating_counter) => {
   if (row.DOTERM === '' && row.CTRY === 'E92000001' && participatingIcbs.has(row.ICB) ){
@@ -112,6 +114,7 @@ const generateCsvString = (header, dataArray) => {
   ].join("\n");
 };
 
+
 export const handler = async () => {
   const bucketName = "galleri-ons-data";
 
@@ -130,7 +133,7 @@ export const handler = async () => {
       return parseCsvToArray(gridallCsvString, processGridallRow);
     });
 
-    // Settle all promised in array before concating them into single array
+    // Settle all promised in array before concatenating them into single array
     const gridallDataArrayChunks = await Promise.all(gridallPromises);
     const gridallCombinedData = gridallDataArrayChunks.flat();
 
