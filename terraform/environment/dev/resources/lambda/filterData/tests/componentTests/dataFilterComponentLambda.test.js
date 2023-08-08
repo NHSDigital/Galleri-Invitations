@@ -1,15 +1,15 @@
 import { mockClient } from "aws-sdk-client-mock";
 import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 
-const s3Mock = mockClient(DynamoDBDocumentClient);
+const s3Mock = mockClient(S3Client);
 
-describe("index", () => {
+describe("dataFilterLambda", () => {
   beforeEach(() => {
-    ddbMock.reset();
+    s3Mock.reset();
   });
 
   it("should get user names from the DynamoDB (single user ID)", async () => {
-    ddbMock.on(GetCommand).resolves({
+    s3Mock.on(GetCommand).resolves({
       Item: { id: "user1", name: "John" },
     });
     const names = await getUserNames(["user1"]);
@@ -17,7 +17,7 @@ describe("index", () => {
   });
 
   it("should get user names from the DynamoDB (multiple user IDs)", async () => {
-    ddbMock
+    s3Mock
       .on(GetCommand)
       .resolves({
         Item: undefined,
