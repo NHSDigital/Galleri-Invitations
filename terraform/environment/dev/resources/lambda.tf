@@ -73,8 +73,8 @@ resource "aws_iam_role_policy_attachment" "data_filter_gridall_imd_policy" {
 data "archive_file" "data_filter_gridall_imd_lambda" {
   type = "zip"
 
-  source_dir  = "${path.cwd}/lambda/"
-  output_path = "${path.cwd}/lambda/dataFilterLambda.zip"
+  source_dir  = "${path.cwd}/lambda/filterData"
+  output_path = "${path.cwd}/lambda/filterData/dataFilterLambda.zip"
 }
 
 # Provisioner to install dependencies in lambda package before upload it.
