@@ -1,0 +1,15 @@
+{
+  "name": "galleri",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^29.6.2"
+  },
+  "dependencies": {
+    "@babel/plugin-syntax-import-assertions": "^7.22.5",
+    "@babel/preset-env": "^7.22.10"
+  }
+}
