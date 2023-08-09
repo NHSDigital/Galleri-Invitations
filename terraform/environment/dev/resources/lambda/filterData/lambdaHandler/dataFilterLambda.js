@@ -61,7 +61,7 @@ const parseCsvToArray = async (csvString, processFunction) => {
   });
 };
 
-module.exports = { parseCsvToArray };
+// export default parseCsvToArray;
 
 const processGridallRow = (dataArray, row, participating_counter) => {
   if (row.DOTERM === '' && row.CTRY === 'E92000001' && participatingIcbs.has(row.ICB) ){
@@ -90,6 +90,8 @@ const processGridallRow = (dataArray, row, participating_counter) => {
   return participating_counter;
 };
 
+// export default processGridallRow;
+
 const processImdRow = (dataArray, row, participating_counter) => {
   // Removing comma contained withing value for IMD rank
   const IMD_RANK = row['Index of Multiple Deprivation (IMD) Rank'].replace(/,/g, '')
@@ -106,6 +108,8 @@ const processImdRow = (dataArray, row, participating_counter) => {
   participating_counter++;
 };
 
+// export default processImdRow;
+
 const generateCsvString = (header, dataArray) => {
   // Concatenating header and data into single string
   return [
@@ -114,6 +118,7 @@ const generateCsvString = (header, dataArray) => {
   ].join("\n");
 };
 
+export default generateCsvString;
 
 export const handler = async () => {
   const bucketName = "galleri-ons-data";
