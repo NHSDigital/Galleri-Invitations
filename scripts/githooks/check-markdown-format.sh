@@ -6,7 +6,7 @@ set -e
 # over changed files.
 #
 # Usage:
-#   $ ./markdown-pre-commit.sh
+#   $ ./check-markdown-format.sh
 #
 # Options:
 #   BRANCH_NAME=other-branch-than-main  # Branch to compare with, default is `origin/main`
@@ -26,11 +26,14 @@ set -e
 
 # ==============================================================================
 
-image_version=v0.34.0@sha256:230b1e0e0fa1c7dd6261e025cacf6761ac5ba3557a6a919eec910d731817ff28
+# SEE: https://github.com/igorshubovych/markdownlint-cli/pkgs/container/markdownlint-cli, use the `linux/amd64` os/arch
+image_version=v0.35.0@sha256:4ec089301e2e3e1298424f4d2b5d9e18af3aa005402590770c339b6637100dc6
 
 # ==============================================================================
 
 function main() {
+
+  cd $(git rev-parse --show-toplevel)
 
   if is-arg-true "$ALL_FILES"; then
     # Check all files
@@ -42,11 +45,10 @@ function main() {
 
   if [ -n "$files" ]; then
     docker run --rm --platform linux/amd64 \
-      --volume=$PWD:/workdir \
+      --volume $PWD:/workdir \
       ghcr.io/igorshubovych/markdownlint-cli:$image_version \
         $files \
-        --disable MD013 MD033 \
-        --ignore .github/PULL_REQUEST_TEMPLATE.md
+        --config /workdir/scripts/config/.markdownlint.yaml
   fi
 }
 
