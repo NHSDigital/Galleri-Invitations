@@ -2,9 +2,6 @@ import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3
 import { Readable } from 'stream';
 import csv from 'csv-parser';
 
-
-const client = new S3Client({});
-
 const participatingIcbs = new Set([
   'QE1', 'QWO', 'QOQ', 'QF7', 'QHG', 'QM7', 'QH8',
   'QMJ', 'QMF', 'QRV', 'QWE', 'QT6', 'QJK',
@@ -12,35 +9,37 @@ const participatingIcbs = new Set([
   'QU9', 'QNQ', 'QXU', 'QNX'
 ]);
 
-const readCsvFromS3 = async (bucketName, key) => {
-  const command = new GetObjectCommand({
-    Bucket: bucketName,
-    Key: key
-  });
+export const readCsvFromS3 = async (bucketName, key, client) => {
+  try {
+    const response = await client.send(new GetObjectCommand({
+      Bucket: bucketName,
+      Key: key
+    }));
 
-  const response = await client.send(command);
-
-  return response.Body.transformToString();
+    return response.Body.transformToString();
+  } catch (err) {
+      console.log('Failed: ', err);
+      throw err;
+    }
 };
 
-const pushCsvToS3 = async (bucketName, key, body) => {
-  const command = new PutObjectCommand({
-    Bucket: bucketName,
-    Key: key,
-    Body: body,
-  });
-
+export const pushCsvToS3 = async (bucketName, key, body, client) => {
   try {
-    const response = await client.send(command);
+    const response = await client.send(new PutObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+      Body: body,
+    }));
+
     console.log('Succeeded');
     return response;
   } catch (err) {
-    console.log('Failed', err);
+    console.log('Failed: ', err);
     throw err;
   }
 };
 
-const parseCsvToArray = async (csvString, processFunction) => {
+export const parseCsvToArray = async (csvString, processFunction) => {
   const dataArray = [];
   let row_counter = 0;
   let participating_counter = 0;
@@ -61,9 +60,7 @@ const parseCsvToArray = async (csvString, processFunction) => {
   });
 };
 
-// export default parseCsvToArray;
-
-const processGridallRow = (dataArray, row, participating_counter) => {
+export const processGridallRow = (dataArray, row, participating_counter) => {
   if (row.DOTERM === '' && row.CTRY === 'E92000001' && participatingIcbs.has(row.ICB) ){
 
     const gridall_element = {
@@ -90,9 +87,7 @@ const processGridallRow = (dataArray, row, participating_counter) => {
   return participating_counter;
 };
 
-// export default processGridallRow;
-
-const processImdRow = (dataArray, row, participating_counter) => {
+export const processImdRow = (dataArray, row, participating_counter) => {
   // Removing comma contained withing value for IMD rank
   const IMD_RANK = row['Index of Multiple Deprivation (IMD) Rank'].replace(/,/g, '')
 
@@ -108,9 +103,7 @@ const processImdRow = (dataArray, row, participating_counter) => {
   participating_counter++;
 };
 
-// export default processImdRow;
-
-const generateCsvString = (header, dataArray) => {
+export const generateCsvString = (header, dataArray) => {
   // Concatenating header and data into single string
   return [
     header,
@@ -118,10 +111,9 @@ const generateCsvString = (header, dataArray) => {
   ].join("\n");
 };
 
-export default generateCsvString;
-
 export const handler = async () => {
   const bucketName = "galleri-ons-data";
+  const client = new S3Client({})
 
   try {
     const gridallKeys = [
@@ -134,7 +126,7 @@ export const handler = async () => {
     // Discard rows and columns that are not needed
     // Return an array of objects that contain the filtered data
     const gridallPromises = gridallKeys.map(async (gridallKey) => {
-      const gridallCsvString = await readCsvFromS3(bucketName, gridallKey);
+      const gridallCsvString = await readCsvFromS3(bucketName, gridallKey, client);
       return parseCsvToArray(gridallCsvString, processGridallRow);
     });
 
@@ -149,10 +141,10 @@ export const handler = async () => {
     );
 
     // Deposit to S3 bucket
-    await pushCsvToS3(bucketName, "filteredGridallFile.csv", filteredGridallFileString);
+    await pushCsvToS3(bucketName, "filteredGridallFile.csv", filteredGridallFileString,client);
 
     const imdKey = "imd/IMD2019_Index_of_Multiple_Deprivation.csv";
-    const imdCsvString = await readCsvFromS3(bucketName, imdKey);
+    const imdCsvString = await readCsvFromS3(bucketName, imdKey, client);
     const imdDataArray = await parseCsvToArray(imdCsvString, processImdRow);
 
     const filteredImdFileString = generateCsvString(
@@ -160,7 +152,7 @@ export const handler = async () => {
       imdDataArray
     );
 
-    await pushCsvToS3(bucketName, "filteredImdFile.csv", filteredImdFileString);
+    await pushCsvToS3(bucketName, "filteredImdFile.csv", filteredImdFileString, client);
 
   } catch (error) {
     console.error(error);
