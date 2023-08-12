@@ -78,19 +78,19 @@ data "archive_file" "data_filter_gridall_imd_lambda" {
 }
 
 # Provisioner to install dependencies in lambda package before upload it.
-resource "null_resource" "main" {
+# resource "null_resource" "main" {
 
-  triggers = {
-    updated_at = aws_s3_bucket.galleri_lambda_bucket.id
-  }
+#   triggers = {
+#     updated_at = aws_s3_bucket.galleri_lambda_bucket.id
+#   }
 
-  # remove the provisioner and just ensure you run npm install locally
-  provisioner "local-exec" {
-    command = "npm install && ls"
+#   # remove the provisioner and just ensure you run npm install locally
+#   provisioner "local-exec" {
+#     command = "npm install && ls"
 
-    working_dir = "${path.module}/lambda/filterData/lambdaHandler"
-  }
-}
+#     working_dir = "${path.module}/lambda/filterData/lambdaHandler"
+#   }
+# }
 
 
 resource "aws_lambda_function" "data_filter_gridall_imd" {

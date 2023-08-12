@@ -82,4 +82,6 @@ jobs:
           exit 1
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -input=false
+        run: |
+          npm install --prefix lambda/filterData/lambdaHandler
+          terraform apply -auto-approve -input=false
