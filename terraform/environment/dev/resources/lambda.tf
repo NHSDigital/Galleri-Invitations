@@ -88,6 +88,9 @@ resource "null_resource" "main" {
   provisioner "local-exec" {
     command = <<EOF
     npm install
+    echo PWD = ${PWD}
+    echo path.module = ${path.module}
+
     EOF
 
     working_dir = "${path.module}/lambda/filterData/lambdaHandler"
