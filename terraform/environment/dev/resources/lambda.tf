@@ -78,7 +78,7 @@ data "archive_file" "data_filter_gridall_imd_lambda" {
 
 resource "aws_lambda_function" "data_filter_gridall_imd" {
   function_name = "dataFilterLambda"
-  role          = "arn:aws:iam::136293001324:role/data-filter-gridall-imd"
+  role          = aws_iam_role.data_filter_gridall_imd.arn
   handler       = "dataFilterLambda.handler"
   runtime       = "nodejs18.x"
   timeout       = 900
@@ -104,4 +104,29 @@ resource "aws_s3_object" "data_filter_gridall_imd_lambda" {
   source = data.archive_file.data_filter_gridall_imd_lambda.output_path
 
   etag = filemd5(data.archive_file.data_filter_gridall_imd_lambda.output_path)
+}
+
+resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
+  bucket = "galleri-ons-data"
+  policy = data.aws_iam_policy_document.allow_access_to_lambda.json
+}
+
+data "aws_iam_policy_document" "allow_access_to_lambda" {
+  statement {
+    principals {
+      type        = "AWS"
+      identifiers = [
+        "arn:aws:iam::136293001324:role/github-oidc-invitations-role",
+        aws_iam_role.data_filter_gridall_imd.arn
+      ]
+    }
+
+    actions = [
+      "s3:*"
+    ]
+
+    resources = [
+      "arn:aws:s3:::galleri-ons-data/*"
+    ]
+  }
 }
