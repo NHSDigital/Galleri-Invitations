@@ -81,7 +81,7 @@ data "archive_file" "data_filter_gridall_imd_lambda" {
 resource "null_resource" "main" {
 
   triggers = {
-    updated_at = timestamp()
+    updated_at = aws_s3_bucket.galleri_lambda_bucket.id
   }
 
   # remove the provisioner and just ensure you run npm install locally
