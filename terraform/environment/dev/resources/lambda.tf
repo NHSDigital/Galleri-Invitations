@@ -77,22 +77,6 @@ data "archive_file" "data_filter_gridall_imd_lambda" {
   output_path = "${path.cwd}/lambda/filterData/lambdaHandler/dataFilterLambda.zip"
 }
 
-# Provisioner to install dependencies in lambda package before upload it.
-# resource "null_resource" "main" {
-
-#   triggers = {
-#     updated_at = aws_s3_bucket.galleri_lambda_bucket.id
-#   }
-
-#   # remove the provisioner and just ensure you run npm install locally
-#   provisioner "local-exec" {
-#     command = "npm install && ls"
-
-#     working_dir = "${path.module}/lambda/filterData/lambdaHandler"
-#   }
-# }
-
-
 resource "aws_lambda_function" "data_filter_gridall_imd" {
   function_name = "dataFilterLambda"
   role          = aws_iam_role.data_filter_gridall_imd.arn
