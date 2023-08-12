@@ -92,19 +92,6 @@ resource "null_resource" "main" {
   }
 }
 
-resource "null_resource" "main_1" {
-
-  triggers = {
-    updated_at = timestamp() + 2
-  }
-
-  # remove the provisioner and just ensure you run npm install locally
-  provisioner "local-exec" {
-    command = "ls"
-
-    working_dir = "${path.module}/lambda/filterData/lambdaHandler"
-  }
-}
 
 resource "aws_lambda_function" "data_filter_gridall_imd" {
   function_name = "dataFilterLambda"
