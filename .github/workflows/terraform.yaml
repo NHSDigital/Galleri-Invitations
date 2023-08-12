@@ -61,9 +61,9 @@ jobs:
           echo whats in the current directory
           ls
           echo ----------------
-          aws iam detach-role-policy \
-          --role-name data-filter-gridall-imd \
-          --policy-arn arn:aws:iam::136293001324:policy/aws_iam_policy_for_terraform_aws_lambda_role
+          # aws iam detach-role-policy \
+          # --role-name data-filter-gridall-imd \
+          # --policy-arn arn:aws:iam::136293001324:policy/aws_iam_policy_for_terraform_aws_lambda_role
           terraform destroy -auto-approve
 
       - name: Terraform Validate
