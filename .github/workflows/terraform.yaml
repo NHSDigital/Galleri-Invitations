@@ -51,17 +51,17 @@ jobs:
         run: terraform init -backend-config="bucket=${AWS_BUCKET_NAME}"
           -backend-config="key=${AWS_BUCKET_KEY_NAME}" -backend-config="region=${AWS_REGION}"
 
-      # - name: Terraform Destroy
-      #   id: destroy
-      #   run: |
-      #     echo ----------------
-      #     echo terraform destroy pwd
-      #     pwd
-      #     echo ----------------
-      #     echo whats in the current directory
-      #     ls
-      #     echo ----------------
-      #     terraform destroy -auto-approve
+      - name: Terraform Destroy
+        id: destroy
+        run: |
+          echo ----------------
+          echo terraform destroy pwd
+          pwd
+          echo ----------------
+          echo whats in the current directory
+          ls
+          echo ----------------
+          terraform destroy -auto-approve
 
       - name: Terraform Validate
         id: validate
