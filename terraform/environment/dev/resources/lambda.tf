@@ -87,10 +87,10 @@ resource "null_resource" "main" {
   # remove the provisioner and just ensure you run npm install locally
   provisioner "local-exec" {
     command = <<EOF
-    # npm install
+    npm install
     EOF
 
-    working_dir = "${path.module}/lambda"
+    working_dir = "${path.module}/lambda/filterData/lambdaHandler"
   }
 }
 
