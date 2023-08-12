@@ -13,7 +13,8 @@ resource "aws_s3_bucket_public_access_block" "galleri_lambda_bucket_block_public
 }
 
 resource "aws_iam_role" "data_filter_gridall_imd" {
-  name = "data-filter-gridall-imd"
+  name                  = "data-filter-gridall-imd"
+  force_detach_policies = true
 
   assume_role_policy = <<POLICY
   {
