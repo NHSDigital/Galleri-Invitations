@@ -20,7 +20,7 @@ describe("readCsvFromS3", () => {
   });
   test("return string built from csv file", async () => {
     const mockS3Client = mockClient(new S3Client({}));
-    const stream = sdkStreamMixin(fs.createReadStream(path.resolve(__dirname,'./chunk_1.csv')))
+    const stream = sdkStreamMixin(fs.createReadStream(path.resolve(__dirname,'./testData/chunk_1.csv')))
 
     mockS3Client.resolves({
       Body: stream,
