@@ -88,7 +88,7 @@ resource "null_resource" "main" {
   provisioner "local-exec" {
     command = <<EOF
     npm install
-    echo path.module = ${path.module}
+    echo path.module = ${ls}
 
     EOF
 
