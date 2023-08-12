@@ -1,3 +1,7 @@
+lifecycle {
+  create_before_destroy = true
+}
+
 resource "aws_s3_bucket" "galleri_lambda_bucket" {
   bucket        = "galleri-lambda-bucket"
   force_destroy = true
@@ -14,7 +18,6 @@ resource "aws_s3_bucket_public_access_block" "galleri_lambda_bucket_block_public
 
 resource "aws_iam_role" "data_filter_gridall_imd" {
   name                  = "data-filter-gridall-imd"
-  force_detach_policies = true
 
   assume_role_policy = <<POLICY
   {
@@ -37,6 +40,7 @@ resource "aws_iam_policy" "iam_policy_for_lambda" {
   name        = "aws_iam_policy_for_terraform_aws_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda role"
+  force_detach_policies = true
   policy      = <<EOF
 {
   "Statement": [
