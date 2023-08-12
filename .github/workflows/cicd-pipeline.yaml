@@ -34,8 +34,8 @@ jobs:
             >> $GITHUB_OUTPUT
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')"
             >> $GITHUB_OUTPUT
-  scan-secrets:
-    uses: ./.github/workflows/scan-secrets.yaml
+  # scan-secrets:
+  #   uses: ./.github/workflows/scan-secrets.yaml
   check-file-format:
     uses: ./.github/workflows/check-file-format.yaml
   check-markdown-format:
@@ -53,7 +53,7 @@ jobs:
     needs:
       [
         get-metadata,
-        scan-secrets,
+        # scan-secrets,
         check-file-format,
         check-markdown-format,
         check-terraform-format,

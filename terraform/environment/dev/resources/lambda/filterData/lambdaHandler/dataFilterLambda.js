@@ -137,7 +137,7 @@ export const handler = async () => {
     // Generate the CSV format
     const filteredGridallFileString = generateCsvString(
       `POSTCODE,POSTCODE_2,LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,EASTING_1M,NORTHING_1M,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021`,
-       gridallCombinedData
+      gridallCombinedData
     );
 
     // Deposit to S3 bucket
