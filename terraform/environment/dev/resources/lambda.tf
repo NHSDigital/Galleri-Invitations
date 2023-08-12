@@ -12,25 +12,6 @@ resource "aws_s3_bucket_public_access_block" "galleri_lambda_bucket_block_public
   restrict_public_buckets = true
 }
 
-resource "aws_iam_role" "data_filter_gridall_imd" {
-  name = "data-filter-gridall-imd"
-
-  assume_role_policy = <<POLICY
-  {
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Effect": "Allow",
-        "Principal": {
-          "Service": "lambda.amazonaws.com"
-        },
-        "Action": "sts:AssumeRole"
-      }
-    ]
-  }
-  POLICY
-}
-
 resource "aws_iam_policy" "iam_policy_for_lambda" {
   name        = "aws_iam_policy_for_terraform_aws_lambda_role"
   path        = "/"
@@ -64,7 +45,7 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "data_filter_gridall_imd_policy" {
-  role       = aws_iam_role.data_filter_gridall_imd.name
+  role       = "data-filter-gridall-imd"
   policy_arn = aws_iam_policy.iam_policy_for_lambda.arn
 }
 
