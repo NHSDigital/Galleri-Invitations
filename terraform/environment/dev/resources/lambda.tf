@@ -114,7 +114,7 @@ resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
 data "aws_iam_policy_document" "allow_access_to_lambda" {
   statement {
     principals {
-      type        = "AWS"
+      type = "AWS"
       identifiers = [
         "arn:aws:iam::136293001324:role/github-oidc-invitations-role",
         aws_iam_role.data_filter_gridall_imd.arn
