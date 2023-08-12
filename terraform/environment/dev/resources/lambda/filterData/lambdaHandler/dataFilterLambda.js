@@ -39,6 +39,8 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
   }
 };
 
+// Takes Csv data read in from the S3 bucket and applies a processFunction
+// to the data to generate an array of filtered objects
 export const parseCsvToArray = async (csvString, processFunction) => {
   const dataArray = [];
   let row_counter = 0;
@@ -60,6 +62,9 @@ export const parseCsvToArray = async (csvString, processFunction) => {
   });
 };
 
+// Screens for records with; non-terminated postcodes, records only in England
+// and records which are part of a participating ICB
+// Extracts information specified in annotated user guide attached to GAL-288
 export const processGridallRow = (dataArray, row, participating_counter) => {
   if (row.DOTERM === '' && row.CTRY === 'E92000001' && participatingIcbs.has(row.ICB) ){
 
@@ -91,7 +96,6 @@ export const processImdRow = (dataArray, row, participating_counter) => {
   // Removing comma contained withing value for IMD rank
   const IMD_RANK = row['Index of Multiple Deprivation (IMD) Rank'].replace(/,/g, '')
 
-  // Remove columns that are not needed
   const imd_element = {
     "LSOA_CODE" : Object.values(row)[0], // has a weird character at the beginning
     "LSOA_NAME" : row['LSOA name (2011)'],
@@ -103,14 +107,15 @@ export const processImdRow = (dataArray, row, participating_counter) => {
   participating_counter++;
 };
 
+// Concatenates header and data into single string - the format S3 looks for
 export const generateCsvString = (header, dataArray) => {
-  // Concatenating header and data into single string
   return [
     header,
     ...dataArray.map(element => Object.values(element).join(","))
   ].join("\n");
 };
 
+// Lambda Entry Point
 export const handler = async () => {
   const bucketName = "galleri-ons-data";
   const client = new S3Client({})
@@ -142,7 +147,11 @@ export const handler = async () => {
 
     // Deposit to S3 bucket
     await pushCsvToS3(bucketName, "filteredGridallFile.csv", filteredGridallFileString,client);
+  } catch (error) {
+    console.error('Error with Gridall extraction, procession or uploading', error);
+  }
 
+  try {
     const imdKey = "imd/IMD2019_Index_of_Multiple_Deprivation.csv";
     const imdCsvString = await readCsvFromS3(bucketName, imdKey, client);
     const imdDataArray = await parseCsvToArray(imdCsvString, processImdRow);
@@ -155,6 +164,6 @@ export const handler = async () => {
     await pushCsvToS3(bucketName, "filteredImdFile.csv", filteredImdFileString, client);
 
   } catch (error) {
-    console.error(error);
+    console.error('Error with IMD extraction, procession or uploading',error);
   }
 };
