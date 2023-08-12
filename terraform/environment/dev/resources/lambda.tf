@@ -32,7 +32,6 @@ resource "aws_iam_role" "data_filter_gridall_imd" {
 }
 
 resource "aws_iam_policy" "iam_policy_for_lambda" {
-
   name        = "aws_iam_policy_for_terraform_aws_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda role"
@@ -63,7 +62,6 @@ resource "aws_iam_policy" "iam_policy_for_lambda" {
 }
 EOF
 }
-
 
 resource "aws_iam_role_policy_attachment" "data_filter_gridall_imd_policy" {
   role       = aws_iam_role.data_filter_gridall_imd.name
@@ -97,7 +95,6 @@ resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
 
   retention_in_days = 14
 }
-
 
 resource "aws_s3_object" "data_filter_gridall_imd_lambda" {
   bucket = aws_s3_bucket.galleri_lambda_bucket.id
