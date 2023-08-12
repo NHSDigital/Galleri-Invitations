@@ -86,11 +86,21 @@ resource "null_resource" "main" {
 
   # remove the provisioner and just ensure you run npm install locally
   provisioner "local-exec" {
-    command = <<EOF
-    npm install
-    echo path.module = ${ls}
+    command = "npm install && ls"
 
-    EOF
+    working_dir = "${path.module}/lambda/filterData/lambdaHandler"
+  }
+}
+
+resource "null_resource" "main_1" {
+
+  triggers = {
+    updated_at = timestamp() + 2
+  }
+
+  # remove the provisioner and just ensure you run npm install locally
+  provisioner "local-exec" {
+    command = "ls"
 
     working_dir = "${path.module}/lambda/filterData/lambdaHandler"
   }
