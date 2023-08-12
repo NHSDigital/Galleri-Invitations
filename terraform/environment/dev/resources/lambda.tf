@@ -58,7 +58,7 @@ data "archive_file" "data_filter_gridall_imd_lambda" {
 
 resource "aws_lambda_function" "data_filter_gridall_imd" {
   function_name = "dataFilterLambda"
-  role          = aws_iam_role.data_filter_gridall_imd.arn
+  role          = "arn:aws:iam::136293001324:role/data-filter-gridall-imd"
   handler       = "dataFilterLambda.handler"
   runtime       = "nodejs18.x"
   timeout       = 900
