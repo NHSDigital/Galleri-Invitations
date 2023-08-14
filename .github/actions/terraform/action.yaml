@@ -23,8 +23,8 @@ runs:
     - name: Configure AWS credentials from AWS account
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        role-to-assume: ${{ env.AWS_ROLE_ARN }}
-        aws-region: ${{ env.aws-region }}
+        role-to-assume: ${{ inputs.AWS_ROLE_ARN }}
+        aws-region: ${{ inputs.aws-region }}
         role-session-name: GitHub-OIDC-TERRAFORM
 
     - name: Setup Terraform
@@ -48,11 +48,11 @@ runs:
 
     - name: Terraform Init
       id: init
-      # env:
-        # aws-bucket-name: ${{ env.aws-bucket-name }}
-        # aws-bucket-key-name: ${{ env.aws-bucket-key-name }}
+      # inputs:
+        # aws-bucket-name: ${{ inputs.aws-bucket-name }}
+        # aws-bucket-key-name: ${{ inputs.aws-bucket-key-name }}
       shell: bash
-      run: terraform init -backend-config="bucket=${{ env.aws-bucket-name }}" -backend-config="key=${{ env.aws-bucket-key-name }}" -backend-config="region=${{ env.aws-region }}"
+      run: terraform init -backend-config="bucket=${{ inputs.aws-bucket-name }}" -backend-config="key=${{ inputs.aws-bucket-key-name }}" -backend-config="region=${{ inputs.aws-region }}"
 
     - name: Terraform Destroy
       id: destroy
