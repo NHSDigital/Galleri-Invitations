@@ -150,7 +150,7 @@ export const handler = async () => {
       );
 
       // Deposit to S3 bucket
-    await pushCsvToS3(bucketName, "filteredGridallFile.csv", filteredGridallFileString,client);
+    await pushCsvToS3(bucketName, "filtered_data/filteredGridallFile.csv", filteredGridallFileString,client);
     console.log('GRIDALL extracted: ', Date.now() - start)
 
   } catch (error) {
@@ -169,7 +169,7 @@ export const handler = async () => {
       imdDataArray
       );
 
-    await pushCsvToS3(bucketName, "filteredImdFile.csv", filteredImdFileString, client);
+    await pushCsvToS3(bucketName, "filtered_data/filteredImdFile.csv", filteredImdFileString, client);
     console.log('IMD extracted: ', Date.now() - start)
 
   } catch (error) {
@@ -214,7 +214,7 @@ export const handler = async () => {
 
     const filename = `lsoa_data_${dateTime}`
 
-    await pushCsvToS3(bucketName, `${filename}.csv`, combinedImdGridallFileString, client);
+    await pushCsvToS3(bucketName, `lsoa_data/${filename}.csv`, combinedImdGridallFileString, client);
     console.log('Records pushed to S3: ', Date.now() - start)
 
   } catch (e) {
