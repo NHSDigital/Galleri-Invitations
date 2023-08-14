@@ -1,43 +1,43 @@
 # name: "Perform static analysis"
 # description: "Perform static analysis"
 
-# # inputs:
-# #   sonar_token:
-# #     description: "Sonar token API key"
-# #     required: false
+# inputs:
+#   sonar_token:
+#     description: "Sonar token API key"
+#     required: false
 
 
-# # runs:
-# #   using: "composite"
-# #   steps:
-# #     - name: "Check prerequisites for performing static analysis"
-# #       shell: bash
-# #       id: check
-# #       run: echo "token_exist=${{ secrets.SONAR_TOKEN != '' }}" >> $GITHUB_OUTPUT
-# #       # env:
-# #       #   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-# #     - name: "Perform static analysis"
-# #       shell: bash
-# #       if: steps.check.outputs.token_exist == 'true'
-# #       run: |
-# #         export BRANCH_NAME=${GITHUB_HEAD_REF:-$(echo $GITHUB_REF | sed 's#refs/heads/##')}
-# #         export SONAR_TOKEN=${{ secrets.SONAR_TOKEN }}
-# #         ./scripts/reports/perform-static-analysis.sh
+# runs:
+#   using: "composite"
+#   steps:
+#     - name: "Check prerequisites for performing static analysis"
+#       shell: bash
+#       id: check
+#       run: echo "token_exist=${{ secrets.SONAR_TOKEN != '' }}" >> $GITHUB_OUTPUT
 #       # env:
-#       #   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#       #   SONAR_TOKEN: ${{ x }}
+#     - name: "Perform static analysis"
+#       shell: bash
+#       if: steps.check.outputs.token_exist == 'true'
+#       run: |
+#         export BRANCH_NAME=${GITHUB_HEAD_REF:-$(echo $GITHUB_REF | sed 's#refs/heads/##')}
+#         export SONAR_TOKEN=${{ x }}
+#         ./scripts/reports/perform-static-analysis.sh
+      # env:
+      #   SONAR_TOKEN: ${{ x }}
 
 
-# # name: Sonarcloud Scan
+# name: Sonarcloud Scan
 
-# # on:
-# #   workflow_call:
+# on:
+#   workflow_call:
 
-# # jobs:
-# #   sonarcloud-scan:
-# #     runs-on: ubuntu-latest
-# #     steps:
-# #       - uses: actions/checkout@v3
-# #         with:
-# #           fetch-depth: 0
-# #       - name: SonarCloud Scan
-# #         uses: SonarSource/sonarcloud-github-action@master
+# jobs:
+#   sonarcloud-scan:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v3
+#         with:
+#           fetch-depth: 0
+#       - name: SonarCloud Scan
+#         uses: SonarSource/sonarcloud-github-action@master
