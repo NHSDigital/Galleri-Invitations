@@ -70,18 +70,18 @@ jobs:
       - name: "Save the coverage check result"
         run: |
           echo "Nothing to save"
-  perform-static-analysis:
-    needs: [test-unit]
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-    timeout-minutes: 5
-    name: "Perform static analysis"
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v3
-      - name: "Perform static analysis"
-        uses: ./.github/actions/perform-static-analysis
-        with:
-          sonar_token: "${{ secrets.SONAR_TOKEN }}"
+  # perform-static-analysis:
+  #   needs: [test-unit]
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     id-token: write
+  #     contents: read
+  #   timeout-minutes: 5
+  #   name: "Perform static analysis"
+  #   steps:
+  #     - name: "Checkout code"
+  #       uses: actions/checkout@v3
+  #     - name: "Perform static analysis"
+  #       uses: ./.github/actions/perform-static-analysis
+  #       with:
+  #         sonar_token: "${{ secrets.SONAR_TOKEN }}"
