@@ -214,7 +214,7 @@ export const handler = async () => {
 
     const filename = `lsoa_data_${dateTime}`
 
-    await pushCsvToS3(bucketName, "filename.csv", combinedImdGridallFileString, client);
+    await pushCsvToS3(bucketName, `${filename}.csv`, combinedImdGridallFileString, client);
     console.log('Records pushed to S3: ', Date.now() - start)
 
   } catch (e) {
