@@ -1,0 +1,69 @@
+name: "Terraform action"
+description: "Build infrastructure"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Git checkout
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials from AWS account
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+        aws-region: ${{ env.AWS_REGION }}
+        role-session-name: GitHub-OIDC-TERRAFORM
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.0
+
+    - name: Flatten Terrafrom Directory
+      id: flatten
+      shell: bash
+      run: |
+        mv ./*/* .
+        rm -rf resources
+
+    - name: Terraform fmt
+      id: fmt
+      shell: bash
+      run:
+        terraform fmt -check
+      continue-on-error: true
+
+    - name: Terraform Init
+      id: init
+      env:
+        AWS_BUCKET_NAME: ${{ vars.AWS_BUCKET_NAME }}
+        AWS_BUCKET_KEY_NAME: ${{ vars.AWS_BUCKET_KEY_NAME }}
+      shell: bash
+      run: terraform init -backend-config="bucket=${AWS_BUCKET_NAME}" -backend-config="key=${AWS_BUCKET_KEY_NAME}" -backend-config="region=${AWS_REGION}"
+
+    - name: Terraform Destroy
+      id: destroy
+      shell: bash
+      run: terraform destroy -auto-approve
+
+    - name: Terraform Validate
+      id: validate
+      shell: bash
+      run: terraform validate -no-color
+
+    - name: Terraform Plan
+      id: plan
+      shell: bash
+      run:
+        terraform plan -no-color
+
+    - name: Terraform Plan Status
+      if: steps.plan.outcome == 'failure'
+      shell: bash
+      run:
+        echo Terraform Plan Status has failed
+        exit 1
+
+    - name: Terraform Apply
+      shell: bash
+      run: terraform apply -auto-approve -input=false

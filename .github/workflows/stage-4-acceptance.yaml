@@ -32,16 +32,21 @@ on:
         required: true
         type: string
 
+
 jobs:
   environment-set-up:
+    permissions:
+      id-token: write # This is required for aws oidc connection
+      contents: read # This is required for actions/checkout
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Full history is needed to scan all commits
       - name: "Create infractructure"
-        run: |
-          echo "Creating infractructure..."
+        uses: ./.github/actions/terraform
       - name: "Update database"
         run: |
           echo "Updating database..."
