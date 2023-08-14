@@ -47,6 +47,11 @@ jobs:
           fetch-depth: 0 # Full history is needed to scan all commits
       - name: "Create infractructure"
         uses: ./.github/actions/terraform
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          AWS_BUCKET_NAME: ${{ vars.AWS_BUCKET_NAME }}
+          AWS_BUCKET_KEY_NAME: ${{ vars.AWS_BUCKET_KEY_NAME }}
       - name: "Update database"
         run: |
           echo "Updating database..."
