@@ -22,14 +22,14 @@ runs:
 
     - name: Configure AWS credentials from AWS account
       uses: aws-actions/configure-aws-credentials@v2
-      env:
-        role-to-assume: INPUT_AWS_ROLE_ARN }}
-        aws-region: INPUT_AWS_REGION
-        role-session-name: GitHub-OIDC-TERRAFORM
-      # with:
-      #   role-to-assume: ${{ inputs.AWS_ROLE_ARN }}
-      #   aws-region: ${{ inputs.AWS_REGION }}
+      # env:
+      #   role-to-assume: INPUT_AWS_ROLE_ARN }}
+      #   aws-region: INPUT_AWS_REGION
       #   role-session-name: GitHub-OIDC-TERRAFORM
+      with:
+        role-to-assume: ${{ inputs.AWS_ROLE_ARN }}
+        aws-region: ${{ inputs.AWS_REGION }}
+        role-session-name: GitHub-OIDC-TERRAFORM
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
@@ -52,11 +52,11 @@ runs:
 
     - name: Terraform Init
       id: init
-      env:
-        AWS_BUCKET_NAME: INPUT_AWS_BUCKET_NAME
-        AWS_BUCKET_KEY_NAME: INPUT_AWS_BUCKET_KEY_NAME }}
+      # env:
+        # AWS_BUCKET_NAME: ${{ inputs.AWS_BUCKET_NAME }}
+        # AWS_BUCKET_KEY_NAME: ${{ inputs.AWS_BUCKET_KEY_NAME }}
       shell: bash
-      run: terraform init -backend-config="bucket=AWS_BUCKET_NAME" -backend-config="key=AWS_BUCKET_KEY_NAME" -backend-config="region=AWS_REGION"
+      run: terraform init -backend-config="bucket=${{ inputs.AWS_BUCKET_NAME }}" -backend-config="key=${{ inputs.AWS_BUCKET_KEY_NAME }}" -backend-config="region=${{ inputs.AWS_REGION }}"
 
     - name: Terraform Destroy
       id: destroy
