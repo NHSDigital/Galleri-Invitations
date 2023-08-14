@@ -4,7 +4,7 @@ inputs:
   role-to-assume:
     description: "AWS OIDC role"
     required: false
-  aws-region:
+  AWS_REGION:
     description: "AWS Region"
     required: false
   AWS_BUCKET_NAME:
