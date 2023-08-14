@@ -1,16 +1,16 @@
 name: "Terraform action"
 description: "Build infrastructure"
 inputs:
-  role-to-assume:
+  role-to-assume-action:
     description: "AWS OIDC role"
     required: true
-  aws-region:
+  aws-region-action:
     description: "AWS Region"
     required: true
-  aws-bucket-name:
+  aws-bucket-name-action:
     description: "Bucket name storing terraform state"
     required: true
-  aws-bucket-key-name:
+  aws-bucket-key-name-action:
     description: "File name for state file"
     required: true
 
@@ -23,8 +23,8 @@ runs:
     - name: Configure AWS credentials from AWS account
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        role-to-assume: ${{ inputs.AWS_ROLE_ARN }}
-        aws-region: ${{ inputs.aws-region }}
+        role-to-assume: ${{ env.aws-region }}
+        aws-region: ${{ env.aws-region }}
         role-session-name: GitHub-OIDC-TERRAFORM
 
     - name: Setup Terraform
