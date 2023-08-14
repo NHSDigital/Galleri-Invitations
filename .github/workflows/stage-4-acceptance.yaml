@@ -44,6 +44,10 @@ jobs:
       id-token: write # This is required for aws oidc connection
       contents: read # This is required for actions/checkout
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./terraform/environment/dev
     timeout-minutes: 5
     steps:
       - name: "Checkout code"
