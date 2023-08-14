@@ -1,18 +1,5 @@
 name: "Terraform action"
 description: "Build infrastructure"
-inputs:
-  role-to-assume-action:
-    description: "AWS OIDC role"
-    required: true
-  aws-region-action:
-    description: "AWS Region"
-    required: true
-  aws-bucket-name-action:
-    description: "Bucket name storing terraform state"
-    required: true
-  aws-bucket-key-name-action:
-    description: "File name for state file"
-    required: true
 
 runs:
   using: "composite"
