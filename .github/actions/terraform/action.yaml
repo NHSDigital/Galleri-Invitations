@@ -4,13 +4,13 @@ inputs:
   role-to-assume:
     description: "AWS OIDC role"
     required: true
-  AWS_REGION:
+  aws-region:
     description: "AWS Region"
     required: true
-  AWS_BUCKET_NAME:
+  aws-bucket-name:
     description: "Bucket name storing terraform state"
     required: true
-  AWS_BUCKET_KEY_NAME:
+  aws-bucket-key-name:
     description: "File name for state file"
     required: true
 
@@ -22,13 +22,9 @@ runs:
 
     - name: Configure AWS credentials from AWS account
       uses: aws-actions/configure-aws-credentials@v2
-      # env:
-      #   role-to-assume: INPUT_AWS_ROLE_ARN }}
-      #   aws-region: INPUT_AWS_REGION
-      #   role-session-name: GitHub-OIDC-TERRAFORM
       with:
         role-to-assume: ${{ env.AWS_ROLE_ARN }}
-        aws-region: ${{ env.AWS_REGION }}
+        aws-region: ${{ env.aws-region }}
         role-session-name: GitHub-OIDC-TERRAFORM
 
     - name: Setup Terraform
@@ -53,10 +49,10 @@ runs:
     - name: Terraform Init
       id: init
       # env:
-        # AWS_BUCKET_NAME: ${{ env.AWS_BUCKET_NAME }}
-        # AWS_BUCKET_KEY_NAME: ${{ env.AWS_BUCKET_KEY_NAME }}
+        # aws-bucket-name: ${{ env.aws-bucket-name }}
+        # aws-bucket-key-name: ${{ env.aws-bucket-key-name }}
       shell: bash
-      run: terraform init -backend-config="bucket=${{ env.AWS_BUCKET_NAME }}" -backend-config="key=${{ env.AWS_BUCKET_KEY_NAME }}" -backend-config="region=${{ env.AWS_REGION }}"
+      run: terraform init -backend-config="bucket=${{ env.aws-bucket-name }}" -backend-config="key=${{ env.aws-bucket-key-name }}" -backend-config="region=${{ env.aws-region }}"
 
     - name: Terraform Destroy
       id: destroy

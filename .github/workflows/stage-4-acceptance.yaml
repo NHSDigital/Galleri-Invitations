@@ -34,9 +34,9 @@ on:
 
 env:
   role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-  AWS_REGION: ${{ vars.AWS_REGION }}
-  AWS_BUCKET_NAME: ${{ vars.AWS_BUCKET_NAME }}
-  AWS_BUCKET_KEY_NAME: ${{ vars.AWS_BUCKET_KEY_NAME }}
+  aws-region: ${{ vars.aws_region }}
+  aws-bucket-name: ${{ vars.aws_bucket_name }}
+  aws-bucket-key-name: ${{ vars.aws_bucket_key_name }}
 
 jobs:
   environment-set-up:
@@ -53,10 +53,10 @@ jobs:
       - name: "Create infractructure"
         uses: ./.github/actions/terraform
         with:
-          role-to-assume: ${{ env.AWS_ROLE_ARN }}
-          AWS_REGION: ${{ env.AWS_REGION }}
-          AWS_BUCKET_NAME: ${{ env.AWS_BUCKET_NAME }}
-          AWS_BUCKET_KEY_NAME: ${{ env.AWS_BUCKET_KEY_NAME }}
+          role-to-assume: ${{ env.role-to-assume }}
+          aws-region: ${{ env.aws-region }}
+          aws-bucket-name: ${{ env.aws-bucket-name }}
+          aws-bucket-key-name: ${{ env.aws-bucket-key-name }}
       - name: "Update database"
         run: |
           echo "Updating database..."
