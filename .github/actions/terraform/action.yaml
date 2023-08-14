@@ -23,6 +23,7 @@ runs:
       id: flatten
       shell: bash
       run: |
+        cd ./terraform/environment/dev
         mv ./*/* .
         rm -rf resources
 
@@ -30,6 +31,7 @@ runs:
       id: fmt
       shell: bash
       run:
+        cd ./terraform/environment/dev
         terraform fmt -check
       continue-on-error: true
 
@@ -37,34 +39,40 @@ runs:
       id: init
       shell: bash
       run: |
+        cd ./terraform/environment/dev
         terraform init -backend-config="bucket=${{ env.aws-bucket-name }}" -backend-config="key=${{ env.aws-bucket-key-name }}" -backend-config="region=${{ env.aws-region }}"
 
     - name: Terraform Destroy
       id: destroy
       shell: bash
       run: |
+        cd ./terraform/environment/dev
         terraform destroy -auto-approve
 
     - name: Terraform Validate
       id: validate
       shell: bash
       run: |
+        cd ./terraform/environment/dev
         terraform validate -no-color
 
     - name: Terraform Plan
       id: plan
       shell: bash
       run: |
+        cd ./terraform/environment/dev
         terraform plan -no-color
 
     - name: Terraform Plan Status
       if: steps.plan.outcome == 'failure'
       shell: bash
       run: |
+        cd ./terraform/environment/dev
         echo Terraform Plan Status has failed
         exit 1
 
     - name: Terraform Apply
       shell: bash
       run: |
+        cd ./terraform/environment/dev
         terraform apply -auto-approve -input=false
