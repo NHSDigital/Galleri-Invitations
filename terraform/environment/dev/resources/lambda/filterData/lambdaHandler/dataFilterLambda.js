@@ -210,7 +210,11 @@ export const handler = async () => {
       `POSTCODE,POSTCODE_2,LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,EASTING_1M,NORTHING_1M,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021,IMD_RANK,IMD_DECILE`,
       lsoaArray
     );
-    await pushCsvToS3(bucketName, "combinedImdGridallFileString.csv", combinedImdGridallFileString, client);
+    const dateTime = new Date(Date.now()).toISOString();
+
+    const filename = `lsoa_data_${dateTime}`
+
+    await pushCsvToS3(bucketName, "filename.csv", combinedImdGridallFileString, client);
     console.log('Records pushed to S3: ', Date.now() - start)
 
   } catch (e) {
