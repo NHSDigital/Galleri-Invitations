@@ -10,10 +10,10 @@ runs:
     - name: "Check prerequisites for performing static analysis"
       shell: bash
       id: check
-      run: echo "secret_exist=${{ inputs.sonar_token != '' }}" >> $GITHUB_OUTPUT
+      run: echo "token_exist=${{ inputs.sonar_token != '' }}" >> $GITHUB_OUTPUT
     - name: "Perform static analysis"
       shell: bash
-      if: steps.check.outputs.secret_exist == 'true'
+      if: steps.check.outputs.token_exist == 'true'
       run: |
         export BRANCH_NAME=${GITHUB_HEAD_REF:-$(echo $GITHUB_REF | sed 's#refs/heads/##')}
         export SONAR_TOKEN=${{ inputs.sonar_token }}
