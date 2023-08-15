@@ -92,7 +92,7 @@ resource "aws_lambda_function" "data_filter_gridall_imd" {
 
   environment {
     variables = {
-      BUCKET_NAME = "galleri-ons-data",
+      BUCKET_NAME     = "galleri-ons-data",
       GRIDALL_CHUNK_1 = "gridall/chunk_data/chunk_1.csv",
       GRIDALL_CHUNK_2 = "gridall/chunk_data/chunk_2.csv",
       GRIDALL_CHUNK_3 = "gridall/chunk_data/chunk_3.csv"
