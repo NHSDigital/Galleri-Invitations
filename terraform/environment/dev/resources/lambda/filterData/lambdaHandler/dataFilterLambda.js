@@ -115,7 +115,7 @@ export const generateCsvString = (header, dataArray) => {
   ].join("\n");
 };
 
-const generateLsoaArray = (gridallData, imdData, startTime) => {
+export const mergeImdGridallData = (gridallData, imdData, startTime) => {
   console.log('Attempting to format imd dictionary records')
   let imdDict = {};
 
@@ -209,9 +209,9 @@ export const handler = async () => {
   // Now combine the records
   try {
     const start = Date.now();
-
-    const lsoaArray = generateLsoaArray(gridallCombinedData, imdDataArray, start)
-
+    // Attach IMD rank and decile score to gridall record
+    const lsoaArray = mergeImdGridallData(gridallCombinedData, imdDataArray, start)
+    // Format into a csv string to allow reading into bucket
     const combinedImdGridallFileString = generateCsvString(
       `POSTCODE,POSTCODE_2,LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,EASTING_1M,NORTHING_1M,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021,IMD_RANK,IMD_DECILE`,
       lsoaArray

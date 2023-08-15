@@ -11,7 +11,8 @@ import {
   processGridallRow,
   processImdRow,
   generateCsvString,
-  parseCsvToArray
+  parseCsvToArray,
+  mergeImdGridallData
 } from '../../filterData/lambdaHandler/dataFilterLambda.js';
 
 describe("readCsvFromS3", () => {
@@ -248,5 +249,57 @@ describe("generateCsvString", () => {
     expect(result).toEqual(
       "Alpha,Beta,Gamma\nFirst,Second,Third\nUno,Dos,Tres"
     )
+  });
+});
+
+describe("mergeImdGridallData", () => {
+  test("returns an array with elements that are combined", () => {
+    const gridallData = [
+      {
+        "LSOA_2011": "alpha",
+        "entry": "test1"
+      },
+      {
+        "LSOA_2011": "zeta",
+        "entry": "test2"
+      }
+    ]
+    const imdData = [
+      {
+        "IMD_RANK": "23",
+        "IMD_DECILE": "1",
+        "LSOA_CODE": "alpha",
+        "throwaway": "should not be in lsoaArray"
+      },
+      {
+        "IMD_RANK": "77",
+        "IMD_DECILE": "8",
+        "LSOA_CODE": "zeta",
+        "throwaway": "should not be in lsoaArray again"
+
+      }
+    ]
+
+    const startTime = 0
+
+    const result = mergeImdGridallData(gridallData, imdData, startTime)
+
+    const expected_result = [
+        {
+          "LSOA_2011": "alpha",
+          "entry": "test1",
+          "IMD_RANK": "23",
+          "IMD_DECILE": "1",
+        },
+        {
+          "LSOA_2011": "zeta",
+          "entry": "test2",
+          "IMD_RANK": "77",
+          "IMD_DECILE": "8",
+        }
+      ]
+
+    expect(result).toEqual(expected_result)
+
   });
 });
