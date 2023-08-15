@@ -75,4 +75,5 @@ runs:
       shell: bash
       run: |
         cd ./terraform/environment/dev
+        npm install --prefix lambda/filterData/lambdaHandler
         terraform apply -auto-approve -input=false
