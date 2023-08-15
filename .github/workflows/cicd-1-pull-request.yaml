@@ -104,6 +104,7 @@ jobs:
   acceptance-stage: # Recommended maximum execution time is 10 minutes
     needs: [
       metadata,
+      test-stage
       # build-stage
     ]
     uses: ./.github/workflows/stage-4-acceptance.yaml
