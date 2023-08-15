@@ -57,9 +57,11 @@ jobs:
           aws-region: ${{ env.aws-region }}
           aws-bucket-name: ${{ env.aws-bucket-name }}
           aws-bucket-key-name: ${{ env.aws-bucket-key-name }}
-      - name: "Update database"
-        run: |
-          echo "Updating database..."
+      - name: "Seed databases"
+        uses: ./.github/actions/seeding
+        with:
+          role-to-assume: ${{ env.role-to-assume }}
+          aws-region: ${{ env.aws-region }}
       - name: "Deploy application"
         run: |
           echo "Deploying application..."
