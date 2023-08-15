@@ -115,6 +115,36 @@ export const generateCsvString = (header, dataArray) => {
   ].join("\n");
 };
 
+const generateLsoaArray = (gridallData, imdData, startTime) => {
+  console.log('Attempting to format imd dictionary records')
+  let imdDict = {};
+
+  for (let i = 0; i < imdData.length; i++) {
+    const elementB = imdData[i];
+    imdDict[elementB.LSOA_CODE] = elementB;
+  }
+  console.log('IMD dictionary created in: ', ((Date.now() - startTime)/1000)/60);
+
+  // Iterate through gridallData and match elements
+  // from imdData based on 'LSOA_CODE' property
+  console.log('Attempting to combine records');
+  const startTimeMatching = Date.now();
+  let count = 0
+  const lsoaArray = gridallData.map(gridallRecord => {
+    const matchingElement = imdDict[gridallRecord.LSOA_2011];
+
+    if (matchingElement) {
+      count++
+      gridallRecord.IMD_RANK = matchingElement.IMD_RANK;
+      gridallRecord.IMD_DECILE = matchingElement.IMD_DECILE;
+      return gridallRecord;
+    }
+  })
+  console.log('Function to combine records took: ', ((Date.now() - startTimeMatching)/1000)/60);
+  console.log('Amount of combined records: ' , count);
+  return lsoaArray;
+}
+
 // Lambda Entry Point
 export const handler = async () => {
   const bucketName = "galleri-ons-data";
@@ -179,32 +209,8 @@ export const handler = async () => {
   // Now combine the records
   try {
     const start = Date.now();
-    console.log('Attempting to format imd dictionary records')
-    let imdDict = {};
-    for (let i = 0; i < imdDataArray.length; i++) {
-      const elementB = imdDataArray[i];
-      imdDict[elementB.LSOA_CODE] = elementB;
-    }
-    console.log('Length of imd dictionary should be 32844: ' ,Object.keys(imdDict).length)
-    console.log('IMD dictionary created in: ', ((Date.now() - start)/1000)/60)
 
-    // Iterate through gridallCombinedData and match elements
-    // from imdDataArray based on 'LSOA_CODE' property
-    console.log('Attempting to combine records')
-    const start1 = Date.now();
-    let count = 0
-    const lsoaArray = gridallCombinedData.map(gridallRecord => {
-      const matchingElement = imdDict[gridallRecord.LSOA_2011];
-
-      if (matchingElement) {
-        count++
-        gridallRecord.IMD_RANK = matchingElement.IMD_RANK;
-        gridallRecord.IMD_DECILE = matchingElement.IMD_DECILE;
-        return gridallRecord
-      }
-    })
-    console.log('Function to combine records took: ', ((Date.now() - start1)/1000)/60)
-    console.log('Amount of combined records: ' , count)
+    const lsoaArray = generateLsoaArray(gridallCombinedData, imdDataArray, start)
 
     const combinedImdGridallFileString = generateCsvString(
       `POSTCODE,POSTCODE_2,LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,EASTING_1M,NORTHING_1M,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021,IMD_RANK,IMD_DECILE`,
@@ -215,7 +221,7 @@ export const handler = async () => {
     const filename = `lsoa_data_${dateTime}`
 
     await pushCsvToS3(bucketName, `lsoa_data/${filename}.csv`, combinedImdGridallFileString, client);
-    console.log('Records pushed to S3: ', Date.now() - start)
+    console.log('Records pushed to S3 in (ms): ', Date.now() - start)
 
   } catch (e) {
     console.log("Error with uploading records: " ,e)
