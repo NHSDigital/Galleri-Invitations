@@ -5,6 +5,7 @@ on:
   pull_request:
     branches:
       - main
+      - develop*
     types: [opened, synchronize, reopened]
 
 jobs:
@@ -21,12 +22,18 @@ jobs:
       - id: metadata
         run: |
           datetime=$(date -u +'%Y-%m-%dT%H:%M:%S%z')
-          echo "build_datetime=$datetime" >> $GITHUB_OUTPUT
-          echo "build_timestamp=$(date --date=$datetime -u +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
-          echo "build_epoch=$(date --date=$datetime -u +'%s')" >> $GITHUB_OUTPUT
-          echo "nodejs_version=$(grep nodejs .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
-          echo "python_version=$(grep python .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
-          echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
+          echo "build_datetime=$datetime"
+            >> $GITHUB_OUTPUT
+          echo "build_timestamp=$(date --date=$datetime -u +'%Y%m%d%H%M%S')"
+            >> $GITHUB_OUTPUT
+          echo "build_epoch=$(date --date=$datetime -u +'%s')"
+            >> $GITHUB_OUTPUT
+          echo "nodejs_version=$(grep nodejs .tool-versions | cut -f2 -d' ')"
+            >> $GITHUB_OUTPUT
+          echo "python_version=$(grep python .tool-versions | cut -f2 -d' ')"
+            >> $GITHUB_OUTPUT
+          echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')"
+            >> $GITHUB_OUTPUT
   scan-secrets:
     uses: ./.github/workflows/scan-secrets.yaml
   check-file-format:
@@ -39,8 +46,6 @@ jobs:
     uses: ./.github/workflows/cloc-repository.yaml
   scan-dependencies:
     uses: ./.github/workflows/scan-dependencies.yaml
-  terraform:
-      uses: ./.github/workflows/terraform.yaml
   # sonarcloud-scan:
   #     uses: ./.github/workflows/sonarcloud-scan.yaml
   cicd-pipeline-test:
@@ -70,3 +75,35 @@ jobs:
       # - name: Run Tests ...
       #   run: |
       #     ?
+  unit-test:
+    runs-on: ubuntu-latest
+    needs:
+      [
+      cicd-pipeline-test
+      ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up the python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10.12'
+
+      - name: Run python unit test
+        run: |
+            pip install pytest
+            python -m pytest ./scripts/pipeline/unit_tests/test_generate_participating_icb_data.py
+  terraform:
+    needs:
+      [
+        unit-test
+      ]
+    uses: ./.github/workflows/terraform.yaml
+  seeding:
+    needs:
+      [
+        terraform,
+      ]
+    uses: ./.github/workflows/seeding.yaml
+
