@@ -2,6 +2,11 @@ import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3
 import { Readable } from 'stream';
 import csv from 'csv-parser';
 
+const GALLERI_ONS_BUCKET_NAME = process.env.BUCKET_NAME
+const GRIDALL_CHUNK_1 = process.env.GRIDALL_CHUNK_1
+const GRIDALL_CHUNK_2 = process.env.GRIDALL_CHUNK_2
+const GRIDALL_CHUNK_3 = process.env.GRIDALL_CHUNK_3
+
 const participatingIcbs = new Set([
   'QE1', 'QWO', 'QOQ', 'QF7', 'QHG', 'QM7', 'QH8',
   'QMJ', 'QMF', 'QRV', 'QWE', 'QT6', 'QJK',
@@ -147,7 +152,7 @@ export const mergeImdGridallData = (gridallData, imdData, startTime) => {
 
 // Lambda Entry Point
 export const handler = async () => {
-  const bucketName = "galleri-ons-data";
+  const bucketName = GALLERI_ONS_BUCKET_NAME;
   const client = new S3Client({})
   let gridallCombinedData = []
   let imdDataArray = []
@@ -155,11 +160,7 @@ export const handler = async () => {
   try {
     const start = Date.now();
     console.log('Attempting to extract GRIDALL', start)
-    const gridallKeys = [
-      "gridall/chunk_data/chunk_1.csv",
-      "gridall/chunk_data/chunk_2.csv",
-      "gridall/chunk_data/chunk_3.csv"
-    ];
+    const gridallKeys = [GRIDALL_CHUNK_1, GRIDALL_CHUNK_2, GRIDALL_CHUNK_3];
 
     // For each data chunk, read in the CSV stored in AWS S3.
     // Discard rows and columns that are not needed

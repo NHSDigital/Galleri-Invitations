@@ -89,6 +89,15 @@ resource "aws_lambda_function" "data_filter_gridall_imd" {
   s3_key    = aws_s3_object.data_filter_gridall_imd_lambda.key
 
   source_code_hash = data.archive_file.data_filter_gridall_imd_lambda.output_base64sha256
+
+  environment {
+    variables = {
+      BUCKET_NAME = "galleri-ons-data",
+      GRIDALL_CHUNK_1 = "gridall/chunk_data/chunk_1.csv",
+      GRIDALL_CHUNK_2 = "gridall/chunk_data/chunk_2.csv",
+      GRIDALL_CHUNK_3 = "gridall/chunk_data/chunk_3.csv"
+    }
+  }
 }
 
 resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
