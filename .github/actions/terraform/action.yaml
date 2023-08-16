@@ -30,7 +30,7 @@ runs:
     - name: Terraform fmt
       id: fmt
       shell: bash
-      run:
+      run: |
         cd ./terraform/environment/dev
         terraform fmt -check
       continue-on-error: true

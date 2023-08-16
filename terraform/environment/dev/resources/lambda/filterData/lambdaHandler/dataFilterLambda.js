@@ -2,6 +2,11 @@ import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3
 import { Readable } from 'stream';
 import csv from 'csv-parser';
 
+const GALLERI_ONS_BUCKET_NAME = process.env.BUCKET_NAME
+const GRIDALL_CHUNK_1 = process.env.GRIDALL_CHUNK_1
+const GRIDALL_CHUNK_2 = process.env.GRIDALL_CHUNK_2
+const GRIDALL_CHUNK_3 = process.env.GRIDALL_CHUNK_3
+
 const participatingIcbs = new Set([
   'QE1', 'QWO', 'QOQ', 'QF7', 'QHG', 'QM7', 'QH8',
   'QMJ', 'QMF', 'QRV', 'QWE', 'QT6', 'QJK',
@@ -115,17 +120,47 @@ export const generateCsvString = (header, dataArray) => {
   ].join("\n");
 };
 
+export const mergeImdGridallData = (gridallData, imdData, startTime) => {
+  console.log('Attempting to format imd dictionary records')
+  let imdDict = {};
+
+  for (let i = 0; i < imdData.length; i++) {
+    const elementB = imdData[i];
+    imdDict[elementB.LSOA_CODE] = elementB;
+  }
+  console.log('IMD dictionary created in: ', ((Date.now() - startTime)/1000)/60);
+
+  // Iterate through gridallData and match elements
+  // from imdData based on 'LSOA_CODE' property
+  console.log('Attempting to combine records');
+  const startTimeMatching = Date.now();
+  let count = 0
+  const lsoaArray = gridallData.map(gridallRecord => {
+    const matchingElement = imdDict[gridallRecord.LSOA_2011];
+
+    if (matchingElement) {
+      count++
+      gridallRecord.IMD_RANK = matchingElement.IMD_RANK;
+      gridallRecord.IMD_DECILE = matchingElement.IMD_DECILE;
+      return gridallRecord;
+    }
+  })
+  console.log('Function to combine records took: ', ((Date.now() - startTimeMatching)/1000)/60);
+  console.log('Amount of combined records: ' , count);
+  return lsoaArray;
+}
+
 // Lambda Entry Point
 export const handler = async () => {
-  const bucketName = "galleri-ons-data";
+  const bucketName = GALLERI_ONS_BUCKET_NAME;
   const client = new S3Client({})
+  let gridallCombinedData = []
+  let imdDataArray = []
 
   try {
-    const gridallKeys = [
-      "gridall/chunk_data/chunk_1.csv",
-      "gridall/chunk_data/chunk_2.csv",
-      "gridall/chunk_data/chunk_3.csv"
-    ];
+    const start = Date.now();
+    console.log('Attempting to extract GRIDALL', start)
+    const gridallKeys = [GRIDALL_CHUNK_1, GRIDALL_CHUNK_2, GRIDALL_CHUNK_3];
 
     // For each data chunk, read in the CSV stored in AWS S3.
     // Discard rows and columns that are not needed
@@ -137,33 +172,59 @@ export const handler = async () => {
 
     // Settle all promised in array before concatenating them into single array
     const gridallDataArrayChunks = await Promise.all(gridallPromises);
-    const gridallCombinedData = gridallDataArrayChunks.flat();
+    gridallCombinedData = gridallDataArrayChunks.flat();
 
     // Generate the CSV format
     const filteredGridallFileString = generateCsvString(
       `POSTCODE,POSTCODE_2,LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,EASTING_1M,NORTHING_1M,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021`,
       gridallCombinedData
-    );
+      );
 
-    // Deposit to S3 bucket
-    await pushCsvToS3(bucketName, "filteredGridallFile.csv", filteredGridallFileString,client);
+      // Deposit to S3 bucket
+    await pushCsvToS3(bucketName, "filtered_data/filteredGridallFile.csv", filteredGridallFileString,client);
+    console.log('GRIDALL extracted: ', Date.now() - start)
+
   } catch (error) {
     console.error('Error with Gridall extraction, procession or uploading', error);
   }
 
   try {
+    const start = Date.now();
+    console.log('Attempting to extract IMD', start)
     const imdKey = "imd/IMD2019_Index_of_Multiple_Deprivation.csv";
     const imdCsvString = await readCsvFromS3(bucketName, imdKey, client);
-    const imdDataArray = await parseCsvToArray(imdCsvString, processImdRow);
+    imdDataArray = await parseCsvToArray(imdCsvString, processImdRow);
 
     const filteredImdFileString = generateCsvString(
       "LSOA_CODE,LSOA_NAME,IMD_RANK,IMD_DECILE",
       imdDataArray
-    );
+      );
 
-    await pushCsvToS3(bucketName, "filteredImdFile.csv", filteredImdFileString, client);
+    await pushCsvToS3(bucketName, "filtered_data/filteredImdFile.csv", filteredImdFileString, client);
+    console.log('IMD extracted: ', Date.now() - start)
 
   } catch (error) {
     console.error('Error with IMD extraction, procession or uploading',error);
+  }
+
+  // Now combine the records
+  try {
+    const start = Date.now();
+    // Attach IMD rank and decile score to gridall record
+    const lsoaArray = mergeImdGridallData(gridallCombinedData, imdDataArray, start)
+    // Format into a csv string to allow reading into bucket
+    const combinedImdGridallFileString = generateCsvString(
+      `POSTCODE,POSTCODE_2,LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,EASTING_1M,NORTHING_1M,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021,IMD_RANK,IMD_DECILE`,
+      lsoaArray
+    );
+    const dateTime = new Date(Date.now()).toISOString();
+
+    const filename = `lsoa_data_${dateTime}`
+
+    await pushCsvToS3(bucketName, `lsoa_data/${filename}.csv`, combinedImdGridallFileString, client);
+    console.log('Records pushed to S3 in (ms): ', Date.now() - start)
+
+  } catch (e) {
+    console.log("Error with uploading records: " ,e)
   }
 };

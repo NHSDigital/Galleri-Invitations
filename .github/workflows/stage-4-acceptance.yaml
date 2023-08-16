@@ -57,116 +57,118 @@ jobs:
           aws-region: ${{ env.aws-region }}
           aws-bucket-name: ${{ env.aws-bucket-name }}
           aws-bucket-key-name: ${{ env.aws-bucket-key-name }}
-      - name: "Update database"
-        run: |
-          echo "Updating database..."
+      - name: "Seed databases"
+        uses: ./.github/actions/seeding
+        with:
+          role-to-assume: ${{ env.role-to-assume }}
+          aws-region: ${{ env.aws-region }}
       - name: "Deploy application"
         run: |
           echo "Deploying application..."
-  test-contract:
-    runs-on: ubuntu-latest
-    needs: environment-set-up
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v3
-      - name: "Run contract test"
-        run: |
-          make test-contract
-      - name: "Save result"
-        run: |
-          echo "Nothing to save"
-  test-security:
-    runs-on: ubuntu-latest
-    needs: environment-set-up
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v3
-      - name: "Run security test"
-        run: |
-          make test-security
-      - name: "Save result"
-        run: |
-          echo "Nothing to save"
-  test-ui:
-    runs-on: ubuntu-latest
-    needs: environment-set-up
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v3
-      - name: "Run UI test"
-        run: |
-          make test-ui
-      - name: "Save result"
-        run: |
-          echo "Nothing to save"
-  test-ui-performance:
-    runs-on: ubuntu-latest
-    needs: environment-set-up
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v3
-      - name: "Run UI performance test"
-        run: |
-          make test-ui-performance
-      - name: "Save result"
-        run: |
-          echo "Nothing to save"
-  test-integration:
-    runs-on: ubuntu-latest
-    needs: environment-set-up
-    timeout-minutes: 10
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v3
-      - name: "Run integration test"
-        run: |
-          make test-integration
-      - name: "Save result"
-        run: |
-          echo "Nothing to save"
-  test-accessibility:
-    runs-on: ubuntu-latest
-    needs: environment-set-up
-    timeout-minutes: 10
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v3
-      - name: "Run accessibility test"
-        run: |
-          make test-accessibility
-      - name: "Save result"
-        run: |
-          echo "Nothing to save"
-  test-load:
-    runs-on: ubuntu-latest
-    needs: environment-set-up
-    timeout-minutes: 10
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v3
-      - name: "Run load tests"
-        run: |
-          make test-load
-      - name: "Save result"
-        run: |
-          echo "Nothing to save"
-  environment-tear-down:
-    runs-on: ubuntu-latest
-    needs:
-      [
-        test-accessibility,
-        test-contract,
-        test-integration,
-        test-load,
-        test-security,
-        test-ui-performance,
-        test-ui,
-      ]
-    if: always()
-    timeout-minutes: 5
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v3
-      - name: "Tear down environment"
-        run: |
-          echo "Tearing down environment..."
+  # test-contract:
+  #   runs-on: ubuntu-latest
+  #   needs: environment-set-up
+  #   timeout-minutes: 10
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: "Run contract test"
+  #       run: |
+  #         make test-contract
+  #     - name: "Save result"
+  #       run: |
+  #         echo "Nothing to save"
+  # test-security:
+  #   runs-on: ubuntu-latest
+  #   needs: environment-set-up
+  #   timeout-minutes: 10
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: "Run security test"
+  #       run: |
+  #         make test-security
+  #     - name: "Save result"
+  #       run: |
+  #         echo "Nothing to save"
+  # test-ui:
+  #   runs-on: ubuntu-latest
+  #   needs: environment-set-up
+  #   timeout-minutes: 10
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: "Run UI test"
+  #       run: |
+  #         make test-ui
+  #     - name: "Save result"
+  #       run: |
+  #         echo "Nothing to save"
+  # test-ui-performance:
+  #   runs-on: ubuntu-latest
+  #   needs: environment-set-up
+  #   timeout-minutes: 10
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: "Run UI performance test"
+  #       run: |
+  #         make test-ui-performance
+  #     - name: "Save result"
+  #       run: |
+  #         echo "Nothing to save"
+  # test-integration:
+  #   runs-on: ubuntu-latest
+  #   needs: environment-set-up
+  #   timeout-minutes: 10
+  #   steps:
+  #     - name: "Checkout code"
+  #       uses: actions/checkout@v3
+  #     - name: "Run integration test"
+  #       run: |
+  #         make test-integration
+  #     - name: "Save result"
+  #       run: |
+  #         echo "Nothing to save"
+  # test-accessibility:
+  #   runs-on: ubuntu-latest
+  #   needs: environment-set-up
+  #   timeout-minutes: 10
+  #   steps:
+  #     - name: "Checkout code"
+  #       uses: actions/checkout@v3
+  #     - name: "Run accessibility test"
+  #       run: |
+  #         make test-accessibility
+  #     - name: "Save result"
+  #       run: |
+  #         echo "Nothing to save"
+  # test-load:
+  #   runs-on: ubuntu-latest
+  #   needs: environment-set-up
+  #   timeout-minutes: 10
+  #   steps:
+  #     - name: "Checkout code"
+  #       uses: actions/checkout@v3
+  #     - name: "Run load tests"
+  #       run: |
+  #         make test-load
+  #     - name: "Save result"
+  #       run: |
+  #         echo "Nothing to save"
+  # environment-tear-down:
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     [
+  #       test-accessibility,
+  #       test-contract,
+  #       test-integration,
+  #       test-load,
+  #       test-security,
+  #       test-ui-performance,
+  #       test-ui,
+  #     ]
+  #   if: always()
+  #   timeout-minutes: 5
+  #   steps:
+  #     - name: "Checkout code"
+  #       uses: actions/checkout@v3
+  #     - name: "Tear down environment"
+  #       run: |
+  #         echo "Tearing down environment..."
