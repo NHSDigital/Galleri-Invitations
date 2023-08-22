@@ -119,7 +119,7 @@ resource "aws_lambda_function" "non_prod_lsoa_loader" {
 
 
   s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
-  s3_key    = aws_s3_object.data_filter_gridall_imd_lambda.key // come back
+  s3_key    = aws_s3_object.non_prod_lsoa_loader_lambda.key // come back
 
   source_code_hash = data.archive_file.data_non_prod_lsoa_loader_lambda.output_base64sha256
 
