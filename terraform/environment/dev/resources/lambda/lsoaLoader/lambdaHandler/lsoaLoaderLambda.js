@@ -1,9 +1,9 @@
-import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { ListObjectsCommand, GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
 import csv from 'csv-parser';
 
 const GALLERI_ONS_BUCKET_NAME = process.env.BUCKET_NAME
-const LSOA_FILE_KEY = "lsoa_data/lsoa_data_2023-08-15T15:42:13.301Z.csv"
+const LSOA_FILE_KEY = process.env.KEY
 
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
@@ -78,7 +78,7 @@ export const handler = async () => {
     );
 
   } catch (e) {
-    console.error('Error reading LSOA file from bucket',e)
+    console.error('Error reading LSOA file from bucket: ', e)
   }
 
   try {
@@ -87,6 +87,6 @@ export const handler = async () => {
     const filename = `non_prod_lsoa_data_${dateTime}`
     await pushCsvToS3(bucketName, `non_prod_lsoa_data_/${filename}.csv`, nonProdLsoaDataString, client);
   } catch (e) {
-    console.error('Error writing LSOA subset file to bucket', e)
+    console.error('Error writing LSOA subset file to bucket: ', e)
   }
 }

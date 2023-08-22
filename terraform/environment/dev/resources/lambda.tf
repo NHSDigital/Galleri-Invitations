@@ -115,17 +115,18 @@ resource "aws_lambda_function" "non_prod_lsoa_loader" {
   handler       = "lsoaLoaderLambda.handler"
   runtime       = "nodejs18.x"
   timeout       = 900
-  memory_size   = 1024
+  memory_size   = 4096
 
 
   s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
-  s3_key    = aws_s3_object.non_prod_lsoa_loader_lambda.key // come back
+  s3_key    = aws_s3_object.non_prod_lsoa_loader_lambda.key
 
   source_code_hash = data.archive_file.data_non_prod_lsoa_loader_lambda.output_base64sha256
 
   environment {
     variables = {
-      BUCKET_NAME = "galleri-ons-data"
+      BUCKET_NAME = "galleri-ons-data",
+      KEY         = "lsoa_data/lsoa_data_2023-08-15T15:42:13.301Z.csv"
     }
   }
 }
