@@ -78,8 +78,7 @@ export const handler = async () => {
     );
 
   } catch (e) {
-    console.log('cant read')
-    console.error(e)
+    console.error('Error reading LSOA file from bucket',e)
   }
 
   try {
@@ -88,7 +87,6 @@ export const handler = async () => {
     const filename = `non_prod_lsoa_data_${dateTime}`
     await pushCsvToS3(bucketName, `non_prod_lsoa_data_/${filename}.csv`, nonProdLsoaDataString, client);
   } catch (e) {
-    console.log('cant push')
-    console.error(e)
+    console.error('Error writing LSOA subset file to bucket', e)
   }
 }
