@@ -3,7 +3,7 @@ import { Readable } from 'stream';
 import csv from 'csv-parser';
 
 const GALLERI_ONS_BUCKET_NAME = process.env.BUCKET_NAME
-const LSOA_FILE_KEY = "lsoa_data_2023-08-15T15:42:13.301Z.csv"
+const LSOA_FILE_KEY = "lsoa_data/lsoa_data_2023-08-15T15:42:13.301Z.csv"
 
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
@@ -66,8 +66,6 @@ export const handler = async () => {
   const bucketName = GALLERI_ONS_BUCKET_NAME;
   const key = LSOA_FILE_KEY;
   const client = new S3Client({})
-
-
 
   try {
     const csvString = await readCsvFromS3(bucketName, key, client);
