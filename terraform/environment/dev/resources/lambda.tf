@@ -115,7 +115,7 @@ resource "aws_lambda_function" "non_prod_lsoa_loader" {
   handler       = "lsoaLoaderLambda.handler"
   runtime       = "nodejs18.x"
   timeout       = 900
-  memory_size   = 4096
+  memory_size   = 2048
 
 
   s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
