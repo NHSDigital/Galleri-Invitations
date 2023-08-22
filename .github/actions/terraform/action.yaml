@@ -77,4 +77,8 @@ runs:
         cd ./terraform/environment/dev
         npm install --prefix lambda/filterData/lambdaHandler
         npm install --prefix lambda/lsoaLoader/lambdaHandler
+        echo "folder in lambda/filterData/lambdaHandler"
+        ls lambda/filterData/lambdaHandler
+        echo "folder in lambda/lsoaLoader/lambdaHandler"
+        ls lambda/lsoaLoader/lambdaHandler
         terraform apply -auto-approve -input=false
