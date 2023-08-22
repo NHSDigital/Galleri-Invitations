@@ -69,6 +69,7 @@ resource "aws_iam_role_policy_attachment" "galleri_lambda_policy" {
   policy_arn = aws_iam_policy.iam_policy_for_lambda.arn
 }
 
+// Zip lambda folders
 data "archive_file" "data_filter_gridall_imd_lambda" {
   type = "zip"
 
@@ -83,6 +84,7 @@ data "archive_file" "data_non_prod_lsoa_loader_lambda" {
   output_path = "${path.cwd}/lambda/lsoaLoader/lambdaHandler/lsoaLoaderLambda.zip"
 }
 
+// Create lambda functions
 resource "aws_lambda_function" "data_filter_gridall_imd" {
   function_name = "dataFilterLambda"
   role          = aws_iam_role.galleri_lambda_role.arn
@@ -123,11 +125,12 @@ resource "aws_lambda_function" "non_prod_lsoa_loader" {
 
   environment {
     variables = {
-      BUCKET_NAME     = "galleri-ons-data"
+      BUCKET_NAME = "galleri-ons-data"
     }
   }
 }
 
+// Create cloudwatch log group
 resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
   name = "/aws/lambda/${aws_lambda_function.data_filter_gridall_imd.function_name}"
 
@@ -140,6 +143,7 @@ resource "aws_cloudwatch_log_group" "non_prod_lsoa_loader" {
   retention_in_days = 14
 }
 
+// Create s3 object
 resource "aws_s3_object" "data_filter_gridall_imd_lambda" {
   bucket = aws_s3_bucket.galleri_lambda_bucket.id
 
