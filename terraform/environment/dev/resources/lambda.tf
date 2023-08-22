@@ -12,8 +12,8 @@ resource "aws_s3_bucket_public_access_block" "galleri_lambda_bucket_block_public
   restrict_public_buckets = true
 }
 
-resource "aws_iam_role" "data_filter_gridall_imd" {
-  name = "data-filter-gridall-imd"
+resource "aws_iam_role" "galleri_lambda_role" {
+  name = "galleri-lambda-role"
 
   assume_role_policy = <<POLICY
   {
@@ -64,8 +64,8 @@ resource "aws_iam_policy" "iam_policy_for_lambda" {
 EOF
 }
 
-resource "aws_iam_role_policy_attachment" "data_filter_gridall_imd_policy" {
-  role       = aws_iam_role.data_filter_gridall_imd.name
+resource "aws_iam_role_policy_attachment" "galleri_lambda_policy" {
+  role       = aws_iam_role.galleri_lambda_role.name
   policy_arn = aws_iam_policy.iam_policy_for_lambda.arn
 }
 
@@ -76,9 +76,16 @@ data "archive_file" "data_filter_gridall_imd_lambda" {
   output_path = "${path.cwd}/lambda/filterData/lambdaHandler/dataFilterLambda.zip"
 }
 
+data "archive_file" "data_non_prod_lsoa_loader_lambda" {
+  type = "zip"
+
+  source_dir  = "${path.cwd}/lambda/lsoaLoader/lambdaHandler"
+  output_path = "${path.cwd}/lambda/lsoaLoader/lambdaHandler/lsoaLoaderLambda.zip"
+}
+
 resource "aws_lambda_function" "data_filter_gridall_imd" {
   function_name = "dataFilterLambda"
-  role          = aws_iam_role.data_filter_gridall_imd.arn
+  role          = aws_iam_role.galleri_lambda_role.arn
   handler       = "dataFilterLambda.handler"
   runtime       = "nodejs18.x"
   timeout       = 900
@@ -100,8 +107,35 @@ resource "aws_lambda_function" "data_filter_gridall_imd" {
   }
 }
 
+resource "aws_lambda_function" "non_prod_lsoa_loader" {
+  function_name = "lsoaLoaderLambda"
+  role          = aws_iam_role.galleri_lambda_role.arn
+  handler       = "lsoaLoaderLambda.handler"
+  runtime       = "nodejs18.x"
+  timeout       = 900
+  memory_size   = 1024
+
+
+  s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
+  s3_key    = aws_s3_object.data_filter_gridall_imd_lambda.key // come back
+
+  source_code_hash = data.archive_file.data_non_prod_lsoa_loader_lambda.output_base64sha256
+
+  environment {
+    variables = {
+      BUCKET_NAME     = "galleri-ons-data"
+    }
+  }
+}
+
 resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
   name = "/aws/lambda/${aws_lambda_function.data_filter_gridall_imd.function_name}"
+
+  retention_in_days = 14
+}
+
+resource "aws_cloudwatch_log_group" "non_prod_lsoa_loader" {
+  name = "/aws/lambda/${aws_lambda_function.non_prod_lsoa_loader.function_name}"
 
   retention_in_days = 14
 }
@@ -115,6 +149,15 @@ resource "aws_s3_object" "data_filter_gridall_imd_lambda" {
   etag = filemd5(data.archive_file.data_filter_gridall_imd_lambda.output_path)
 }
 
+resource "aws_s3_object" "non_prod_lsoa_loader_lambda" {
+  bucket = aws_s3_bucket.galleri_lambda_bucket.id
+
+  key    = "non_prod_lsoa_loader.zip"
+  source = data.archive_file.data_non_prod_lsoa_loader_lambda.output_path
+
+  etag = filemd5(data.archive_file.data_non_prod_lsoa_loader_lambda.output_path)
+}
+
 resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
   bucket = "galleri-ons-data"
   policy = data.aws_iam_policy_document.allow_access_to_lambda.json
@@ -126,7 +169,7 @@ data "aws_iam_policy_document" "allow_access_to_lambda" {
       type = "AWS"
       identifiers = [
         "arn:aws:iam::136293001324:role/github-oidc-invitations-role",
-        aws_iam_role.data_filter_gridall_imd.arn
+        aws_iam_role.galleri_lambda_role.arn
       ]
     }
 
