@@ -1,0 +1,80 @@
+name: "Terraform action"
+description: "Build infrastructure"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Git checkout
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials from AWS account
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: ${{ env.role-to-assume }}
+        aws-region: ${{ env.aws-region }}
+        role-session-name: GitHub-OIDC-TERRAFORM
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.0
+
+    - name: Flatten Terrafrom Directory
+      id: flatten
+      shell: bash
+      run: |
+        cd ./terraform/environment/dev
+        mv ./*/* .
+        rm -rf resources
+
+    - name: Terraform fmt
+      id: fmt
+      shell: bash
+      run: |
+        cd ./terraform/environment/dev
+        terraform fmt -check
+      continue-on-error: true
+
+    - name: Terraform Init
+      id: init
+      shell: bash
+      run: |
+        cd ./terraform/environment/dev
+        terraform init -backend-config="bucket=${{ env.aws-bucket-name }}" -backend-config="key=${{ env.aws-bucket-key-name }}" -backend-config="region=${{ env.aws-region }}"
+
+    - name: Terraform Destroy
+      id: destroy
+      shell: bash
+      run: |
+        cd ./terraform/environment/dev
+        terraform destroy -auto-approve
+
+    - name: Terraform Validate
+      id: validate
+      shell: bash
+      run: |
+        cd ./terraform/environment/dev
+        terraform validate -no-color
+
+    - name: Terraform Plan
+      id: plan
+      shell: bash
+      run: |
+        cd ./terraform/environment/dev
+        terraform plan -no-color
+
+    - name: Terraform Plan Status
+      if: steps.plan.outcome == 'failure'
+      shell: bash
+      run: |
+        cd ./terraform/environment/dev
+        echo Terraform Plan Status has failed
+        exit 1
+
+    - name: Terraform Apply
+      shell: bash
+      run: |
+        cd ./terraform/environment/dev
+        npm install --prefix lambda/filterData/lambdaHandler
+        npm install --prefix lambda/lsoaLoader/lambdaHandler
+        terraform apply -auto-approve -input=false

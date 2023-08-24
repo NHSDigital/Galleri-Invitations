@@ -1,8 +1,10 @@
-cve-scan*.json
-sbom-spdx*.json
+.scannerwork
+*cloc-report*.json
+*sbom-report*.json
+*vulnerabilities-report*.json
+
 *.code-workspace
 !project.code-workspace
-
 
 # Local .terraform directories
 **/.terraform/*
@@ -41,3 +43,6 @@ terraform.rc
 
 # python directories
 **/__pycache__
+
+# node modules
+node_modules
