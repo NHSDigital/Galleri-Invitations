@@ -5,8 +5,6 @@
   "main": "clinicInformation.js",
   "author": "",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.388.0",
-    "csv": "^6.3.1",
-    "csv-parser": "^3.0.0"
+    "@aws-sdk/client-dynamodb": "^3.398.0"
   }
 }

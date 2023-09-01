@@ -1,42 +1,34 @@
 import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
-import { Readable } from 'stream';
-import csv from 'csv-parser';
 
 /*
   Lambda to load clinic information and pass on to GPS client.
 */
-export const handler = async () => {
-  const client = new DynamoDBClient({ region: "eu-west-2" })
+export const handler = async (event, context) => {
+  const client = new DynamoDBClient({ region: "eu-west-2" });
+  // { eventClinicId, eventClinicName } = event
   var params = {
     Key: {
-      "ClinicId": {
-        S: "0001"
-      }
+      ClinicId: {
+        S: "0000",
+      },
+      ClinicName: {
+        S: "Phlebotomy clinic 5",
+      },
     },
-    TableName: "PhlebotomySite"
+    TableName: "PhlebotomySite",
   };
   const command = new GetItemCommand(params);
   const response = await client.send(command);
 
-  console.log(JSON.stringify(response));
-}
+  let responseObject = {};
 
-// dynamodb.getItem(params, function (err, data) {
-//   if (err) console.log(err, err.stack); // an error occurred
-//   else console.log(data);           // successful response
-//   /*
-//   data = {
-//    Item: {
-//     "AlbumTitle": {
-//       S: "Songs About Life"
-//      },
-//     "Artist": {
-//       S: "Acme Band"
-//      },
-//     "SongTitle": {
-//       S: "Happy Day"
-//      }
-//    }
-//   }
-//   */
-// });
+  if (response.hasOwnProperty("Item")) {
+    responseObject.statusCode = 200;
+    responseObject.body = response.Item;
+  } else {
+    responseObject.statusCode = 404;
+    responseObject.body = "error";
+  }
+
+  return responseObject;
+};
