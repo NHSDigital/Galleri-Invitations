@@ -5,14 +5,15 @@ import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
 */
 export const handler = async (event, context) => {
   const client = new DynamoDBClient({ region: "eu-west-2" });
-  // { eventClinicId, eventClinicName } = event
+  const { eventClinicId, eventClinicName } = event;
+
   var params = {
     Key: {
       ClinicId: {
-        S: "0000",
+        S: `${eventClinicId}`,
       },
       ClinicName: {
-        S: "Phlebotomy clinic 5",
+        S: `${eventClinicName}`,
       },
     },
     TableName: "PhlebotomySite",
