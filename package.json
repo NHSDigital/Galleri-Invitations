@@ -9,7 +9,7 @@
     "@aws-sdk/client-s3": "^3.388.0",
     "aws-sdk-client-mock": "^2.0.0",
     "aws-sdk-mock": "^5.8.0",
-    "jest": "^29.6.2"
+    "jest": "^29.6.4"
   },
   "dependencies": {
     "@aws-sdk/util-stream-node": "^3.374.0",
