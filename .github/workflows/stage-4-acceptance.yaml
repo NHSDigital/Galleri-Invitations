@@ -47,7 +47,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Full history is needed to scan all commits
       - name: "Create infractructure"
@@ -70,7 +70,7 @@ jobs:
   #   needs: environment-set-up
   #   timeout-minutes: 10
   #   steps:
-  #     - uses: actions/checkout@v3
+  #     - uses: actions/checkout@v4
   #     - name: "Run contract test"
   #       run: |
   #         make test-contract
@@ -82,7 +82,7 @@ jobs:
   #   needs: environment-set-up
   #   timeout-minutes: 10
   #   steps:
-  #     - uses: actions/checkout@v3
+  #     - uses: actions/checkout@v4
   #     - name: "Run security test"
   #       run: |
   #         make test-security
@@ -94,7 +94,7 @@ jobs:
   #   needs: environment-set-up
   #   timeout-minutes: 10
   #   steps:
-  #     - uses: actions/checkout@v3
+  #     - uses: actions/checkout@v4
   #     - name: "Run UI test"
   #       run: |
   #         make test-ui
@@ -106,7 +106,7 @@ jobs:
   #   needs: environment-set-up
   #   timeout-minutes: 10
   #   steps:
-  #     - uses: actions/checkout@v3
+  #     - uses: actions/checkout@v4
   #     - name: "Run UI performance test"
   #       run: |
   #         make test-ui-performance
@@ -119,7 +119,7 @@ jobs:
   #   timeout-minutes: 10
   #   steps:
   #     - name: "Checkout code"
-  #       uses: actions/checkout@v3
+  #       uses: actions/checkout@v4
   #     - name: "Run integration test"
   #       run: |
   #         make test-integration
@@ -132,7 +132,7 @@ jobs:
   #   timeout-minutes: 10
   #   steps:
   #     - name: "Checkout code"
-  #       uses: actions/checkout@v3
+  #       uses: actions/checkout@v4
   #     - name: "Run accessibility test"
   #       run: |
   #         make test-accessibility
@@ -145,7 +145,7 @@ jobs:
   #   timeout-minutes: 10
   #   steps:
   #     - name: "Checkout code"
-  #       uses: actions/checkout@v3
+  #       uses: actions/checkout@v4
   #     - name: "Run load tests"
   #       run: |
   #         make test-load
@@ -168,7 +168,7 @@ jobs:
   #   timeout-minutes: 5
   #   steps:
   #     - name: "Checkout code"
-  #       uses: actions/checkout@v3
+  #       uses: actions/checkout@v4
   #     - name: "Tear down environment"
   #       run: |
   #         echo "Tearing down environment..."
