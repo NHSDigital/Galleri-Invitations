@@ -262,3 +262,46 @@ data "aws_iam_policy_document" "allow_access_to_lambda" {
     ]
   }
 }
+
+// API Gateway
+resource "aws_api_gateway_rest_api" "galleri" {
+  name        = "galleri-nonProd"
+  description = "API for the galleri webapp"
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
+
+}
+
+resource "aws_api_gateway_resource" "clinic_information" {
+  rest_api_id = "${aws_api_gateway_rest_api.galleri.id}"
+  parent_id   = "${aws_api_gateway_rest_api.galleri.root_resource_id}"
+  path_part   = "clinic-information"
+}
+
+resource "aws_api_gateway_method" "clinic_information" {
+  rest_api_id   = "${aws_api_gateway_rest_api.galleri.id}"
+  resource_id   = "${aws_api_gateway_resource.clinic_information.id}"
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "clinic_information_lambda" {
+  rest_api_id = "${aws_api_gateway_rest_api.galleri.id}"
+  resource_id = "${aws_api_gateway_method.clinic_information.resource_id}"
+  http_method = "${aws_api_gateway_method.clinic_information.http_method}"
+
+  integration_http_method = "GET"
+  type                    = "AWS_PROXY"
+  uri                     = "${aws_lambda_function.clinic_information.invoke_arn}"
+}
+resource "aws_lambda_permission" "apigw" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.clinic_information.function_name}"
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/*"
+}
