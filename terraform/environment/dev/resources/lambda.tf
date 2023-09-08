@@ -128,6 +128,14 @@ data "archive_file" "clinic_information_lambda" {
   output_path = "${path.cwd}/lambda/clinicInformation/lambdaHandler/clinicInformationLambda.zip"
 }
 
+data "archive_file" "clinic_icb_list_lambda" {
+  type = "zip"
+
+  source_dir  = "${path.cwd}/lambda/clinicIcbList/lambdaHandler"
+  output_path = "${path.cwd}/lambda/clinicIcbList/lambdaHandler/clinicIcbListLambda.zip"
+}
+
+
 // Create lambda functions
 resource "aws_lambda_function" "data_filter_gridall_imd" {
   function_name = "dataFilterLambda"
@@ -190,6 +198,21 @@ resource "aws_lambda_function" "clinic_information" {
 
 }
 
+resource "aws_lambda_function" "clinic_icb_list" {
+  function_name = "clinicIcbListLambda"
+  role          = aws_iam_role.galleri_lambda_role.arn
+  handler       = "clinicIcbListLambda.handler"
+  runtime       = "nodejs18.x"
+  timeout       = 100
+  memory_size   = 1024
+
+  s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
+  s3_key    = aws_s3_object.clinic_information_lambda.key
+
+  source_code_hash = data.archive_file.clinic_icb_list_lambda.output_base64sha256
+
+}
+
 // Create cloudwatch log group
 resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
   name = "/aws/lambda/${aws_lambda_function.data_filter_gridall_imd.function_name}"
@@ -209,6 +232,11 @@ resource "aws_cloudwatch_log_group" "clinic_information" {
   retention_in_days = 14
 }
 
+resource "aws_cloudwatch_log_group" "clinic_icb_list" {
+  name = "/aws/lambda/${aws_lambda_function.clinic_icb_list.function_name}"
+
+  retention_in_days = 14
+}
 
 // Create s3 object
 resource "aws_s3_object" "data_filter_gridall_imd_lambda" {
@@ -238,6 +266,15 @@ resource "aws_s3_object" "clinic_information_lambda" {
   etag = filemd5(data.archive_file.clinic_information_lambda.output_path)
 }
 
+resource "aws_s3_object" "clinic_icb_list_lambda" {
+  bucket = aws_s3_bucket.galleri_lambda_bucket.id
+
+  key    = "clinic_icb_list.zip"
+  source = data.archive_file.clinic_icb_list.output_path
+
+  etag = filemd5(data.archive_file.clinic_icb_list.output_path)
+}
+
 resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
   bucket = "galleri-ons-data"
   policy = data.aws_iam_policy_document.allow_access_to_lambda.json
@@ -265,7 +302,7 @@ data "aws_iam_policy_document" "allow_access_to_lambda" {
 
 // API Gateway
 resource "aws_api_gateway_rest_api" "galleri" {
-  name        = "galleri-nonProd"
+  name        = "galleri-dev"
   description = "API for the galleri webapp"
   endpoint_configuration {
     types = ["REGIONAL"]
@@ -284,6 +321,11 @@ resource "aws_api_gateway_method" "clinic_information" {
   resource_id   = "${aws_api_gateway_resource.clinic_information.id}"
   http_method   = "GET"
   authorization = "NONE"
+
+  request_parameters = {
+    "method.request.querystring.clinicId" = true ,
+    "method.request.querystring.clinicName" = true
+  }
 }
 
 resource "aws_api_gateway_integration" "clinic_information_lambda" {
