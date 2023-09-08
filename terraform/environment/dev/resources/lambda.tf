@@ -274,36 +274,36 @@ resource "aws_api_gateway_rest_api" "galleri" {
 }
 
 resource "aws_api_gateway_resource" "clinic_information" {
-  rest_api_id = "${aws_api_gateway_rest_api.galleri.id}"
-  parent_id   = "${aws_api_gateway_rest_api.galleri.root_resource_id}"
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  parent_id   = aws_api_gateway_rest_api.galleri.root_resource_id
   path_part   = "clinic-information"
 }
 
 resource "aws_api_gateway_method" "clinic_information" {
-  rest_api_id   = "${aws_api_gateway_rest_api.galleri.id}"
-  resource_id   = "${aws_api_gateway_resource.clinic_information.id}"
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  resource_id   = aws_api_gateway_resource.clinic_information.id
   http_method   = "GET"
   authorization = "NONE"
 
   request_parameters = {
-    "method.request.querystring.clinicId" = true ,
+    "method.request.querystring.clinicId"   = true,
     "method.request.querystring.clinicName" = true
   }
 }
 
 resource "aws_api_gateway_integration" "clinic_information_lambda" {
-  rest_api_id = "${aws_api_gateway_rest_api.galleri.id}"
-  resource_id = "${aws_api_gateway_method.clinic_information.resource_id}"
-  http_method = "${aws_api_gateway_method.clinic_information.http_method}"
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.clinic_information.resource_id
+  http_method = aws_api_gateway_method.clinic_information.http_method
 
   integration_http_method = "GET"
   type                    = "AWS_PROXY"
-  uri                     = "${aws_lambda_function.clinic_information.invoke_arn}"
+  uri                     = aws_lambda_function.clinic_information.invoke_arn
 }
 resource "aws_lambda_permission" "apigw" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.clinic_information.function_name}"
+  function_name = aws_lambda_function.clinic_information.function_name
   principal     = "apigateway.amazonaws.com"
 
   # The /*/* portion grants access from any method on any resource
