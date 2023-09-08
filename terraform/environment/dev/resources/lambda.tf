@@ -341,7 +341,7 @@ resource "aws_api_gateway_integration" "clinic_information_lambda" {
 resource "aws_api_gateway_resource" "clinic_icb_list" {
   rest_api_id = "${aws_api_gateway_rest_api.galleri.id}"
   parent_id   = "${aws_api_gateway_rest_api.galleri.root_resource_id}"
-  path_part   = "clinic-icb-information"
+  path_part   = "clinic-icb-list"
 }
 
 resource "aws_api_gateway_method" "clinic_icb_list" {
