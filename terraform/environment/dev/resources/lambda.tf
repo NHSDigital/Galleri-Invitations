@@ -337,10 +337,37 @@ resource "aws_api_gateway_integration" "clinic_information_lambda" {
   type                    = "AWS_PROXY"
   uri                     = "${aws_lambda_function.clinic_information.invoke_arn}"
 }
+
+resource "aws_api_gateway_resource" "clinic_icb_list" {
+  rest_api_id = "${aws_api_gateway_rest_api.galleri.id}"
+  parent_id   = "${aws_api_gateway_rest_api.galleri.root_resource_id}"
+  path_part   = "clinic-icb-information"
+}
+
+resource "aws_api_gateway_method" "clinic_icb_list" {
+  rest_api_id   = "${aws_api_gateway_rest_api.galleri.id}"
+  resource_id   = "${aws_api_gateway_resource.clinic_icb_list.id}"
+  http_method   = "GET"
+  authorization = "NONE"
+
+  request_parameters = {
+    "method.request.querystring.participatingIcb" = true
+  }
+}
+
+resource "aws_api_gateway_integration" "clinic_icb_list_lambda" {
+  rest_api_id = "${aws_api_gateway_rest_api.galleri.id}"
+  resource_id = "${aws_api_gateway_method.clinic_icb_list.resource_id}"
+  http_method = "${aws_api_gateway_method.clinic_icb_list.http_method}"
+
+  integration_http_method = "GET"
+  type                    = "AWS_PROXY"
+  uri                     = "${aws_lambda_function.clinic_icb_list.invoke_arn}"
+}
 resource "aws_lambda_permission" "apigw" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.clinic_information.function_name}"
+  function_name = "${aws_lambda_function.clinic_icb_list.function_name}"
   principal     = "apigateway.amazonaws.com"
 
   # The /*/* portion grants access from any method on any resource
