@@ -207,7 +207,7 @@ resource "aws_lambda_function" "clinic_icb_list" {
   memory_size   = 1024
 
   s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
-  s3_key    = aws_s3_object.clinic_information_lambda.key
+  s3_key    = aws_s3_object.clinic_icb_list_lambda.key
 
   source_code_hash = data.archive_file.clinic_icb_list_lambda.output_base64sha256
 
@@ -269,10 +269,10 @@ resource "aws_s3_object" "clinic_information_lambda" {
 resource "aws_s3_object" "clinic_icb_list_lambda" {
   bucket = aws_s3_bucket.galleri_lambda_bucket.id
 
-  key    = "clinic_icb_list.zip"
-  source = data.archive_file.clinic_icb_list.output_path
+  key    = "clinic_icb_list_lambda.zip"
+  source = data.archive_file.clinic_icb_list_lambda.output_path
 
-  etag = filemd5(data.archive_file.clinic_icb_list.output_path)
+  etag = filemd5(data.archive_file.clinic_icb_list_lambda.output_path)
 }
 
 resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
