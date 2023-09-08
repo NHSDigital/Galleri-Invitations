@@ -84,6 +84,21 @@ data "archive_file" "data_non_prod_lsoa_loader_lambda" {
   output_path = "${path.cwd}/lambda/lsoaLoader/lambdaHandler/lsoaLoaderLambda.zip"
 }
 
+data "archive_file" "clinic_information_lambda" {
+  type = "zip"
+
+  source_dir  = "${path.cwd}/lambda/clinicInformation/lambdaHandler"
+  output_path = "${path.cwd}/lambda/clinicInformation/lambdaHandler/clinicInformationLambda.zip"
+}
+
+data "archive_file" "clinic_icb_list_lambda" {
+  type = "zip"
+
+  source_dir  = "${path.cwd}/lambda/clinicIcbList/lambdaHandler"
+  output_path = "${path.cwd}/lambda/clinicIcbList/lambdaHandler/clinicIcbListLambda.zip"
+}
+
+
 // Create lambda functions
 resource "aws_lambda_function" "data_filter_gridall_imd" {
   function_name = "dataFilterLambda"
@@ -131,6 +146,36 @@ resource "aws_lambda_function" "non_prod_lsoa_loader" {
   }
 }
 
+resource "aws_lambda_function" "clinic_information" {
+  function_name = "clinicInformationLambda"
+  role          = aws_iam_role.galleri_lambda_role.arn
+  handler       = "clinicInformationLambda.handler"
+  runtime       = "nodejs18.x"
+  timeout       = 100
+  memory_size   = 1024
+
+  s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
+  s3_key    = aws_s3_object.clinic_information_lambda.key
+
+  source_code_hash = data.archive_file.clinic_information_lambda.output_base64sha256
+
+}
+
+resource "aws_lambda_function" "clinic_icb_list" {
+  function_name = "clinicIcbListLambda"
+  role          = aws_iam_role.galleri_lambda_role.arn
+  handler       = "clinicIcbListLambda.handler"
+  runtime       = "nodejs18.x"
+  timeout       = 100
+  memory_size   = 1024
+
+  s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
+  s3_key    = aws_s3_object.clinic_information_lambda.key
+
+  source_code_hash = data.archive_file.clinic_icb_list_lambda.output_base64sha256
+
+}
+
 // Create cloudwatch log group
 resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
   name = "/aws/lambda/${aws_lambda_function.data_filter_gridall_imd.function_name}"
@@ -140,6 +185,18 @@ resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
 
 resource "aws_cloudwatch_log_group" "non_prod_lsoa_loader" {
   name = "/aws/lambda/${aws_lambda_function.non_prod_lsoa_loader.function_name}"
+
+  retention_in_days = 14
+}
+
+resource "aws_cloudwatch_log_group" "clinic_information" {
+  name = "/aws/lambda/${aws_lambda_function.clinic_information.function_name}"
+
+  retention_in_days = 14
+}
+
+resource "aws_cloudwatch_log_group" "clinic_icb_list" {
+  name = "/aws/lambda/${aws_lambda_function.clinic_icb_list.function_name}"
 
   retention_in_days = 14
 }
@@ -161,6 +218,24 @@ resource "aws_s3_object" "non_prod_lsoa_loader_lambda" {
   source = data.archive_file.data_non_prod_lsoa_loader_lambda.output_path
 
   etag = filemd5(data.archive_file.data_non_prod_lsoa_loader_lambda.output_path)
+}
+
+resource "aws_s3_object" "clinic_information_lambda" {
+  bucket = aws_s3_bucket.galleri_lambda_bucket.id
+
+  key    = "clinic_information_lambda.zip"
+  source = data.archive_file.clinic_information_lambda.output_path
+
+  etag = filemd5(data.archive_file.clinic_information_lambda.output_path)
+}
+
+resource "aws_s3_object" "clinic_icb_list_lambda" {
+  bucket = aws_s3_bucket.galleri_lambda_bucket.id
+
+  key    = "clinic_icb_list.zip"
+  source = data.archive_file.clinic_icb_list.output_path
+
+  etag = filemd5(data.archive_file.clinic_icb_list.output_path)
 }
 
 resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
@@ -186,4 +261,52 @@ data "aws_iam_policy_document" "allow_access_to_lambda" {
       "arn:aws:s3:::galleri-ons-data/*"
     ]
   }
+}
+
+// API Gateway
+resource "aws_api_gateway_rest_api" "galleri" {
+  name        = "galleri-nonProd"
+  description = "API for the galleri webapp"
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
+
+}
+
+resource "aws_api_gateway_resource" "clinic_information" {
+  rest_api_id = "${aws_api_gateway_rest_api.galleri.id}"
+  parent_id   = "${aws_api_gateway_rest_api.galleri.root_resource_id}"
+  path_part   = "clinic-information"
+}
+
+resource "aws_api_gateway_method" "clinic_information" {
+  rest_api_id   = "${aws_api_gateway_rest_api.galleri.id}"
+  resource_id   = "${aws_api_gateway_resource.clinic_information.id}"
+  http_method   = "GET"
+  authorization = "NONE"
+
+  request_parameters = {
+    "method.request.querystring.clinicId" = true ,
+    "method.request.querystring.clinicName" = true
+  }
+}
+
+resource "aws_api_gateway_integration" "clinic_information_lambda" {
+  rest_api_id = "${aws_api_gateway_rest_api.galleri.id}"
+  resource_id = "${aws_api_gateway_method.clinic_information.resource_id}"
+  http_method = "${aws_api_gateway_method.clinic_information.http_method}"
+
+  integration_http_method = "GET"
+  type                    = "AWS_PROXY"
+  uri                     = "${aws_lambda_function.clinic_information.invoke_arn}"
+}
+resource "aws_lambda_permission" "apigw" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.clinic_information.function_name}"
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/*"
 }
