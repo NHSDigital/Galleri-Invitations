@@ -49,7 +49,8 @@ function is_arg_true() {
 
 # ==============================================================================
 
-is_arg_true "$VERBOSE" && set -x
+# is_arg_true "$VERBOSE" && set -x
+set -x
 
 main $*
 
