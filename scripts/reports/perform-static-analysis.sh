@@ -30,19 +30,13 @@ function main() {
 
 function create-report() {
 
-  # docker run --rm --platform linux/amd64 \
-  #   --volume $PWD:/usr/src \
-  #   sonarsource/sonar-scanner-cli:$image_version \
-  #     -Dproject.settings=/usr/src/scripts/config/sonar-scanner.properties \
-  #     -Dsonar.branch.name="${BRANCH_NAME:-$(git rev-parse --abbrev-ref HEAD)}" \
-  #     -Dsonar.token="$(echo $SONAR_TOKEN)"
-
-  echo "branch:" + ${BRANCH_NAME:-$(git rev-parse --abbrev-ref HEAD)}
-
-  sonar-scanner \
-  -Dproject.settings=/usr/src/scripts/config/sonar-scanner.properties \
-  -Dsonar.branch.name="${BRANCH_NAME:-$(git rev-parse --abbrev-ref HEAD)}" \
-  -Dsonar.token="$(echo $SONAR_TOKEN)"
+  docker run --rm --platform linux/amd64 \
+    --log-driver=none -a stdin -a stdout -a stderr \
+    --volume $PWD:/usr/src \
+    sonarsource/sonar-scanner-cli:$image_version \
+      -Dproject.settings=/usr/src/scripts/config/sonar-scanner.properties \
+      -Dsonar.branch.name="${BRANCH_NAME:-$(git rev-parse --abbrev-ref HEAD)}" \
+      -Dsonar.token="$(echo $SONAR_TOKEN)"
 }
 
 function is_arg_true() {
