@@ -23,21 +23,41 @@ def format_dynamodb_json(csvreader):
     # extract relevant information from row and format
     # in dynamodb json
     for row in csvreader:
-        Id = str(row[0])
-        IcbCode = str(row[1])
-        Board = str(row[2])
+        POSTCODE = str(row[0])
+        EASTING_1M = str(row[6])
+        NORTHING_1M = str(row[7])
+        LSOA_2011 = str(row[8])
+        ICB = str(row[11])
+        LSOA_2021 = str(row[13])
+        IMD_RANK = str(row[15])
+        IMD_DECILE = str(row[16])
         output.append(
             {
                 "PutRequest": {
                     "Item": {
-                        "Id": {
-                            "N": f"{Id}"
+                        "POSTCODE": {
+                            "S": f"{POSTCODE}"
                         },
-                        "IcbCode": {
-                            "S": f"{IcbCode}"
+                        "EASTING_1M": {
+                            "N": f"{EASTING_1M}"
                         },
-                        "Board": {
-                            "S": f"{Board}"
+                        "NORTHING_1M": {
+                            "N": f"{NORTHING_1M}"
+                        }
+                        "LSOA_2011": {
+                            "S": f"{LSOA_2011}"
+                        }
+                        "NORTHING_1M": {
+                            "N": f"{NORTHING_1M}"
+                        }
+                        "ICB": {
+                            "S": f"{ICB}"
+                        }
+                        "IMD_RANK": {
+                            "N": f"{IMD_RANK}"
+                        }
+                        "IMD_DECILE": {
+                            "N": f"{IMD_DECILE}"
                         }
                     }
                 }
@@ -47,7 +67,7 @@ def format_dynamodb_json(csvreader):
 
 if __name__ == "__main__":
     # read in data and generate the json output
-    file_input_path = "/test-data/Participating_ICBs.csv"
+    file_input_path = "/nonprod-lsoa-data/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv"
     path_to_file = os.getcwd() + file_input_path
-    generate_participating_icb_json(path_to_file, "ParticipatingIcb")
+    generate_nonprod_lsoa_json(path_to_file, "LSOA_table")
 
