@@ -43,19 +43,19 @@ def format_dynamodb_json(csvreader):
                         },
                         "NORTHING_1M": {
                             "N": f"{NORTHING_1M}"
-                        }
+                        },
                         "LSOA_2011": {
                             "S": f"{LSOA_2011}"
-                        }
+                        },
                         "NORTHING_1M": {
                             "N": f"{NORTHING_1M}"
-                        }
+                        },
                         "ICB": {
                             "S": f"{ICB}"
-                        }
+                        },
                         "IMD_RANK": {
                             "N": f"{IMD_RANK}"
-                        }
+                        },
                         "IMD_DECILE": {
                             "N": f"{IMD_DECILE}"
                         }
