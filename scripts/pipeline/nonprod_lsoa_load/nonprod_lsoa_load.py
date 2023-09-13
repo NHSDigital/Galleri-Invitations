@@ -33,9 +33,6 @@ def format_dynamodb_json(csvreader):
                         "POSTCODE": {
                             "S": f"{POSTCODE}"
                         },
-                        "ICB": {
-                            "S": f"{ICB}"
-                        },
                         "IMD_RANK": {
                             "N": f"{IMD_RANK}"
                         },
