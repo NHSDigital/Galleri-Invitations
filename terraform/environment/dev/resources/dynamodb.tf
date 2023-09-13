@@ -263,3 +263,70 @@ resource "aws_dynamodb_table" "population_table" {
     Environment = "dev"
   }
 }
+
+resource "aws_dynamodb_table" "LSOA_table" {
+  name           = "LSOA_table"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 20
+  hash_key       = "POSTCODE"
+  range_key      = "IMD_RANK"
+
+  attribute {
+    name = "POSTCODE"
+    type = "S"
+  }
+
+  # attribute {
+  #   name = "EASTING_1M"
+  #   type = "N"
+  # }
+
+  #   attribute {
+  #   name = "NORTHING_1M"
+  #   type = "N"
+  # }
+
+  #   attribute {
+  #   name = "LSOA_2011"
+  #   type = "S"
+  # }
+
+  #   attribute {
+  #   name = "LSOA_2021"
+  #   type = "S"
+  # }
+
+    attribute {
+    name = "IMD_RANK"
+    type = "N"
+  }
+
+  #   attribute {
+  #   name = "IMD_DECILE"
+  #   type = "N"
+  # }
+
+  global_secondary_index {
+    name            = "POSTCODE"
+    hash_key        = "POSTCODE"
+    range_key       = "IMD_RANK"
+    write_capacity  = 10
+    read_capacity   = 10
+    projection_type = "KEYS_ONLY"
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  server_side_encryption {
+    enabled = true
+  }
+
+  tags = {
+    Name        = "Dynamodb Table LSOA"
+    Environment = "dev"
+  }
+}
+
