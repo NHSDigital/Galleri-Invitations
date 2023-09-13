@@ -277,40 +277,20 @@ resource "aws_dynamodb_table" "LSOA_table" {
     type = "S"
   }
 
-  # attribute {
-  #   name = "EASTING_1M"
-  #   type = "N"
-  # }
-
-  #   attribute {
-  #   name = "NORTHING_1M"
-  #   type = "N"
-  # }
-
-  #   attribute {
-  #   name = "LSOA_2011"
-  #   type = "S"
-  # }
-
-  #   attribute {
-  #   name = "LSOA_2021"
-  #   type = "S"
-  # }
-
   attribute {
     name = "IMD_RANK"
     type = "N"
   }
 
-  #   attribute {
-  #   name = "IMD_DECILE"
-  #   type = "N"
-  # }
+  attribute {
+    name = "IMD_DECILE"
+    type = "N"
+  }
 
   global_secondary_index {
     name            = "POSTCODE"
-    hash_key        = "POSTCODE"
-    range_key       = "IMD_RANK"
+    hash_key        = "IMD_RANK"
+    range_key       = "IMD_DECILE"
     write_capacity  = 10
     read_capacity   = 10
     projection_type = "KEYS_ONLY"
