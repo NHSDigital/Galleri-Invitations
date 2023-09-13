@@ -24,11 +24,6 @@ def format_dynamodb_json(csvreader):
     # in dynamodb json
     for row in csvreader:
         POSTCODE = str(row[0])
-        EASTING_1M = str(row[6])
-        NORTHING_1M = str(row[7])
-        LSOA_2011 = str(row[8])
-        ICB = str(row[11])
-        LSOA_2021 = str(row[13])
         IMD_RANK = str(row[15])
         IMD_DECILE = str(row[16])
         output.append(
@@ -37,18 +32,6 @@ def format_dynamodb_json(csvreader):
                     "Item": {
                         "POSTCODE": {
                             "S": f"{POSTCODE}"
-                        },
-                        "EASTING_1M": {
-                            "N": f"{EASTING_1M}"
-                        },
-                        "NORTHING_1M": {
-                            "N": f"{NORTHING_1M}"
-                        },
-                        "LSOA_2011": {
-                            "S": f"{LSOA_2011}"
-                        },
-                        "NORTHING_1M": {
-                            "N": f"{NORTHING_1M}"
                         },
                         "ICB": {
                             "S": f"{ICB}"
