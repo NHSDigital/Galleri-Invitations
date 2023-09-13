@@ -67,7 +67,7 @@ def format_dynamodb_json(csvreader):
 
 if __name__ == "__main__":
     # read in data and generate the json output
-    file_input_path = "/nonprod-lsoa-data/non_prod_lsoa_data_/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv"
+    file_input_path = "/nonprod-lsoa-data/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv"
     path_to_file = os.getcwd() + file_input_path
     generate_nonprod_lsoa_json(path_to_file, "LSOA_table")
 

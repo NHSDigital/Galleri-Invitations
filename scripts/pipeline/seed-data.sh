@@ -36,7 +36,7 @@ function main() {
 
   mkdir nonprod-lsoa-data
 
-  aws s3 cp s3://galleri-ons-data/non_prod_lsoa_data_/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv ./nonprod_lsoa_data
+  aws s3 cp s3://galleri-ons-data/non_prod_lsoa_data_/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv ./nonprod-lsoa-data
 
   source $PWD/scripts/pipeline/create_nonprod_lsoa_data_files.sh
 
