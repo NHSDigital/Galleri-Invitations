@@ -297,7 +297,7 @@ resource "aws_dynamodb_table" "LSOA_table" {
   #   type = "S"
   # }
 
-    attribute {
+  attribute {
     name = "IMD_RANK"
     type = "N"
   }
