@@ -27,15 +27,14 @@ export const handler = async (event, context) => {
   const command = new ScanCommand(input);
   const response = await client.send(command);
 
-  console.log(response.Items);
-
   let responseObject = {};
 
   if (response.hasOwnProperty("Items")) {
     responseObject.statusCode = 200;
     responseObject.isBase64Encoded = true;
     (responseObject.headers = {
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Headers":
+        "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,GET",
     }),
