@@ -45,7 +45,5 @@ export const handler = async (event, context) => {
     responseObject.body = "error";
   }
 
-  console.log(JSON.stringify(responseObject, null, 2));
-
   return responseObject;
 };
