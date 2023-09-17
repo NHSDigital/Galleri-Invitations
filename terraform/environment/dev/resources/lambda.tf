@@ -386,8 +386,8 @@ resource "aws_api_gateway_integration" "options_clinic_information" {
   resource_id = aws_api_gateway_method.options_clinic_information.resource_id
   http_method = aws_api_gateway_method.options_clinic_information.http_method
 
-  type       = "MOCK"
-  request_templates = {                  # Not documented
+  type = "MOCK"
+  request_templates = { # Not documented
     "application/json" = "{statusCode: 200}"
   }
 
@@ -503,7 +503,7 @@ resource "aws_api_gateway_integration" "options_clinic_icb_list" {
   http_method = aws_api_gateway_method.options_clinic_icb_list.http_method
 
   type = "MOCK"
-  request_templates = {                  # Not documented
+  request_templates = { # Not documented
     "application/json" = "{statusCode: 200}"
   }
 
@@ -577,5 +577,5 @@ resource "aws_api_gateway_deployment" "galleri" {
     aws_api_gateway_integration_response.clinic_icb_list_integration_response,
     aws_api_gateway_integration_response.options_clinic_information,
     aws_api_gateway_integration_response.clinic_information_integration_response
-    ]
+  ]
 }
