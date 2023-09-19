@@ -37,8 +37,6 @@ function main() {
 
   echo Succefully Downloaded CSV from S3
 
-  pip install boto3
-
   echo Uploading items to LSOA database
 
   python $PWD/scripts/pipeline/nonprod_lsoa_load/nonprod_lsoa_load.py
