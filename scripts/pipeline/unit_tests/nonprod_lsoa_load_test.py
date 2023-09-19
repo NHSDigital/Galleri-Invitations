@@ -27,10 +27,10 @@ expected_output_data = [
                             'S': '6'
                         },
                         'EASTING_1M': {
-                            'S': '7'
+                            'N': '7'
                         },
                         'NORTHING_1M': {
-                            'S': '8'
+                            'N': '8'
                         },
                         'LSOA_2011': {
                             'S': '9'
