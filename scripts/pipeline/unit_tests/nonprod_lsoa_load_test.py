@@ -1,8 +1,5 @@
 from scripts.pipeline.nonprod_lsoa_load.nonprod_lsoa_load import format_dynamodb_json
 
-# row_1 =
-# row_2 = [11, 22, 33, 44, 55, 66, 77 , 88, 99, 100, 111, 122, 133, 144, 155, 166, 177]
-
 test_csv_data = [
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
 ]
