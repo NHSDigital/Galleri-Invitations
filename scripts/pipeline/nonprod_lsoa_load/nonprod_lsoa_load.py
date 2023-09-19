@@ -1,26 +1,13 @@
 import csv
-import json
 import os
 import boto3
-import time
-
 
 def generate_nonprod_lsoa_json(file_path, table_name):
     with open(file_path, 'r', encoding='utf-8-sig') as file:
         csvreader = csv.reader(file)
         dynamodb_json_object = format_dynamodb_json(csvreader, table_name)
 
-    print(len(dynamodb_json_object))
     batch_write_to_dynamodb(dynamodb_json_object)
-    # json_file = { table_name : dynamodb_json_object}
-    # json_object = json.dumps(json_file, indent=4)
-
-    # # create output json file
-    # output_json_path = "./nonprod_lsoa.json"
-    # # file_location = os.getcwd() + output_json_path
-    # # with open(file_location, "w") as outfile:
-    # with open(output_json_path, "w") as outfile:
-    #     outfile.write(json_object)
 
 def format_dynamodb_json(csvreader, table_name):
     output = []
@@ -129,16 +116,3 @@ if __name__ == "__main__":
 
     path_to_file = os.getcwd() + file_input_path
     generate_nonprod_lsoa_json(path_to_file, "Lsoa")
-    # tic = time.perf_counter()
-    # toc = time.perf_counter()
-    # stage_time_s = toc - tic
-    # stage_time_m = stage_time_s/60
-    # print(f"Stage will take {stage_time_s:0.4f} seconds or {stage_time_m:0.4f} mins")
-
-    # dynamodb_client = boto3.client('dynamodb')
-    # response = dynamodb_client.describe_table(TableName='Lsoa')
-    # print("Item Count = ", str(response.get("Table").get("ItemCount")))
-
-
-
-
