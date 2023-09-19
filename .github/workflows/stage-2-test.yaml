@@ -48,6 +48,7 @@ jobs:
           python-version: '3.10.12'
       - name: Run python unit test
         run: |
+            pip install boto3
             pip install pytest
             python -m pytest ./scripts/pipeline/unit_tests/
       - name: "Save the result of fast test suite"
