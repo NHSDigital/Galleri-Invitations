@@ -131,7 +131,7 @@ if __name__ == "__main__":
     # generate_nonprod_lsoa_json(path_to_file, "LSOA_table")
     tic = time.perf_counter()
     # file_input_path = "./non_prod_lsoa_data_2023-08-22T15_27_52.810Z.csv"
-    generate_nonprod_lsoa_json(file_input_path, "Lsoa")
+    generate_nonprod_lsoa_json(path_to_file, "Lsoa")
     # toc = time.perf_counter()
     # stage_time_s = toc - tic
     # stage_time_m = stage_time_s/60
