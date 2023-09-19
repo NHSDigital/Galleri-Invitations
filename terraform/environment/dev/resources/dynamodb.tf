@@ -265,10 +265,10 @@ resource "aws_dynamodb_table" "population_table" {
 }
 
 resource "aws_dynamodb_table" "LSOA_table" {
-  name           = "Lsoa"
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "POSTCODE"
-  range_key      = "IMD_RANK"
+  name         = "Lsoa"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "POSTCODE"
+  range_key    = "IMD_RANK"
 
   attribute {
     name = "POSTCODE"
