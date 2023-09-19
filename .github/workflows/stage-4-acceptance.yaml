@@ -60,6 +60,14 @@ jobs:
       - name: "CPU check"
         run: |
           lscpu
+      - name: "OS check"
+        run: |
+          cat /etc/os-release
+          lsb_release -a
+          hostnamectl
+      - name: "RAM check"
+        run: |
+          free -g
       - name: "Seed databases"
         uses: ./.github/actions/seeding
         with:
