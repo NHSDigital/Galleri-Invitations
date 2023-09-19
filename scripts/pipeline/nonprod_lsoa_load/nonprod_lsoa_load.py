@@ -92,7 +92,6 @@ def format_dynamodb_json(csvreader, table_name):
                 },
             }
         )
-    print(output)
     return output
 
 def batch_write_to_dynamodb(lsoa_data):
