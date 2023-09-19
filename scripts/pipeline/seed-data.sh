@@ -42,8 +42,8 @@ function main() {
 
   echo Succefully created nonprod lsoa data
 
-  aws dynamodb batch-write-item --request-items \
-          file://$PWD/nonprod-lsoa-data/nonprod_lsoa.json
+  # aws dynamodb batch-write-item --request-items \
+  #         file://$PWD/nonprod-lsoa-data/nonprod_lsoa.json
 }
 
 # ==============================================================================

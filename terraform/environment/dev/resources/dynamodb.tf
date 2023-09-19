@@ -265,10 +265,8 @@ resource "aws_dynamodb_table" "population_table" {
 }
 
 resource "aws_dynamodb_table" "LSOA_table" {
-  name           = "LSOA_table"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 20
-  write_capacity = 20
+  name           = "Lsoa"
+  billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "POSTCODE"
   range_key      = "IMD_RANK"
 
@@ -291,8 +289,6 @@ resource "aws_dynamodb_table" "LSOA_table" {
     name            = "POSTCODE"
     hash_key        = "IMD_RANK"
     range_key       = "IMD_DECILE"
-    write_capacity  = 10
-    read_capacity   = 10
     projection_type = "KEYS_ONLY"
   }
 
