@@ -128,10 +128,8 @@ if __name__ == "__main__":
     file_input_path = "/nonprod-lsoa-data/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv"
 
     path_to_file = os.getcwd() + file_input_path
-    # generate_nonprod_lsoa_json(path_to_file, "LSOA_table")
-    tic = time.perf_counter()
-    # file_input_path = "./non_prod_lsoa_data_2023-08-22T15_27_52.810Z.csv"
     generate_nonprod_lsoa_json(path_to_file, "Lsoa")
+    # tic = time.perf_counter()
     # toc = time.perf_counter()
     # stage_time_s = toc - tic
     # stage_time_m = stage_time_s/60

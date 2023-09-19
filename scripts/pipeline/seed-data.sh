@@ -50,7 +50,13 @@ function main() {
 
   echo Succefully Downloaded CSV from S3
 
-  source $PWD/scripts/pipeline/create_nonprod_lsoa_data_files.sh
+  # source $PWD/scripts/pipeline/create_nonprod_lsoa_data_files.sh
+
+  pip install boto3
+
+  echo Uploading items to LSOA database
+
+  python $PWD/scripts/pipeline/nonprod_lsoa_load/nonprod_lsoa_load.py
 
   echo Succefully uploaded Participating ICBs test data to echo Succefully created Participating ICBs database
 
