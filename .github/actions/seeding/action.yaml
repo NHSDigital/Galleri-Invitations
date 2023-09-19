@@ -13,7 +13,7 @@ runs:
       uses: aws-actions/configure-aws-credentials@v2
       with:
         role-to-assume: ${{ env.AWS_ROLE_ARN }}
-        aws-region: ${{ env.AWS_REGION }}
+        aws-region: eu-west-2
         role-session-name: GitHub-OIDC-TERRAFORM
 
     - name: Seeding Table Data
