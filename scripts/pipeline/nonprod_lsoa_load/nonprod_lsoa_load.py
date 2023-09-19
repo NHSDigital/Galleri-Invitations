@@ -11,6 +11,7 @@ def generate_nonprod_lsoa_json(file_path, table_name):
 
 def format_dynamodb_json(csvreader, table_name):
     output = []
+    print(csvreader)
 
     # extract relevant information from row and format
     # in dynamodb json
