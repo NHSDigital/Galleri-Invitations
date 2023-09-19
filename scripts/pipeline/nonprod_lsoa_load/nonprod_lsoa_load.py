@@ -55,10 +55,10 @@ def format_dynamodb_json(csvreader, table_name):
                             'S': f'{CANCER_REGISTRY}'
                         },
                         'EASTING_1M': {
-                            'S': f'{EASTING_1M}'
+                            'N': f'{EASTING_1M}'
                         },
                         'NORTHING_1M': {
-                            'S': f'{NORTHING_1M}'
+                            'N': f'{NORTHING_1M}'
                         },
                         'LSOA_2011': {
                             'S': f'{LSOA_2011}'
@@ -100,7 +100,6 @@ def batch_write_to_dynamodb(lsoa_data):
     # repeat till no records left
     dynamodb_client = boto3.client('dynamodb')
     for i in range(1, 100000, 100):
-        if (i % 25000): print("...")
         upper_bound_slice = i+100
         test_data = lsoa_data[i:upper_bound_slice]
         dynamodb_client.transact_write_items(
