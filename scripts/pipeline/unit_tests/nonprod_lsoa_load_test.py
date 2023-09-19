@@ -13,7 +13,7 @@ expected_output_data = [
         "Put": {
             "Item": {
                 'POSTCODE': {
-                            'S': '1'
+                        'S': '1'
                         },
                         'POSTCODE_2': {
                             'S': '2'

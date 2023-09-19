@@ -11,7 +11,6 @@ def generate_nonprod_lsoa_json(file_path, table_name):
 
 def format_dynamodb_json(csvreader, table_name):
     output = []
-    print(csvreader)
 
     # extract relevant information from row and format
     # in dynamodb json
@@ -70,6 +69,9 @@ def format_dynamodb_json(csvreader, table_name):
                         'CANCER_ALLIANCE': {
                             'S': f'{CANCER_ALLIANCE}'
                         },
+                        'ICB': {
+                            'S': f'{ICB}'
+                        },
                         'OA_2021': {
                             'S': f'{OA_2021}'
                         },
@@ -78,9 +80,6 @@ def format_dynamodb_json(csvreader, table_name):
                         },
                         'MSOA_2021': {
                             'S': f'{MSOA_2021}'
-                        },
-                        'ICB': {
-                            'S': f'{ICB}'
                         },
                         'IMD_RANK': {
                             'N': f'{IMD_RANK}'
@@ -93,6 +92,7 @@ def format_dynamodb_json(csvreader, table_name):
                 },
             }
         )
+    print(output)
     return output
 
 def batch_write_to_dynamodb(lsoa_data):
