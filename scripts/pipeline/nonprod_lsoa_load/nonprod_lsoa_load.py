@@ -113,6 +113,7 @@ def batch_write_to_dynamodb(lsoa_data):
     # repeat till no records left
     dynamodb_client = boto3.client('dynamodb')
     for i in range(1, len(lsoa_data), 100):
+        if (i % 25000): print("...")
         upper_bound_slice = i+100
         test_data = lsoa_data[i:upper_bound_slice]
         dynamodb_client.transact_write_items(
