@@ -10,7 +10,7 @@ test_csv_data = [
 
 expected_output_data = [
     {
-        "PutRequest": {
+        "Put": {
             "Item": {
                 'POSTCODE': {
                             'S': '1'
