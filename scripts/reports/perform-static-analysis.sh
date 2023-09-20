@@ -18,8 +18,7 @@ set -e
 # ==============================================================================
 
 # SEE: https://hub.docker.com/r/sonarsource/sonar-scanner-cli/tags, use the `linux/amd64` os/arch
-#image_version=5.0.0@sha256:b53f26d0e4ddd549a4014d79007007303dc849eaa9764cf96ee2da8370ac8a7b
-image_version="latest"
+image_version=5.0.0@sha256:b53f26d0e4ddd549a4014d79007007303dc849eaa9764cf96ee2da8370ac8a7b
 
 # ==============================================================================
 
@@ -30,14 +29,14 @@ function main() {
 }
 
 function create-report() {
-  echo "running sonar report..."
 
   docker run --rm --platform linux/amd64 \
-    --log-driver=none -a stdin -a stdout -a stderr \
     --volume $PWD:/usr/src \
     sonarsource/sonar-scanner-cli:$image_version \
       -Dproject.settings=/usr/src/scripts/config/sonar-scanner.properties \
       -Dsonar.branch.name="${BRANCH_NAME:-$(git rev-parse --abbrev-ref HEAD)}" \
+      -Dsonar.organization="$(echo $SONAR_ORGANISATION_KEY)" \
+      -Dsonar.projectKey="$(echo $SONAR_PROJECT_KEY)" \
       -Dsonar.token="$(echo $SONAR_TOKEN)"
 }
 
