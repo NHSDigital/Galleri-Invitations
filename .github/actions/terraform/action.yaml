@@ -77,4 +77,6 @@ runs:
         cd ./terraform/environment/dev
         npm install --prefix lambda/filterData/lambdaHandler
         npm install --prefix lambda/lsoaLoader/lambdaHandler
+        npm install --prefix lambda/clinicIcbList/lambdaHandler
+        npm install --prefix lambda/clinicInformation/lambdaHandler
         terraform apply -auto-approve -input=false
