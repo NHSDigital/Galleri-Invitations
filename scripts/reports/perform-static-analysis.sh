@@ -29,6 +29,7 @@ function main() {
 }
 
 function create-report() {
+  echo "running sonar report..."
 
   docker run --rm --platform linux/amd64 \
     --log-driver=none -a stdin -a stdout -a stderr \
