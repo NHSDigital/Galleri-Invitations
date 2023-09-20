@@ -9,6 +9,7 @@ This is a repo containing the code for the Galleri Invitations Algorithm
   - [Installation](#installation)
     - [Prerequisites](#prerequisites)
   - [Usage](#usage)
+    - [Sonar](#sonar)
     - [Configuration](#configuration)
   - [Contributing](#contributing)
   - [Contacts](#contacts)
@@ -44,11 +45,19 @@ The following software packages or their equivalents are expected to be installe
 
 After a successful installation, provide an informative example of how this project can be used. Additional code snippets, screenshots and demos work well in this space. You may also link to the other documentation resources, e.g. the [User Guide](./docs/user-guide.md) to demonstrate more use cases and to show more features.
 
+### Sonar
+
+SonarCloud provides static code analysis across terraform, js, configs, etc.
+Local:
 Before pushing to the repo, the developer must run the following commands to run sonarcloud locally;
 
 ```bash
 sonar-scanner -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=nhsdigital -Dsonar.projectKey=galleri-invitations -Dsonar.sources=.
 ```
+
+SonarCloud:
+SonarScanner also gets run as part of GitHub pipeline.
+Tip: when looking at feature branches in SonarCloud, they will ONLY show bad code smells for NEW code: don't expect to see any code in the report if nothing has changed from main.
 
 ### Configuration
 
