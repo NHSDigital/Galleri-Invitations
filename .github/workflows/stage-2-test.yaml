@@ -88,8 +88,12 @@ jobs:
     name: "Perform static analysis"
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history is needed to improving relevancy of reporting
       - name: "Perform static analysis"
         uses: ./.github/actions/perform-static-analysis
         with:
+          sonar_organisation_key: "${{ vars.SONAR_ORGANISATION_KEY }}"
+          sonar_project_key: "${{ vars.SONAR_PROJECT_KEY }}"
           sonar_token: "${{ secrets.SONAR_TOKEN }}"
