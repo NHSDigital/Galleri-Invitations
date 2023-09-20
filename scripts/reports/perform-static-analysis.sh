@@ -36,7 +36,6 @@ function create-report() {
     --log-driver=none -a stdin -a stdout -a stderr \
     --volume $PWD:/usr/src \
     sonarsource/sonar-scanner-cli:$image_version \
-      -X \
       -Dproject.settings=/usr/src/scripts/config/sonar-scanner.properties \
       -Dsonar.branch.name="${BRANCH_NAME:-$(git rev-parse --abbrev-ref HEAD)}" \
       -Dsonar.token="$(echo $SONAR_TOKEN)"
@@ -53,8 +52,7 @@ function is_arg_true() {
 
 # ==============================================================================
 
-# is_arg_true "$VERBOSE" && set -x
-set -x
+is_arg_true "$VERBOSE" && set -x
 
 main $*
 
