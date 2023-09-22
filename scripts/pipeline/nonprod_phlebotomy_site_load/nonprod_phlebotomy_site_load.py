@@ -19,6 +19,12 @@ def create_data_set(table_name):
     data = []
     street_variation = ['Road', 'Street', 'Avenue', 'Hospital']
     cities = ['Rivendell', 'Gondor', 'Mordor', 'Hobbiton']
+    participating_icbs = [
+        'QE1', 'QWO', 'QOQ', 'QF7', 'QHG', 'QM7', 'QH8',
+        'QMJ', 'QMF', 'QRV', 'QWE', 'QT6', 'QJK',
+        'QOX', 'QUY', 'QVV', 'QR1', 'QSL', 'QRL',
+        'QU9', 'QNQ', 'QXU', 'QNX'
+    ]
     tic1 = time.perf_counter()
 
     # create previous invite date for all clinics
@@ -49,7 +55,7 @@ def create_data_set(table_name):
             {random.choice(cities)} {postcode}'
         directions = 'These will contain directions to the site'
         ods_code = rstr.xeger(r'([A-Z])([0-9]){5}')
-        icd_code = rstr.xeger(r'([A-Z])([0-9]){5}')
+        icd_code = random.choice(participating_icbs)
 
         # Generate random weekly phlebotomy capacity
         week_capacity = [
