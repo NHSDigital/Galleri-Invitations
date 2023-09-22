@@ -38,7 +38,7 @@ def create_data_set(table_name):
         invite_date_object = datetime.utcfromtimestamp(invite_date_unix)
         week_date.append(invite_date_object.strftime("%-d %B %Y"))
 
-    for i in range(1, 10):
+    for i in range(1, 100):
         # Add Phlebotomy site
         random_word = RandomWords().get_random_word()
 
