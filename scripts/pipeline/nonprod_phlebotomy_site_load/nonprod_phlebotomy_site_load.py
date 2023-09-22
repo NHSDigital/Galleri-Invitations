@@ -1,5 +1,4 @@
 import boto3
-import json
 import rstr
 import time
 import math
