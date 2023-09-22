@@ -43,7 +43,7 @@ function main() {
 
   echo Succefully uploaded LSOA data to database
 
-    echo "--------------------------------------------------------------"
+  echo "--------------------------------------------------------------"
 
   echo Initiating upload of Phlebotomy clinic data to database
 
