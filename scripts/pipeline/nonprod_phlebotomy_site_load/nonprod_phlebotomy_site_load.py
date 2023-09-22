@@ -22,12 +22,11 @@ def create_data_set(table_name):
   cities = ['Rivendell', 'Gondor', 'Mordor', 'Hobbiton']
   tic1 = time.perf_counter()
 
-  # Create the previous invite date for all clinics
-  # find timestamp now
+  # create previous invite date for all clinics
   datetime_now = datetime.now()
   unixtime_now = time.mktime(datetime_now.timetuple())
 
-  # set this for 2 weeks in the past
+  # set previous invite date to be 2 weeks in the past
   week_unix = 604800
   prev_invite_date_unix = unixtime_now - (2 * week_unix)
   prev_invite_date_object = datetime.utcfromtimestamp(prev_invite_date_unix)
@@ -123,18 +122,15 @@ def create_data_set(table_name):
   return data
 
 def batch_write_to_dynamodb(data):
-    # splice array number of chunks of records at a time
-    # format and send these to the batch write function
-    # repeat till no records left
     dynamodb_client = boto3.client('dynamodb')
     chunk_size = 25
-    print(f'size of data is {len(data)}')
     for i in range(1, len(data), chunk_size):
         upper_bound_slice = i + chunk_size
         test_data = data[i:upper_bound_slice]
         dynamodb_client.transact_write_items(
             TransactItems=test_data
         )
+    print(f'{len(data)} records added to database')
     return 'Finished'
 
 
