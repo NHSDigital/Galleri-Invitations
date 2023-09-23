@@ -13,7 +13,7 @@ export const handler = async () => {
   const command = new ScanCommand(input);
   const response = await client.send(command);
 
-  let responseObject;
+  let responseObject = {};
 
   if (response.hasOwnProperty("Items")) {
     responseObject.statusCode = 200;
@@ -24,14 +24,16 @@ export const handler = async () => {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,GET",
     },
-    responseObject.body = response.Items?.map((el) => {
-        return JSON.stringify(el.IcbCode.S, null, 2);
+    responseObject.body = response.Items.map((el) => {
+      return JSON.stringify(el.IcbCode.S, null, 2);
     });
   } else {
     responseObject.statusCode = 404;
     responseObject.isBase64Encoded = true;
     responseObject.body = "error";
   }
+
+  console.log(responseObject);
 
   return responseObject;
 };
