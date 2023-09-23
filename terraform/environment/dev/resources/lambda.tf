@@ -95,7 +95,6 @@ resource "aws_iam_policy" "iam_policy_for_clinic_information_lambda" {
 }
 EOF
 }
-
 resource "aws_iam_policy" "iam_policy_for_invitation_parameters_lambda" {
   name        = "aws_iam_policy_for_terraform_aws_invitation_parameters_lambda_role"
   path        = "/"
@@ -128,6 +127,39 @@ resource "aws_iam_policy" "iam_policy_for_invitation_parameters_lambda" {
 EOF
 }
 
+resource "aws_iam_policy" "iam_policy_for_participating_icb_list_lambda" {
+  name        = "aws_iam_policy_for_terraform_aws_participating_icb_list_lambda_role"
+  path        = "/"
+  description = "AWS IAM Policy for managing aws lambda participating icb role"
+  policy      = <<EOF
+{
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:logs:*:*:*"
+    },
+    {
+      "Sid": "AllowDynamodbAccess",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:*"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:eu-west-2:136293001324:table/ParticipatingIcb"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+EOF
+}
+
+
 resource "aws_iam_role_policy_attachment" "galleri_lambda_policy" {
   role       = aws_iam_role.galleri_lambda_role.name
   policy_arn = aws_iam_policy.iam_policy_for_lambda.arn
@@ -141,6 +173,10 @@ resource "aws_iam_role_policy_attachment" "clinic_information_lambda_policy" {
 resource "aws_iam_role_policy_attachment" "invitation_parameters_lambda_policy" {
   role       = aws_iam_role.galleri_lambda_role.name
   policy_arn = aws_iam_policy.iam_policy_for_invitation_parameters_lambda.arn
+}
+resource "aws_iam_role_policy_attachment" "participating_icb_list_lambda_policy" {
+  role       = aws_iam_role.galleri_lambda_role.name
+  policy_arn = aws_iam_policy.iam_policy_for_participating_icb_list_lambda.arn
 }
 
 // Zip lambda folders
@@ -178,6 +214,13 @@ data "archive_file" "invitation_parameters_lambda" {
   source_dir  = "${path.cwd}/lambda/invitationParameters/lambdaHandler"
   output_path = "${path.cwd}/lambda/invitationParameters/lambdaHandler/invitationParametersLambda.zip"
 }
+data "archive_file" "participating_icb_list_lambda" {
+  type = "zip"
+
+  source_dir  = "${path.cwd}/lambda/participatingIcbList/lambdaHandler"
+  output_path = "${path.cwd}/lambda/participatingIcbList/lambdaHandler/participatingIcbListLambda.zip"
+}
+
 
 // Create lambda functions
 resource "aws_lambda_function" "data_filter_gridall_imd" {
@@ -265,9 +308,26 @@ resource "aws_lambda_function" "invitation_parameters" {
   memory_size   = 1024
 
   s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
-  s3_key    = aws_s3_object.invitation_parameters_lambda.key
+
+  s3_key = aws_s3_object.invitation_parameters_lambda.key
 
   source_code_hash = data.archive_file.invitation_parameters_lambda.output_base64sha256
+
+}
+
+resource "aws_lambda_function" "participating_icb_list" {
+  function_name = "participatingIcbListLambda"
+  role          = aws_iam_role.galleri_lambda_role.arn
+  handler       = "participatingIcbListLambda.handler"
+  runtime       = "nodejs18.x"
+  timeout       = 100
+  memory_size   = 1024
+
+  s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
+
+  s3_key = aws_s3_object.participating_icb_list_lambda.key
+
+  source_code_hash = data.archive_file.participating_icb_list_lambda.output_base64sha256
 
 }
 
@@ -298,6 +358,11 @@ resource "aws_cloudwatch_log_group" "clinic_icb_list" {
 
 resource "aws_cloudwatch_log_group" "invitation_parameters" {
   name = "/aws/lambda/${aws_lambda_function.invitation_parameters.function_name}"
+
+  retention_in_days = 14
+}
+resource "aws_cloudwatch_log_group" "participating_icb_list" {
+  name = "/aws/lambda/${aws_lambda_function.participating_icb_list.function_name}"
 
   retention_in_days = 14
 }
@@ -346,6 +411,15 @@ resource "aws_s3_object" "invitation_parameters_lambda" {
   source = data.archive_file.invitation_parameters_lambda.output_path
 
   etag = filemd5(data.archive_file.invitation_parameters_lambda.output_path)
+}
+
+resource "aws_s3_object" "participating_icb_list_lambda" {
+  bucket = aws_s3_bucket.galleri_lambda_bucket.id
+
+  key    = "participating_icb_list_lambda.zip"
+  source = data.archive_file.participating_icb_list_lambda.output_path
+
+  etag = filemd5(data.archive_file.participating_icb_list_lambda.output_path)
 }
 
 resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
@@ -629,6 +703,19 @@ resource "aws_api_gateway_method" "invitation_parameters" {
   http_method   = "GET"
   authorization = "NONE"
 }
+// PARTICIPATING ICB LIST
+resource "aws_api_gateway_resource" "participating_icb_list" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  parent_id   = aws_api_gateway_rest_api.galleri.root_resource_id
+  path_part   = "participating-icb-list"
+}
+
+resource "aws_api_gateway_method" "participating_icb_list" {
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  resource_id   = aws_api_gateway_resource.participating_icb_list.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
 
 resource "aws_api_gateway_integration" "invitation_parameters_lambda" {
   rest_api_id = aws_api_gateway_rest_api.galleri.id
@@ -647,6 +734,7 @@ resource "aws_api_gateway_integration_response" "invitation_parameters_integrati
   resource_id = aws_api_gateway_resource.invitation_parameters.id
   http_method = aws_api_gateway_method.invitation_parameters.http_method
   status_code = aws_api_gateway_method_response.invitation_parameters_response_200.status_code
+
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
     "method.response.header.Access-Control-Allow-Methods" = "'GET'",
@@ -655,6 +743,32 @@ resource "aws_api_gateway_integration_response" "invitation_parameters_integrati
 
   depends_on = [aws_api_gateway_integration.invitation_parameters_lambda]
 }
+resource "aws_api_gateway_integration" "participating_icb_list_lambda" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.participating_icb_list.resource_id
+  http_method = aws_api_gateway_method.participating_icb_list.http_method
+
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.participating_icb_list.invoke_arn
+
+  depends_on = [aws_api_gateway_method.participating_icb_list]
+}
+
+resource "aws_api_gateway_integration_response" "participating_icb_list_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.participating_icb_list.id
+  http_method = aws_api_gateway_method.participating_icb_list.http_method
+  status_code = aws_api_gateway_method_response.participating_icb_list_response_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.participating_icb_list_lambda]
+}
+
 
 resource "aws_api_gateway_method_response" "invitation_parameters_response_200" {
   rest_api_id = aws_api_gateway_rest_api.galleri.id
@@ -675,9 +789,37 @@ resource "aws_api_gateway_method_response" "invitation_parameters_response_200" 
   depends_on = [aws_api_gateway_method.invitation_parameters]
 }
 
+
+resource "aws_api_gateway_method_response" "participating_icb_list_response_200" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.participating_icb_list.resource_id
+  http_method = aws_api_gateway_method.participating_icb_list.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+
+  depends_on = [aws_api_gateway_method.participating_icb_list]
+}
+
+
 resource "aws_api_gateway_method" "options_invitation_parameters" {
   rest_api_id   = aws_api_gateway_rest_api.galleri.id
   resource_id   = aws_api_gateway_resource.invitation_parameters.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_method" "options_participating_icb_list" {
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  resource_id   = aws_api_gateway_resource.participating_icb_list.id
   http_method   = "OPTIONS"
   authorization = "NONE"
 }
@@ -694,6 +836,20 @@ resource "aws_api_gateway_integration" "options_invitation_parameters" {
 
   depends_on = [aws_api_gateway_method.options_invitation_parameters]
 }
+
+resource "aws_api_gateway_integration" "options_participating_icb_list" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.options_participating_icb_list.resource_id
+  http_method = aws_api_gateway_method.options_participating_icb_list.http_method
+
+  type = "MOCK"
+  request_templates = { # Not documented
+    "application/json" = "{statusCode: 200}"
+  }
+
+  depends_on = [aws_api_gateway_method.options_participating_icb_list]
+}
+
 
 resource "aws_api_gateway_method_response" "options_invitation_parameters_200" {
   rest_api_id = aws_api_gateway_rest_api.galleri.id
@@ -714,11 +870,34 @@ resource "aws_api_gateway_method_response" "options_invitation_parameters_200" {
   depends_on = [aws_api_gateway_method.options_invitation_parameters]
 }
 
+
+resource "aws_api_gateway_method_response" "options_participating_icb_list_200" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.participating_icb_list.id
+  http_method = aws_api_gateway_method.options_participating_icb_list.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+
+  depends_on = [aws_api_gateway_method.options_participating_icb_list]
+}
+
+
+
 resource "aws_api_gateway_integration_response" "options_invitation_parameters" {
   rest_api_id = aws_api_gateway_rest_api.galleri.id
   resource_id = aws_api_gateway_resource.invitation_parameters.id
   http_method = aws_api_gateway_method.options_invitation_parameters.http_method
   status_code = aws_api_gateway_method_response.options_invitation_parameters_200.status_code
+
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
     "method.response.header.Access-Control-Allow-Methods" = "'*'",
@@ -831,6 +1010,7 @@ resource "aws_api_gateway_integration_response" "options_invitation_parameters_p
   resource_id = aws_api_gateway_resource.invitation_parameters_post.id
   http_method = aws_api_gateway_method.options_invitation_parameters_post.http_method
   status_code = aws_api_gateway_method_response.options_invitation_parameters_post_200.status_code
+
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
     "method.response.header.Access-Control-Allow-Methods" = "'*'",
@@ -838,6 +1018,20 @@ resource "aws_api_gateway_integration_response" "options_invitation_parameters_p
   }
 
   depends_on = [aws_api_gateway_integration.options_invitation_parameters_post]
+}
+
+resource "aws_api_gateway_integration_response" "options_participating_icb_list" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.participating_icb_list.id
+  http_method = aws_api_gateway_method.options_participating_icb_list.http_method
+  status_code = aws_api_gateway_method_response.options_participating_icb_list_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'*'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.options_participating_icb_list]
 }
 
 resource "aws_lambda_permission" "api_gw_clinic_information" {
@@ -882,6 +1076,16 @@ resource "aws_lambda_permission" "api_gw_invitation_parameters_post" {
   # The /*/* portion grants access from any method on any resource
   # within the API Gateway "REST API".
   source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/POST/*"
+}
+resource "aws_lambda_permission" "api_gw_participating_icb_list" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.participating_icb_list.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/GET/*"
 }
 
 resource "aws_api_gateway_deployment" "galleri" {
