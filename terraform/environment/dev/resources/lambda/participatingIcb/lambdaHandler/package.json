@@ -1,0 +1,10 @@
+{
+  "name": "participatingIcb",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "participatingIcbLambda.js",
+  "author": "",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.398.0"
+  }
+}
