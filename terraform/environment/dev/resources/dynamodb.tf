@@ -311,10 +311,10 @@ resource "aws_dynamodb_table" "Invitation_parameters" {
   billing_mode   = "PROVISIONED"
   read_capacity  = 10
   write_capacity = 10
-  hash_key       = "CONFIG_ID"
+  hash_key       = "QUINTILE_TARGET"
 
   attribute {
-    name = "CONFIG_ID"
+    name = "QUINTILE_TARGET"
     type = "N"
   }
 
@@ -338,12 +338,24 @@ resource "aws_dynamodb_table_item" "quintiles" {
 
   item = <<ITEM
 {
-  "CONFIG_ID": {"N": "001"},
-  "QUINTILE_1": {"N": "20"},
-  "QUINTILE_2": {"N": "20"},
+  "M": {
+  "QUINTILE_1": {"N": "19"},
+  "QUINTILE_2": {"N": "21"},
   "QUINTILE_3": {"N": "20"},
   "QUINTILE_4": {"N": "20"},
   "QUINTILE_5": {"N": "20"}
+  }
+}
+ITEM
+}
+
+resource "aws_dynamodb_table_item" "nationalForcastUptake" {
+  table_name = aws_dynamodb_table.Invitation_parameters.name
+  hash_key   = aws_dynamodb_table.Invitation_parameters.hash_key
+
+  item = <<ITEM
+{
+  "NATIONAL_FORCAST_UPTAKE": {"N": "99"}
 }
 ITEM
 }

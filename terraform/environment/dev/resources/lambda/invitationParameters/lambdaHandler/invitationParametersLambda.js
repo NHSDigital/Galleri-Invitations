@@ -8,12 +8,12 @@ export const handler = async (event, context) => {
 
   let responseObject = {};
 
-  const CONFIG_ID = '001'
+  const INVITATION_PARAMETERS = 'Quintile'
 
   const params = {
     Key: {
-      CONFIG_ID: {
-        N: `${CONFIG_ID}`,
+      invitation_parameter: {
+        S: `${INVITATION_PARAMETERS}`,
       },
     },
     TableName: "InvitationParameters",
