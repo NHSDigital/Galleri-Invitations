@@ -1,13 +1,31 @@
 import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 
 /*
-  Lambda to load icb information and pass on to GPS client.
+  Lambda to load clinics from and ICB and pass on to GPS client.
 */
-export const handler = async () => {
+export const handler = async (event, context) => {
   const client = new DynamoDBClient({ region: "eu-west-2" });
 
+  // get the
+  const participatingIcbSelection =
+    event.queryStringParameters.participatingIcb;
+
   const input = {
-    TableName: "ParticipatingIcb",
+    ExpressionAttributeNames: {
+      "#CI": "ClinicId",
+      "#CN": "ClinicName",
+      "#PID": "PrevInviteDate",
+      "#AV": "Availability",
+      "#IS": "InvitesSent",
+    },
+    ExpressionAttributeValues: {
+      ":a": {
+        S: `${participatingIcbSelection}`,
+      },
+    },
+    FilterExpression: "ICBCode = :a",
+    ProjectionExpression: "#CI, #CN, #PID, #AV, #IS",
+    TableName: "PhlebotomySite",
   };
 
   const command = new ScanCommand(input);
@@ -24,11 +42,7 @@ export const handler = async () => {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,GET",
     }),
-      (responseObject.body = JSON.stringify(
-        response.Items.map((el) => {
-          return el.IcbCode.S;
-        })
-      ));
+      (responseObject.body = JSON.stringify(response.Items));
   } else {
     responseObject.statusCode = 404;
     responseObject.isBase64Encoded = true;
