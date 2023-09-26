@@ -311,10 +311,10 @@ resource "aws_dynamodb_table" "Invitation_parameters" {
   billing_mode   = "PROVISIONED"
   read_capacity  = 10
   write_capacity = 10
-  hash_key       = "QUINTILE_1"
+  hash_key       = "CONFIG_ID"
 
   attribute {
-    name = "QUINTILE_1"
+    name = "CONFIG_ID"
     type = "N"
   }
 
@@ -327,7 +327,7 @@ resource "aws_dynamodb_table" "Invitation_parameters" {
   }
 
   tags = {
-    Name        = "Dynamodb Table Inivtation Parameters"
+    Name        = "Dynamodb Table Invitation Parameters"
     Environment = "dev"
   }
 }
@@ -338,6 +338,7 @@ resource "aws_dynamodb_table_item" "quintiles" {
 
   item = <<ITEM
 {
+  "CONFIG_ID": {"N": "001"},
   "QUINTILE_1": {"N": "20"},
   "QUINTILE_2": {"N": "20"},
   "QUINTILE_3": {"N": "20"},
