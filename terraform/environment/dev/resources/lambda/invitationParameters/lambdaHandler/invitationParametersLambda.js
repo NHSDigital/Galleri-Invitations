@@ -8,12 +8,12 @@ export const handler = async (event, context) => {
 
   let responseObject = {};
 
-  const CONFIG_ID = '001'
+  const CONFIG_ID_VALUE = "001";
 
   const params = {
     Key: {
       CONFIG_ID: {
-        S: `${CONFIG_ID}`,
+        N: `${CONFIG_ID_VALUE}`,
       },
     },
     TableName: "InvitationParameters",
@@ -25,7 +25,7 @@ export const handler = async (event, context) => {
     responseObject.statusCode = 200;
     (responseObject.headers = {
       "Access-Control-Allow-Headers":
-        "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+      "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,GET",
     }),

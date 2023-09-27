@@ -771,6 +771,7 @@ resource "aws_api_gateway_deployment" "galleri" {
     aws_api_gateway_integration_response.options_clinic_icb_list,
     aws_api_gateway_integration_response.clinic_icb_list_integration_response,
     aws_api_gateway_integration_response.options_clinic_information,
-    aws_api_gateway_integration_response.clinic_information_integration_response
+    aws_api_gateway_integration_response.clinic_information_integration_response,
+    aws_api_gateway_integration_response.invitation_parameters_integration_response
   ]
 }
