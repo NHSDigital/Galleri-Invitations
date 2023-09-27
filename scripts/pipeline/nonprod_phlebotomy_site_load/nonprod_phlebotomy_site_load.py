@@ -33,7 +33,8 @@ def create_data_set(table_name):
 
     # set previous invite date to be 2 weeks in the past
     week_unix = 604800
-    prev_invite_date_unix = unixtime_now - (2 * week_unix)
+    day_unix = 86400
+    prev_invite_date_unix = unixtime_now - (2 * week_unix + (random.randint(1,7) * day_unix))
     prev_invite_date_object = datetime.utcfromtimestamp(prev_invite_date_unix)
     prev_invite_date = prev_invite_date_object.strftime("%A %-d %B %Y")
 

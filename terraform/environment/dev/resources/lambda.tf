@@ -1120,6 +1120,10 @@ resource "aws_api_gateway_method" "clinic_summary_list" {
   resource_id   = aws_api_gateway_resource.clinic_summary_list.id
   http_method   = "GET"
   authorization = "NONE"
+
+  request_parameters = {
+    "method.request.querystring.participatingIcb" = true
+  }
 }
 
 resource "aws_api_gateway_integration" "clinic_summary_list_lambda" {
