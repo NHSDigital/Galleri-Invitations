@@ -369,7 +369,7 @@ resource "aws_lambda_function" "participating_icb_list" {
 
   s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
 
-  s3_key = aws_s3_object.participating_icb_list_lambda.key
+  s3_key    = aws_s3_object.participating_icb_list_lambda.key
 
   source_code_hash = data.archive_file.participating_icb_list_lambda.output_base64sha256
 
@@ -523,7 +523,7 @@ data "aws_iam_policy_document" "allow_access_to_lambda" {
 
 // API Gateway
 resource "aws_api_gateway_rest_api" "galleri" {
-  name        = "galleri-dev-local-1"
+  name        = "galleri-dev-local-2"
   description = "API for the galleri webapp"
   endpoint_configuration {
     types = ["REGIONAL"]
@@ -762,6 +762,124 @@ resource "aws_api_gateway_integration_response" "options_clinic_icb_list" {
   }
 
   depends_on = [aws_api_gateway_integration.options_clinic_icb_list]
+}
+
+
+
+// CLINIC SUMMARY LIST
+resource "aws_api_gateway_resource" "clinic_summary_list" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  parent_id   = aws_api_gateway_rest_api.galleri.root_resource_id
+  path_part   = "clinic-summary-list"
+}
+
+resource "aws_api_gateway_method" "clinic_summary_list" {
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  resource_id   = aws_api_gateway_resource.clinic_summary_list.id
+  http_method   = "GET"
+  authorization = "NONE"
+
+  request_parameters = {
+    "method.request.querystring.participatingIcb" = true
+  }
+}
+
+resource "aws_api_gateway_integration" "clinic_summary_list_lambda" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.clinic_summary_list.resource_id
+  http_method = aws_api_gateway_method.clinic_summary_list.http_method
+
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.clinic_summary_list.invoke_arn
+
+  depends_on = [aws_api_gateway_method.clinic_summary_list]
+}
+
+resource "aws_api_gateway_integration_response" "clinic_summary_list_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.clinic_summary_list.id
+  http_method = aws_api_gateway_method.clinic_summary_list.http_method
+  status_code = aws_api_gateway_method_response.clinic_summary_list_response_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.clinic_summary_list_lambda]
+}
+
+resource "aws_api_gateway_method_response" "clinic_summary_list_response_200" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.clinic_summary_list.resource_id
+  http_method = aws_api_gateway_method.clinic_summary_list.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+
+  depends_on = [aws_api_gateway_method.clinic_summary_list]
+}
+
+resource "aws_api_gateway_method" "options_clinic_summary_list" {
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  resource_id   = aws_api_gateway_resource.clinic_summary_list.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "options_clinic_summary_list" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.options_clinic_summary_list.resource_id
+  http_method = aws_api_gateway_method.options_clinic_summary_list.http_method
+
+  type = "MOCK"
+  request_templates = { # Not documented
+    "application/json" = "{statusCode: 200}"
+  }
+
+  depends_on = [aws_api_gateway_method.options_clinic_summary_list]
+}
+
+resource "aws_api_gateway_method_response" "options_clinic_summary_list_200" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.clinic_summary_list.id
+  http_method = aws_api_gateway_method.options_clinic_summary_list.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+
+  depends_on = [aws_api_gateway_method.options_clinic_summary_list]
+}
+
+resource "aws_api_gateway_integration_response" "options_clinic_summary_list" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.clinic_summary_list.id
+  http_method = aws_api_gateway_method.options_clinic_summary_list.http_method
+  status_code = aws_api_gateway_method_response.options_clinic_summary_list_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'*'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.options_clinic_summary_list]
 }
 
 // PARTICIPATING ICB LIST
@@ -1101,123 +1219,6 @@ resource "aws_api_gateway_integration_response" "options_invitation_parameters" 
 #   depends_on = [aws_api_gateway_integration.options_invitation_parameters_post]
 # }
 
-// CLINIC SUMMARY LIST
-resource "aws_api_gateway_resource" "clinic_summary_list" {
-  rest_api_id = aws_api_gateway_rest_api.galleri.id
-  parent_id   = aws_api_gateway_rest_api.galleri.root_resource_id
-  path_part   = "clinic-summary-list"
-}
-
-resource "aws_api_gateway_method" "clinic_summary_list" {
-  rest_api_id   = aws_api_gateway_rest_api.galleri.id
-  resource_id   = aws_api_gateway_resource.clinic_summary_list.id
-  http_method   = "GET"
-  authorization = "NONE"
-
-  request_parameters = {
-    "method.request.querystring.participatingIcb" = true
-  }
-}
-
-resource "aws_api_gateway_integration" "clinic_summary_list_lambda" {
-  rest_api_id = aws_api_gateway_rest_api.galleri.id
-  resource_id = aws_api_gateway_method.clinic_summary_list.resource_id
-  http_method = aws_api_gateway_method.clinic_summary_list.http_method
-
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.clinic_summary_list.invoke_arn
-
-  depends_on = [aws_api_gateway_method.clinic_summary_list]
-}
-
-resource "aws_api_gateway_integration_response" "clinic_summary_list_integration_response" {
-  rest_api_id = aws_api_gateway_rest_api.galleri.id
-  resource_id = aws_api_gateway_resource.clinic_summary_list.id
-  http_method = aws_api_gateway_method.clinic_summary_list.http_method
-  status_code = aws_api_gateway_method_response.clinic_summary_list_response_200.status_code
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-
-  depends_on = [aws_api_gateway_integration.clinic_summary_list_lambda]
-}
-
-resource "aws_api_gateway_method_response" "clinic_summary_list_response_200" {
-  rest_api_id = aws_api_gateway_rest_api.galleri.id
-  resource_id = aws_api_gateway_method.clinic_summary_list.resource_id
-  http_method = aws_api_gateway_method.clinic_summary_list.http_method
-  status_code = 200
-
-  response_models = {
-    "application/json" = "Empty"
-  }
-
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-
-  depends_on = [aws_api_gateway_method.clinic_summary_list]
-}
-
-resource "aws_api_gateway_method" "options_clinic_summary_list" {
-  rest_api_id   = aws_api_gateway_rest_api.galleri.id
-  resource_id   = aws_api_gateway_resource.clinic_summary_list.id
-  http_method   = "OPTIONS"
-  authorization = "NONE"
-}
-
-resource "aws_api_gateway_integration" "options_clinic_summary_list" {
-  rest_api_id = aws_api_gateway_rest_api.galleri.id
-  resource_id = aws_api_gateway_method.options_clinic_summary_list.resource_id
-  http_method = aws_api_gateway_method.options_clinic_summary_list.http_method
-
-  type = "MOCK"
-  request_templates = { # Not documented
-    "application/json" = "{statusCode: 200}"
-  }
-
-  depends_on = [aws_api_gateway_method.options_clinic_summary_list]
-}
-
-resource "aws_api_gateway_method_response" "options_clinic_summary_list_200" {
-  rest_api_id = aws_api_gateway_rest_api.galleri.id
-  resource_id = aws_api_gateway_resource.clinic_summary_list.id
-  http_method = aws_api_gateway_method.options_clinic_summary_list.http_method
-  status_code = 200
-
-  response_models = {
-    "application/json" = "Empty"
-  }
-
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-
-  depends_on = [aws_api_gateway_method.options_clinic_summary_list]
-}
-
-resource "aws_api_gateway_integration_response" "options_clinic_summary_list" {
-  rest_api_id = aws_api_gateway_rest_api.galleri.id
-  resource_id = aws_api_gateway_resource.clinic_summary_list.id
-  http_method = aws_api_gateway_method.options_clinic_summary_list.http_method
-  status_code = aws_api_gateway_method_response.options_clinic_summary_list_200.status_code
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-
-  depends_on = [aws_api_gateway_integration.options_clinic_summary_list]
-}
-
-
 // AWS LAMBDA PERMISSIONS
 resource "aws_lambda_permission" "api_gw_clinic_information" {
   statement_id  = "AllowAPIGatewayInvoke"
@@ -1283,7 +1284,6 @@ resource "aws_lambda_permission" "api_gw_clinic_summary_list" {
   # within the API Gateway "REST API".
   source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/GET/*"
 }
-
 resource "aws_api_gateway_deployment" "galleri" {
 
   rest_api_id = aws_api_gateway_rest_api.galleri.id

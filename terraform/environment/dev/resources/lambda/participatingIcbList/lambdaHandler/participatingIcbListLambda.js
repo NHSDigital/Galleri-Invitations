@@ -33,7 +33,7 @@ export const handler = async () => {
         response.Items.map((el) => {
           return el.IcbCode.S;
         })
-      ));
+      ))
   } else {
     responseObject.statusCode = 404;
     responseObject.isBase64Encoded = true;
