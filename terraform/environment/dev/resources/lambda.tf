@@ -764,19 +764,6 @@ resource "aws_api_gateway_integration_response" "options_clinic_icb_list" {
   depends_on = [aws_api_gateway_integration.options_clinic_icb_list]
 }
 
-// INVITAITON PARAMETERS
-resource "aws_api_gateway_resource" "invitation_parameters" {
-  rest_api_id = aws_api_gateway_rest_api.galleri.id
-  parent_id   = aws_api_gateway_rest_api.galleri.root_resource_id
-  path_part   = "invitation-parameters"
-}
-
-resource "aws_api_gateway_method" "invitation_parameters" {
-  rest_api_id   = aws_api_gateway_rest_api.galleri.id
-  resource_id   = aws_api_gateway_resource.invitation_parameters.id
-  http_method   = "GET"
-  authorization = "NONE"
-}
 // PARTICIPATING ICB LIST
 resource "aws_api_gateway_resource" "participating_icb_list" {
   rest_api_id = aws_api_gateway_rest_api.galleri.id
@@ -787,6 +774,100 @@ resource "aws_api_gateway_resource" "participating_icb_list" {
 resource "aws_api_gateway_method" "participating_icb_list" {
   rest_api_id   = aws_api_gateway_rest_api.galleri.id
   resource_id   = aws_api_gateway_resource.participating_icb_list.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "participating_icb_list" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.participating_icb_list.resource_id
+  http_method = aws_api_gateway_method.participating_icb_list.http_method
+
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.participating_icb_list.invoke_arn
+
+  depends_on = [aws_api_gateway_method.participating_icb_list]
+}
+
+resource "aws_api_gateway_method_response" "participating_icb_list_response_200" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.participating_icb_list.resource_id
+  http_method = aws_api_gateway_method.participating_icb_list.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+
+  depends_on = [aws_api_gateway_method.participating_icb_list]
+}
+resource "aws_api_gateway_integration_response" "participating_icb_list_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.participating_icb_list.id
+  http_method = aws_api_gateway_method.participating_icb_list.http_method
+  status_code = aws_api_gateway_method_response.participating_icb_list_response_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.participating_icb_list]
+}
+resource "aws_api_gateway_method" "options_participating_icb_list" {
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  resource_id   = aws_api_gateway_resource.participating_icb_list.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+resource "aws_api_gateway_integration" "options_participating_icb_list" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.options_participating_icb_list.resource_id
+  http_method = aws_api_gateway_method.options_participating_icb_list.http_method
+
+  type = "MOCK"
+  request_templates = { # Not documented
+    "application/json" = "{statusCode: 200}"
+  }
+
+  depends_on = [aws_api_gateway_method.options_participating_icb_list]
+}
+resource "aws_api_gateway_method_response" "options_participating_icb_list_200" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.participating_icb_list.id
+  http_method = aws_api_gateway_method.options_participating_icb_list.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+
+  depends_on = [aws_api_gateway_method.options_participating_icb_list]
+}
+
+// INVITAITON PARAMETERS
+resource "aws_api_gateway_resource" "invitation_parameters" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  parent_id   = aws_api_gateway_rest_api.galleri.root_resource_id
+  path_part   = "invitation-parameters"
+}
+
+resource "aws_api_gateway_method" "invitation_parameters" {
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  resource_id   = aws_api_gateway_resource.invitation_parameters.id
   http_method   = "GET"
   authorization = "NONE"
 }
@@ -817,31 +898,6 @@ resource "aws_api_gateway_integration_response" "invitation_parameters_integrati
 
   depends_on = [aws_api_gateway_integration.invitation_parameters_lambda]
 }
-resource "aws_api_gateway_integration" "participating_icb_list_lambda" {
-  rest_api_id = aws_api_gateway_rest_api.galleri.id
-  resource_id = aws_api_gateway_method.participating_icb_list.resource_id
-  http_method = aws_api_gateway_method.participating_icb_list.http_method
-
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.participating_icb_list.invoke_arn
-
-  depends_on = [aws_api_gateway_method.participating_icb_list]
-}
-
-resource "aws_api_gateway_integration_response" "participating_icb_list_integration_response" {
-  rest_api_id = aws_api_gateway_rest_api.galleri.id
-  resource_id = aws_api_gateway_resource.participating_icb_list.id
-  http_method = aws_api_gateway_method.participating_icb_list.http_method
-  status_code = aws_api_gateway_method_response.participating_icb_list_response_200.status_code
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-
-  depends_on = [aws_api_gateway_integration.participating_icb_list_lambda]
-}
 
 
 resource "aws_api_gateway_method_response" "invitation_parameters_response_200" {
@@ -863,37 +919,9 @@ resource "aws_api_gateway_method_response" "invitation_parameters_response_200" 
   depends_on = [aws_api_gateway_method.invitation_parameters]
 }
 
-
-resource "aws_api_gateway_method_response" "participating_icb_list_response_200" {
-  rest_api_id = aws_api_gateway_rest_api.galleri.id
-  resource_id = aws_api_gateway_method.participating_icb_list.resource_id
-  http_method = aws_api_gateway_method.participating_icb_list.http_method
-  status_code = 200
-
-  response_models = {
-    "application/json" = "Empty"
-  }
-
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-
-  depends_on = [aws_api_gateway_method.participating_icb_list]
-}
-
-
 resource "aws_api_gateway_method" "options_invitation_parameters" {
   rest_api_id   = aws_api_gateway_rest_api.galleri.id
   resource_id   = aws_api_gateway_resource.invitation_parameters.id
-  http_method   = "OPTIONS"
-  authorization = "NONE"
-}
-
-resource "aws_api_gateway_method" "options_participating_icb_list" {
-  rest_api_id   = aws_api_gateway_rest_api.galleri.id
-  resource_id   = aws_api_gateway_resource.participating_icb_list.id
   http_method   = "OPTIONS"
   authorization = "NONE"
 }
@@ -910,20 +938,6 @@ resource "aws_api_gateway_integration" "options_invitation_parameters" {
 
   depends_on = [aws_api_gateway_method.options_invitation_parameters]
 }
-
-resource "aws_api_gateway_integration" "options_participating_icb_list" {
-  rest_api_id = aws_api_gateway_rest_api.galleri.id
-  resource_id = aws_api_gateway_method.options_participating_icb_list.resource_id
-  http_method = aws_api_gateway_method.options_participating_icb_list.http_method
-
-  type = "MOCK"
-  request_templates = { # Not documented
-    "application/json" = "{statusCode: 200}"
-  }
-
-  depends_on = [aws_api_gateway_method.options_participating_icb_list]
-}
-
 
 resource "aws_api_gateway_method_response" "options_invitation_parameters_200" {
   rest_api_id = aws_api_gateway_rest_api.galleri.id
@@ -943,28 +957,6 @@ resource "aws_api_gateway_method_response" "options_invitation_parameters_200" {
 
   depends_on = [aws_api_gateway_method.options_invitation_parameters]
 }
-
-
-resource "aws_api_gateway_method_response" "options_participating_icb_list_200" {
-  rest_api_id = aws_api_gateway_rest_api.galleri.id
-  resource_id = aws_api_gateway_resource.participating_icb_list.id
-  http_method = aws_api_gateway_method.options_participating_icb_list.http_method
-  status_code = 200
-
-  response_models = {
-    "application/json" = "Empty"
-  }
-
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-
-  depends_on = [aws_api_gateway_method.options_participating_icb_list]
-}
-
-
 
 resource "aws_api_gateway_integration_response" "options_invitation_parameters" {
   rest_api_id = aws_api_gateway_rest_api.galleri.id
@@ -1108,7 +1100,7 @@ resource "aws_api_gateway_integration_response" "options_participating_icb_list"
   depends_on = [aws_api_gateway_integration.options_participating_icb_list]
 }
 
-// PARTICIPATING ICB LIST
+// CLINIC SUMMARY LIST
 resource "aws_api_gateway_resource" "clinic_summary_list" {
   rest_api_id = aws_api_gateway_rest_api.galleri.id
   parent_id   = aws_api_gateway_rest_api.galleri.root_resource_id
@@ -1224,7 +1216,7 @@ resource "aws_api_gateway_integration_response" "options_clinic_summary_list" {
   depends_on = [aws_api_gateway_integration.options_clinic_summary_list]
 }
 
-
+// AWS LAMBDA PERMISSIONS
 resource "aws_lambda_permission" "api_gw_clinic_information" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"

@@ -3,15 +3,20 @@ import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 /*
   Lambda to load icb information and pass on to GPS client.
 */
+
+export async function getItemsFromTable(table, client) {
+  const response = await client.send(
+    new ScanCommand({
+      TableName: table,
+    })
+  );
+
+  return response;
+}
+
 export const handler = async () => {
   const client = new DynamoDBClient({ region: "eu-west-2" });
-
-  const input = {
-    TableName: "ParticipatingIcb",
-  };
-
-  const command = new ScanCommand(input);
-  const response = await client.send(command);
+  const response = await getItemsFromTable("ParticipatingIcb", client);
 
   let responseObject = {};
 
@@ -34,8 +39,6 @@ export const handler = async () => {
     responseObject.isBase64Encoded = true;
     responseObject.body = "error";
   }
-
-  console.log(responseObject);
 
   return responseObject;
 };
