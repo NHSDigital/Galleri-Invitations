@@ -368,7 +368,7 @@ resource "aws_lambda_function" "participating_icb_list" {
 
   s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
 
-  s3_key    = aws_s3_object.participating_icb_list_lambda.key
+  s3_key = aws_s3_object.participating_icb_list_lambda.key
 
   source_code_hash = data.archive_file.participating_icb_list_lambda.output_base64sha256
 
