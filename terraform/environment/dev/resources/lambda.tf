@@ -324,11 +324,11 @@ resource "aws_cloudwatch_log_group" "invitation_parameters" {
   retention_in_days = 14
 }
 
-resource "aws_cloudwatch_log_group" "invitation_parameters_post" {
-  name = "/aws/lambda/${aws_lambda_function.invitation_parameters.function_name}"
+# resource "aws_cloudwatch_log_group" "invitation_parameters_post" {
+#   name = "/aws/lambda/${aws_lambda_function.invitation_parameters.function_name}"
 
-  retention_in_days = 14
-}
+#   retention_in_days = 14
+# }
 
 // Create s3 object
 resource "aws_s3_object" "data_filter_gridall_imd_lambda" {

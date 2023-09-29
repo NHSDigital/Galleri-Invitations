@@ -8,6 +8,8 @@ export const handler = async (event, context) => {
 
   let responseObject = {};
 
+  const CONFIG_ID = '001';
+
   const quintile1 = event.queryStringParameters.quintile1;
   const quintile2 = event.queryStringParameters.quintile2;
   const quintile3 = event.queryStringParameters.quintile3;
@@ -16,6 +18,9 @@ export const handler = async (event, context) => {
 
   const params = {
     Item: {
+      CONFIG_ID: {
+        N: `${CONFIG_ID}`,
+      },
       QUINTILE_1: {
         N: `${quintile1}`,
       },
