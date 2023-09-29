@@ -37,21 +37,22 @@ export const handler = async (event, context) => {
   const command = new PutItemCommand(params);
   const response = await client.send(command);
 
-  if (responseObject.statusCode = 200) {
-    responseObject.statusCode = 200;
-    (responseObject.headers = {
-      "Access-Control-Allow-Headers":
-        "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "OPTIONS,GET",
-    }),
-      (responseObject.isBase64Encoded = true);
-    responseObject.body = JSON.stringify(response.Item);
-  } else {
-    responseObject.statusCode = 404;
-    responseObject.isBase64Encoded = true;
-    responseObject.body = "error";
-  }
+  // if (responseObject.statusCode = 200) {
+  //   responseObject.statusCode = 200;
+  //   (responseObject.headers = {
+  //     "Access-Control-Allow-Headers":
+  //       "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+  //     "Access-Control-Allow-Origin": "*",
+  //     "Access-Control-Allow-Methods": "OPTIONS,GET",
+  //   }),
+  //     (responseObject.isBase64Encoded = true);
+  //   responseObject.body = JSON.stringify(response.Item);
+  // } else {
+  //   responseObject.statusCode = 404;
+  //   responseObject.isBase64Encoded = true;
+  //   responseObject.body = "error";
+  // }
 
-  return responseObject;
+  console.log(JSON.stringify(response));
+  return 'responseObject';
 };

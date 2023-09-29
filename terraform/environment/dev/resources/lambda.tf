@@ -179,6 +179,13 @@ data "archive_file" "invitation_parameters_lambda" {
   output_path = "${path.cwd}/lambda/invitationParameters/lambdaHandler/invitationParametersLambda.zip"
 }
 
+data "archive_file" "invitation_parameters_post_lambda" {
+  type = "zip"
+
+  source_dir  = "${path.cwd}/lambda/invitationParametersPost/lambdaHandler"
+  output_path = "${path.cwd}/lambda/invitationParametersPost/lambdaHandler/invitationParametersPostLambda.zip"
+}
+
 // Create lambda functions
 resource "aws_lambda_function" "data_filter_gridall_imd" {
   function_name = "dataFilterLambda"
@@ -271,6 +278,21 @@ resource "aws_lambda_function" "invitation_parameters" {
 
 }
 
+resource "aws_lambda_function" "invitation_parameters_post" {
+  function_name = "invitationParametersPostLambda"
+  role          = aws_iam_role.galleri_lambda_role.arn
+  handler       = "invitationParametersPostLambda.handler"
+  runtime       = "nodejs18.x"
+  timeout       = 100
+  memory_size   = 1024
+
+  s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
+  s3_key    = aws_s3_object.invitation_parameters_lambda.key
+
+  source_code_hash = data.archive_file.invitation_parameters_lambda.output_base64sha256
+
+}
+
 // Create cloudwatch log group
 resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
   name = "/aws/lambda/${aws_lambda_function.data_filter_gridall_imd.function_name}"
@@ -297,6 +319,12 @@ resource "aws_cloudwatch_log_group" "clinic_icb_list" {
 }
 
 resource "aws_cloudwatch_log_group" "invitation_parameters" {
+  name = "/aws/lambda/${aws_lambda_function.invitation_parameters.function_name}"
+
+  retention_in_days = 14
+}
+
+resource "aws_cloudwatch_log_group" "invitation_parameters_post" {
   name = "/aws/lambda/${aws_lambda_function.invitation_parameters.function_name}"
 
   retention_in_days = 14
@@ -346,6 +374,15 @@ resource "aws_s3_object" "invitation_parameters_lambda" {
   source = data.archive_file.invitation_parameters_lambda.output_path
 
   etag = filemd5(data.archive_file.invitation_parameters_lambda.output_path)
+}
+
+resource "aws_s3_object" "invitation_parameters_post_lambda" {
+  bucket = aws_s3_bucket.galleri_lambda_bucket.id
+
+  key    = "invitation_parameters_post_lambda.zip"
+  source = data.archive_file.invitation_parameters_post_lambda.output_path
+
+  etag = filemd5(data.archive_file.invitation_parameters_post_lambda.output_path)
 }
 
 resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
