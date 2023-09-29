@@ -305,4 +305,3 @@ resource "aws_dynamodb_table" "LSOA_table" {
     Environment = "dev"
   }
 }
-
