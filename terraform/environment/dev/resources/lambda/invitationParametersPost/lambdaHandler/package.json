@@ -1,0 +1,10 @@
+{
+  "name": "invitationParametersPost",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "invitationParametersPost.js",
+  "author": "",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.398.0"
+  }
+}

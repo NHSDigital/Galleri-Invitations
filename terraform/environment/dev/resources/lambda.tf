@@ -186,6 +186,13 @@ data "archive_file" "invitation_parameters_post_lambda" {
   output_path = "${path.cwd}/lambda/invitationParametersPost/lambdaHandler/invitationParametersPostLambda.zip"
 }
 
+data "archive_file" "invitation_parameters_post_lambd_post_forcast_uptake" {
+  type = "zip"
+
+  source_dir  = "${path.cwd}/lambda/invitationParametersPostForcastUptake/lambdaHandler"
+  output_path = "${path.cwd}/lambda/invitationParametersPost/lambdaHandler/invitationParametersPostForcastUptakeLambda.zip"
+}
+
 // Create lambda functions
 resource "aws_lambda_function" "data_filter_gridall_imd" {
   function_name = "dataFilterLambda"
@@ -293,6 +300,21 @@ resource "aws_lambda_function" "invitation_parameters_post" {
 
 }
 
+resource "aws_lambda_function" "invitation_parameters_post_forcast_uptake" {
+  function_name = "invitationParametersPostForcastUptakeLambda"
+  role          = aws_iam_role.galleri_lambda_role.arn
+  handler       = "invitationParametersPostForcastUptakeLambda.handler"
+  runtime       = "nodejs18.x"
+  timeout       = 100
+  memory_size   = 1024
+
+  s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
+  s3_key    = aws_s3_object.invitation_parameters_lambda.key
+
+  source_code_hash = data.archive_file.invitation_parameters_lambda.output_base64sha256
+
+}
+
 // Create cloudwatch log group
 resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
   name = "/aws/lambda/${aws_lambda_function.data_filter_gridall_imd.function_name}"
@@ -325,6 +347,12 @@ resource "aws_cloudwatch_log_group" "invitation_parameters" {
 }
 
 # resource "aws_cloudwatch_log_group" "invitation_parameters_post" {
+#   name = "/aws/lambda/${aws_lambda_function.invitation_parameters.function_name}"
+
+#   retention_in_days = 14
+# }
+
+# resource "aws_cloudwatch_log_group" "invitation_parameters_post_forcast_uptake" {
 #   name = "/aws/lambda/${aws_lambda_function.invitation_parameters.function_name}"
 
 #   retention_in_days = 14
@@ -383,6 +411,15 @@ resource "aws_s3_object" "invitation_parameters_post_lambda" {
   source = data.archive_file.invitation_parameters_post_lambda.output_path
 
   etag = filemd5(data.archive_file.invitation_parameters_post_lambda.output_path)
+}
+
+resource "aws_s3_object" "invitation_parameters_post_forcast_uptake_lambda" {
+  bucket = aws_s3_bucket.galleri_lambda_bucket.id
+
+  key    = "invitation_parameters_post_forcast_uptake_lambda.zip"
+  source = data.archive_file.invitation_parameters_post_forcast_uptake_lambda.output_path
+
+  etag = filemd5(data.archive_file.invitation_parameters_post_forcast_uptake_lambda.output_path)
 }
 
 resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
@@ -876,6 +913,120 @@ resource "aws_api_gateway_integration_response" "options_invitation_parameters_p
 
   depends_on = [aws_api_gateway_integration.options_invitation_parameters_post]
 }
+
+// INVITAITON PARAMETERS - POST FORCAST UPTAKE
+resource "aws_api_gateway_resource" "invitation_parameters_post_forcast_uptake" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  parent_id   = aws_api_gateway_rest_api.galleri.root_resource_id
+  path_part   = "invitation-parameters-post"
+}
+
+resource "aws_api_gateway_method" "invitation_parameters_post_forcast_uptake" {
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  resource_id   = aws_api_gateway_resource.invitation_parameters_post_forcast_uptake.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "invitation_parameters_post_forcast_uptake_lambda" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.invitation_parameters_post_forcast_uptake.resource_id
+  http_method = aws_api_gateway_method.invitation_parameters_post_forcast_uptake.http_method
+
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.invitation_parameters_post_forcast_uptake.invoke_arn
+
+  depends_on = [aws_api_gateway_method.invitation_parameters_post_forcast_uptake]
+}
+
+resource "aws_api_gateway_integration_response" "invitation_parameters_post_forcast_uptake_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.invitation_parameters_post_forcast_uptake.id
+  http_method = aws_api_gateway_method.invitation_parameters_post_forcast_uptake.http_method
+  status_code = aws_api_gateway_method_response.invitation_parameters_post_forcast_uptake_response_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'POST'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.invitation_parameters_post_lambda]
+}
+
+resource "aws_api_gateway_method_response" "invitation_parameters_post_response_forcast_uptake_200" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.invitation_parameters_post_forcast_uptake.resource_id
+  http_method = aws_api_gateway_method.invitation_parameters_post_forcast_uptake.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+
+  depends_on = [aws_api_gateway_method.invitation_parameters_post_forcast_uptake]
+}
+
+resource "aws_api_gateway_method" "options_invitation_parameters_post_forcast_uptake" {
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  resource_id   = aws_api_gateway_resource.invitation_parameters_post_forcast_uptake.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "options_invitation_parameters_post_forcast_uptake" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.options_invitation_parameters_post_forcast_uptake.resource_id
+  http_method = aws_api_gateway_method.options_invitation_parameters_post_forcast_uptake.http_method
+
+  type = "MOCK"
+  request_templates = { # Not documented
+    "application/json" = "{statusCode: 200}"
+  }
+
+  depends_on = [aws_api_gateway_method.options_invitation_parameters_post_forcast_uptake]
+}
+
+resource "aws_api_gateway_method_response" "options_invitation_parameters_post_forcast_uptake_200" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.invitation_parameters_post_forcast_uptake.id
+  http_method = aws_api_gateway_method.options_invitation_parameters_post_forcast_uptake.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+
+  depends_on = [aws_api_gateway_method.options_invitation_parameters_post_forcast_uptake]
+}
+
+resource "aws_api_gateway_integration_response" "options_invitation_parameters_post_forcast_uptake" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.invitation_parameters_post_forcast_uptake.id
+  http_method = aws_api_gateway_method.options_invitation_parameters_post_forcast_uptake.http_method
+  status_code = aws_api_gateway_method_response.options_invitation_parameters_post_forcast_uptake_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'*'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.options_invitation_parameters_post_forcast_uptake]
+}
+
+# ------------------------------------------------------------------------------------------------------------------------- END OF APIs
 
 resource "aws_lambda_permission" "api_gw_clinic_information" {
   statement_id  = "AllowAPIGatewayInvoke"
