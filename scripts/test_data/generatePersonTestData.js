@@ -28,7 +28,8 @@ const processData = async (csvString, processFunction = () => {}) => {
       .pipe(csv())
       .on("data", (row) => {
         rowCounter++;
-        dataArray.push(processFunction(row));
+        const attribute = processFunction(row);
+        dataArray.push(attribute);
       })
       .on("end", () => {
         resolve(dataArray);
@@ -109,23 +110,23 @@ const changePostcode = (rowData, ageRangeObj) => {
         ageRangeObj["75-77"] += 1;
         ageCount = 0;
       }
-    }
-
-    // Now check spread of age
-    if (obtainAge(element.date_of_birth) < 50) {
-      outlier++;
-    } else if (obtainAge(element.date_of_birth) < 55) {
-      ageRangeObj["50-54"] += 1;
-    } else if (obtainAge(element.date_of_birth) < 60) {
-      ageRangeObj["55-59"] += 1;
-    } else if (obtainAge(element.date_of_birth) < 65) {
-      ageRangeObj["60-64"] += 1;
-    } else if (obtainAge(element.date_of_birth) < 70) {
-      ageRangeObj["65-69"] += 1;
-    } else if (obtainAge(element.date_of_birth) < 75) {
-      ageRangeObj["70-74"] += 1;
-    } else if (obtainAge(element.date_of_birth) < 78) {
-      ageRangeObj["75-77"] += 1;
+    } else {
+      // Now check spread of age
+      if (obtainAge(element.date_of_birth) < 50) {
+        outlier++;
+      } else if (obtainAge(element.date_of_birth) < 55) {
+        ageRangeObj["50-54"] += 1;
+      } else if (obtainAge(element.date_of_birth) < 60) {
+        ageRangeObj["55-59"] += 1;
+      } else if (obtainAge(element.date_of_birth) < 65) {
+        ageRangeObj["60-64"] += 1;
+      } else if (obtainAge(element.date_of_birth) < 70) {
+        ageRangeObj["65-69"] += 1;
+      } else if (obtainAge(element.date_of_birth) < 75) {
+        ageRangeObj["70-74"] += 1;
+      } else if (obtainAge(element.date_of_birth) < 78) {
+        ageRangeObj["75-77"] += 1;
+      }
     }
 
     // Assign postcode outside ICB to postcode inside ICB
