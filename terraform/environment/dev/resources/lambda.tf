@@ -828,7 +828,7 @@ resource "aws_api_gateway_integration" "invitation_parameters_post_quintiles_lam
   depends_on = [aws_api_gateway_method.invitation_parameters_post]
 }
 
-resource "aws_api_gateway_integration_response" "invitation_parameters_post_integration_response" {
+resource "aws_api_gateway_integration_response" "invitation_parameters_post_quintiles_integration_response" {
   rest_api_id = aws_api_gateway_rest_api.galleri.id
   resource_id = aws_api_gateway_resource.invitation_parameters_post.id
   http_method = aws_api_gateway_method.invitation_parameters_post.http_method
@@ -1083,7 +1083,9 @@ resource "aws_api_gateway_deployment" "galleri" {
     aws_api_gateway_integration_response.clinic_icb_list_integration_response,
     aws_api_gateway_integration_response.options_clinic_information,
     aws_api_gateway_integration_response.clinic_information_integration_response,
-    aws_api_gateway_integration_response.invitation_parameters_integration_response
+    aws_api_gateway_integration_response.invitation_parameters_integration_response,
+    aws_api_gateway_integration_response.invitation_parameters_post_quintiles_integration_response,
+    aws_api_gateway_integration_response.invitation_parameters_post_forecast_uptake_integration_response
   ]
 }
 

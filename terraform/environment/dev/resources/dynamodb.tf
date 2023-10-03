@@ -339,12 +339,12 @@ resource "aws_dynamodb_table_item" "quintileTargets" {
   item = <<ITEM
 {
   "CONFIG_ID": {"N": "001"},
-  "QUINTILE_1": {"N": "19"},
-  "QUINTILE_2": {"N": "21"},
+  "QUINTILE_1": {"N": "20"},
+  "QUINTILE_2": {"N": "20"},
   "QUINTILE_3": {"N": "20"},
   "QUINTILE_4": {"N": "20"},
   "QUINTILE_5": {"N": "20"},
-  "NATIONAL_FORCAST_UPTAKE": {"N": "99"}
+  "NATIONAL_FORCAST_UPTAKE": {"N": "50"}
 }
 ITEM
 }
