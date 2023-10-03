@@ -1,8 +1,8 @@
 {
-  "name": "invitationParametersPost",
+  "name": "invitationParametersPostQuintiles",
   "version": "1.0.0",
   "type": "module",
-  "main": "invitationParametersPost.js",
+  "main": "invitationParametersPostQuintilesLambda.js",
   "author": "",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.398.0"

@@ -2,7 +2,7 @@
   "name": "invitationParameters",
   "version": "1.0.0",
   "type": "module",
-  "main": "invitationParameters.js",
+  "main": "invitationParametersLambda.js",
   "author": "",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.398.0"
