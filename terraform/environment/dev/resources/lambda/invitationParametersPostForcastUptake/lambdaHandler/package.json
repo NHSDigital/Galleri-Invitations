@@ -1,8 +1,8 @@
 {
-  "name": "invitationParametersPostForcastUptake",
+  "name": "invitationParametersPostForecastUptake",
   "version": "1.0.0",
   "type": "module",
-  "main": "invitationParametersPostForcastUptake.js",
+  "main": "invitationParametersPostForecastUptakeLambda.js",
   "author": "",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.398.0"
