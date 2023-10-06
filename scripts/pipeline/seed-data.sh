@@ -43,6 +43,18 @@ function main() {
 
   echo Succefully uploaded LSOA data to database
 
+  echo "--------------------------------------------------------------"
+
+  echo Initiating upload of Phlebotomy clinic data to database
+
+  mkdir nonprod-phlebotomy-site-load
+
+  echo Uploading items to Phlebotomy clinic database
+
+  python $PWD/scripts/pipeline/nonprod_phlebotomy_site_load/nonprod_phlebotomy_site_load.py
+
+  echo Succefully uploaded Phlebotomy clinic data to database
+
 }
 
 # ==============================================================================
