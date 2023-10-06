@@ -16,21 +16,20 @@ resource "aws_iam_role" "galleri_lambda_role" {
   name = "galleri-lambda-role"
 
   assume_role_policy = <<POLICY
-  {
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Effect": "Allow",
-        "Principal": {
-          "Service": "lambda.amazonaws.com"
-        },
-        "Action": "sts:AssumeRole"
-      }
-    ]
-  }
-  POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
 }
-
+POLICY
+}
 
 resource "aws_iam_policy" "iam_policy_for_lambda" {
   name        = "aws_iam_policy_for_terraform_aws_lambda_role"
@@ -128,6 +127,70 @@ resource "aws_iam_policy" "iam_policy_for_invitation_parameters_lambda" {
 EOF
 }
 
+resource "aws_iam_policy" "iam_policy_for_participating_icb_list_lambda" {
+  name        = "aws_iam_policy_for_terraform_aws_participating_icb_list_lambda_role"
+  path        = "/"
+  description = "AWS IAM Policy for managing aws lambda participating icb role"
+  policy      = <<EOF
+{
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:logs:*:*:*"
+    },
+    {
+      "Sid": "AllowDynamodbAccess",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:*"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:eu-west-2:136293001324:table/ParticipatingIcb"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+EOF
+}
+
+resource "aws_iam_policy" "iam_policy_for_clinic_summary_list_lambda" {
+  name        = "aws_iam_policy_for_terraform_aws_clinic_summary_list_lambda_role"
+  path        = "/"
+  description = "AWS IAM Policy for managing aws lambda clinic summary role"
+  policy      = <<EOF
+{
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:logs:*:*:*"
+    },
+    {
+      "Sid": "AllowDynamodbAccess",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:*"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:eu-west-2:136293001324:table/PhlebotomySite"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+EOF
+}
+
 resource "aws_iam_role_policy_attachment" "galleri_lambda_policy" {
   role       = aws_iam_role.galleri_lambda_role.name
   policy_arn = aws_iam_policy.iam_policy_for_lambda.arn
@@ -141,6 +204,16 @@ resource "aws_iam_role_policy_attachment" "clinic_information_lambda_policy" {
 resource "aws_iam_role_policy_attachment" "invitation_parameters_lambda_policy" {
   role       = aws_iam_role.galleri_lambda_role.name
   policy_arn = aws_iam_policy.iam_policy_for_invitation_parameters_lambda.arn
+}
+
+resource "aws_iam_role_policy_attachment" "participating_icb_list_lambda_policy" {
+  role       = aws_iam_role.galleri_lambda_role.name
+  policy_arn = aws_iam_policy.iam_policy_for_participating_icb_list_lambda.arn
+}
+
+resource "aws_iam_role_policy_attachment" "clinic_summary_list_lambda_policy" {
+  role       = aws_iam_role.galleri_lambda_role.name
+  policy_arn = aws_iam_policy.iam_policy_for_clinic_summary_list_lambda.arn
 }
 
 // Zip lambda folders
@@ -191,6 +264,20 @@ data "archive_file" "invitation_parameters_post_forecast_uptake_lambda" {
 
   source_dir  = "${path.cwd}/lambda/invitationParametersPostForecastUptake/lambdaHandler"
   output_path = "${path.cwd}/lambda/invitationParametersPostForecastUptake/lambdaHandler/invitationParametersPostForecastUptakeLambda.zip"
+}
+
+data "archive_file" "participating_icb_list_lambda" {
+  type = "zip"
+
+  source_dir  = "${path.cwd}/lambda/participatingIcbList/lambdaHandler"
+  output_path = "${path.cwd}/lambda/participatingIcbList/lambdaHandler/participatingIcbListLambda.zip"
+}
+
+data "archive_file" "clinic_summary_list_lambda" {
+  type = "zip"
+
+  source_dir  = "${path.cwd}/lambda/clinicSummaryList/lambdaHandler"
+  output_path = "${path.cwd}/lambda/clinicSummaryList/lambdaHandler/clinicSummaryListLambda.zip"
 }
 
 // Create lambda functions
@@ -315,6 +402,37 @@ resource "aws_lambda_function" "invitation_parameters_post_forecast_uptake" {
 
 }
 
+resource "aws_lambda_function" "participating_icb_list" {
+  function_name = "participatingIcbListLambda"
+  role          = aws_iam_role.galleri_lambda_role.arn
+  handler       = "participatingIcbListLambda.handler"
+  runtime       = "nodejs18.x"
+  timeout       = 100
+  memory_size   = 1024
+
+  s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
+
+  s3_key = aws_s3_object.participating_icb_list_lambda.key
+
+  source_code_hash = data.archive_file.participating_icb_list_lambda.output_base64sha256
+
+}
+
+resource "aws_lambda_function" "clinic_summary_list" {
+  function_name = "clinicSummaryListLambda"
+  role          = aws_iam_role.galleri_lambda_role.arn
+  handler       = "clinicSummaryListLambda.handler"
+  runtime       = "nodejs18.x"
+  timeout       = 100
+  memory_size   = 1024
+
+  s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
+  s3_key    = aws_s3_object.clinic_summary_list_lambda.key
+
+  source_code_hash = data.archive_file.clinic_summary_list_lambda.output_base64sha256
+
+}
+
 // Create cloudwatch log group
 resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
   name = "/aws/lambda/${aws_lambda_function.data_filter_gridall_imd.function_name}"
@@ -357,6 +475,18 @@ resource "aws_cloudwatch_log_group" "invitation_parameters" {
 
 #   retention_in_days = 14
 # }
+
+resource "aws_cloudwatch_log_group" "participating_icb_list" {
+  name = "/aws/lambda/${aws_lambda_function.participating_icb_list.function_name}"
+
+  retention_in_days = 14
+}
+
+resource "aws_cloudwatch_log_group" "clinic_summary_list" {
+  name = "/aws/lambda/${aws_lambda_function.clinic_summary_list.function_name}"
+
+  retention_in_days = 14
+}
 
 // Create s3 object
 resource "aws_s3_object" "data_filter_gridall_imd_lambda" {
@@ -422,6 +552,24 @@ resource "aws_s3_object" "invitation_parameters_post_forecast_uptake_lambda" {
   etag = filemd5(data.archive_file.invitation_parameters_post_forecast_uptake_lambda.output_path)
 }
 
+resource "aws_s3_object" "participating_icb_list_lambda" {
+  bucket = aws_s3_bucket.galleri_lambda_bucket.id
+
+  key    = "participating_icb_list_lambda.zip"
+  source = data.archive_file.participating_icb_list_lambda.output_path
+
+  etag = filemd5(data.archive_file.participating_icb_list_lambda.output_path)
+}
+
+resource "aws_s3_object" "clinic_summary_list_lambda" {
+  bucket = aws_s3_bucket.galleri_lambda_bucket.id
+
+  key    = "clinic_summary_list_lambda.zip"
+  source = data.archive_file.clinic_summary_list_lambda.output_path
+
+  etag = filemd5(data.archive_file.clinic_summary_list_lambda.output_path)
+}
+
 resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
   bucket = "galleri-ons-data"
   policy = data.aws_iam_policy_document.allow_access_to_lambda.json
@@ -449,7 +597,7 @@ data "aws_iam_policy_document" "allow_access_to_lambda" {
 
 // API Gateway
 resource "aws_api_gateway_rest_api" "galleri" {
-  name        = "galleri-dev"
+  name        = "galleri-dev-local-2"
   description = "API for the galleri webapp"
   endpoint_configuration {
     types = ["REGIONAL"]
@@ -1026,8 +1174,232 @@ resource "aws_api_gateway_integration_response" "options_invitation_parameters_p
   depends_on = [aws_api_gateway_integration.options_invitation_parameters_post_forecast_uptake]
 }
 
-# ------------------------------------------------------------------------------------------------------------------------- END OF APIs
+// CLINIC SUMMARY LIST
+resource "aws_api_gateway_resource" "clinic_summary_list" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  parent_id   = aws_api_gateway_rest_api.galleri.root_resource_id
+  path_part   = "clinic-summary-list"
+}
 
+resource "aws_api_gateway_method" "clinic_summary_list" {
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  resource_id   = aws_api_gateway_resource.clinic_summary_list.id
+  http_method   = "GET"
+  authorization = "NONE"
+
+  request_parameters = {
+    "method.request.querystring.participatingIcb" = true
+  }
+}
+
+resource "aws_api_gateway_integration" "clinic_summary_list_lambda" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.clinic_summary_list.resource_id
+  http_method = aws_api_gateway_method.clinic_summary_list.http_method
+
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.clinic_summary_list.invoke_arn
+
+  depends_on = [aws_api_gateway_method.clinic_summary_list]
+}
+
+resource "aws_api_gateway_integration_response" "clinic_summary_list_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.clinic_summary_list.id
+  http_method = aws_api_gateway_method.clinic_summary_list.http_method
+  status_code = aws_api_gateway_method_response.clinic_summary_list_response_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.clinic_summary_list_lambda]
+}
+
+resource "aws_api_gateway_method_response" "clinic_summary_list_response_200" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.clinic_summary_list.resource_id
+  http_method = aws_api_gateway_method.clinic_summary_list.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+
+  depends_on = [aws_api_gateway_method.clinic_summary_list]
+}
+
+resource "aws_api_gateway_method" "options_clinic_summary_list" {
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  resource_id   = aws_api_gateway_resource.clinic_summary_list.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "options_clinic_summary_list" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.options_clinic_summary_list.resource_id
+  http_method = aws_api_gateway_method.options_clinic_summary_list.http_method
+
+  type = "MOCK"
+  request_templates = { # Not documented
+    "application/json" = "{statusCode: 200}"
+  }
+
+  depends_on = [aws_api_gateway_method.options_clinic_summary_list]
+}
+
+resource "aws_api_gateway_method_response" "options_clinic_summary_list_200" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.clinic_summary_list.id
+  http_method = aws_api_gateway_method.options_clinic_summary_list.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+
+  depends_on = [aws_api_gateway_method.options_clinic_summary_list]
+}
+
+resource "aws_api_gateway_integration_response" "options_clinic_summary_list" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.clinic_summary_list.id
+  http_method = aws_api_gateway_method.options_clinic_summary_list.http_method
+  status_code = aws_api_gateway_method_response.options_clinic_summary_list_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'*'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.options_clinic_summary_list]
+}
+
+// PARTICIPATING ICB LIST
+resource "aws_api_gateway_resource" "participating_icb_list" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  parent_id   = aws_api_gateway_rest_api.galleri.root_resource_id
+  path_part   = "participating-icb-list"
+}
+
+resource "aws_api_gateway_method" "participating_icb_list" {
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  resource_id   = aws_api_gateway_resource.participating_icb_list.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "participating_icb_list" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.participating_icb_list.resource_id
+  http_method = aws_api_gateway_method.participating_icb_list.http_method
+
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.participating_icb_list.invoke_arn
+
+  depends_on = [aws_api_gateway_method.participating_icb_list]
+}
+
+resource "aws_api_gateway_method_response" "participating_icb_list_response_200" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.participating_icb_list.resource_id
+  http_method = aws_api_gateway_method.participating_icb_list.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+
+  depends_on = [aws_api_gateway_method.participating_icb_list]
+}
+resource "aws_api_gateway_integration_response" "participating_icb_list_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.participating_icb_list.id
+  http_method = aws_api_gateway_method.participating_icb_list.http_method
+  status_code = aws_api_gateway_method_response.participating_icb_list_response_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.participating_icb_list]
+}
+
+resource "aws_api_gateway_method" "options_participating_icb_list" {
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  resource_id   = aws_api_gateway_resource.participating_icb_list.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+resource "aws_api_gateway_integration" "options_participating_icb_list" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.options_participating_icb_list.resource_id
+  http_method = aws_api_gateway_method.options_participating_icb_list.http_method
+
+  type = "MOCK"
+  request_templates = { # Not documented
+    "application/json" = "{statusCode: 200}"
+  }
+
+  depends_on = [aws_api_gateway_method.options_participating_icb_list]
+}
+resource "aws_api_gateway_method_response" "options_participating_icb_list_200" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.participating_icb_list.id
+  http_method = aws_api_gateway_method.options_participating_icb_list.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+
+  depends_on = [aws_api_gateway_method.options_participating_icb_list]
+}
+
+resource "aws_api_gateway_integration_response" "options_participating_icb_list" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.participating_icb_list.id
+  http_method = aws_api_gateway_method.options_participating_icb_list.http_method
+  status_code = aws_api_gateway_method_response.options_participating_icb_list_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'*'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.options_participating_icb_list]
+}
+
+// AWS LAMBDA PERMISSIONS
 resource "aws_lambda_permission" "api_gw_clinic_information" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
@@ -1083,6 +1455,27 @@ resource "aws_lambda_permission" "api_gw_invitation_parameters_post_forecast_upt
   source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/PUT/*"
 }
 
+resource "aws_lambda_permission" "api_gw_participating_icb_list" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.participating_icb_list.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/GET/*"
+}
+
+resource "aws_lambda_permission" "api_gw_clinic_summary_list" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.clinic_summary_list.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/GET/*"
+}
 resource "aws_api_gateway_deployment" "galleri" {
 
   rest_api_id = aws_api_gateway_rest_api.galleri.id
@@ -1096,8 +1489,8 @@ resource "aws_api_gateway_deployment" "galleri" {
     aws_api_gateway_integration_response.clinic_information_integration_response,
     aws_api_gateway_integration_response.invitation_parameters_integration_response,
     aws_api_gateway_integration_response.invitation_parameters_post_quintiles_integration_response,
-    aws_api_gateway_integration_response.invitation_parameters_post_forecast_uptake_integration_response
+    aws_api_gateway_integration_response.invitation_parameters_post_forecast_uptake_integration_response,
+    aws_api_gateway_integration.clinic_icb_list,
+    aws_api_gateway_integration.clinic_summary_list_lambda
   ]
 }
-
-
