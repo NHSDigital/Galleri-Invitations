@@ -51,9 +51,7 @@ export const handler = async (event, context) => {
   const command = new UpdateItemCommand(params);
   const response = await client.send(command);
 
-  console.error('RESPONSE-----> :' + response);
-
-  if (responseObject.statusCode = 200) {
+  if (response.$metadata.httpStatusCode = 200 = 200) {
     responseObject.statusCode = 200;
     (responseObject.headers = {
       "Access-Control-Allow-Headers":
@@ -67,5 +65,5 @@ export const handler = async (event, context) => {
     responseObject.isBase64Encoded = true;
     responseObject.body = "error";
   }
-  return JSON.stringify(response);
+  return responseObject;
 };

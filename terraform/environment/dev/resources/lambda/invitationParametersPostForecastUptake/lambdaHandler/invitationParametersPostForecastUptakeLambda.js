@@ -27,10 +27,11 @@ export const handler = async (event, context) => {
     "TableName": "InvitationParameters",
     "UpdateExpression": "SET #FORECAST_UPTAKE_VALUE = :forecast_uptake_new"
   };
+
   const command = new UpdateItemCommand(params);
   const response = await client.send(command);
 
-  if (responseObject.statusCode = 200) {
+  if (response.$metadata.httpStatusCode = 200) {
     responseObject.statusCode = 200;
     (responseObject.headers = {
       "Access-Control-Allow-Headers":
@@ -44,5 +45,5 @@ export const handler = async (event, context) => {
     responseObject.isBase64Encoded = true;
     responseObject.body = "error";
   }
-  return JSON.stringify(response);
+  return responseObject;
 };

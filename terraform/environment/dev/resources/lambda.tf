@@ -709,7 +709,7 @@ resource "aws_api_gateway_integration" "invitation_parameters_lambda" {
   resource_id = aws_api_gateway_method.invitation_parameters.resource_id
   http_method = aws_api_gateway_method.invitation_parameters.http_method
 
-  integration_http_method = "POST"
+  integration_http_method = "GET"
   type                    = "AWS_PROXY"
   uri                     = aws_lambda_function.invitation_parameters.invoke_arn
 
@@ -802,7 +802,7 @@ resource "aws_api_gateway_integration_response" "options_invitation_parameters" 
   depends_on = [aws_api_gateway_integration.options_invitation_parameters]
 }
 
-// INVITAITON PARAMETERS - POST
+// INVITAITON PARAMETERS - PUT
 resource "aws_api_gateway_resource" "invitation_parameters_post" {
   rest_api_id = aws_api_gateway_rest_api.galleri.id
   parent_id   = aws_api_gateway_rest_api.galleri.root_resource_id
@@ -812,7 +812,7 @@ resource "aws_api_gateway_resource" "invitation_parameters_post" {
 resource "aws_api_gateway_method" "invitation_parameters_post" {
   rest_api_id   = aws_api_gateway_rest_api.galleri.id
   resource_id   = aws_api_gateway_resource.invitation_parameters_post.id
-  http_method   = "POST"
+  http_method   = "PUT"
   authorization = "NONE"
 }
 
@@ -821,7 +821,7 @@ resource "aws_api_gateway_integration" "invitation_parameters_post_quintiles_lam
   resource_id = aws_api_gateway_method.invitation_parameters_post.resource_id
   http_method = aws_api_gateway_method.invitation_parameters_post.http_method
 
-  integration_http_method = "POST"
+  integration_http_method = "PUT"
   type                    = "AWS_PROXY"
   uri                     = aws_lambda_function.invitation_parameters_post_quintiles.invoke_arn
 
@@ -835,7 +835,7 @@ resource "aws_api_gateway_integration_response" "invitation_parameters_post_quin
   status_code = aws_api_gateway_method_response.invitation_parameters_post_response_200.status_code
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'POST'",
+    "method.response.header.Access-Control-Allow-Methods" = "'PUT'",
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
 
@@ -914,7 +914,7 @@ resource "aws_api_gateway_integration_response" "options_invitation_parameters_p
   depends_on = [aws_api_gateway_integration.options_invitation_parameters_post]
 }
 
-// INVITAITON PARAMETERS - POST FORCAST UPTAKE
+// INVITAITON PARAMETERS - PUT FORCAST UPTAKE
 resource "aws_api_gateway_resource" "invitation_parameters_post_forecast_uptake" {
   rest_api_id = aws_api_gateway_rest_api.galleri.id
   parent_id   = aws_api_gateway_rest_api.galleri.root_resource_id
@@ -924,7 +924,7 @@ resource "aws_api_gateway_resource" "invitation_parameters_post_forecast_uptake"
 resource "aws_api_gateway_method" "invitation_parameters_post_forecast_uptake" {
   rest_api_id   = aws_api_gateway_rest_api.galleri.id
   resource_id   = aws_api_gateway_resource.invitation_parameters_post_forecast_uptake.id
-  http_method   = "POST"
+  http_method   = "PUT"
   authorization = "NONE"
 }
 
@@ -933,7 +933,7 @@ resource "aws_api_gateway_integration" "invitation_parameters_post_forecast_upta
   resource_id = aws_api_gateway_method.invitation_parameters_post_forecast_uptake.resource_id
   http_method = aws_api_gateway_method.invitation_parameters_post_forecast_uptake.http_method
 
-  integration_http_method = "POST"
+  integration_http_method = "PUT"
   type                    = "AWS_PROXY"
   uri                     = aws_lambda_function.invitation_parameters_post_forecast_uptake.invoke_arn
 
@@ -947,7 +947,7 @@ resource "aws_api_gateway_integration_response" "invitation_parameters_post_fore
   status_code = aws_api_gateway_method_response.invitation_parameters_post_forecast_uptake_response_200.status_code
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'POST'",
+    "method.response.header.Access-Control-Allow-Methods" = "'PUT'",
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
 
@@ -1061,7 +1061,7 @@ resource "aws_lambda_permission" "api_gw_invitation_parameters" {
   source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/GET/*"
 }
 
-resource "aws_lambda_permission" "api_gw_invitation_parameters_post" {
+resource "aws_lambda_permission" "api_gw_invitation_parameters_post_quintiles" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.invitation_parameters_post_quintiles.function_name
@@ -1069,7 +1069,18 @@ resource "aws_lambda_permission" "api_gw_invitation_parameters_post" {
 
   # The /*/* portion grants access from any method on any resource
   # within the API Gateway "REST API".
-  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/POST/*"
+  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/PUT/*"
+}
+
+resource "aws_lambda_permission" "api_gw_invitation_parameters_post_forecast_uptake" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.invitation_parameters_post_forecast_uptake.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/PUT/*"
 }
 
 resource "aws_api_gateway_deployment" "galleri" {
