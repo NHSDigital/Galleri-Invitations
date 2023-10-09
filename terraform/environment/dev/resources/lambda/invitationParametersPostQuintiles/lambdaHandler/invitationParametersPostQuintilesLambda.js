@@ -8,12 +8,11 @@ export const handler = async (event, context) => {
 
   let responseObject = {};
   const CONFIG_ID = 1;
-  // need to use body of event
-  const quintile1 = event.queryStringParameters.quintile1;
-  const quintile2 = event.queryStringParameters.quintile2;
-  const quintile3 = event.queryStringParameters.quintile3;
-  const quintile4 = event.queryStringParameters.quintile4;
-  const quintile5 = event.queryStringParameters.quintile5;
+  const quintile1 = event.body !== null ? JSON.parse(event.body).quintiles[0]: "";
+  const quintile2 = event.body !== null ? JSON.parse(event.body).quintiles[1] : "";
+  const quintile3 = event.body !== null ? JSON.parse(event.body).quintiles[2] : "";
+  const quintile4 = event.body !== null ? JSON.parse(event.body).quintiles[3] : "";
+  const quintile5 = event.body !== null ? JSON.parse(event.body).quintiles[4] : "";
 
   const params = {
     "ExpressionAttributeNames": {
@@ -52,7 +51,7 @@ export const handler = async (event, context) => {
   const command = new UpdateItemCommand(params);
   const response = await client.send(command);
 
-  if (response.$metadata.httpStatusCode = 200 = 200) {
+  if (response.$metadata.httpStatusCode == 200) {
     responseObject.statusCode = 200;
     (responseObject.headers = {
       "Access-Control-Allow-Headers":

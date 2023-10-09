@@ -8,7 +8,7 @@ export const handler = async (event, context) => {
 
   let responseObject = {};
   const CONFIG_ID = 1;
-  const forecastUptake = event.queryStringParameters.forecastUptake; //use body
+  const forecastUptake = JSON.parse(event.body).forecastUptake;
 
   const params = {
     "ExpressionAttributeNames": {
