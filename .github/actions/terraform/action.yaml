@@ -79,4 +79,9 @@ runs:
         npm install --prefix lambda/lsoaLoader/lambdaHandler
         npm install --prefix lambda/clinicIcbList/lambdaHandler
         npm install --prefix lambda/clinicInformation/lambdaHandler
+        npm install --prefix lambda/clinicSummaryList/lambdaHandler
+        npm install --prefix lambda/invitationParameters/lambdaHandler
+        npm install --prefix lambda/invitationParametersPostForecastUptake/lambdaHandler
+        npm install --prefix lambda/invitationParametersPostQuintiles/lambdaHandler
+        npm install --prefix lambda/participatingIcbList/lambdaHandler
         terraform apply -auto-approve -input=false
