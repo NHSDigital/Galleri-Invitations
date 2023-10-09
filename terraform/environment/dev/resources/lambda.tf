@@ -1184,7 +1184,7 @@ resource "aws_api_gateway_integration_response" "options_invitation_parameters" 
   depends_on = [aws_api_gateway_integration.options_invitation_parameters]
 }
 
-// INVITAITON PARAMETERS, PUT FORCAST UPTAKE - HTTP METHOD
+// INVITAITON PARAMETERS, PUT FORECAST UPTAKE - HTTP METHOD
 resource "aws_api_gateway_resource" "invitation_parameters_post_forecast_uptake" {
   rest_api_id = aws_api_gateway_rest_api.galleri.id
   parent_id   = aws_api_gateway_rest_api.galleri.root_resource_id
@@ -1243,7 +1243,7 @@ resource "aws_api_gateway_method_response" "invitation_parameters_post_forecast_
   depends_on = [aws_api_gateway_method.invitation_parameters_post_forecast_uptake]
 }
 
-// INVITAITON PARAMETERS, PUT FORCAST UPTAKE - OPTIONS METHOD
+// INVITAITON PARAMETERS, PUT FORECAST UPTAKE - OPTIONS METHOD
 resource "aws_api_gateway_method" "options_invitation_parameters_post_forecast_uptake" {
   rest_api_id   = aws_api_gateway_rest_api.galleri.id
   resource_id   = aws_api_gateway_resource.invitation_parameters_post_forecast_uptake.id

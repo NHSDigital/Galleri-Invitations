@@ -344,7 +344,7 @@ resource "aws_dynamodb_table_item" "quintileTargets" {
   "QUINTILE_3": {"N": "20"},
   "QUINTILE_4": {"N": "20"},
   "QUINTILE_5": {"N": "20"},
-  "FORCAST_UPTAKE": {"N": "50"}
+  "FORECAST_UPTAKE": {"N": "50"}
 }
 ITEM
 }
