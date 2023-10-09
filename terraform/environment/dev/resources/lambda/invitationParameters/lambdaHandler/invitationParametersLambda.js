@@ -3,12 +3,12 @@ import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
 /*
   Lambda to load invitation parameters and pass on to GPS client.
 */
-export const handler = async (event, context) => {
+export const handler = async () => {
   const client = new DynamoDBClient({ region: "eu-west-2" });
 
   let responseObject = {};
 
-  const CONFIG_ID_VALUE = "001";
+  const CONFIG_ID_VALUE = 1;
 
   const params = {
     Key: {

@@ -7,7 +7,8 @@ export const handler = async (event, context) => {
   const client = new DynamoDBClient({ region: "eu-west-2" });
 
   let responseObject = {};
-  const CONFIG_ID = '001';
+  const CONFIG_ID = 1;
+  // need to use body of event
   const quintile1 = event.queryStringParameters.quintile1;
   const quintile2 = event.queryStringParameters.quintile2;
   const quintile3 = event.queryStringParameters.quintile3;
