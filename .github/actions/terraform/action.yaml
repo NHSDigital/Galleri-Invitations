@@ -81,7 +81,7 @@ runs:
         npm install --prefix lambda/clinicInformation/lambdaHandler
         npm install --prefix lambda/clinicSummaryList/lambdaHandler
         npm install --prefix lambda/invitationParameters/lambdaHandler
-        npm install --prefix lambda/invitationParametersPostForecastUptake/lambdaHandler
-        npm install --prefix lambda/invitationParametersPostQuintiles/lambdaHandler
+        npm install --prefix lambda/invitationParametersPutForecastUptake/lambdaHandler
+        npm install --prefix lambda/invitationParametersPutQuintiles/lambdaHandler
         npm install --prefix lambda/participatingIcbList/lambdaHandler
         terraform apply -auto-approve -input=false

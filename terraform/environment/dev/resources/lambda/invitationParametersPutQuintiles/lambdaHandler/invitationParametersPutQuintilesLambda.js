@@ -1,7 +1,7 @@
 import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 
 /*
-  Lambda to post invitation parameters to Dynamo DB invitation parameters table
+  Lambda to PUT invitation parameters to Dynamo DB invitation parameters table
 */
 export const handler = async (event, context) => {
   const client = new DynamoDBClient({ region: "eu-west-2" });
