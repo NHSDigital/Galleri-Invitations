@@ -7,8 +7,8 @@ export const handler = async (event, context) => {
   const client = new DynamoDBClient({ region: "eu-west-2" });
 
   let responseObject = {};
-  const CONFIG_ID = '001';
-  const forecastUptake = event.queryStringParameters.forecastUptake;
+  const CONFIG_ID = 1;
+  const forecastUptake = event.queryStringParameters.forecastUptake; //use body
 
   const params = {
     "ExpressionAttributeNames": {
