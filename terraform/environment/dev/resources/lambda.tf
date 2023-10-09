@@ -193,71 +193,6 @@ resource "aws_iam_policy" "iam_policy_for_invitation_parameters_lambda" {
 EOF
 }
 
-// dont need
-resource "aws_iam_policy" "iam_policy_for_invitation_parameters_post_forecast_uptake_lambda" {
-  name        = "aws_iam_policy_for_terraform_aws_invitation_parameters_post_forecast_uptake_lambda_role"
-  path        = "/"
-  description = "AWS IAM Policy for managing aws lambda invitation parameter post forecast uptake role"
-  policy      = <<EOF
-{
-  "Statement": [
-    {
-      "Action": [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ],
-      "Effect": "Allow",
-      "Resource": "arn:aws:logs:*:*:*"
-    },
-    {
-      "Sid": "AllowDynamodbAccess",
-      "Effect": "Allow",
-      "Action": [
-        "dynamodb:*"
-      ],
-      "Resource": [
-        "arn:aws:dynamodb:eu-west-2:136293001324:table/InvitationParameters"
-      ]
-    }
-  ],
-  "Version": "2012-10-17"
-}
-EOF
-}
-
-// dont need
-resource "aws_iam_policy" "iam_policy_for_invitation_parameters_post_quintiles_lambda" {
-  name        = "aws_iam_policy_for_terraform_aws_invitation_parameters_post_quintiles_lambda_role"
-  path        = "/"
-  description = "AWS IAM Policy for managing aws lambda invitation parameter post quintiles role"
-  policy      = <<EOF
-{
-  "Statement": [
-    {
-      "Action": [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ],
-      "Effect": "Allow",
-      "Resource": "arn:aws:logs:*:*:*"
-    },
-    {
-      "Sid": "AllowDynamodbAccess",
-      "Effect": "Allow",
-      "Action": [
-        "dynamodb:*"
-      ],
-      "Resource": [
-        "arn:aws:dynamodb:eu-west-2:136293001324:table/InvitationParameters"
-      ]
-    }
-  ],
-  "Version": "2012-10-17"
-}
-EOF
-}
 
 resource "aws_iam_role_policy_attachment" "galleri_lambda_policy" {
   role       = aws_iam_role.galleri_lambda_role.name
@@ -286,17 +221,6 @@ resource "aws_iam_role_policy_attachment" "invitation_parameters_lambda_policy" 
 }
 
 
-// dont need
-resource "aws_iam_role_policy_attachment" "invitation_parameters_post_forecast_uptake_lambda_policy" {
-  role       = aws_iam_role.galleri_lambda_role.name
-  policy_arn = aws_iam_policy.iam_policy_for_invitation_parameters_post_forecast_uptake_lambda.arn
-}
-
-// dont need
-resource "aws_iam_role_policy_attachment" "invitation_parameters_post_quintiles_lambda_policy" {
-  role       = aws_iam_role.galleri_lambda_role.name
-  policy_arn = aws_iam_policy.iam_policy_for_invitation_parameters_post_quintiles_lambda.arn
-}
 
 // Zip lambda folders
 data "archive_file" "data_filter_gridall_imd_lambda" {
