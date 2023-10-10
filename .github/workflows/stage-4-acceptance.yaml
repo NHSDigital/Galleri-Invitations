@@ -53,6 +53,8 @@ jobs:
       - name: Install dependency
         run: |
           pip install boto3
+          pip install rstr
+          pip install random_word
       - name: "Create infractructure"
         uses: ./.github/actions/terraform
         with:
