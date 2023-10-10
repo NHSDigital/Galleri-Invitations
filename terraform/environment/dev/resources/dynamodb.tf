@@ -305,3 +305,46 @@ resource "aws_dynamodb_table" "LSOA_table" {
     Environment = "dev"
   }
 }
+
+resource "aws_dynamodb_table" "Invitation_parameters" {
+  name           = "InvitationParameters"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 10
+  write_capacity = 10
+  hash_key       = "CONFIG_ID"
+
+  attribute {
+    name = "CONFIG_ID"
+    type = "N"
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  server_side_encryption {
+    enabled = true
+  }
+
+  tags = {
+    Name        = "Dynamodb Table Invitation Parameters"
+    Environment = "dev"
+  }
+}
+
+resource "aws_dynamodb_table_item" "quintileTargets" {
+  table_name = aws_dynamodb_table.Invitation_parameters.name
+  hash_key   = aws_dynamodb_table.Invitation_parameters.hash_key
+
+  item = <<ITEM
+{
+  "CONFIG_ID": {"N": "001"},
+  "QUINTILE_1": {"N": "20"},
+  "QUINTILE_2": {"N": "20"},
+  "QUINTILE_3": {"N": "20"},
+  "QUINTILE_4": {"N": "20"},
+  "QUINTILE_5": {"N": "20"},
+  "FORECAST_UPTAKE": {"N": "50"}
+}
+ITEM
+}
