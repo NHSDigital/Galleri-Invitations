@@ -21,6 +21,8 @@ export const handler = async () => {
   const command = new GetItemCommand(params);
   const response = await client.send(command);
 
+  const attribute = {targetPercentage: response.Item.TARGET_PERCENTAGE};
+
   if (response.hasOwnProperty("Item")) {
     responseObject.statusCode = 200;
     (responseObject.headers = {
@@ -30,7 +32,7 @@ export const handler = async () => {
       "Access-Control-Allow-Methods": "OPTIONS,GET",
     }),
       (responseObject.isBase64Encoded = true);
-    responseObject.body = JSON.stringify(response.Item);
+    responseObject.body = JSON.stringify(attribute);
   } else {
     responseObject.statusCode = 404;
     responseObject.isBase64Encoded = true;
