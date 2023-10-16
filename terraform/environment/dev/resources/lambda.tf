@@ -293,6 +293,13 @@ data "archive_file" "target_fill_to_percentage_put_lambda" {
   output_path = "${path.cwd}/lambda/targetFillToPercentagePut/lambdaHandler/targetFillToPercentagePutLambda.zip"
 }
 
+data "archive_file" "target_fill_to_percentage_lambda" {
+  type = "zip"
+
+  source_dir  = "${path.cwd}/lambda/targetFillToPercentage/lambdaHandler"
+  output_path = "${path.cwd}/lambda/targetFillToPercentage/lambdaHandler/targetFillToPercentageLambda.zip"
+}
+
 // Create lambda functions
 resource "aws_lambda_function" "data_filter_gridall_imd" {
   function_name = "dataFilterLambda"
@@ -461,6 +468,21 @@ resource "aws_lambda_function" "target_fill_to_percentage_put" {
 
 }
 
+resource "aws_lambda_function" "target_fill_to_percentage" {
+  function_name = "targetFillToPercentageLambda"
+  role          = aws_iam_role.galleri_lambda_role.arn
+  handler       = "targetFillToPercentageLambda.handler"
+  runtime       = "nodejs18.x"
+  timeout       = 100
+  memory_size   = 1024
+
+  s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
+  s3_key    = aws_s3_object.target_fill_to_percentage_lambda.key
+
+  source_code_hash = data.archive_file.target_fill_to_percentage_lambda.output_base64sha256
+
+}
+
 
 // Create cloudwatch log group
 resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
@@ -523,6 +545,11 @@ resource "aws_cloudwatch_log_group" "target_fill_to_percentage_put" {
   retention_in_days = 14
 }
 
+resource "aws_cloudwatch_log_group" "target_fill_to_percentage" {
+  name = "/aws/lambda/${aws_lambda_function.target_fill_to_percentage.function_name}"
+
+  retention_in_days = 14
+}
 
 // Create s3 object
 resource "aws_s3_object" "data_filter_gridall_imd_lambda" {
@@ -614,6 +641,16 @@ resource "aws_s3_object" "target_fill_to_percentage_put_lambda" {
 
   etag = filemd5(data.archive_file.target_fill_to_percentage_put_lambda.output_path)
 }
+
+resource "aws_s3_object" "target_fill_to_percentage_lambda" {
+  bucket = aws_s3_bucket.galleri_lambda_bucket.id
+
+  key    = "target_fill_to_percentage_lambda.zip"
+  source = data.archive_file.target_fill_to_percentage_lambda.output_path
+
+  etag = filemd5(data.archive_file.target_fill_to_percentage_lambda.output_path)
+}
+
 
 
 resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
