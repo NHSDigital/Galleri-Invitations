@@ -286,6 +286,13 @@ data "archive_file" "invitation_parameters_put_quintiles_lambda" {
   output_path = "${path.cwd}/lambda/invitationParametersPutQuintiles/lambdaHandler/invitationParametersPutQuintilesLambda.zip"
 }
 
+data "archive_file" "target_fill_to_percentage_put_lambda" {
+  type = "zip"
+
+  source_dir  = "${path.cwd}/lambda/targetFillToPercentagePut/lambdaHandler"
+  output_path = "${path.cwd}/lambda/targetFillToPercentagePut/lambdaHandler/targetFillToPercentagePutLambda.zip"
+}
+
 // Create lambda functions
 resource "aws_lambda_function" "data_filter_gridall_imd" {
   function_name = "dataFilterLambda"
@@ -439,6 +446,22 @@ resource "aws_lambda_function" "invitation_parameters_put_quintiles" {
 
 }
 
+resource "aws_lambda_function" "target_fill_to_percentage_put" {
+  function_name = "targetFillToPercentagePutLambda"
+  role          = aws_iam_role.galleri_lambda_role.arn
+  handler       = "targetFillToPercentagePutLambda.handler"
+  runtime       = "nodejs18.x"
+  timeout       = 100
+  memory_size   = 1024
+
+  s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
+  s3_key    = aws_s3_object.target_fill_to_percentage_put_lambda.key // may need to change
+
+  source_code_hash = data.archive_file.target_fill_to_percentage_put_lambda.output_base64sha256
+
+}
+
+
 // Create cloudwatch log group
 resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
   name = "/aws/lambda/${aws_lambda_function.data_filter_gridall_imd.function_name}"
@@ -493,6 +516,13 @@ resource "aws_cloudwatch_log_group" "invitation_parameters_put_quintiles" {
 
   retention_in_days = 14
 }
+
+resource "aws_cloudwatch_log_group" "target_fill_to_percentage_put" {
+  name = "/aws/lambda/${aws_lambda_function.target_fill_to_percentage_put.function_name}"
+
+  retention_in_days = 14
+}
+
 
 // Create s3 object
 resource "aws_s3_object" "data_filter_gridall_imd_lambda" {
@@ -575,6 +605,16 @@ resource "aws_s3_object" "invitation_parameters_put_quintiles_lambda" {
 
   etag = filemd5(data.archive_file.invitation_parameters_put_quintiles_lambda.output_path)
 }
+
+resource "aws_s3_object" "target_fill_to_percentage_put_lambda" {
+  bucket = aws_s3_bucket.galleri_lambda_bucket.id
+
+  key    = "target_fill_to_percentage_put_lambda.zip"
+  source = data.archive_file.target_fill_to_percentage_put_lambda.output_path
+
+  etag = filemd5(data.archive_file.target_fill_to_percentage_put_lambda.output_path)
+}
+
 
 resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
   bucket = "galleri-ons-data"
