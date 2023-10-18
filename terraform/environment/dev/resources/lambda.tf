@@ -1644,7 +1644,7 @@ resource "aws_api_gateway_method_response" "target_percentage_response_200" {
   depends_on = [aws_api_gateway_method.target_percentage]
 }
 
-// INVITAITON PARAMETERS - OPTIONS METHOD
+// TARGET PERCENTAGE - OPTIONS METHOD
 resource "aws_api_gateway_method" "options_target_percentage" {
   rest_api_id   = aws_api_gateway_rest_api.galleri.id
   resource_id   = aws_api_gateway_resource.target_percentage.id
@@ -1696,4 +1696,117 @@ resource "aws_api_gateway_integration_response" "options_target_percentage" {
   }
 
   depends_on = [aws_api_gateway_integration.options_target_percentage]
+}
+
+// PUT TARGET PERCENTAGE - HTTP METHOD
+resource "aws_api_gateway_resource" "put_target_percentage" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  parent_id   = aws_api_gateway_rest_api.galleri.root_resource_id
+  path_part   = "put-target-percentage"
+}
+
+resource "aws_api_gateway_method" "put_target_percentage" {
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  resource_id   = aws_api_gateway_resource.put_target_percentage.id
+  http_method   = "PUT"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "put_target_percentage" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.put_target_percentage.resource_id
+  http_method = aws_api_gateway_method.put_target_percentage.http_method
+
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.target_fill_to_percentage_put.invoke_arn
+
+  depends_on = [aws_api_gateway_method.put_target_percentage]
+}
+
+resource "aws_api_gateway_integration_response" "put_target_percentage_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.put_target_percentage.id
+  http_method = aws_api_gateway_method.put_target_percentage.http_method
+  status_code = aws_api_gateway_method_response.put_target_percentage_response_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'PUT'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.put_target_percentage]
+}
+
+resource "aws_api_gateway_method_response" "put_target_percentage_response_200" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.put_target_percentage.resource_id
+  http_method = aws_api_gateway_method.put_target_percentage.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+
+  depends_on = [aws_api_gateway_method.put_target_percentage]
+}
+
+// PUT TARGET PERCENTAGE - OPTIONS METHOD
+resource "aws_api_gateway_method" "options_put_target_percentage" {
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  resource_id   = aws_api_gateway_resource.put_target_percentage.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "options_put_target_percentage" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.options_put_target_percentage.resource_id
+  http_method = aws_api_gateway_method.options_put_target_percentage.http_method
+
+  type = "MOCK"
+  request_templates = { # Not documented
+    "application/json" = "{statusCode: 200}"
+  }
+
+  depends_on = [aws_api_gateway_method.options_put_target_percentage]
+}
+
+resource "aws_api_gateway_method_response" "options_put_target_percentage_200" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.put_target_percentage.id
+  http_method = aws_api_gateway_method.options_put_target_percentage.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+
+  depends_on = [aws_api_gateway_method.options_put_target_percentage]
+}
+
+resource "aws_api_gateway_integration_response" "options_put_target_percentage" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.put_target_percentage.id
+  http_method = aws_api_gateway_method.options_put_target_percentage.http_method
+  status_code = aws_api_gateway_method_response.options_put_target_percentage_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'*'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.options_put_target_percentage]
 }
