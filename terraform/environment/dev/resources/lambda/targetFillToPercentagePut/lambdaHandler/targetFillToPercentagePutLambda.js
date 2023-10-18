@@ -9,15 +9,15 @@ export const handler = async (event, context) => {
 
   let responseObject = {};
   const CONFIG_ID = 1;
-  const forecastUptake = JSON.parse(event.body).forecastUptake;
+  const targetPercentage = event.targetPercentage;
 
   const params = {
     "ExpressionAttributeNames": {
-      "#FORECAST_UPTAKE_VALUE": "FORECAST_UPTAKE"
+      "#TARGET_PERCENTAGE_VALUE": "TARGET_PERCENTAGE"
     },
     "ExpressionAttributeValues": {
-      ":forecast_uptake_new": {
-        "N": `${forecastUptake}`
+      ":target_percentage_new": {
+        "N": `${targetPercentage}`
       }
     },
     "Key": {
@@ -26,7 +26,7 @@ export const handler = async (event, context) => {
       }
     },
     "TableName": "InvitationParameters",
-    "UpdateExpression": "SET #FORECAST_UPTAKE_VALUE = :forecast_uptake_new"
+    "UpdateExpression": "SET #TARGET_PERCENTAGE_VALUE = :target_percentage_new"
   };
 
   const command = new UpdateItemCommand(params);
