@@ -1,7 +1,7 @@
 import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 
 /*
-  Lambda to PUT invitation parameters - forecast uptake - to Dynamo DB invitation parameters table
+  Lambda to PUT target fill to percentage value to Dynamo DB config table
 */
 export const handler = async (event, context) => {
 
