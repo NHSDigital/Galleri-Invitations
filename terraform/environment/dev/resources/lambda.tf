@@ -1487,104 +1487,6 @@ resource "aws_api_gateway_integration_response" "options_invitation_parameters_p
   depends_on = [aws_api_gateway_integration.options_invitation_parameters_put_quintiles]
 }
 
-// AWS LAMBDA PERMISSIONS
-resource "aws_lambda_permission" "api_gw_clinic_information" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.clinic_information.function_name
-  principal     = "apigateway.amazonaws.com"
-
-  # The /*/* portion grants access from any method on any resource
-  # within the API Gateway "REST API".
-  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/GET/*"
-}
-
-resource "aws_lambda_permission" "api_gw_clinic_icb_list" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.clinic_icb_list.function_name
-  principal     = "apigateway.amazonaws.com"
-
-  # The /*/* portion grants access from any method on any resource
-  # within the API Gateway "REST API".
-  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/GET/*"
-}
-
-resource "aws_lambda_permission" "api_gw_participating_icb_list" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.participating_icb_list.function_name
-  principal     = "apigateway.amazonaws.com"
-
-  # The /*/* portion grants access from any method on any resource
-  # within the API Gateway "REST API".
-  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/GET/*"
-}
-
-resource "aws_lambda_permission" "api_gw_clinic_summary_list" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.clinic_summary_list.function_name
-  principal     = "apigateway.amazonaws.com"
-
-  # The /*/* portion grants access from any method on any resource
-  # within the API Gateway "REST API".
-  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/GET/*"
-}
-
-resource "aws_lambda_permission" "api_gw_invitation_parameters" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.invitation_parameters.function_name
-  principal     = "apigateway.amazonaws.com"
-
-  # The /*/* portion grants access from any method on any resource
-  # within the API Gateway "REST API".
-  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/GET/*"
-}
-
-resource "aws_lambda_permission" "api_gw_invitation_parameters_put_forecast_uptake" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.invitation_parameters_put_forecast_uptake.function_name
-  principal     = "apigateway.amazonaws.com"
-
-  # The /*/* portion grants access from any method on any resource
-  # within the API Gateway "REST API".
-  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/PUT/*"
-}
-
-resource "aws_lambda_permission" "api_gw_invitation_parameters_put_quintiles" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.invitation_parameters_put_quintiles.function_name
-  principal     = "apigateway.amazonaws.com"
-
-  # The /*/* portion grants access from any method on any resource
-  # within the API Gateway "REST API".
-  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/PUT/*"
-}
-
-resource "aws_api_gateway_deployment" "galleri" {
-
-  rest_api_id = aws_api_gateway_rest_api.galleri.id
-  stage_name  = "dev"
-
-  depends_on = [
-    aws_api_gateway_integration.clinic_information_lambda,
-    aws_api_gateway_integration_response.options_clinic_icb_list,
-    aws_api_gateway_integration_response.clinic_icb_list_integration_response,
-    aws_api_gateway_integration_response.options_clinic_information,
-    aws_api_gateway_integration_response.clinic_information_integration_response,
-    aws_api_gateway_integration_response.invitation_parameters_integration_response,
-    aws_api_gateway_integration_response.invitation_parameters_put_quintiles_integration_response,
-    aws_api_gateway_integration_response.invitation_parameters_put_forecast_uptake_integration_response,
-    aws_api_gateway_integration.clinic_icb_list,
-    aws_api_gateway_integration.clinic_summary_list_lambda
-  ]
-}
-
-
 // TARGET PERCENTAGE - HTTP METHOD
 resource "aws_api_gateway_resource" "target_percentage" {
   rest_api_id = aws_api_gateway_rest_api.galleri.id
@@ -1809,4 +1711,128 @@ resource "aws_api_gateway_integration_response" "options_put_target_percentage" 
   }
 
   depends_on = [aws_api_gateway_integration.options_put_target_percentage]
+}
+
+
+// AWS LAMBDA PERMISSIONS
+resource "aws_lambda_permission" "api_gw_clinic_information" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.clinic_information.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/GET/*"
+}
+
+resource "aws_lambda_permission" "api_gw_clinic_icb_list" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.clinic_icb_list.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/GET/*"
+}
+
+resource "aws_lambda_permission" "api_gw_participating_icb_list" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.participating_icb_list.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/GET/*"
+}
+
+resource "aws_lambda_permission" "api_gw_clinic_summary_list" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.clinic_summary_list.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/GET/*"
+}
+
+resource "aws_lambda_permission" "api_gw_invitation_parameters" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.invitation_parameters.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/GET/*"
+}
+
+resource "aws_lambda_permission" "api_gw_invitation_parameters_put_forecast_uptake" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.invitation_parameters_put_forecast_uptake.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/PUT/*"
+}
+
+resource "aws_lambda_permission" "api_gw_invitation_parameters_put_quintiles" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.invitation_parameters_put_quintiles.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/PUT/*"
+}
+
+resource "aws_lambda_permission" "api_gw_target_percentage" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.target_fill_to_percentage.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/GET/*"
+}
+
+resource "aws_lambda_permission" "api_gw_put_target_percentage" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.target_fill_to_percentage_put.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/PUT/*"
+}
+
+
+resource "aws_api_gateway_deployment" "galleri" {
+
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  stage_name  = "dev"
+
+  depends_on = [
+    aws_api_gateway_integration.clinic_information_lambda,
+    aws_api_gateway_integration_response.options_clinic_icb_list,
+    aws_api_gateway_integration_response.clinic_icb_list_integration_response,
+    aws_api_gateway_integration_response.options_clinic_information,
+    aws_api_gateway_integration_response.clinic_information_integration_response,
+    aws_api_gateway_integration_response.invitation_parameters_integration_response,
+    aws_api_gateway_integration_response.invitation_parameters_put_quintiles_integration_response,
+    aws_api_gateway_integration_response.invitation_parameters_put_forecast_uptake_integration_response,
+    aws_api_gateway_integration.clinic_icb_list,
+    aws_api_gateway_integration.clinic_summary_list_lambda,
+    aws_api_gateway_integration.target_percentage,
+    aws_api_gateway_integration_response.options_target_percentage,
+    aws_api_gateway_integration_response.options_put_target_percentage,
+  ]
 }
