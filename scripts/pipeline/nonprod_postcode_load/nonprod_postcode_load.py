@@ -15,6 +15,8 @@ def format_dynamodb_json(csvreader, table_name):
     # extract relevant information from row and format
     # in dynamodb json
     for row in csvreader:
+        POSTCODE = str(row[0])
+        POSTCODE_2 = str(row[1])
         LOCAL_AUT_ORG = str(row[2])
         NHS_ENG_REGION = str(row[3])
         SUB_ICB = str(row[4])
@@ -34,6 +36,13 @@ def format_dynamodb_json(csvreader, table_name):
             {
                 'Put': {
                     'Item': {
+
+                        'POSTCODE': {
+                            'S': f'{POSTCODE}'
+                        },
+                        'POSTCODE_2': {
+                            'S': f'{POSTCODE_2}'
+                        },
                         'LOCAL_AUT_ORG': {
                             'S': f'{LOCAL_AUT_ORG}'
                         },
@@ -91,7 +100,7 @@ def batch_write_to_dynamodb(lsoa_data):
     # format and send these to the batch write function
     # repeat till no records left
     dynamodb_client = boto3.client('dynamodb')
-    for i in range(2, len(lsoa_data), 100):
+    for i in range(1, 100000, 100):
         upper_bound_slice = i+100
         test_data = lsoa_data[i:upper_bound_slice]
         dynamodb_client.transact_write_items(
@@ -103,7 +112,7 @@ def batch_write_to_dynamodb(lsoa_data):
 
 if __name__ == "__main__":
     # read in data and generate the json output
-    file_input_path = "/lsoa_data.csv" # change to read in unique lsoa data
+    file_input_path = "/nonprod-lsoa-data/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv"
 
     path_to_file = os.getcwd() + file_input_path
-    generate_nonprod_lsoa_json(path_to_file, "UniqueLsoa")
+    generate_nonprod_lsoa_json(path_to_file, "Lsoa")
