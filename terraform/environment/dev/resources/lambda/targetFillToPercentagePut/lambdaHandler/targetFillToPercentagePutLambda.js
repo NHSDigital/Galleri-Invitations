@@ -9,7 +9,7 @@ export const handler = async (event, context) => {
 
   let responseObject = {};
   const CONFIG_ID = 1;
-  const targetPercentage = event.targetPercentage;
+  const targetPercentage =  event.body !== null ? JSON.parse(event.body).targetPercentage:"";
 
   const params = {
     "ExpressionAttributeNames": {
@@ -17,7 +17,7 @@ export const handler = async (event, context) => {
     },
     "ExpressionAttributeValues": {
       ":target_percentage_new": {
-        "N": `${targetPercentage}`
+        N: `${targetPercentage}`
       }
     },
     "Key": {
