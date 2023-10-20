@@ -264,8 +264,8 @@ resource "aws_dynamodb_table" "population_table" {
   }
 }
 
-resource "aws_dynamodb_table" "LSOA_table" {
-  name         = "Lsoa"
+resource "aws_dynamodb_table" "Postcode_table" {
+  name         = "Postcode"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "POSTCODE"
   range_key    = "IMD_RANK"
@@ -301,13 +301,13 @@ resource "aws_dynamodb_table" "LSOA_table" {
   }
 
   tags = {
-    Name        = "Dynamodb Table LSOA"
+    Name        = "Dynamodb Table Postcode"
     Environment = "dev"
   }
 }
 
-resource "aws_dynamodb_table" "unique_LSOA_table" {
-  name         = "UniqueLsoa"
+resource "aws_dynamodb_table" "LSOA_table" {
+  name         = "Lsoa"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LSOA_2011"
 
@@ -325,7 +325,7 @@ resource "aws_dynamodb_table" "unique_LSOA_table" {
   }
 
   tags = {
-    Name        = "Dynamodb Table Unique LSOA"
+    Name        = "Dynamodb Table LSOA"
     Environment = "dev"
   }
 }
