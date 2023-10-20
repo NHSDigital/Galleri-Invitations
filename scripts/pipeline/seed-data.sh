@@ -51,13 +51,30 @@ function main() {
 
   mkdir nonprod-lsoa-data
 
-  aws s3 cp s3://galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-lsoa-data
+  aws s3 cp s3://galleri-ons-data/non_prod_lsoa_data_/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv ./nonprod-lsoa-data
+  # need to update with file
 
   echo Succefully Downloaded CSV from S3
 
   echo Uploading items to Lsoa database
 
   python $PWD/scripts/pipeline/nonprod_lsoa_load/nonprod_lsoa_load.py
+
+  echo Succefully uploaded Lsoa data to database
+
+  echo "--------------------------------------------------------------"
+
+  echo Initiating upload of LSOA subset data to database
+
+  mkdir nonprod-lsoa-data
+
+  aws s3 cp s3://galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-lsoa-data
+
+  echo Succefully Downloaded CSV from S3
+
+  echo Uploading items to Lsoa database
+
+  python $PWD/scripts/pipeline/nonprod_lsoa_load/nonprod_postcode_load.py
 
   # python $PWD/nonprod_lsoa_load/nonprod_lsoa_load.py
 
