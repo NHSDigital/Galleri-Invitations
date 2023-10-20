@@ -57,9 +57,9 @@ function main() {
 
   echo Uploading items to Lsoa database
 
-  python $PWD/scripts/pipeline/nonprod_lsoa_load/nonprod_lsoa_load.py
+  python $PWD/scripts/pipeline/nonprod_lsoa_load/nonprod_postcode_load.py
 
-  echo Succefully uploaded Lsoa data to database
+  # python $PWD/nonprod_lsoa_load/nonprod_lsoa_load.py
 
   echo Succefully uploaded Lsoa data to database
 
