@@ -325,8 +325,8 @@ resource "aws_dynamodb_table" "LSOA_table" {
   }
 }
 
-resource "aws_dynamodb_table" "unique_LSOA_table" {
-  name         = "UniqueLsoa"
+resource "aws_dynamodb_table" "LSOA_table" {
+  name         = "Lsoa"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LSOA_2011"
 
@@ -344,7 +344,7 @@ resource "aws_dynamodb_table" "unique_LSOA_table" {
   }
 
   tags = {
-    Name        = "Dynamodb Table Unique LSOA"
+    Name        = "Dynamodb Table LSOA"
     Environment = "dev"
   }
 }
