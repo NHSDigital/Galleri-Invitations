@@ -302,7 +302,7 @@ resource "aws_dynamodb_table" "Postcode_table" {
 }
 
 resource "aws_dynamodb_table" "LSOA_table" {
-  name         = "UniqueLsoa"
+  name         = "Lsoa"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LSOA_2011"
 
@@ -321,30 +321,6 @@ resource "aws_dynamodb_table" "LSOA_table" {
 
   tags = {
     Name        = "Dynamodb Table LSOA"
-    Environment = "dev"
-  }
-}
-
-resource "aws_dynamodb_table" "unique_LSOA_table" {
-  name         = "UniqueLsoa"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "LSOA_2011"
-
-  attribute {
-    name = "LSOA_2011"
-    type = "S"
-  }
-
-  point_in_time_recovery {
-    enabled = true
-  }
-
-  server_side_encryption {
-    enabled = true
-  }
-
-  tags = {
-    Name        = "Dynamodb Table Unique LSOA"
     Environment = "dev"
   }
 }
