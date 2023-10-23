@@ -1,6 +1,9 @@
 import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 import axios from "axios";
 
+const KMTOMILES = 1.6;
+const MTOKM = 1000;
+
 /*
   Lambda to get LSOA in a 100 mile range from the selected clinic
 */
@@ -16,10 +19,7 @@ export const handler = async (event, context) => {
 
   // make API request to get the easting and northing of postcode
   const clinicGridReference = await getClinicEastingNorthing(clinicPostcode);
-  console.log("clinicGridReference EASTING = ", clinicGridReference.easting);
-  console.log("clinicGridReference NORTHING = ", clinicGridReference.northing);
 
-  // need to get all the LSOAs -> return LSOA_2011, EASTING_1M, NORTHING_1M, IMD_DECILE, FORECAST_UPTAKE
   const client = new DynamoDBClient({ region: "eu-west-2" });
 
   const input = {
@@ -37,25 +37,64 @@ export const handler = async (event, context) => {
   const command = new ScanCommand(input);
   const response = await client.send(command);
 
-  console.log("Logging response: ", response?.Items?.length);
-  const complete = start - Date.now();
-  console.log("Lambda path completion took: ", complete / 1000);
+  const records = response?.Items;
+  console.log(`Total records from dynamoDB = ${records.length}`);
 
-  return response.$metadata.httpStatusCode;
+
+  console.log(`artificial to see performance on ${newArray.flat().length} records`)
+
+  const filterRecords = records.filter((lsoaRecord) => {
+    const distanceToSiteMiles = calculateDistance(lsoaRecord, clinicGridReference);
+    if (distanceToSiteMiles <= 100) {
+      // attach to record
+      lsoaRecord.DISTANCE_TO_SITE = {
+        N: JSON.stringify(Math.round(distanceToSiteMiles * 100) / 100)
+      };
+      return lsoaRecord;
+    }
+  });
+
+
+  console.log("filterRecords length = ", filterRecords.length);
+
+  console.log("filterRecords : ", filterRecords[10]);
+
+  let responseObject = {};
+
+  if (response.hasOwnProperty("Items")) {
+    responseObject.statusCode = 200;
+    responseObject.isBase64Encoded = true;
+    (responseObject.headers = {
+      "Access-Control-Allow-Headers":
+        "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "OPTIONS,GET",
+    }),
+      (responseObject.body = JSON.stringify(filterRecords));
+  } else {
+    responseObject.statusCode = 404;
+    responseObject.isBase64Encoded = true;
+    responseObject.body = "error";
+  }
+
+  const complete = Date.now() - start;
+  console.log("Lambda path completion took: ", complete / 1000);
+  return responseObject;
 };
 
+// METHODS
 async function getClinicEastingNorthing(postcode) {
-  const start = Date.now();
+  const startGetClinicEastingNorthing = Date.now();
   try {
     const postcodeData = await axios.get(
       `https://api.postcodes.io/postcodes/${postcode}`
     );
-    const requestStatus = postcodeData.status;
-    const postcodeEasting = postcodeData.result?.easting;
-    const postcodeNorthing = postcodeData.result?.northing;
+    const requestStatus = postcodeData.data.status;
+    const postcodeEasting = postcodeData.data.result?.eastings;
+    const postcodeNorthing = postcodeData.data.result?.northings;
 
-    if (postcodeEasting && postcodeNorthing) {
-      const complete = start - Date.now();
+    if (requestStatus == 200) {
+      const complete = Date.now() - startGetClinicEastingNorthing;
       console.log(
         "SUCCESSFUL completion of getClinicEastingNorthing took: ",
         complete / 1000
@@ -68,7 +107,7 @@ async function getClinicEastingNorthing(postcode) {
       throw new Error("Grid coordinates not returned by api");
     }
   } catch (e) {
-    const complete = start - Date.now();
+    const complete = Date.now() - startGetClinicEastingNorthing;
     console.log(
       "UNSUCCESSFUL completion of getClinicEastingNorthing took: ",
       complete / 1000
@@ -76,3 +115,25 @@ async function getClinicEastingNorthing(postcode) {
     console.error("Error when trying to retrieve postcode grid reference: ");
   }
 }
+
+const calculateDistance = (lsoa, clinicGridReference) => {
+  // get the easting and northing from clinic
+  const clinicEasting = Number(clinicGridReference.easting);
+  const clinicNorthing = Number(clinicGridReference.northing);
+
+  // get the easting and northing from lsoa
+  const lsoaEasting = Number(lsoa.EASTING_1M.N);
+  const lsoaNorthing = Number(lsoa.NORTHING_1M.N);
+
+  // console.log(`clinicEasting = ${clinicEasting} clinicNorthing = ${clinicNorthing} | lsoaEasting ${lsoaEasting} lsoaNorthing = ${lsoaNorthing}`)
+
+  // calculate straight line distance
+  const distanceMiles =
+    Math.sqrt(
+      Math.pow(Math.abs(clinicEasting - lsoaEasting), 2) +
+      Math.pow(Math.abs(clinicNorthing - lsoaNorthing), 2)
+    )/
+    (MTOKM * KMTOMILES);
+
+  return distanceMiles;
+};
