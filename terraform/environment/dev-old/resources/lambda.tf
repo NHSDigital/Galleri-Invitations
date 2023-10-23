@@ -543,7 +543,8 @@ resource "aws_lambda_function" "target_fill_to_percentage_put" {
   memory_size   = 1024
 
   s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
-  s3_key    = aws_s3_object.target_fill_to_percentage_put_lambda.key
+
+  s3_key = aws_s3_object.target_fill_to_percentage_put_lambda.key // may need to change
 
   source_code_hash = data.archive_file.target_fill_to_percentage_put_lambda.output_base64sha256
 
@@ -576,21 +577,6 @@ resource "aws_lambda_function" "lsoa_in_range" {
   s3_key    = aws_s3_object.lsoa_in_range_lambda.key // may need to change
 
   source_code_hash = data.archive_file.lsoa_in_range_lambda.output_base64sha256
-
-}
-
-resource "aws_lambda_function" "participants_in_lsoa" {
-  function_name = "getLsoaParticipantsLambda"
-  role          = aws_iam_role.galleri_lambda_role.arn
-  handler       = "getLsoaParticipantsLambda.handler"
-  runtime       = "nodejs18.x"
-  timeout       = 100
-  memory_size   = 1024
-
-  s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
-  s3_key    = aws_s3_object.participants_in_lsoa_lambda.key // may need to change
-
-  source_code_hash = data.archive_file.participants_in_lsoa_lambda.output_base64sha256
 
 }
 
@@ -668,6 +654,11 @@ resource "aws_cloudwatch_log_group" "lsoa_in_range" {
 
 resource "aws_cloudwatch_log_group" "participants_in_lsoa" {
   name = "/aws/lambda/${aws_lambda_function.participants_in_lsoa.function_name}"
+
+  retention_in_days = 14
+}
+resource "aws_cloudwatch_log_group" "lsoa_in_range" {
+  name = "/aws/lambda/${aws_lambda_function.lsoa_in_range.function_name}"
 
   retention_in_days = 14
 }
@@ -788,6 +779,15 @@ resource "aws_s3_object" "participants_in_lsoa_lambda" {
   source = data.archive_file.participants_in_lsoa_lambda.output_path
 
   etag = filemd5(data.archive_file.participants_in_lsoa_lambda.output_path)
+}
+
+resource "aws_s3_object" "lsoa_in_range_lambda" {
+  bucket = aws_s3_bucket.galleri_lambda_bucket.id
+
+  key    = "lsoa_in_range_lambda.zip"
+  source = data.archive_file.lsoa_in_range_lambda.output_path
+
+  etag = filemd5(data.archive_file.lsoa_in_range_lambda.output_path)
 }
 
 resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
