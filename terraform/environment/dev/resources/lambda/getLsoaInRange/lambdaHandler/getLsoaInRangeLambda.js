@@ -59,7 +59,7 @@ export const handler = async (event, context) => {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,GET",
     },
-    responseObject.body = "error";
+      responseObject.body = "error";
   }
 
   const complete = Date.now() - start;
@@ -113,8 +113,8 @@ async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
     ProjectionExpression: "#LC, #ET, #NT, #ID, #FU",
     TableName: "UniqueLsoa",
   };
-  if (Object.keys(lastEvaluatedItem).length != 0){
-     input.ExclusiveStartKey = lastEvaluatedItem;
+  if (Object.keys(lastEvaluatedItem).length != 0) {
+    input.ExclusiveStartKey = lastEvaluatedItem;
   }
 
   const command = new ScanCommand(input);
@@ -122,7 +122,7 @@ async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
 
   if (response.LastEvaluatedKey) {
     console.log("response.LastEvaluatedKey = ", response.LastEvaluatedKey)
-    if (response.$metadata.httpStatusCode){
+    if (response.$metadata.httpStatusCode) {
       console.log("Success")
       tableItems.push(response.Items)
       lastEvaluatedItem = response.LastEvaluatedKey
@@ -138,7 +138,7 @@ async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
     const command = new ScanCommand(input);
     const response = await client.send(command);
 
-    if (response.$metadata.httpStatusCode){
+    if (response.$metadata.httpStatusCode) {
       tableItems.push(response.Items)
       return `UniqueLsoa table scanned. Returning ${tableItems.length} records`
     } else {
@@ -147,7 +147,7 @@ async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
   }
 }
 
-async function populateLsoaArray(client){
+async function populateLsoaArray(client) {
   const tableItems = []
   let lastEvaluatedItem = {}
   await scanLsoaTable(client, lastEvaluatedItem, tableItems)
@@ -170,7 +170,7 @@ const calculateDistance = (lsoa, clinicGridReference) => {
     Math.sqrt(
       Math.pow(Math.abs(clinicEasting - lsoaEasting), 2) +
       Math.pow(Math.abs(clinicNorthing - lsoaNorthing), 2)
-    )/
+    ) /
     (MTOKM * KMTOMILES);
 
   return distanceMiles;
