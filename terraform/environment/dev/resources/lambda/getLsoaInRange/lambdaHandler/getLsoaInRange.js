@@ -1,5 +1,5 @@
 import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
-
+import axios from "axios";
 
 /*
   Lambda to get LSOA in a 100 mile range from the selected clinic
@@ -14,23 +14,32 @@ export const handler = async (event, context) => {
   const clinicPostcode = event.queryStringParameters.clinicPostcode;
 
   // make call to get the postcode easting and northing
+  const clinicGridReference = getEastingNorthing(clinicPostcode);
 
-
+  // get the average northing and farthing for every LSOA
 
   // const clinicName = event.queryStringParameters.clinicName;
 
-  var params = {
-    Key: {
-      ClinicId: {
-        S: `${clinicId}`,
-      },
-      ClinicName: {
-        S: `${clinicName}`,
+  const input = {
+    ExpressionAttributeNames: {
+      "#PC": "POSTCODE",
+      "#ET": "EASTING_1M",
+      "#NT": "NORTHING_1M",
+      "#IC": "ICB",
+      "#ID": "IMD_DECILE",
+      "#LC": "LSOA_2011",
+    },
+    ExpressionAttributeValues: {
+      ":a": {
+        S: `${participatingIcbSelection}`,
       },
     },
-    TableName: "PhlebotomySite",
+    FilterExpression: "ICBCode = :a",
+    ProjectionExpression: "#PC, #ET, #NT, #IC, #ID, #LC",
+    TableName: "Lsoa",
   };
-  const command = new GetItemCommand(params);
+
+  const command = new ScanCommand(input);
   const response = await client.send(command);
 
   let responseObject = {};
@@ -54,18 +63,23 @@ export const handler = async (event, context) => {
   return responseObject;
 };
 
-
 async function getEastingNorthing(postcode) {
-
   try {
+    const postcodeData = await axios.get(
+      `https://api.postcodes.io/postcodes/${postcode}`
+    );
+    const postcodeEasting = postcodeData.data?.easting;
+    const postcodeNorthing = postcodeData.data?.northing;
 
+    if (postcodeEasting && postcodeNorthing) {
+      return {
+        easting: postcodeEasting,
+        northing: postcodeNorthing,
+      };
+    } else {
+      throw new Error("Grid coordinates not returned by api");
+    }
   } catch (e) {
-    console.error("Error when trying to retrieve postcode grid reference")
-  }
-
-
-  return {
-    easting: postcodeEasting,
-    northing: postcodeNorthing
+    console.error("Error when trying to retrieve postcode grid reference: ");
   }
 }
