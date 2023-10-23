@@ -42,3 +42,5 @@ node_modules
 
 # remove zip files from lambdas
 *.zip
+# local data
+local_data
