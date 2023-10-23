@@ -811,6 +811,15 @@ resource "aws_s3_object" "lsoa_in_range_lambda" {
   etag = filemd5(data.archive_file.lsoa_in_range_lambda.output_path)
 }
 
+resource "aws_s3_object" "participants_in_lsoa_lambda" {
+  bucket = aws_s3_bucket.galleri_lambda_bucket.id
+
+  key    = "participants_in_lsoa_lambda.zip"
+  source = data.archive_file.participants_in_lsoa_lambda.output_path
+
+  etag = filemd5(data.archive_file.participants_in_lsoa_lambda.output_path)
+}
+
 resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
   bucket = "galleri-ons-data"
   policy = data.aws_iam_policy_document.allow_access_to_lambda.json
