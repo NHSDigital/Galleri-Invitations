@@ -233,7 +233,7 @@ resource "aws_dynamodb_table" "population_table" {
 
   attribute {
     name = "LsoaCode"
-    type = "N"
+    type = "S"
   }
 
   attribute {
