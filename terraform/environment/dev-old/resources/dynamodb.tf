@@ -236,18 +236,12 @@ resource "aws_dynamodb_table" "population_table" {
     type = "S"
   }
 
-  attribute {
-    name = "NhsNumber"
-    type = "N"
-  }
-
   global_secondary_index {
-    name               = "LsoaCode-index"
-    hash_key           = "LsoaCode"
-    write_capacity     = 10
-    read_capacity      = 10
-    non_key_attributes = ["Invited"]
-    projection_type    = "INCLUDE"
+    name            = "LsoaCode-index"
+    hash_key        = "LsoaCode"
+    write_capacity  = 10
+    read_capacity   = 10
+    projection_type = "KEYS_ONLY"
   }
 
   point_in_time_recovery {

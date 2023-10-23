@@ -246,7 +246,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
         "dynamodb:*"
       ],
       "Resource": [
-        "arn:aws:dynamodb:eu-west-2:136293001324:table/Population"
+        "arn:aws:dynamodb:eu-west-2:136293001324:table/Population/*/*"
       ]
     }
   ],
