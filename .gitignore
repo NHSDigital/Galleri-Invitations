@@ -49,6 +49,3 @@ node_modules
 
 # local data
 local_data
-
-# remove local files
-*/nonprod-postcode-data/*
