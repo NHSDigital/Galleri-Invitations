@@ -1,6 +1,9 @@
 import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 import axios from "axios";
 
+const KMTOMILES = 1.6;
+const MTOKM = 1000;
+
 /*
   Lambda to get LSOA in a 100 mile range from the selected clinic
 */
@@ -172,6 +175,7 @@ const calculateDistance = (lsoa, clinicGridReference) => {
         Math.pow(Math.abs(clinicNorthing - lsoaNorthing), 2)
     ) /
     (MTOKM * KMTOMILES);
+  ß;
 
   return distanceMiles;
 };
