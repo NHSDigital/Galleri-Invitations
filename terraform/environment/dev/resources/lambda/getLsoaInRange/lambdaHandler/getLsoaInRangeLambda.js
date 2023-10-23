@@ -2,17 +2,18 @@ import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import axios from "axios";
 
-const KMTOMILES = 1.6;
-const MTOKM = 1000;
-
 /*
   Lambda to get LSOA in a 100 mile range from the selected clinic
 */
 export const handler = async (event, context) => {
   const start = Date.now();
-  // CALCULATE DISTANCE BETWEEN SITE AND LSOAs. RETURN THOSE IN 100 MILE RANGE
-  const clinicPostcode = event.queryStringParameters.clinicPostcode;
-  const lsoasInRangeMiles = event.queryStringParameters.miles;
+  console.log(
+    "*************\n Event = " + JSON.stringify(event, null, 2) + "\n**********"
+  );
+  // destructure event to get the postcode from front end
+  // const clinicPostcode = event.queryStringParameters.clinicPostcode;
+  // placeholder postcode
+  const clinicPostcode = "AL1  1AG";
 
   // make API request to get the easting and northing of postcode
   const clinicGridReference = await getClinicEastingNorthing(clinicPostcode);
@@ -22,15 +23,17 @@ export const handler = async (event, context) => {
   const records = await populateLsoaArray(dynamoDbclient);
   console.log(`Total records from dynamoDB = ${records.length}`);
 
-  const lsoaCodePayload = []
-  const filterLsoaRecords = records.filter((lsoaRecord) => {
-    const distanceToSiteMiles = calculateDistance(lsoaRecord, clinicGridReference);
-    if (distanceToSiteMiles <= lsoasInRangeMiles) {
+  const filterRecords = records.filter((lsoaRecord) => {
+    const distanceToSiteMiles = calculateDistance(
+      lsoaRecord,
+      clinicGridReference
+    );
+    if (distanceToSiteMiles <= 100) {
       // attach to record
       lsoaRecord.DISTANCE_TO_SITE = {
-        N: JSON.stringify(Math.round(distanceToSiteMiles * 100) / 100)
+        N: JSON.stringify(Math.round(distanceToSiteMiles * 100) / 100),
       };
-      lsoaCodePayload.push(lsoaRecord.LSOA_2011)
+      lsoaCodePayload.push(lsoaRecord.LSOA_2011);
       return lsoaRecord;
     }
   });
@@ -47,11 +50,16 @@ export const handler = async (event, context) => {
   const command = new InvokeCommand(input);
   const response = await lambdaClient.send(command);
 
-  const participantInLsoa = JSON.parse(Buffer.from(response.Payload).toString())
+  const participantInLsoa = JSON.parse(
+    Buffer.from(response.Payload).toString()
+  );
 
-  const combinedLsoaParticipants = generateLsoaTableData(filterLsoaRecords, participantInLsoa)
+  const combinedLsoaParticipants = generateLsoaTableData(
+    filterLsoaRecords,
+    participantInLsoa
+  );
 
-  console.log("combinedLsoaParticipants = ", combinedLsoaParticipants.length)
+  console.log("combinedLsoaParticipants = ", combinedLsoaParticipants.length);
 
   let responseObject = {};
 
@@ -68,7 +76,7 @@ export const handler = async (event, context) => {
   } else {
     responseObject.statusCode = 404;
     responseObject.isBase64Encoded = true;
-    responseObject.headers = {
+    (responseObject.headers = {
       "Access-Control-Allow-Headers":
         "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
       "Access-Control-Allow-Origin": "*",
@@ -95,7 +103,7 @@ export async function getClinicEastingNorthing(postcode) {
 
     if (requestStatus == 200) {
       const complete = Date.now() - startGetClinicEastingNorthing;
-      console.log("Success")
+      console.log("Success");
       console.log(
         "SUCCESSFUL completion of getClinicEastingNorthing took: ",
         complete / 1000
@@ -109,7 +117,7 @@ export async function getClinicEastingNorthing(postcode) {
     }
   } catch (e) {
     const complete = Date.now() - startGetClinicEastingNorthing;
-    console.log("Unsuccess")
+    console.log("Unsuccess");
     console.log(
       "UNSUCCESSFUL completion of getClinicEastingNorthing took: ",
       complete / 1000
@@ -138,36 +146,37 @@ export async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
   const response = await client.send(command);
 
   if (response.LastEvaluatedKey) {
-    if (response.$metadata.httpStatusCode == 200) {
-      console.log("Table is larger than 1Mb hence recursively routing through to obtain all data")
-      tableItems.push(response.Items)
-      lastEvaluatedItem = response.LastEvaluatedKey
-      await scanLsoaTable(client, lastEvaluatedItem, tableItems)
+    console.log("response.LastEvaluatedKey = ", response.LastEvaluatedKey);
+    if (response.$metadata.httpStatusCode) {
+      console.log("Success");
+      tableItems.push(response.Items);
+      lastEvaluatedItem = response.LastEvaluatedKey;
+      await scanLsoaTable(client, lastEvaluatedItem, tableItems);
     } else {
-      console.log("Unsuccess")
-      console.error("Response from table encountered an error")
+      console.log("Unsuccess");
+      console.error("Response from table encountered an error");
     }
   } else {
     // run last invocation
-    console.log("at last bit")
+    console.log("at last bit");
     input.ExclusiveStartKey = lastEvaluatedItem;
     const command = new ScanCommand(input);
     const response = await client.send(command);
 
-    if (response.$metadata.httpStatusCode == 200) {
-      tableItems.push(response.Items)
-      return `UniqueLsoa table scanned. Returning ${tableItems.length} records`
+    if (response.$metadata.httpStatusCode) {
+      tableItems.push(response.Items);
+      return `UniqueLsoa table scanned. Returning ${tableItems.length} records`;
     } else {
-      console.error("Something went wrong with last request")
+      console.error("Something went wrong with last request");
     }
   }
 }
 
 async function populateLsoaArray(client) {
-  const tableItems = []
-  let lastEvaluatedItem = {}
-  await scanLsoaTable(client, lastEvaluatedItem, tableItems)
-  return tableItems.flat()
+  const tableItems = [];
+  let lastEvaluatedItem = {};
+  await scanLsoaTable(client, lastEvaluatedItem, tableItems);
+  return tableItems.flat();
 }
 
 export const calculateDistance = (lsoa, clinicGridReference) => {
@@ -191,19 +200,22 @@ export const calculateDistance = (lsoa, clinicGridReference) => {
 };
 
 export function generateLsoaTableData(lsoaData, populationData) {
-  const tableInfo = []
-  console.log(`lsoaData.length = ${lsoaData.length}| populationData.length = ${Object.keys(populationData).length}`)
+  const tableInfo = [];
+  console.log(
+    `lsoaData.length = ${lsoaData.length}| populationData.length = ${Object.keys(populationData).length
+    }`
+  );
 
   lsoaData.forEach((lsoaItem) => {
-    const matchingLsoa = populationData[lsoaItem.LSOA_2011.S]
+    const matchingLsoa = populationData[lsoaItem.LSOA_2011.S];
 
     if (matchingLsoa != undefined) {
       return tableInfo.push({
         ...lsoaItem,
-        ...matchingLsoa
-      })
+        ...matchingLsoa,
+      });
     }
-  })
+  });
 
   return tableInfo;
 }
