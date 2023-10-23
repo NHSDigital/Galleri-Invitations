@@ -82,7 +82,6 @@ export const handler = async (event, context) => {
     }
   });
 
-
   console.log("filterRecords length = ", filterRecords.length);
 
   console.log("filterRecords : ", filterRecords[10]);
