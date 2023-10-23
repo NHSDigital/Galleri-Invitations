@@ -236,15 +236,9 @@ resource "aws_dynamodb_table" "population_table" {
     type = "S"
   }
 
-  attribute {
-    name = "NhsNumber"
-    type = "N"
-  }
-
   global_secondary_index {
-    name            = "PersonId"
-    hash_key        = "NhsNumber"
-    range_key       = "LsoaCode"
+    name            = "LsoaCode-index"
+    hash_key        = "LsoaCode"
     write_capacity  = 10
     read_capacity   = 10
     projection_type = "KEYS_ONLY"
