@@ -47,3 +47,5 @@ local_data
 
 # remove local files
 */nonprod-postcode-data/*
+# local data
+local_data
