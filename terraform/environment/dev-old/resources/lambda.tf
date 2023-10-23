@@ -223,6 +223,38 @@ resource "aws_iam_policy" "iam_policy_for_lsoa_in_range_lambda" {
 EOF
 }
 
+resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
+  name        = "aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
+  path        = "/"
+  description = "AWS IAM Policy for managing aws lambda get participants in lsoa role"
+  policy      = <<EOF
+{
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:logs:*:*:*"
+    },
+    {
+      "Sid": "AllowDynamodbAccess",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:*"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:eu-west-2:136293001324:table/Population"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+EOF
+}
+
 resource "aws_iam_role_policy_attachment" "galleri_lambda_policy" {
   role       = aws_iam_role.galleri_lambda_role.name
   policy_arn = aws_iam_policy.iam_policy_for_lambda.arn
@@ -253,6 +285,10 @@ resource "aws_iam_role_policy_attachment" "lsoa_in_range_lambda_policy" {
   policy_arn = aws_iam_policy.iam_policy_for_lsoa_in_range_lambda.arn
 }
 
+resource "aws_iam_role_policy_attachment" "participants_in_lsoa_lambda_policy" {
+  role       = aws_iam_role.galleri_lambda_role.name
+  policy_arn = aws_iam_policy.iam_policy_for_participants_in_lsoa_lambda.arn
+}
 
 // Zip lambda folders
 data "archive_file" "data_filter_gridall_imd_lambda" {
@@ -336,6 +372,13 @@ data "archive_file" "lsoa_in_range_lambda" {
 
   source_dir  = "${path.cwd}/lambda/getLsoaInRange/lambdaHandler"
   output_path = "${path.cwd}/lambda/getLsoaInRange/lambdaHandler/getLsoaInRangeLambda.zip"
+}
+
+data "archive_file" "participants_in_lsoa_lambda" {
+  type = "zip"
+
+  source_dir  = "${path.cwd}/lambda/getLsoaParticipants/lambdaHandler"
+  output_path = "${path.cwd}/lambda/getLsoaParticipants/lambdaHandler/getLsoaParticipantsLambda.zip"
 }
 
 // Create lambda functions
@@ -536,6 +579,21 @@ resource "aws_lambda_function" "lsoa_in_range" {
 
 }
 
+resource "aws_lambda_function" "participants_in_lsoa" {
+  function_name = "getLsoaParticipantsLambda"
+  role          = aws_iam_role.galleri_lambda_role.arn
+  handler       = "getLsoaParticipantsLambda.handler"
+  runtime       = "nodejs18.x"
+  timeout       = 100
+  memory_size   = 1024
+
+  s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
+  s3_key    = aws_s3_object.participants_in_lsoa_lambda.key // may need to change
+
+  source_code_hash = data.archive_file.participants_in_lsoa_lambda.output_base64sha256
+
+}
+
 // Create cloudwatch log group
 resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
   name = "/aws/lambda/${aws_lambda_function.data_filter_gridall_imd.function_name}"
@@ -604,6 +662,12 @@ resource "aws_cloudwatch_log_group" "get_target_fill_to_percentage" {
 }
 resource "aws_cloudwatch_log_group" "lsoa_in_range" {
   name = "/aws/lambda/${aws_lambda_function.lsoa_in_range.function_name}"
+
+  retention_in_days = 14
+}
+
+resource "aws_cloudwatch_log_group" "participants_in_lsoa" {
+  name = "/aws/lambda/${aws_lambda_function.participants_in_lsoa.function_name}"
 
   retention_in_days = 14
 }
@@ -708,8 +772,6 @@ resource "aws_s3_object" "target_fill_to_percentage_lambda" {
   etag = filemd5(data.archive_file.target_fill_to_percentage_lambda.output_path)
 }
 
-
-
 resource "aws_s3_object" "lsoa_in_range_lambda" {
   bucket = aws_s3_bucket.galleri_lambda_bucket.id
 
@@ -717,6 +779,15 @@ resource "aws_s3_object" "lsoa_in_range_lambda" {
   source = data.archive_file.lsoa_in_range_lambda.output_path
 
   etag = filemd5(data.archive_file.lsoa_in_range_lambda.output_path)
+}
+
+resource "aws_s3_object" "participants_in_lsoa_lambda" {
+  bucket = aws_s3_bucket.galleri_lambda_bucket.id
+
+  key    = "participants_in_lsoa_lambda.zip"
+  source = data.archive_file.participants_in_lsoa_lambda.output_path
+
+  etag = filemd5(data.archive_file.participants_in_lsoa_lambda.output_path)
 }
 
 resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
