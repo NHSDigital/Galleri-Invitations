@@ -307,7 +307,7 @@ resource "aws_dynamodb_table" "Postcode_table" {
 }
 
 resource "aws_dynamodb_table" "LSOA_table" {
-  name         = "Lsoa"
+  name         = "UniqueLsoa"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LSOA_2011"
 
