@@ -10,22 +10,22 @@ set -e
 # ==============================================================================
 
 function main() {
-  echo Initiating upload of Participating ICBs test data to database
+  # echo Initiating upload of Participating ICBs test data to database
 
-  mkdir test-data
+  # mkdir test-data
 
-  aws s3 cp s3://participating-icb/Participating_ICBs.csv ./test-data
+  # aws s3 cp s3://participating-icb/Participating_ICBs.csv ./test-data
 
-  echo Succefully Downloaded CSV from S3
+  # echo Succefully Downloaded CSV from S3
 
-  source $PWD/scripts/pipeline/create-data-files.sh
+  # source $PWD/scripts/pipeline/create-data-files.sh
 
-  echo Succefully formatted Participating ICBs test data
+  # echo Succefully formatted Participating ICBs test data
 
-  aws dynamodb batch-write-item --request-items \
-          file://$PWD/test-data/participating_icb.json
+  # aws dynamodb batch-write-item --request-items \
+  #         file://$PWD/test-data/participating_icb.json
 
-  echo Succefully uploaded Participating ICBs test data to database
+  # echo Succefully uploaded Participating ICBs test data to database
 
   echo "--------------------------------------------------------------"
 
@@ -39,7 +39,9 @@ function main() {
 
   echo Uploading items to Postcode database
 
-  python $PWD/scripts/pipeline/nonprod_postcode_load/nonprod_postcode_load.py
+  # python $PWD/scripts/pipeline/nonprod_postcode_load/nonprod_postcode_load.py
+
+  python $PWD/nonprod_postcode_load/nonprod_postcode_load.py
 
   # python $PWD/nonprod_postcode_load/nonprod_postcode_load.py
 
@@ -47,30 +49,30 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
-  echo Initiating upload of LSOA subset data to database
+  # echo Initiating upload of LSOA subset data to database
 
-  mkdir nonprod-lsoa-data
+  # mkdir nonprod-lsoa-data
 
-  aws s3 cp s3://galleri-ons-data/non_prod_lsoa_data_/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv ./nonprod-lsoa-data
-  # need to update with file
+  # aws s3 cp s3://galleri-ons-data/lsoa_data_/unique_lsoa_data.csv ./nonprod-lsoa-data
 
-  echo Succefully Downloaded CSV from S3
+  # echo Succefully Downloaded CSV from S3
 
-  echo Uploading items to Lsoa database
+  # echo Uploading items to Lsoa database
 
-  python $PWD/scripts/pipeline/nonprod_lsoa_load/nonprod_lsoa_load.py
+  # # python $PWD/scripts/pipeline/nonprod_lsoa_load/nonprod_lsoa_load.py
 
-  echo Succefully uploaded Lsoa data to database
+  # python $PWD/nonprod_lsoa_load/nonprod_lsoa_load.py
 
-  echo "--------------------------------------------------------------"
+  # echo Succefully uploaded Lsoa data to database
 
-  echo Initiating upload of LSOA subset data to database
+  # echo "--------------------------------------------------------------"
 
-  mkdir nonprod-lsoa-data
+  # echo Initiating upload of Phlebotomy clinic data to database
 
   aws s3 cp s3://galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-lsoa-data
+  # mkdir nonprod-phlebotomy-site-load
 
-  echo Succefully Downloaded CSV from S3
+  # echo Uploading items to Phlebotomy clinic database
 
   echo Uploading items to Lsoa database
 
@@ -91,6 +93,9 @@ function main() {
   python $PWD/scripts/pipeline/nonprod_phlebotomy_site_load/nonprod_phlebotomy_site_load.py
 
   echo Succefully uploaded Phlebotomy clinic data to database
+  # python $PWD/scripts/pipeline/nonprod_phlebotomy_site_load/nonprod_phlebotomy_site_load.py
+
+  # echo Succefully uploaded Phlebotomy clinic data to database
 
 }
 
