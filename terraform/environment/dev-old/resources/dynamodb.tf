@@ -236,6 +236,11 @@ resource "aws_dynamodb_table" "population_table" {
     type = "S"
   }
 
+  attribute {
+    name = "NhsNumber"
+    type = "N"
+  }
+
   global_secondary_index {
     name               = "LsoaCode-index"
     hash_key           = "LsoaCode"
