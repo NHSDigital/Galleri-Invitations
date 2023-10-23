@@ -78,6 +78,9 @@ def format_dynamodb_json(csvreader, table_name):
                         },
                         'IMD_DECILE': {
                             'N': f'{IMD_DECILE}'
+                        },
+                        'FORECAST_UPTAKE': {
+                            'N': f'1'
                         }
                     },
                     'TableName': table_name,
