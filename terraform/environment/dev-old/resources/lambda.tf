@@ -1926,7 +1926,7 @@ resource "aws_api_gateway_method_response" "lsoa_in_range_response_200" {
   depends_on = [aws_api_gateway_method.lsoa_in_range]
 }
 
-// LSOA IN RANGE - OPTIONS METHOD
+// CLINIC INFORMATION - OPTIONS METHOD
 resource "aws_api_gateway_method" "options_lsoa_in_range" {
   rest_api_id   = aws_api_gateway_rest_api.galleri.id
   resource_id   = aws_api_gateway_resource.lsoa_in_range.id
