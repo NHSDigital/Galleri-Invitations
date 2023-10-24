@@ -942,6 +942,7 @@ resource "aws_api_gateway_integration_response" "options_clinic_information" {
 
   depends_on = [aws_api_gateway_integration.options_clinic_information]
 }
+
 // CLINIC ICB LIST - HTTP METHOD
 resource "aws_api_gateway_resource" "clinic_icb_list" {
   rest_api_id = aws_api_gateway_rest_api.galleri.id
@@ -1850,6 +1851,123 @@ resource "aws_api_gateway_integration_response" "options_put_target_percentage" 
   depends_on = [aws_api_gateway_integration.options_put_target_percentage]
 }
 
+// LSOA IN RANGE - HTTP METHOD
+resource "aws_api_gateway_resource" "lsoa_in_range" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  parent_id   = aws_api_gateway_rest_api.galleri.root_resource_id
+  path_part   = "get-lsoa-in-range"
+}
+
+resource "aws_api_gateway_method" "lsoa_in_range" {
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  resource_id   = aws_api_gateway_resource.lsoa_in_range.id
+  http_method   = "GET"
+  authorization = "NONE"
+
+  request_parameters = {
+    "method.request.querystring.clinicPostcode" = true
+  }
+}
+
+resource "aws_api_gateway_integration" "lsoa_in_range_lambda" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.lsoa_in_range.resource_id
+  http_method = aws_api_gateway_method.lsoa_in_range.http_method
+
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.lsoa_in_range.invoke_arn
+
+  depends_on = [aws_api_gateway_method.lsoa_in_range]
+}
+
+resource "aws_api_gateway_integration_response" "lsoa_in_range_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.lsoa_in_range.id
+  http_method = aws_api_gateway_method.lsoa_in_range.http_method
+  status_code = aws_api_gateway_method_response.lsoa_in_range_response_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.lsoa_in_range_lambda]
+}
+
+resource "aws_api_gateway_method_response" "lsoa_in_range_response_200" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.lsoa_in_range.resource_id
+  http_method = aws_api_gateway_method.lsoa_in_range.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+
+  depends_on = [aws_api_gateway_method.lsoa_in_range]
+}
+
+// CLINIC INFORMATION - OPTIONS METHOD
+resource "aws_api_gateway_method" "options_lsoa_in_range" {
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  resource_id   = aws_api_gateway_resource.lsoa_in_range.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "options_lsoa_in_range" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.options_lsoa_in_range.resource_id
+  http_method = aws_api_gateway_method.options_lsoa_in_range.http_method
+
+  type = "MOCK"
+  request_templates = { # Not documented
+    "application/json" = "{statusCode: 200}"
+  }
+
+  depends_on = [aws_api_gateway_method.options_lsoa_in_range]
+}
+
+resource "aws_api_gateway_method_response" "options_lsoa_in_range_200" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.lsoa_in_range.id
+  http_method = aws_api_gateway_method.options_lsoa_in_range.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+
+  depends_on = [aws_api_gateway_method.options_lsoa_in_range]
+}
+
+resource "aws_api_gateway_integration_response" "options_lsoa_in_range" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.lsoa_in_range.id
+  http_method = aws_api_gateway_method.options_lsoa_in_range.http_method
+  status_code = aws_api_gateway_method_response.options_lsoa_in_range_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'*'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.options_lsoa_in_range]
+}
+
 
 // AWS LAMBDA PERMISSIONS
 resource "aws_lambda_permission" "api_gw_clinic_information" {
@@ -1951,6 +2069,16 @@ resource "aws_lambda_permission" "api_gw_put_target_percentage" {
   source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/PUT/*"
 }
 
+resource "aws_lambda_permission" "api_gw_lsoa_in_range" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lsoa_in_range.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/GET/*"
+}
 
 resource "aws_api_gateway_deployment" "galleri" {
 
