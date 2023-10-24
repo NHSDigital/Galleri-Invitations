@@ -40,9 +40,6 @@ export const handler = async (event, context) => {
   const records = response?.Items;
   console.log(`Total records from dynamoDB = ${records.length}`);
 
-
-  console.log(`artificial to see performance on ${newArray.flat().length} records`)
-
   const filterRecords = records.filter((lsoaRecord) => {
     const distanceToSiteMiles = calculateDistance(lsoaRecord, clinicGridReference);
     if (distanceToSiteMiles <= 100) {
@@ -55,8 +52,6 @@ export const handler = async (event, context) => {
   });
 
   console.log("filterRecords length = ", filterRecords.length);
-
-  console.log("filterRecords : ", filterRecords[10]);
 
   let responseObject = {};
 
