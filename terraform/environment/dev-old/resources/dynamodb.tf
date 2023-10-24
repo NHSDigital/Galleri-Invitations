@@ -237,12 +237,12 @@ resource "aws_dynamodb_table" "population_table" {
   }
 
   global_secondary_index {
-    name            = "LsoaCode-index"
-    hash_key        = "LsoaCode"
-    write_capacity  = 10
-    read_capacity   = 10
+    name               = "LsoaCode-index"
+    hash_key           = "LsoaCode"
+    write_capacity     = 10
+    read_capacity      = 10
     non_key_attributes = ["Invited"]
-    projection_type = "INCLUDE"
+    projection_type    = "INCLUDE"
   }
 
   point_in_time_recovery {
