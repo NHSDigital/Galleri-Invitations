@@ -100,10 +100,9 @@ def batch_write_to_dynamodb(lsoa_data):
     # format and send these to the batch write function
     # repeat till no records left
     dynamodb_client = boto3.client('dynamodb')
-    for i in range(1, 10, 1):
-        upper_bound_slice = i+5
+    for i in range(1, 100000, 100):
+        upper_bound_slice = i+100
         test_data = lsoa_data[i:upper_bound_slice]
-        print(json.dumps(test_data, indent=4))
         dynamodb_client.transact_write_items(
             TransactItems=test_data
         )
@@ -116,4 +115,4 @@ if __name__ == "__main__":
     file_input_path = "/nonprod-postcode-data/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv"
 
     path_to_file = os.getcwd() + file_input_path
-    generate_nonprod_lsoa_json(path_to_file, "Population")
+    generate_nonprod_lsoa_json(path_to_file, "Postcode")
