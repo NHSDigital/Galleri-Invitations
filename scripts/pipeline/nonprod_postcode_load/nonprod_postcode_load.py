@@ -1,4 +1,5 @@
 import csv
+import json
 import os
 import boto3
 
@@ -7,7 +8,6 @@ def generate_nonprod_lsoa_json(file_path, table_name):
         csvreader = csv.reader(file)
         dynamodb_json_object = format_dynamodb_json(csvreader, table_name)
 
-    print(dynamodb_json_object[0])
     batch_write_to_dynamodb(dynamodb_json_object)
 
 def format_dynamodb_json(csvreader, table_name):
@@ -100,9 +100,10 @@ def batch_write_to_dynamodb(lsoa_data):
     # format and send these to the batch write function
     # repeat till no records left
     dynamodb_client = boto3.client('dynamodb')
-    for i in range(1, 100000, 100):
-        upper_bound_slice = i+100
+    for i in range(1, 10, 1):
+        upper_bound_slice = i+5
         test_data = lsoa_data[i:upper_bound_slice]
+        print(json.dumps(test_data, indent=4))
         dynamodb_client.transact_write_items(
             TransactItems=test_data
         )
