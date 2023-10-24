@@ -73,16 +73,18 @@ runs:
     - name: Terraform Apply
       shell: bash
       run: |
-        cd ./terraform
-        npm install --prefix src/dataFilterLambda
-        npm install --prefix src/lsoaLoaderLambda
-        npm install --prefix src/clinicIcbListLambda
-        npm install --prefix src/clinicInformationLambda
-        npm install --prefix src/clinicSummaryListLambda
-        npm install --prefix src/invitationParametersLambda
-        npm install --prefix src/invitationParametersPutForecastUptakeLambda
-        npm install --prefix src/invitationParametersPutQuintilesLambda
-        npm install --prefix src/participatingIcbList
-        npm install --prefix src/targetFillToPercentage
-        npm install --prefix src/targetFillToPercentagePut
-        terraform apply -auto-approve -input=false -var-file=environment/dev/terraform.tfvars
+        cd ./terraform/environment/dev
+        npm install --prefix lambda/filterData/lambdaHandler
+        npm install --prefix lambda/lsoaLoader/lambdaHandler
+        npm install --prefix lambda/clinicIcbList/lambdaHandler
+        npm install --prefix lambda/clinicInformation/lambdaHandler
+        npm install --prefix lambda/clinicSummaryList/lambdaHandler
+        npm install --prefix lambda/invitationParameters/lambdaHandler
+        npm install --prefix lambda/invitationParametersPutForecastUptake/lambdaHandler
+        npm install --prefix lambda/invitationParametersPutQuintiles/lambdaHandler
+        npm install --prefix lambda/participatingIcbList/lambdaHandler
+        npm install --prefix lambda/targetFillToPercentage/lambdaHandler
+        npm install --prefix lambda/targetFillToPercentagePut/lambdaHandler
+        npm install --prefix lambda/getLsoaParticipants/lambdaHandler
+        npm install --prefix lambda/getLsoaInRange/lambdaHandler
+        terraform apply -auto-approve -input=false
