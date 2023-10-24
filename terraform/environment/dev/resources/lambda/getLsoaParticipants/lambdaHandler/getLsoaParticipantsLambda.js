@@ -92,7 +92,7 @@ async function getPopulation (lsoaList, client) {
     let invitedPopulation = 0
     response.Items.forEach((person) => {
       if (person.Invited.BOOL) {
-       ++invitedPopulation
+        ++invitedPopulation
       }
     })
 
