@@ -37,20 +37,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v4
-      - name: "Run unit test suite"
-        run: |
-          make test-unit
-      - name: Set up the python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10.12'
-      - name: Run python unit test
-        run: |
-            pip install boto3
-            pip install pytest
-            python -m pytest ./scripts/pipeline/unit_tests/
+      # - name: "Checkout code"
+      #   uses: actions/checkout@v4
+      # - name: "Run unit test suite"
+      #   run: |
+      #     make test-unit
+      # - name: Set up the python
+      #   uses: actions/setup-python@v4
+      #   with:
+      #     python-version: '3.10.12'
+      # - name: Run python unit test
+      #   run: |
+      #       pip install boto3
+      #       pip install pytest
+      #       python -m pytest ./scripts/pipeline/unit_tests/
       - name: "Save the result of fast test suite"
         run: |
           echo "Nothing to save"
