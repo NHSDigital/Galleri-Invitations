@@ -462,13 +462,13 @@ resource "aws_lambda_function" "target_fill_to_percentage_put" {
   memory_size   = 1024
 
   s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
-  s3_key    = aws_s3_object.target_fill_to_percentage_put_lambda.key // may need to change
+  s3_key    = aws_s3_object.target_fill_to_percentage_put_lambda.key
 
   source_code_hash = data.archive_file.target_fill_to_percentage_put_lambda.output_base64sha256
 
 }
 
-resource "aws_lambda_function" "target_fill_to_percentage" {
+resource "aws_lambda_function" "get_target_fill_to_percentage" {
   function_name = "targetFillToPercentageLambda"
   role          = aws_iam_role.galleri_lambda_role.arn
   handler       = "targetFillToPercentageLambda.handler"
@@ -545,8 +545,8 @@ resource "aws_cloudwatch_log_group" "target_fill_to_percentage_put" {
   retention_in_days = 14
 }
 
-resource "aws_cloudwatch_log_group" "target_fill_to_percentage" {
-  name = "/aws/lambda/${aws_lambda_function.target_fill_to_percentage.function_name}"
+resource "aws_cloudwatch_log_group" "get_target_fill_to_percentage" {
+  name = "/aws/lambda/${aws_lambda_function.get_target_fill_to_percentage.function_name}"
 
   retention_in_days = 14
 }
@@ -1508,7 +1508,7 @@ resource "aws_api_gateway_integration" "target_percentage" {
 
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.target_fill_to_percentage.invoke_arn
+  uri                     = aws_lambda_function.get_target_fill_to_percentage.invoke_arn
 
   depends_on = [aws_api_gateway_method.target_percentage]
 }
@@ -1795,7 +1795,7 @@ resource "aws_lambda_permission" "api_gw_invitation_parameters_put_quintiles" {
 resource "aws_lambda_permission" "api_gw_target_percentage" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.target_fill_to_percentage.function_name
+  function_name = aws_lambda_function.get_target_fill_to_percentage.function_name
   principal     = "apigateway.amazonaws.com"
 
   # The /*/* portion grants access from any method on any resource

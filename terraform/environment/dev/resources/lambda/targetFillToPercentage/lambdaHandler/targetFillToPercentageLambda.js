@@ -1,15 +1,15 @@
 import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
 
+const client = new DynamoDBClient({ region: "eu-west-2" });
+
+let responseObject = {};
+
+const CONFIG_ID_VALUE = 1;
+
 /*
-  Lambda to load invitation parameters and pass on to GPS client.
+  Lambda to load target percentage from DynamoDB for clinic invitation screen
 */
 export const handler = async () => {
-  const client = new DynamoDBClient({ region: "eu-west-2" });
-
-  let responseObject = {};
-
-  const CONFIG_ID_VALUE = 1;
-
   const params = {
     Key: {
       CONFIG_ID: {
@@ -21,9 +21,9 @@ export const handler = async () => {
   const command = new GetItemCommand(params);
   const response = await client.send(command);
 
-  const attribute = {targetPercentage: response.Item.TARGET_PERCENTAGE};
+  const attribute = { targetPercentage: response.Item.TARGET_PERCENTAGE };
 
-  if (response.hasOwnProperty("Item")) {
+  if (response.Item?.TARGET_PERCENTAGE !== null) {
     responseObject.statusCode = 200;
     (responseObject.headers = {
       "Access-Control-Allow-Headers":
