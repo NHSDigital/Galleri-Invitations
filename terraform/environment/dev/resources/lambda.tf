@@ -544,7 +544,7 @@ resource "aws_lambda_function" "target_fill_to_percentage_put" {
 
   s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
 
-  s3_key    = aws_s3_object.target_fill_to_percentage_put_lambda.key // may need to change
+  s3_key = aws_s3_object.target_fill_to_percentage_put_lambda.key // may need to change
 
   source_code_hash = data.archive_file.target_fill_to_percentage_put_lambda.output_base64sha256
 
