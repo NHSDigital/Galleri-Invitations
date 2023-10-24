@@ -8,6 +8,7 @@ def generate_nonprod_lsoa_json(file_path, table_name):
         csvreader = csv.reader(file)
         dynamodb_json_object = format_dynamodb_json(csvreader, table_name)
 
+    print(dynamodb_json_object[0])
     batch_write_to_dynamodb(dynamodb_json_object)
 
 def format_dynamodb_json(csvreader, table_name):
