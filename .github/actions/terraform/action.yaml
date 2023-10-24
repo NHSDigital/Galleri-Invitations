@@ -84,4 +84,6 @@ runs:
         npm install --prefix lambda/invitationParametersPutForecastUptake/lambdaHandler
         npm install --prefix lambda/invitationParametersPutQuintiles/lambdaHandler
         npm install --prefix lambda/participatingIcbList/lambdaHandler
+        npm install --prefix lambda/getLsoaParticipants/lambdaHandler
+        npm install --prefix lambda/getLsoaInRange/lambdaHandler
         terraform apply -auto-approve -input=false
