@@ -42,12 +42,12 @@ runs:
         cd ./terraform/environment/dev
         terraform init -backend-config="bucket=${{ env.aws-bucket-name }}" -backend-config="key=${{ env.aws-bucket-key-name }}" -backend-config="region=${{ env.aws-region }}"
 
-    - name: Terraform Destroy
-      id: destroy
-      shell: bash
-      run: |
-        cd ./terraform/environment/dev
-        terraform destroy -auto-approve
+    # - name: Terraform Destroy
+    #   id: destroy
+    #   shell: bash
+    #   run: |
+    #     cd ./terraform/environment/dev
+    #     terraform destroy -auto-approve
 
     - name: Terraform Validate
       id: validate
@@ -71,17 +71,17 @@ runs:
         echo Terraform Plan Status has failed
         exit 1
 
-    - name: Terraform Apply
-      shell: bash
-      run: |
-        cd ./terraform/environment/dev
-        npm install --prefix lambda/filterData/lambdaHandler
-        npm install --prefix lambda/lsoaLoader/lambdaHandler
-        npm install --prefix lambda/clinicIcbList/lambdaHandler
-        npm install --prefix lambda/clinicInformation/lambdaHandler
-        npm install --prefix lambda/clinicSummaryList/lambdaHandler
-        npm install --prefix lambda/invitationParameters/lambdaHandler
-        npm install --prefix lambda/invitationParametersPutForecastUptake/lambdaHandler
-        npm install --prefix lambda/invitationParametersPutQuintiles/lambdaHandler
-        npm install --prefix lambda/participatingIcbList/lambdaHandler
-        terraform apply -auto-approve -input=false
+    # - name: Terraform Apply
+    #   shell: bash
+    #   run: |
+    #     cd ./terraform/environment/dev
+    #     npm install --prefix lambda/filterData/lambdaHandler
+    #     npm install --prefix lambda/lsoaLoader/lambdaHandler
+    #     npm install --prefix lambda/clinicIcbList/lambdaHandler
+    #     npm install --prefix lambda/clinicInformation/lambdaHandler
+    #     npm install --prefix lambda/clinicSummaryList/lambdaHandler
+    #     npm install --prefix lambda/invitationParameters/lambdaHandler
+    #     npm install --prefix lambda/invitationParametersPutForecastUptake/lambdaHandler
+    #     npm install --prefix lambda/invitationParametersPutQuintiles/lambdaHandler
+    #     npm install --prefix lambda/participatingIcbList/lambdaHandler
+    #     terraform apply -auto-approve -input=false
