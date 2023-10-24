@@ -241,7 +241,8 @@ resource "aws_dynamodb_table" "population_table" {
     hash_key        = "LsoaCode"
     write_capacity  = 10
     read_capacity   = 10
-    projection_type = "KEYS_ONLY"
+    non_key_attributes = ["Invited"]
+    projection_type = "INCLUDE"
   }
 
   point_in_time_recovery {
