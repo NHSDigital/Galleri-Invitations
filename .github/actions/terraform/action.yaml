@@ -86,4 +86,6 @@ runs:
         npm install --prefix lambda/participatingIcbList/lambdaHandler
         npm install --prefix lambda/targetFillToPercentage/lambdaHandler
         npm install --prefix lambda/targetFillToPercentagePut/lambdaHandler
+        npm install --prefix lambda/getLsoaParticipants/lambdaHandler
+        npm install --prefix lambda/getLsoaInRange/lambdaHandler
         terraform apply -auto-approve -input=false
