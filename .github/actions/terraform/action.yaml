@@ -46,7 +46,7 @@ runs:
     #   id: destroy
     #   shell: bash
     #   run: |
-    #     cd ./terraform
+    #     cd ./terraform/environment/dev
     #     terraform destroy -auto-approve
 
     - name: Terraform Validate
