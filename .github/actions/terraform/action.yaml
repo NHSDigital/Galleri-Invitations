@@ -42,12 +42,12 @@ runs:
         cd ./terraform/environment/dev
         terraform init -backend-config="bucket=${{ env.aws-bucket-name }}" -backend-config="key=${{ env.aws-bucket-key-name }}" -backend-config="region=${{ env.aws-region }}"
 
-    # - name: Terraform Destroy
-    #   id: destroy
-    #   shell: bash
-    #   run: |
-    #     cd ./terraform/environment/dev
-    #     terraform destroy -auto-approve
+    - name: Terraform Destroy
+      id: destroy
+      shell: bash
+      run: |
+        cd ./terraform/environment/dev
+        terraform destroy -auto-approve
 
     - name: Terraform Validate
       id: validate
