@@ -109,8 +109,8 @@ function validate() {
 async function write() {
   console.log('\nWriting to CSV...\n------------------------');
   if (
-    await writeToCsv(newDummyDataMale, 'dummy data male', './output/csv/dummyDataMale.csv') &&
-    await writeToCsv(newDummyDataFemale, 'dummy data female', './output/csv/dummyDataFemale.csv')) {
+    await writeToCsv(newDummyDataMale, 'dummy data male', './output/csv/dummyDataMaleUpdated.csv') &&
+    await writeToCsv(newDummyDataFemale, 'dummy data female', './output/csv/dummyDataFemaleUpdated.csv')) {
     return true;
   } else {
     return false;
