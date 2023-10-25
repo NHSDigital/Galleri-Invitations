@@ -114,7 +114,7 @@ async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
     TableName: "UniqueLsoa",
   };
   if (Object.keys(lastEvaluatedItem).length != 0){
-     input.ExclusiveStartKey = lastEvaluatedItem;
+    input.ExclusiveStartKey = lastEvaluatedItem;
   }
 
   const command = new ScanCommand(input);
