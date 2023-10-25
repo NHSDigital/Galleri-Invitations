@@ -37,6 +37,8 @@ export const handler = async (event, context) => {
   const command = new ScanCommand(input);
   const response = await client.send(command);
 
+  console.log(JSON.stringify(response, null, 2))
+
   const records = response?.Items;
   console.log(`Total records from dynamoDB = ${records.length}`);
 
@@ -68,6 +70,12 @@ export const handler = async (event, context) => {
   } else {
     responseObject.statusCode = 404;
     responseObject.isBase64Encoded = true;
+    responseObject.headers = {
+      "Access-Control-Allow-Headers":
+        "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "OPTIONS,GET",
+    },
     responseObject.body = "error";
   }
 
@@ -108,6 +116,35 @@ async function getClinicEastingNorthing(postcode) {
     );
     console.error("Error when trying to retrieve postcode grid reference: ");
   }
+}
+
+async function scanLsoaTable(){
+  const tableItems = []
+  let lastEvaluatedItem = {}
+  const input = {
+    ExpressionAttributeNames: {
+      "#LC": "LSOA_2011",
+      "#ET": "EASTING_1M",
+      "#NT": "NORTHING_1M",
+      "#ID": "IMD_DECILE",
+      "#FU": "FORECAST_UPTAKE",
+    },
+    ExclusiveStartKey: lastEvaluatedItem,
+    ProjectionExpression: "#LC, #ET, #NT, #ID, #FU",
+    TableName: "UniqueLsoa",
+  };
+
+  const command = new ScanCommand(input);
+  const response = await client.send(command);
+
+  if (response.$metadata.httpsStatusCode == 200) {
+    console.log("Total segments = " + response.TotalSegments + ". Current segment = " + response.Segment)
+    tableItems.push(response.Items)
+    lastEvaluatedItem = response.LastEvaluatedKey
+  } else {
+    console.error("Request was unsucessful")
+  }
+
 }
 
 const calculateDistance = (lsoa, clinicGridReference) => {
