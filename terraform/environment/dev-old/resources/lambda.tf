@@ -95,7 +95,6 @@ resource "aws_iam_policy" "iam_policy_for_clinic_information_lambda" {
 EOF
 }
 
-
 resource "aws_iam_policy" "iam_policy_for_participating_icb_list_lambda" {
   name        = "aws_iam_policy_for_terraform_aws_participating_icb_list_lambda_role"
   path        = "/"
@@ -127,7 +126,6 @@ resource "aws_iam_policy" "iam_policy_for_participating_icb_list_lambda" {
 }
 EOF
 }
-
 
 resource "aws_iam_policy" "iam_policy_for_clinic_summary_list_lambda" {
   name        = "aws_iam_policy_for_terraform_aws_clinic_summary_list_lambda_role"
@@ -193,6 +191,37 @@ resource "aws_iam_policy" "iam_policy_for_invitation_parameters_lambda" {
 EOF
 }
 
+resource "aws_iam_policy" "iam_policy_for_lsoa_in_range_lambda" {
+  name        = "aws_iam_policy_for_terraform_aws_lsoa_in_range_lambda_role"
+  path        = "/"
+  description = "AWS IAM Policy for managing aws lambda get lsoa in range role"
+  policy      = <<EOF
+{
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:logs:*:*:*"
+    },
+    {
+      "Sid": "AllowDynamodbAccess",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:*"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:eu-west-2:136293001324:table/UniqueLsoa"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+EOF
+}
 
 resource "aws_iam_role_policy_attachment" "galleri_lambda_policy" {
   role       = aws_iam_role.galleri_lambda_role.name
@@ -203,7 +232,6 @@ resource "aws_iam_role_policy_attachment" "clinic_information_lambda_policy" {
   role       = aws_iam_role.galleri_lambda_role.name
   policy_arn = aws_iam_policy.iam_policy_for_clinic_information_lambda.arn
 }
-
 
 resource "aws_iam_role_policy_attachment" "participating_icb_list_lambda_policy" {
   role       = aws_iam_role.galleri_lambda_role.name
@@ -220,6 +248,10 @@ resource "aws_iam_role_policy_attachment" "invitation_parameters_lambda_policy" 
   policy_arn = aws_iam_policy.iam_policy_for_invitation_parameters_lambda.arn
 }
 
+resource "aws_iam_role_policy_attachment" "lsoa_in_range_lambda_policy" {
+  role       = aws_iam_role.galleri_lambda_role.name
+  policy_arn = aws_iam_policy.iam_policy_for_lsoa_in_range_lambda.arn
+}
 
 
 // Zip lambda folders
@@ -298,6 +330,12 @@ data "archive_file" "target_fill_to_percentage_lambda" {
 
   source_dir  = "${path.cwd}/lambda/targetFillToPercentage/lambdaHandler"
   output_path = "${path.cwd}/lambda/targetFillToPercentage/lambdaHandler/targetFillToPercentageLambda.zip"
+}
+data "archive_file" "lsoa_in_range_lambda" {
+  type = "zip"
+
+  source_dir  = "${path.cwd}/lambda/getLsoaInRange/lambdaHandler"
+  output_path = "${path.cwd}/lambda/getLsoaInRange/lambdaHandler/getLsoaInRangeLambda.zip"
 }
 
 // Create lambda functions
@@ -483,6 +521,20 @@ resource "aws_lambda_function" "get_target_fill_to_percentage" {
 
 }
 
+resource "aws_lambda_function" "lsoa_in_range" {
+  function_name = "getLsoaInRangeLambda"
+  role          = aws_iam_role.galleri_lambda_role.arn
+  handler       = "getLsoaInRangeLambda.handler"
+  runtime       = "nodejs18.x"
+  timeout       = 100
+  memory_size   = 1024
+
+  s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
+  s3_key    = aws_s3_object.lsoa_in_range_lambda.key // may need to change
+
+  source_code_hash = data.archive_file.lsoa_in_range_lambda.output_base64sha256
+
+}
 
 // Create cloudwatch log group
 resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
@@ -547,6 +599,11 @@ resource "aws_cloudwatch_log_group" "target_fill_to_percentage_put" {
 
 resource "aws_cloudwatch_log_group" "get_target_fill_to_percentage" {
   name = "/aws/lambda/${aws_lambda_function.get_target_fill_to_percentage.function_name}"
+
+  retention_in_days = 14
+}
+resource "aws_cloudwatch_log_group" "lsoa_in_range" {
+  name = "/aws/lambda/${aws_lambda_function.lsoa_in_range.function_name}"
 
   retention_in_days = 14
 }
@@ -652,6 +709,15 @@ resource "aws_s3_object" "target_fill_to_percentage_lambda" {
 }
 
 
+
+resource "aws_s3_object" "lsoa_in_range_lambda" {
+  bucket = aws_s3_bucket.galleri_lambda_bucket.id
+
+  key    = "lsoa_in_range_lambda.zip"
+  source = data.archive_file.lsoa_in_range_lambda.output_path
+
+  etag = filemd5(data.archive_file.lsoa_in_range_lambda.output_path)
+}
 
 resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
   bucket = "galleri-ons-data"
