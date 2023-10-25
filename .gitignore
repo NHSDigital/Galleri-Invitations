@@ -44,3 +44,6 @@ node_modules
 *.zip
 # local data
 local_data
+
+# remove local files
+*/nonprod-postcode-data/*
