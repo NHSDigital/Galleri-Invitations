@@ -9,9 +9,9 @@ const MTOKM = 1000;
 */
 export const handler = async (event, context) => {
   const start = Date.now();
-  console.log(
-    "*************\n Event = " + JSON.stringify(event, null, 2) + "\n**********"
-  );
+  // console.log(
+  //   "*************\n Event = " + JSON.stringify(event, null, 2) + "\n**********"
+  // );
   // destructure event to get the postcode from front end
   // const clinicPostcode = event.queryStringParameters.clinicPostcode;
   // placeholder postcode
@@ -22,24 +22,28 @@ export const handler = async (event, context) => {
 
   const client = new DynamoDBClient({ region: "eu-west-2" });
 
-  const input = {
-    ExpressionAttributeNames: {
-      "#LC": "LSOA_2011",
-      "#ET": "EASTING_1M",
-      "#NT": "NORTHING_1M",
-      "#ID": "IMD_DECILE",
-      "#FU": "FORECAST_UPTAKE",
-    },
-    ProjectionExpression: "#LC, #ET, #NT, #ID, #FU",
-    TableName: "UniqueLsoa",
-  };
+  // const input = {
+  //   ExpressionAttributeNames: {
+  //     "#LC": "LSOA_2011",
+  //     "#ET": "EASTING_1M",
+  //     "#NT": "NORTHING_1M",
+  //     "#ID": "IMD_DECILE",
+  //     "#FU": "FORECAST_UPTAKE",
+  //   },
+  //   ProjectionExpression: "#LC, #ET, #NT, #ID, #FU",
+  //   TableName: "UniqueLsoa",
+  // };
 
-  const command = new ScanCommand(input);
-  const response = await client.send(command);
+  // const command = new ScanCommand(input);
+  // const response = await client.send(command);
 
-  console.log(JSON.stringify(response, null, 2))
+  // console.log("Response = ", JSON.stringify(response, null, 2))
+  // var tableItems = []
+  // let lastEvaluatedItem = {}
+  // await scanLsoaTable(client, lastEvaluatedItem)
 
-  const records = response?.Items;
+
+  const records = await populateLsoaArray();
   console.log(`Total records from dynamoDB = ${records.length}`);
 
   const filterRecords = records.filter((lsoaRecord) => {
@@ -57,7 +61,7 @@ export const handler = async (event, context) => {
 
   let responseObject = {};
 
-  if (response.hasOwnProperty("Items")) {
+  if (records.length > 17000) {
     responseObject.statusCode = 200;
     responseObject.isBase64Encoded = true;
     (responseObject.headers = {
@@ -118,9 +122,7 @@ async function getClinicEastingNorthing(postcode) {
   }
 }
 
-async function scanLsoaTable(){
-  const tableItems = []
-  let lastEvaluatedItem = {}
+async function scanLsoaTable(client, lastEvaluatedItem) {
   const input = {
     ExpressionAttributeNames: {
       "#LC": "LSOA_2011",
@@ -129,22 +131,37 @@ async function scanLsoaTable(){
       "#ID": "IMD_DECILE",
       "#FU": "FORECAST_UPTAKE",
     },
-    ExclusiveStartKey: lastEvaluatedItem,
     ProjectionExpression: "#LC, #ET, #NT, #ID, #FU",
     TableName: "UniqueLsoa",
   };
+  if (Object.keys(lastEvaluatedItem).length != 0){
+     input.ExclusiveStartKey = lastEvaluatedItem;
+  }
 
   const command = new ScanCommand(input);
   const response = await client.send(command);
 
-  if (response.$metadata.httpsStatusCode == 200) {
-    console.log("Total segments = " + response.TotalSegments + ". Current segment = " + response.Segment)
-    tableItems.push(response.Items)
-    lastEvaluatedItem = response.LastEvaluatedKey
+  if (response.LastEvaluatedKey) {
+    if (response.$metadata.httpStatusCode){
+      console.log("Total segments = " + response?.TotalSegments + ". Current segment = " + response?.Segment)
+      tableItems.push(response.Items)
+      lastEvaluatedItem = response.LastEvaluatedKey
+      scanLsoaTable(client, lastEvaluatedItem)
+    } else {
+      console.log(response)
+      console.error("Response from table encountered an error")
+    }
   } else {
-    console.error("Request was unsucessful")
+    scanLsoaTable(client, lastEvaluatedItem)
+    return `UniqueLsoa table scanned. Returning ${tableItems.length} records`
   }
+}
 
+async function populateLsoaArray(){
+  var tableItems = []
+  let lastEvaluatedItem = {}
+  await scanLsoaTable(client, lastEvaluatedItem)
+  return tableItems.flat()
 }
 
 const calculateDistance = (lsoa, clinicGridReference) => {
