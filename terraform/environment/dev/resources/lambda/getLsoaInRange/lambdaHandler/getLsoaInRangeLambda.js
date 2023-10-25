@@ -22,28 +22,7 @@ export const handler = async (event, context) => {
 
   const client = new DynamoDBClient({ region: "eu-west-2" });
 
-  // const input = {
-  //   ExpressionAttributeNames: {
-  //     "#LC": "LSOA_2011",
-  //     "#ET": "EASTING_1M",
-  //     "#NT": "NORTHING_1M",
-  //     "#ID": "IMD_DECILE",
-  //     "#FU": "FORECAST_UPTAKE",
-  //   },
-  //   ProjectionExpression: "#LC, #ET, #NT, #ID, #FU",
-  //   TableName: "UniqueLsoa",
-  // };
-
-  // const command = new ScanCommand(input);
-  // const response = await client.send(command);
-
-  // console.log("Response = ", JSON.stringify(response, null, 2))
-  // var tableItems = []
-  // let lastEvaluatedItem = {}
-  // await scanLsoaTable(client, lastEvaluatedItem)
-
-
-  const records = await populateLsoaArray();
+  const records = await populateLsoaArray(client);
   console.log(`Total records from dynamoDB = ${records.length}`);
 
   const filterRecords = records.filter((lsoaRecord) => {
@@ -122,7 +101,7 @@ async function getClinicEastingNorthing(postcode) {
   }
 }
 
-async function scanLsoaTable(client, lastEvaluatedItem) {
+async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
   const input = {
     ExpressionAttributeNames: {
       "#LC": "LSOA_2011",
@@ -142,25 +121,36 @@ async function scanLsoaTable(client, lastEvaluatedItem) {
   const response = await client.send(command);
 
   if (response.LastEvaluatedKey) {
+    console.log("response.LastEvaluatedKey = ", response.LastEvaluatedKey)
     if (response.$metadata.httpStatusCode){
-      console.log("Total segments = " + response?.TotalSegments + ". Current segment = " + response?.Segment)
+      console.log("Success")
       tableItems.push(response.Items)
       lastEvaluatedItem = response.LastEvaluatedKey
-      scanLsoaTable(client, lastEvaluatedItem)
+      await scanLsoaTable(client, lastEvaluatedItem, tableItems)
     } else {
-      console.log(response)
+      console.log("Unsuccess")
       console.error("Response from table encountered an error")
     }
   } else {
-    scanLsoaTable(client, lastEvaluatedItem)
-    return `UniqueLsoa table scanned. Returning ${tableItems.length} records`
+    // run last invocation
+    console.log("at last bit")
+    input.ExclusiveStartKey = lastEvaluatedItem;
+    const command = new ScanCommand(input);
+    const response = await client.send(command);
+
+    if (response.$metadata.httpStatusCode){
+      tableItems.push(response.Items)
+      return `UniqueLsoa table scanned. Returning ${tableItems.length} records`
+    } else {
+      console.error("Something went wrong with last request")
+    }
   }
 }
 
-async function populateLsoaArray(){
-  var tableItems = []
+async function populateLsoaArray(client){
+  const tableItems = []
   let lastEvaluatedItem = {}
-  await scanLsoaTable(client, lastEvaluatedItem)
+  await scanLsoaTable(client, lastEvaluatedItem, tableItems)
   return tableItems.flat()
 }
 
