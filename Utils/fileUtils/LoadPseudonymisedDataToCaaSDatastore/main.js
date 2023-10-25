@@ -108,8 +108,13 @@ function validate() {
 
 async function write() {
   console.log('\nWriting to CSV...\n------------------------');
-  await writeToCsv(newDummyDataMale, 'dummy data male', './output/csv/dummyDataMale.csv');
-  await writeToCsv(newDummyDataFemale, 'dummy data female', './output/csv/dummyDataFemale.csv');
+  if (
+    await writeToCsv(newDummyDataMale, 'dummy data male', './output/csv/dummyDataMale.csv') &&
+    await writeToCsv(newDummyDataFemale, 'dummy data female', './output/csv/dummyDataFemale.csv')) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 async function run() {
@@ -126,10 +131,10 @@ async function run() {
       console.log('\nProcess succeeded.');
       if (validate()) {
         console.log('\nValidation succeeded.');
-        if (!write() === true) {
-          console.error('Error: Failed to write files.');
-        } else {
+        if (write()) {
           console.log('\nWriting done.');
+        } else {
+          console.error('Error: Failed to write files.');
         }
       } else {
         console.error('\nValidation failed.');

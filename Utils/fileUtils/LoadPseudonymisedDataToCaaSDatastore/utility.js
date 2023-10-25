@@ -46,6 +46,7 @@ export async function writeToCsv(data, label, filepath) {
     });
   });
   console.log(`   |--- ${label} done.`);
+  return true;
 }
 
 // Get an array of postcodes from a CSV array
