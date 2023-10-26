@@ -672,17 +672,6 @@ resource "aws_cloudwatch_log_group" "participants_in_lsoa" {
 
   retention_in_days = 14
 }
-resource "aws_cloudwatch_log_group" "lsoa_in_range" {
-  name = "/aws/lambda/${aws_lambda_function.lsoa_in_range.function_name}"
-
-  retention_in_days = 14
-}
-
-resource "aws_cloudwatch_log_group" "participants_in_lsoa" {
-  name = "/aws/lambda/${aws_lambda_function.participants_in_lsoa.function_name}"
-
-  retention_in_days = 14
-}
 
 // Create s3 object
 resource "aws_s3_object" "data_filter_gridall_imd_lambda" {
@@ -782,24 +771,6 @@ resource "aws_s3_object" "target_fill_to_percentage_lambda" {
   source = data.archive_file.target_fill_to_percentage_lambda.output_path
 
   etag = filemd5(data.archive_file.target_fill_to_percentage_lambda.output_path)
-}
-
-resource "aws_s3_object" "lsoa_in_range_lambda" {
-  bucket = aws_s3_bucket.galleri_lambda_bucket.id
-
-  key    = "lsoa_in_range_lambda.zip"
-  source = data.archive_file.lsoa_in_range_lambda.output_path
-
-  etag = filemd5(data.archive_file.lsoa_in_range_lambda.output_path)
-}
-
-resource "aws_s3_object" "participants_in_lsoa_lambda" {
-  bucket = aws_s3_bucket.galleri_lambda_bucket.id
-
-  key    = "participants_in_lsoa_lambda.zip"
-  source = data.archive_file.participants_in_lsoa_lambda.output_path
-
-  etag = filemd5(data.archive_file.participants_in_lsoa_lambda.output_path)
 }
 
 resource "aws_s3_object" "lsoa_in_range_lambda" {

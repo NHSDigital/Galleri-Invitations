@@ -2,6 +2,7 @@ import { Readable } from "stream";
 import csv from "csv-parser";
 import fs from "fs";
 
+//Variables
 const lsoaData = fs.readFileSync(
   "./input/lsoa_data_2023-08-21T16_26_00.578Z.csv"
 );
@@ -39,7 +40,6 @@ function groupBy(arr, prop) {
       avgEasting += Math.floor(parseInt(x[i].EASTING_1M, 10) / x.length);
       avgNorthing += Math.floor(parseInt(x[i].NORTHING_1M, 10) / x.length);
     }
-    // console.log(`avgEasting: ${avgEasting}, avgNorthing: ${avgNorthing}`);
     for (let i = 0; i < x.length; i++) {
       x[i].AVG_EASTING = String(avgEasting);
       x[i].AVG_NORTHING = avgNorthing.toLocaleString("en-GB", {
@@ -72,14 +72,11 @@ const writeFile = (filename, obj) => {
 
 const lsoaHeader =
   "POSTCODE,POSTCODE_2,LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,EASTING_1M,NORTHING_1M,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021,IMD_RANK,IMD_DECILE,AVG_EASTING,AVG_NORTHING";
-// console.time("test_timer");
+
 const lsoaArray = await processData(lsoaData);
 
 const lsoaGrouped = groupBy(lsoaArray, "LSOA_2011");
 
-console.log(lsoaGrouped);
-
 const lsoaAvgGeneratedCsv = generateCsvString(lsoaHeader, lsoaArray);
 
-writeFile("AvgLsoaMidpoint.csv", lsoaAvgGeneratedCsv);
-// console.timeEnd("test_timer");
+writeFile("./output/AvgLsoaMidpoint.csv", lsoaAvgGeneratedCsv);
