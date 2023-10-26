@@ -15,21 +15,24 @@ def format_dynamodb_json(csvreader, table_name):
     # extract relevant information from row and format
     # in dynamodb json
     for row in csvreader:
-        LOCAL_AUT_ORG = str(row[2])
-        NHS_ENG_REGION = str(row[3])
-        SUB_ICB = str(row[4])
-        CANCER_REGISTRY = str(row[5])
-        EASTING_1M = str(row[6])
-        NORTHING_1M = str(row[7])
-        LSOA_2011 = str(row[8])
-        MSOA_2011 = str(row[9])
-        CANCER_ALLIANCE = str(row[10])
-        ICB = str(row[11])
-        OA_2021 = str(row[12])
-        LSOA_2021 = str(row[13])
-        MSOA_2021 = str(row[14])
-        IMD_RANK = str(row[15])
-        IMD_DECILE = str(row[16])
+        LOCAL_AUT_ORG = str(row[0])
+        NHS_ENG_REGION = str(row[1])
+        SUB_ICB = str(row[2])
+        CANCER_REGISTRY = str(row[3])
+        EASTING_1M = str(row[4])
+        NORTHING_1M = str(row[5])
+        LSOA_2011 = str(row[6])
+        MSOA_2011 = str(row[7])
+        CANCER_ALLIANCE = str(row[8])
+        ICB = str(row[9])
+        OA_2021 = str(row[10])
+        LSOA_2021 = str(row[11])
+        MSOA_2021 = str(row[12])
+        IMD_RANK = str(row[13])
+        IMD_DECILE = str(row[14])
+        AVG_EASTING = str(row[15])
+        AVG_NORTHING = str(row[16])
+
         output.append(
             {
                 'Put': {
@@ -81,7 +84,14 @@ def format_dynamodb_json(csvreader, table_name):
                         },
                         'FORECAST_UPTAKE': {
                             'N': f'1'
+                        },
+                        'AVG_EASTING': {
+                            'S' : f'{AVG_EASTING}'
+                        },
+                        'AVG_NORTHING': {
+                            'S' : f'{AVG_NORTHING}'
                         }
+
                     },
                     'TableName': table_name,
                 },

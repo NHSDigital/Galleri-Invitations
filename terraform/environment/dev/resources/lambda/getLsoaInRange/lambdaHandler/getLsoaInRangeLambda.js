@@ -9,9 +9,9 @@ const MTOKM = 1000;
 */
 export const handler = async (event, context) => {
   const start = Date.now();
-  console.log(
-    "*************\n Event = " + JSON.stringify(event, null, 2) + "\n**********"
-  );
+  // console.log(
+  //   "*************\n Event = " + JSON.stringify(event, null, 2) + "\n**********"
+  // );
   // destructure event to get the postcode from front end
   // const clinicPostcode = event.queryStringParameters.clinicPostcode;
   // placeholder postcode
@@ -26,14 +26,11 @@ export const handler = async (event, context) => {
   console.log(`Total records from dynamoDB = ${records.length}`);
 
   const filterRecords = records.filter((lsoaRecord) => {
-    const distanceToSiteMiles = calculateDistance(
-      lsoaRecord,
-      clinicGridReference
-    );
+    const distanceToSiteMiles = calculateDistance(lsoaRecord, clinicGridReference);
     if (distanceToSiteMiles <= 100) {
       // attach to record
       lsoaRecord.DISTANCE_TO_SITE = {
-        N: JSON.stringify(Math.round(distanceToSiteMiles * 100) / 100),
+        N: JSON.stringify(Math.round(distanceToSiteMiles * 100) / 100)
       };
       return lsoaRecord;
     }
@@ -56,13 +53,13 @@ export const handler = async (event, context) => {
   } else {
     responseObject.statusCode = 404;
     responseObject.isBase64Encoded = true;
-    (responseObject.headers = {
+    responseObject.headers = {
       "Access-Control-Allow-Headers":
         "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,GET",
-    }),
-      (responseObject.body = "error");
+    },
+      responseObject.body = "error";
   }
 
   const complete = Date.now() - start;
@@ -124,37 +121,37 @@ async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
   const response = await client.send(command);
 
   if (response.LastEvaluatedKey) {
-    console.log("response.LastEvaluatedKey = ", response.LastEvaluatedKey);
+    console.log("response.LastEvaluatedKey = ", response.LastEvaluatedKey)
     if (response.$metadata.httpStatusCode) {
-      console.log("Success");
-      tableItems.push(response.Items);
-      lastEvaluatedItem = response.LastEvaluatedKey;
-      await scanLsoaTable(client, lastEvaluatedItem, tableItems);
+      console.log("Success")
+      tableItems.push(response.Items)
+      lastEvaluatedItem = response.LastEvaluatedKey
+      await scanLsoaTable(client, lastEvaluatedItem, tableItems)
     } else {
-      console.log("Unsuccess");
-      console.error("Response from table encountered an error");
+      console.log("Unsuccess")
+      console.error("Response from table encountered an error")
     }
   } else {
     // run last invocation
-    console.log("at last bit");
+    console.log("at last bit")
     input.ExclusiveStartKey = lastEvaluatedItem;
     const command = new ScanCommand(input);
     const response = await client.send(command);
 
     if (response.$metadata.httpStatusCode) {
-      tableItems.push(response.Items);
-      return `UniqueLsoa table scanned. Returning ${tableItems.length} records`;
+      tableItems.push(response.Items)
+      return `UniqueLsoa table scanned. Returning ${tableItems.length} records`
     } else {
-      console.error("Something went wrong with last request");
+      console.error("Something went wrong with last request")
     }
   }
 }
 
 async function populateLsoaArray(client) {
-  const tableItems = [];
-  let lastEvaluatedItem = {};
-  await scanLsoaTable(client, lastEvaluatedItem, tableItems);
-  return tableItems.flat();
+  const tableItems = []
+  let lastEvaluatedItem = {}
+  await scanLsoaTable(client, lastEvaluatedItem, tableItems)
+  return tableItems.flat()
 }
 
 const calculateDistance = (lsoa, clinicGridReference) => {
@@ -175,7 +172,6 @@ const calculateDistance = (lsoa, clinicGridReference) => {
       Math.pow(Math.abs(clinicNorthing - lsoaNorthing), 2)
     ) /
     (MTOKM * KMTOMILES);
-  ß;
 
   return distanceMiles;
 };
