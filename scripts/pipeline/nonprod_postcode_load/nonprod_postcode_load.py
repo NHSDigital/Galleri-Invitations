@@ -98,7 +98,7 @@ def format_dynamodb_json(csvreader, table_name):
 def batch_write_to_dynamodb(lsoa_data):
     # splice array 100 records at a time
     # format and send these to the batch write function
-    # repeat till no records left
+    # repeat till no records are left
     dynamodb_client = boto3.client('dynamodb')
     for i in range(1, 100000, 100):
         upper_bound_slice = i+100
