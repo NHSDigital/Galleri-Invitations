@@ -1,8 +1,8 @@
 {
-  "name": "generatePersonTestData",
+  "name": "generateLsoaMidpoint",
   "version": "1.0.0",
   "type": "module",
-  "main": "generatePersonTestData.js",
+  "main": "generateLsoaMidpoint.js",
   "author": "",
   "dependencies": {
     "csv": "^6.3.1",

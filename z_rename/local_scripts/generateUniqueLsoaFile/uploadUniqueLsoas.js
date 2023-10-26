@@ -3,7 +3,9 @@ import csv from "csv-parser";
 import fs from "fs";
 
 //Variables
-const csvLsoa = fs.readFileSync("./lsoa_data_full.csv");
+const csvLsoa = fs.readFileSync(
+  "./../../../scripts/test_data/output/AvgLsoaMidpoint.csv"
+);
 
 // Functions
 // Read in csv
@@ -52,6 +54,8 @@ const returnUniqueLsoaRecords = (lsoaCodeArray, data) => {
     for (const element of data) {
       if (String(element.LSOA_2011) === String(lsoa)) {
         console.log(`element lsoa = ${element.LSOA_2011} and lsoa = ${lsoa}`);
+        delete element.POSTCODE;
+        delete element.POSTCODE_2;
         lsoaRecords.push(element);
         break;
       }
@@ -91,7 +95,7 @@ const lsoaRecords = returnUniqueLsoaRecords(lsoaCodes, lsoaPostcodeDataArr);
 console.log(`lsoaRecords = ${lsoaRecords[1]}`);
 
 const testDataHeader =
-  "POSTCODE,POSTCODE_2,LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,EASTING_1M,NORTHING_1M,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021,IMD_RANK,IMD_DECILE";
+  "LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,EASTING_1M,NORTHING_1M,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021,IMD_RANK,IMD_DECILE,AVG_EASTING,AVG_NORTHING";
 const uniqueLsoaCsv = generateCsvString(testDataHeader, lsoaRecords);
 
 writeFile("lsoa_data_unique.csv", uniqueLsoaCsv);
