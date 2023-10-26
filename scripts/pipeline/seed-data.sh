@@ -69,40 +69,8 @@ function main() {
 
   python $PWD/scripts/pipeline/nonprod_postcode_load/nonprod_postcode_load.py
 
-  # python $PWD/nonprod_postcode_load/nonprod_postcode_load.py
-
   echo Succefully uploaded Postcode data to database
-
-  echo "--------------------------------------------------------------"
-
-  echo Initiating upload of LSOA subset data to database
-
-  mkdir nonprod-lsoa-data
-
-  aws s3 cp s3://galleri-ons-data/lsoa_data_/unique_lsoa_data.csv ./nonprod-lsoa-data
-
-  echo Succefully Downloaded CSV from S3
-
-  echo Uploading items to Lsoa database
-
-  python $PWD/scripts/pipeline/nonprod_lsoa_load/nonprod_lsoa_load.py
-
-  # python $PWD/nonprod_lsoa_load/nonprod_lsoa_load.py
-
-  echo Succefully uploaded Lsoa data to database
-
-  echo "--------------------------------------------------------------"
-
-  echo Initiating upload of Phlebotomy clinic data to database
-
-  mkdir nonprod-phlebotomy-site-load
-
-  echo Uploading items to Phlebotomy clinic database
-
-  python $PWD/scripts/pipeline/nonprod_phlebotomy_site_load/nonprod_phlebotomy_site_load.py
-
-  echo Succefully uploaded Phlebotomy clinic data to database
-
+  
 }
 
 # ==============================================================================

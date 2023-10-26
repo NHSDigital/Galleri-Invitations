@@ -5,54 +5,18 @@ import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 */
 export const handler = async (event, context) => {
   const start = Date.now();
-  // console.log(
-  //   "*************\n Event = " + JSON.stringify(event, null, 2) + "\n**********"
-  // );
-  // destructure event to get the payload of LSOAs from front end
-  // const lsoaList = event.queryParameterString.lsoaList;
-  // placeholder lsoaList
-  const lsoaList = [
-    {
-      IMD_DECILE: { N: "9" },
-      NORTHING_1M: { N: "228441" },
-      EASTING_1M: { N: "509665" },
-      FORECAST_UPTAKE: { N: "1" },
-      LSOA_2011: { S: "E01017559" },
-      DISTANCE_TO_SITE: { N: "14.19" },
-    },
-    {
-      IMD_DECILE: { N: "9" },
-      NORTHING_1M: { N: "228441" },
-      EASTING_1M: { N: "509665" },
-      FORECAST_UPTAKE: { N: "1" },
-      LSOA_2011: { S: "E01015555" },
-      DISTANCE_TO_SITE: { N: "14.19" },
-    },
-  ];
-
+  const lsoaList = event;
   const client = new DynamoDBClient({ region: "eu-west-2" });
 
-  // loop over array and do a query on the number of participants with LSOA that match the element on loop
-  // total count of loop can be the Eligible population, and Invited would need to be another query
-  // add these variables to an array of objects containing LSOA code, Eligible pop and Invited field
-  // return the array
+  // Loop over incoming array and for each LSOA, query the number of participants within LSOA.
+  // Return counts for Eligible and Invited
 
   const eligibleInvitedPopulation = await getPopulation(lsoaList, client);
 
-  console.log("logging response: ", eligibleInvitedPopulation);
-
-  let responseObject = {};
-
-  if (eligibleInvitedPopulation.length > 0) {
-    responseObject.statusCode = 200;
-    responseObject.isBase64Encoded = true;
-    (responseObject.headers = {
-      "Access-Control-Allow-Headers":
-        "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "OPTIONS,GET",
-    }),
-      (responseObject.body = JSON.stringify(eligibleInvitedPopulation));
+  if (Object.keys(eligibleInvitedPopulation).length > 0) {
+    const complete = Date.now() - start;
+    console.log("Lambda path completion took: ", complete / 1000);
+    return eligibleInvitedPopulation;
   } else {
     return "none eligible";
   }
@@ -67,44 +31,49 @@ async function populateEligibleArray(client, lsoaCode){
 
 export async function queryEligiblePopulation(client, lsoaCode, tableItems) {
   const input = {
-    ExpressionAttributeValues: {
+    "ExpressionAttributeValues": {
       ":code": {
-        S: `${lsoaCode}`,
-      },
+        "S": `${lsoaCode}`
+      }
     },
-    KeyConditionExpression: "LsoaCode = :code",
-    ProjectionExpression: "PersonId, Invited",
-    TableName: "Population",
-    IndexName: "LsoaCode-index",
+    "KeyConditionExpression": "LsoaCode = :code",
+    "ProjectionExpression": "PersonId, Invited",
+    "TableName": "Population",
+    "IndexName": "LsoaCode-index"
   };
 
   const command = new QueryCommand(input);
   const response = await client.send(command);
 
-async function getPopulation(lsoaList, client) {
-  const populationArray = [];
-  await Promise.all(
-    lsoaList.map(async (lsoa) => {
-      const lsoaCode = lsoa.LSOA_2011.S;
-      const response = await queryEligiblePopulation(lsoaCode, client);
+  if (response.$metadata.httpStatusCode == 200) {
+    tableItems.push(response.Items)
+    return "Success"
+  } else {
+    console.log("Unsuccess")
+    console.error("Response from table encountered an error")
+  };
+};
 
-      // console.log("response from request = ", JSON.stringify(response.Items))
+export async function getPopulation (lsoaList, client) {
+  const populationObject = {};
+  await Promise.all(lsoaList.map(async (lsoa) => {
+    const lsoaCode = lsoa.S;
+    const response = await populateEligibleArray(client, lsoaCode);
 
-      let invitedPopulation = 0;
-      response.Items.forEach((person) => {
-        if (person.Invited.BOOL) {
-          ++invitedPopulation;
-        }
-      });
-
-      const obj = {
-        LSOA_2011: { S: lsoaCode },
-        ELIGIBLE_POPULATION: { S: response.Count },
-        INVITED_POPULATION: { S: invitedPopulation },
+    let invitedPopulation = 0;
+    response.forEach((person) => {
+      if (person?.Invited?.S == "true") {
+        ++invitedPopulation;
       };
+    });
 
-      populationArray.push(obj);
-    })
-  );
-  return populationArray;
+    populationObject[lsoaCode] = {
+      ELIGIBLE_POPULATION: {"S": response.length},
+      INVITED_POPULATION: {"S": invitedPopulation}
+    };
+  }));
+
+  console.log(`lsoa being queried number ${lsoaList.length}. Population object has ${Object.keys(populationObject).length}`);
+
+  return populationObject;
 }
