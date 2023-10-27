@@ -16,7 +16,7 @@ export const handler = async (event, context) => {
     NORTHING_1M: { N: '228441' },
     EASTING_1M: { N: '509665' },
     FORECAST_UPTAKE: { N: '1' },
-    LSOA_2011: { S: 'E01017559' },
+    LSOA_2011: { S: 'E01001902' },
     DISTANCE_TO_SITE: { N: '14.19' }
   },
   {
@@ -24,7 +24,7 @@ export const handler = async (event, context) => {
     NORTHING_1M: { N: '228441' },
     EASTING_1M: { N: '509665' },
     FORECAST_UPTAKE: { N: '1' },
-    LSOA_2011: { S: 'E01015555' },
+    LSOA_2011: { S: 'E01001345' },
     DISTANCE_TO_SITE: { N: '14.19' }
   }];
 
