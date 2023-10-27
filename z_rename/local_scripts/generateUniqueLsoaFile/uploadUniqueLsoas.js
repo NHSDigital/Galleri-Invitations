@@ -56,6 +56,8 @@ const returnUniqueLsoaRecords = (lsoaCodeArray, data) => {
         console.log(`element lsoa = ${element.LSOA_2011} and lsoa = ${lsoa}`);
         delete element.POSTCODE;
         delete element.POSTCODE_2;
+        delete element.EASTING_1M;
+        delete element.NORTHING_1M;
         lsoaRecords.push(element);
         break;
       }
@@ -95,7 +97,7 @@ const lsoaRecords = returnUniqueLsoaRecords(lsoaCodes, lsoaPostcodeDataArr);
 console.log(`lsoaRecords = ${lsoaRecords[1]}`);
 
 const testDataHeader =
-  "LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,EASTING_1M,NORTHING_1M,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021,IMD_RANK,IMD_DECILE,AVG_EASTING,AVG_NORTHING";
+  "LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021,IMD_RANK,IMD_DECILE,AVG_EASTING,AVG_NORTHING";
 const uniqueLsoaCsv = generateCsvString(testDataHeader, lsoaRecords);
 
 writeFile("lsoa_data_unique.csv", uniqueLsoaCsv);

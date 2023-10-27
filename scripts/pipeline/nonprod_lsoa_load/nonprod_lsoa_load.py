@@ -19,19 +19,17 @@ def format_dynamodb_json(csvreader, table_name):
         NHS_ENG_REGION = str(row[1])
         SUB_ICB = str(row[2])
         CANCER_REGISTRY = str(row[3])
-        EASTING_1M = str(row[4])
-        NORTHING_1M = str(row[5])
-        LSOA_2011 = str(row[6])
-        MSOA_2011 = str(row[7])
-        CANCER_ALLIANCE = str(row[8])
-        ICB = str(row[9])
-        OA_2021 = str(row[10])
-        LSOA_2021 = str(row[11])
-        MSOA_2021 = str(row[12])
-        IMD_RANK = str(row[13])
-        IMD_DECILE = str(row[14])
-        AVG_EASTING = str(row[15])
-        AVG_NORTHING = str(row[16])
+        LSOA_2011 = str(row[4])
+        MSOA_2011 = str(row[5])
+        CANCER_ALLIANCE = str(row[6])
+        ICB = str(row[7])
+        OA_2021 = str(row[8])
+        LSOA_2021 = str(row[9])
+        MSOA_2021 = str(row[10])
+        IMD_RANK = str(row[11])
+        IMD_DECILE = str(row[12])
+        AVG_EASTING = str(row[13])
+        AVG_NORTHING = str(row[14])
 
         output.append(
             {
@@ -48,12 +46,6 @@ def format_dynamodb_json(csvreader, table_name):
                         },
                         'CANCER_REGISTRY': {
                             'S': f'{CANCER_REGISTRY}'
-                        },
-                        'EASTING_1M': {
-                            'N': f'{EASTING_1M}'
-                        },
-                        'NORTHING_1M': {
-                            'N': f'{NORTHING_1M}'
                         },
                         'LSOA_2011': {
                             'S': f'{LSOA_2011}'
