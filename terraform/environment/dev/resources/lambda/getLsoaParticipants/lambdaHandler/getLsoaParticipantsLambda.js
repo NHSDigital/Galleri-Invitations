@@ -64,7 +64,15 @@ export const handler = async (event, context) => {
 
 // METHODS
 //
-async function queryEligiblePopulation(lsoaCode, client) {
+
+async function populateEligibleArray(client, lsoaCode){
+  const tableItems = []
+  let lastEvaluatedItem = {}
+  await queryEligiblePopulation(client, lsoaCode, lastEvaluatedItem , tableItems)
+  return tableItems.flat()
+}
+
+async function queryEligiblePopulation(client, lsoaCode, lastEvaluatedItem = {}, tableItems) {
   const input = {
     "ExpressionAttributeValues": {
       ":code": {
@@ -76,29 +84,66 @@ async function queryEligiblePopulation(lsoaCode, client) {
     "TableName": "Population",
     "IndexName": "LsoaCode-index"
   };
+  // if (Object.keys(lastEvaluatedItem).length != 0){
+  //   input.ExclusiveStartKey = lastEvaluatedItem;
+  // }
 
   const command = new QueryCommand(input);
-  return await client.send(command);
+  const response = await client.send(command);
+
+  console.log(response)
+
+  if (response.$metadata.httpStatusCode){
+    console.log("Success")
+    tableItems.push(response.Items)
+    return
+    // lastEvaluatedItem = response.LastEvaluatedKey
+    // await queryEligiblePopulation(client, lsoaCode, lastEvaluatedItem = {}, tableItems)
+  } else {
+    console.log("Unsuccess")
+    console.error("Response from table encountered an error")
+  }
+
+  // if (response.LastEvaluatedKey) {
+  //   console.log("response.LastEvaluatedKey = ", response.LastEvaluatedKey)
+  // } else {
+  //   // run last invocation
+  //   console.log("Finished table?")
+  //   // console.log("at last bit")
+  //   // input.ExclusiveStartKey = lastEvaluatedItem;
+  //   // const command = new QueryCommand(input);
+  //   // const response = await client.send(command);
+
+  //   // if (response.$metadata.httpStatusCode){
+  //   //   tableItems.push(response.Items)
+  //   //   return `Population table scanned. Returning ${tableItems.length} records`
+  //   // } else {
+  //   //   console.error("Something went wrong with last request")
+  //   // }
+  // }
 }
 
 async function getPopulation (lsoaList, client) {
   const populationArray = []
   await Promise.all(lsoaList.map(async (lsoa) => {
     const lsoaCode = lsoa.LSOA_2011.S
-    const response = await queryEligiblePopulation(lsoaCode, client);
+    // const response = await queryEligiblePopulation(lsoaCode, client);
+    const response = await populateEligibleArray(client, lsoaCode)
+
+    console.log("Response in getPopulation = ", response)
 
     // console.log("response from request = ", JSON.stringify(response.Items))
 
     let invitedPopulation = 0
-    response.Items.forEach((person) => {
-      if (person.Invited.BOOL) {
+    response.forEach((person) => {
+      if (person.Invited.S == "true") {
         ++invitedPopulation
       }
     })
 
     const obj =  {
       LSOA_2011: {"S": lsoaCode},
-      ELIGIBLE_POPULATION: {"S": response.Count},
+      ELIGIBLE_POPULATION: {"S": response.length},
       INVITED_POPULATION: {"S": invitedPopulation}
     }
 
