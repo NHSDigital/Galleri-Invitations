@@ -220,9 +220,7 @@ resource "aws_dynamodb_table" "imd_table" {
 
 resource "aws_dynamodb_table" "population_table" {
   name           = "Population"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 20
-  write_capacity = 20
+  billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "PersonId"
   range_key      = "LsoaCode"
 
