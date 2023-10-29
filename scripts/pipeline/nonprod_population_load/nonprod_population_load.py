@@ -156,4 +156,4 @@ if __name__ == "__main__":
     file_input_path = "/nonprod-population-load/female_participants_with_LSOA_Invited.csv"
 
     path_to_file = os.getcwd() + file_input_path
-    generate_nonprod_population_json(path_to_file, "population2")
+    generate_nonprod_population_json(path_to_file, "Population")
