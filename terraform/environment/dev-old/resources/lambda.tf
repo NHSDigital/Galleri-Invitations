@@ -1905,6 +1905,7 @@ resource "aws_api_gateway_method" "lsoa_in_range" {
 
   request_parameters = {
     "method.request.querystring.clinicPostcode" = true
+    "method.request.querystring.miles" = true
   }
 }
 

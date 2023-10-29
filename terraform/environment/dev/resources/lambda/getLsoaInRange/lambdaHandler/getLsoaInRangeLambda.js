@@ -12,6 +12,7 @@ export const handler = async (event, context) => {
   const start = Date.now();
   // CALCULATE DISTANCE BETWEEN SITE AND LSOAs. RETURN THOSE IN 100 MILE RANGE
   // const clinicPostcode = event.queryStringParameters.clinicPostcode;
+  const lsoasInRangeMiles = event.queryStringParameters.miles;
   // placeholder postcode
   const clinicPostcode = "AL1  1AG";
 
@@ -26,7 +27,7 @@ export const handler = async (event, context) => {
   const lsoaCodePayload = []
   const filterLsoaRecords = records.filter((lsoaRecord) => {
     const distanceToSiteMiles = calculateDistance(lsoaRecord, clinicGridReference);
-    if (distanceToSiteMiles <= 100) {
+    if (distanceToSiteMiles <= lsoasInRangeMiles) {
       // attach to record
       lsoaRecord.DISTANCE_TO_SITE = {
         N: JSON.stringify(Math.round(distanceToSiteMiles * 100) / 100)
