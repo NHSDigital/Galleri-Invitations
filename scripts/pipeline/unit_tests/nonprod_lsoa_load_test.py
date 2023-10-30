@@ -1,4 +1,4 @@
-from scripts.pipeline.nonprod_lsoa_load.nonprod_lsoa_load import format_dynamodb_json
+from scripts.pipeline.nonprod_population_load.nonprod_population_load import format_dynamodb_json
 
 test_csv_data = [
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
