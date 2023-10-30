@@ -219,12 +219,10 @@ resource "aws_dynamodb_table" "imd_table" {
 }
 
 resource "aws_dynamodb_table" "population_table" {
-  name           = "Population"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 20
-  write_capacity = 20
-  hash_key       = "PersonId"
-  range_key      = "LsoaCode"
+  name         = "Population"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "PersonId"
+  range_key    = "LsoaCode"
 
   attribute {
     name = "PersonId"
@@ -233,21 +231,16 @@ resource "aws_dynamodb_table" "population_table" {
 
   attribute {
     name = "LsoaCode"
-    type = "N"
-  }
-
-  attribute {
-    name = "NhsNumber"
-    type = "N"
+    type = "S"
   }
 
   global_secondary_index {
-    name            = "PersonId"
-    hash_key        = "NhsNumber"
-    range_key       = "LsoaCode"
-    write_capacity  = 10
-    read_capacity   = 10
-    projection_type = "KEYS_ONLY"
+    name               = "LsoaCode-index"
+    hash_key           = "LsoaCode"
+    write_capacity     = 10
+    read_capacity      = 10
+    non_key_attributes = ["Invited"]
+    projection_type    = "INCLUDE"
   }
 
   point_in_time_recovery {
