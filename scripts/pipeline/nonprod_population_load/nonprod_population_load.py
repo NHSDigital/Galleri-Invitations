@@ -11,9 +11,6 @@ def generate_nonprod_population_json(file_path, table_name):
 
 def format_dynamodb_json(csvreader, table_name):
     output = []
-# nhs_number,superseded_by_subject_id,primary_care_provider,name_prefix,first_given_name,other_given_names,family_name,date_of_birth,gender_code,address_line_1,
-# address_line_2,address_line_3,address_line_4,address_line_5,postcode,removal_reason,removal_date,
-# date_of_death,telephone_number_home,telephone_number_mobile,email_address_home,preferred_language,interpreter_required,sensitivity_indicator_flag,Invited,LSOA_2011
     # extract relevant information from row and format
     # in dynamodb json
     for row in csvreader:
