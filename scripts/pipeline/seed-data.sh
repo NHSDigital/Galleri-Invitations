@@ -59,15 +59,15 @@ function main() {
 
   echo Initiating upload of dummy test data to database
 
-  mkdir nonprod-dummy-test-data
+  mkdir nonprod-population-data
 
-  aws s3 cp s3://galleri-test-data/updated/ ./nonprod-dummy-test-data --recursive
+  aws s3 cp s3://galleri-test-data/non_prod_participant_data/ ./nonprod-population-data --recursive
 
   echo Succefully Downloaded galleri-test-data CSVs from S3
 
   echo Uploading items to Population database
 
-  python $PWD/scripts/pipeline/nonprod_dummy_test_data_load/nonprod_dummy_test_data_load.py
+  python $PWD/scripts/pipeline/nonprod_population_load/nonprod_population_load.py
 
   echo Succefully uploaded dummy test data to database
 
