@@ -29,13 +29,13 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
-  echo Initiating upload of Postcode subset data to database
+  echo Initiating upload of Phlebotomy clinic data to database
 
-  mkdir nonprod-postcode-data
+  mkdir nonprod-phlebotomy-site-load
 
-  aws s3 cp s3://galleri-ons-data/non_prod_lsoa_data_/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv ./nonprod-postcode-data
+  echo Uploading items to Phlebotomy clinic database
 
-  echo Succefully Downloaded CSV from S3
+  python $PWD/scripts/pipeline/nonprod_phlebotomy_site_load/nonprod_phlebotomy_site_load.py
 
   echo Uploading items to Postcode database
 
@@ -67,12 +67,12 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
-  echo Initiating upload of Phlebotomy clinic data to database
+  echo Initiating upload of Postcode subset data to database
 
   aws s3 cp s3://galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-lsoa-data
   # mkdir nonprod-phlebotomy-site-load
 
-  echo Uploading items to Phlebotomy clinic database
+  aws s3 cp s3://galleri-ons-data/non_prod_lsoa_data_/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv ./nonprod-postcode-data
 
   echo Uploading items to Lsoa database
 
