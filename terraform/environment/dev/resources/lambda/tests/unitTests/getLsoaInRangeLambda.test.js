@@ -1,123 +1,131 @@
 import { getClinicEastingNorthing, scanLsoaTable, populateLsoaArray, calculateDistance, generateLsoaTableData } from '../../getLsoaInRange/lambdaHandler/getLsoaInRangeLambda.js';
-import * as axios from "axios";
-
-jest.mock("axios");
+import { mockClient } from 'aws-sdk-client-mock';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
 describe('getClinicEastingNorthing', () => {
-  const mockPostcode = "Post code"
 
   test('should successfully return eastings and northing from axios request', async () => {
+    const mockPostcodeSuccess = "SW1A 2AA"
     const logSpy = jest.spyOn(global.console, 'log');
     // mock out the axios call to return an object
-    const mockResponse = {
-      data:
-      {
-        status: 200,
-        result: {
-          eastings: 100,
-          northings: 150
-        }
-      }
-  }
-    axios.get.mockResolvedValueOnce(mockResponse);
-    // axios.get = jest.fn().mockResolvedValueOnce(mockResponse)
-    // console.log(axios.get.mockResolvedValueOnce)
-    // axios.get.mockImplementation(() => Promise.resolve(mockResponse));
 
-    const result = await getClinicEastingNorthing(mockPostcode);
-
-    console.log(result)
+    const result = await getClinicEastingNorthing(mockPostcodeSuccess);
 
     expect(logSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledTimes(2);
+    expect(logSpy).toHaveBeenCalledWith("Success");
 
     expect(result).toEqual({
-      easting: 100,
-      northing: 150
+      easting: 530047,
+      northing: 179951
     });
   });
 
   test('should catch error if API request fails', async () => {
     // mock out the axios call to return an object
-    const mockResponse = {
-      data:
-      {}
-  }
-    axios.get.mockResolvedValueOnce(mockResponse);
+    const mockPostcodeFail = "AAAA BB"
+    const logSpy = jest.spyOn(global.console, 'log');
+    // mock out the axios call to return an object
 
-    expect(() => {
-      getClinicEastingNorthing();
-    }).toThrow("Error when trying to retrieve postcode grid reference");
+    const result = await getClinicEastingNorthing(mockPostcodeFail);
+
+    expect(logSpy).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith("Unsuccess");
 
   });
 
-  test('should throw error if request fails', async () => {
-    // mock out the axios call to return an object
-    const mockResponse = {
-      data:
-      {}
-  }
-    axios.get.mockResolvedValueOnce(mockResponse);
+});
 
-    expect(() => {
-      getClinicEastingNorthing();
-    }).toThrow("Grid coordinates not returned by api");
+describe('scanLsoaTable', () => {
+  const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
+
+  test('should error is http code is not success', async () => {
+    const logSpy = jest.spyOn(global.console, 'log');
+
+    mockDynamoDbClient.resolves({
+      LastEvaluatedKey: "Present",
+      $metadata: { httpStatusCode: 400 },
+      Body: "failed"
+    });
+
+    const lastEvaluatedItem = {}
+    const tableItems = []
+
+    await scanLsoaTable(mockDynamoDbClient, lastEvaluatedItem, tableItems);
+    expect(logSpy).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith("Unsuccess");
+
+  });
+
+  test('should run last execution on last iteration', async () => {
+    const logSpy = jest.spyOn(global.console, 'log');
+
+    mockDynamoDbClient.resolves({
+      $metadata: { httpStatusCode: 200 },
+      Body: "exit function"
+    });
+
+    const lastEvaluatedItem = {}
+    const tableItems = []
+
+    await scanLsoaTable(mockDynamoDbClient, lastEvaluatedItem, tableItems);
+    expect(logSpy).toHaveBeenCalledWith("at last bit");
+
+  });
+
+  test('should run last execution on last iteration', async () => {
+    const logSpy = jest.spyOn(global.console, 'log');
+
+    mockDynamoDbClient.resolves({
+      $metadata: { httpStatusCode: 200 },
+      Body: "exit function"
+    });
+
+    const lastEvaluatedItem = {}
+    const tableItems = []
+
+    const response = await scanLsoaTable(mockDynamoDbClient, lastEvaluatedItem, tableItems);
+    expect(response).toEqual("UniqueLsoa table scanned. Returning 1 records");
 
   });
 });
 
-// describe('scanLsoaTable', () => {
-//   const testCsvString = `"PCD2","PCDS","DOINTR","DOTERM"\n"AB1  0AA","AB1 0AA","198001","199606"\n"YZ1  0GH","YZ1 0GH","222111","555444"`
 
-//   test('should parse CSV string and call processFunction for each row', async () => {
+describe('calculateDistance', () => {
 
-//     const result = await scanLsoaTable(testCsvString);
+  test('should correctly return straight line distance between coordinates', async () => {
 
-//     expect(result).toEqual([
-//       { PCD2: 'AB1  0AA', PCDS: 'AB1 0AA', DOINTR: '198001', DOTERM: '199606' },
-//       { PCD2: 'YZ1  0GH', PCDS: 'YZ1 0GH', DOINTR: '222111', DOTERM: '555444' }
-//     ]);
-//   });
-// });
+    const lsao =  {
+      AVG_EASTING: {"S": "10000"},
+      AVG_NORTHING: {"S": "15000"}
+    }
 
-// describe('populateLsoaArray', () => {
-//   const testCsvString = `"PCD2","PCDS","DOINTR","DOTERM"\n"AB1  0AA","AB1 0AA","198001","199606"\n"YZ1  0GH","YZ1 0GH","222111","555444"`
+    const clinicGridReference =  {
+      easting: "7000",
+      northing: "11000"
+    }
+    const result = calculateDistance(lsao, clinicGridReference);
 
-//   test('should parse CSV string and call processFunction for each row', async () => {
+    expect(result).toEqual(3.125);
+  });
+});
 
-//     const result = await populateLsoaArray(testCsvString);
+describe('generateLsoaTableData', () => {
 
-//     expect(result).toEqual([
-//       { PCD2: 'AB1  0AA', PCDS: 'AB1 0AA', DOINTR: '198001', DOTERM: '199606' },
-//       { PCD2: 'YZ1  0GH', PCDS: 'YZ1 0GH', DOINTR: '222111', DOTERM: '555444' }
-//     ]);
-//   });
-// });
+  test('should format data to be used in table', async () => {
 
-// describe('calculateDistance', () => {
-//   const testCsvString = `"PCD2","PCDS","DOINTR","DOTERM"\n"AB1  0AA","AB1 0AA","198001","199606"\n"YZ1  0GH","YZ1 0GH","222111","555444"`
+    const lsoaData = [
+      {LSOA_2011: {"S": "E100"}},
+      {LSOA_2011: {"S": "E200"}}
+    ]
 
-//   test('should parse CSV string and call processFunction for each row', async () => {
+    const popData = {
+      "E100": 1,
+      "E200": 2
+    }
 
-//     const result = await calculateDistance(testCsvString);
+    const result = generateLsoaTableData(lsoaData, popData);
 
-//     expect(result).toEqual([
-//       { PCD2: 'AB1  0AA', PCDS: 'AB1 0AA', DOINTR: '198001', DOTERM: '199606' },
-//       { PCD2: 'YZ1  0GH', PCDS: 'YZ1 0GH', DOINTR: '222111', DOTERM: '555444' }
-//     ]);
-//   });
-// });
-
-// describe('generateLsoaTableData', () => {
-//   const testCsvString = `"PCD2","PCDS","DOINTR","DOTERM"\n"AB1  0AA","AB1 0AA","198001","199606"\n"YZ1  0GH","YZ1 0GH","222111","555444"`
-
-//   test('should parse CSV string and call processFunction for each row', async () => {
-
-//     const result = await generateLsoaTableData(testCsvString);
-
-//     expect(result).toEqual([
-//       { PCD2: 'AB1  0AA', PCDS: 'AB1 0AA', DOINTR: '198001', DOTERM: '199606' },
-//       { PCD2: 'YZ1  0GH', PCDS: 'YZ1 0GH', DOINTR: '222111', DOTERM: '555444' }
-//     ]);
-//   });
-// });
+    expect(result).toEqual( [ { LSOA_2011: { S: 'E100' } }, { LSOA_2011: { S: 'E200' } } ]);
+  });
+});
