@@ -41,12 +41,7 @@ const returnUniqueLsoaCodes = (data) => {
 const returnUniqueLsoaRecords = (lsoaCodeArray, data) => {
   lsoaCodeArray.sort();
 
-  let countLsoa = 0;
-  let countRecord = 0;
-
   const lsoaRecords = [];
-  // const lsoaCodeArraySubSet = lsoaCodeArray.slice(0, 2);
-  // const dataSubSet = data.slice(0, 16);
   lsoaCodeArray.forEach((lsoa) => {
     console.log(`checking for lsoa ${lsoa}`);
     for (const element of data) {
@@ -82,13 +77,10 @@ const writeFile = (fileName, obj) => {
 
 // Read in test data to Arrays
 const lsoaPostcodeDataArr = await processData(csvLsoa);
-// console.log("first csv row = ", lsoaPostcodeDataArr[0]);
 
 // Process Arrays
 const lsoaCodes = returnUniqueLsoaCodes(lsoaPostcodeDataArr);
-console.log(`lsoaCodes = ${lsoaCodes[1]}`);
 const lsoaRecords = returnUniqueLsoaRecords(lsoaCodes, lsoaPostcodeDataArr);
-console.log(`lsoaRecords = ${lsoaRecords[1]}`);
 
 const testDataHeader =
   "POSTCODE,POSTCODE_2,LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,EASTING_1M,NORTHING_1M,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021,IMD_RANK,IMD_DECILE";
