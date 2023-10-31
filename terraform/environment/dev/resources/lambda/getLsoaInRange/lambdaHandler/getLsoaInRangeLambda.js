@@ -85,7 +85,7 @@ export const handler = async (event, context) => {
 };
 
 // METHODS
-async function getClinicEastingNorthing(postcode) {
+export async function getClinicEastingNorthing(postcode) {
   const startGetClinicEastingNorthing = Date.now();
   try {
     const postcodeData = await axios.get(
@@ -97,6 +97,7 @@ async function getClinicEastingNorthing(postcode) {
 
     if (requestStatus == 200) {
       const complete = Date.now() - startGetClinicEastingNorthing;
+      console.log("Success")
       console.log(
         "SUCCESSFUL completion of getClinicEastingNorthing took: ",
         complete / 1000
@@ -110,15 +111,16 @@ async function getClinicEastingNorthing(postcode) {
     }
   } catch (e) {
     const complete = Date.now() - startGetClinicEastingNorthing;
+    console.log("Unsuccess")
     console.log(
       "UNSUCCESSFUL completion of getClinicEastingNorthing took: ",
       complete / 1000
     );
-    console.error("Error when trying to retrieve postcode grid reference: ");
+    console.error("Error when trying to retrieve postcode grid reference ");
   }
 }
 
-async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
+export async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
   const input = {
     ExpressionAttributeNames: {
       "#LC": "LSOA_2011",
@@ -138,7 +140,8 @@ async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
   const response = await client.send(command);
 
   if (response.LastEvaluatedKey) {
-    if (response.$metadata.httpStatusCode){
+    if (response.$metadata.httpStatusCode == 200){
+      console.log("Table is larger than 1Mb hence recursively routing through to obtain all data")
       tableItems.push(response.Items)
       lastEvaluatedItem = response.LastEvaluatedKey
       await scanLsoaTable(client, lastEvaluatedItem, tableItems)
@@ -153,7 +156,7 @@ async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
     const command = new ScanCommand(input);
     const response = await client.send(command);
 
-    if (response.$metadata.httpStatusCode){
+    if (response.$metadata.httpStatusCode == 200){
       tableItems.push(response.Items)
       return `UniqueLsoa table scanned. Returning ${tableItems.length} records`
     } else {
@@ -169,7 +172,7 @@ async function populateLsoaArray(client){
   return tableItems.flat()
 }
 
-const calculateDistance = (lsoa, clinicGridReference) => {
+export const calculateDistance = (lsoa, clinicGridReference) => {
   // get the easting and northing from clinic
   const clinicEasting = Number(clinicGridReference.easting);
   const clinicNorthing = Number(clinicGridReference.northing);
@@ -177,8 +180,6 @@ const calculateDistance = (lsoa, clinicGridReference) => {
   // get the easting and northing from lsoa
   const lsoaEasting = Number(lsoa.AVG_EASTING.S);
   const lsoaNorthing = Number(lsoa.AVG_NORTHING.S);
-
-  // console.log(`clinicEasting = ${clinicEasting} clinicNorthing = ${clinicNorthing} | lsoaEasting ${lsoaEasting} lsoaNorthing = ${lsoaNorthing}`)
 
   // calculate straight line distance
   const distanceMiles =
@@ -191,7 +192,7 @@ const calculateDistance = (lsoa, clinicGridReference) => {
   return distanceMiles;
 };
 
-function generateLsoaTableData(lsoaData, populationData) {
+export function generateLsoaTableData(lsoaData, populationData) {
   const tableInfo = []
   console.log(`lsoaData.length = ${lsoaData.length}| populationData.length = ${Object.keys(populationData).length}`)
 
