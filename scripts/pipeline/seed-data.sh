@@ -49,7 +49,7 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
-  echo Initiating upload of LSOA subset data to database
+  echo Initiating upload of unique LSOA data to database
 
   mkdir nonprod-lsoa-data
 
@@ -57,11 +57,11 @@ function main() {
 
   echo Succefully Downloaded CSV from S3
 
-  echo Uploading items to Lsoa database
+  echo Uploading items to UniqueLsoa database
 
   python $PWD/scripts/pipeline/nonprod_lsoa_load/nonprod_lsoa_load.py
 
-  echo Succefully uploaded Lsoa data to database
+  echo Succefully uploaded unique Lsoa data to database
 
   echo "--------------------------------------------------------------"
 

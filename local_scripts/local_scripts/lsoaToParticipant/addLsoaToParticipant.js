@@ -1,7 +1,6 @@
 import { Readable } from "stream";
 import csv from "csv-parser";
 import fs from "fs";
-// import axios from "axios";
 
 //Variables
 const femaleCsv = fs.readFileSync("./dummyDataFemaleUpdated.csv");
@@ -34,7 +33,6 @@ const processLsoaData = async (csvString) => {
     Readable.from(csvString)
       .pipe(csv())
       .on("data", (row) => {
-        // console.log(row)
         dataObj[row.POSTCODE.replace(/\s/g, '')] = row.LSOA_2011
       })
       .on("end", () => {
