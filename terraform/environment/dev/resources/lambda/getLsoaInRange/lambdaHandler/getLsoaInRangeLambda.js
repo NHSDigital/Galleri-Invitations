@@ -11,10 +11,8 @@ const MTOKM = 1000;
 export const handler = async (event, context) => {
   const start = Date.now();
   // CALCULATE DISTANCE BETWEEN SITE AND LSOAs. RETURN THOSE IN 100 MILE RANGE
-  let clinicPostcode = event.queryStringParameters.clinicPostcode;
+  const clinicPostcode = event.queryStringParameters.clinicPostcode;
   const lsoasInRangeMiles = event.queryStringParameters.miles;
-  // placeholder postcode
-  clinicPostcode = "UB8 3NN";
 
   // make API request to get the easting and northing of postcode
   const clinicGridReference = await getClinicEastingNorthing(clinicPostcode);
@@ -57,7 +55,7 @@ export const handler = async (event, context) => {
 
   let responseObject = {};
 
-  if (records.length > 17000) { // add proper screening criteria
+  if (records.length != 0) {
     responseObject.statusCode = 200;
     responseObject.isBase64Encoded = true;
     (responseObject.headers = {
