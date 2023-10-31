@@ -219,10 +219,10 @@ resource "aws_dynamodb_table" "imd_table" {
 }
 
 resource "aws_dynamodb_table" "population_table" {
-  name           = "Population"
-  billing_mode   = "PAY_PER_REQUEST"
-  hash_key       = "PersonId"
-  range_key      = "LsoaCode"
+  name         = "Population"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "PersonId"
+  range_key    = "LsoaCode"
 
   attribute {
     name = "PersonId"
