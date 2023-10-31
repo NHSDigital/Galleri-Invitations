@@ -4,16 +4,6 @@ import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
   Lambda to get participants in LSOA from the list of available LSOAs
 */
 export const handler = async (event, context) => {
-  // want to recursively read from the SQS queue till complete
-  // use the LSOAs in the return data to query the Population table
-  // when population data returns, combine it and send to front end
-
-  // ORRRR
-
-  // getLsoaInRangeLambda calls getLsoaParticipantsLambda
-  // this then returns the count of participants
-  // and then combines the results to give to the front end
-
   const start = Date.now();
   const lsoaList = event;
   const client = new DynamoDBClient({ region: "eu-west-2" });
@@ -39,7 +29,7 @@ async function populateEligibleArray(client, lsoaCode){
   return tableItems.flat();
 };
 
-async function queryEligiblePopulation(client, lsoaCode, tableItems) {
+export async function queryEligiblePopulation(client, lsoaCode, tableItems) {
   const input = {
     "ExpressionAttributeValues": {
       ":code": {
@@ -55,16 +45,16 @@ async function queryEligiblePopulation(client, lsoaCode, tableItems) {
   const command = new QueryCommand(input);
   const response = await client.send(command);
 
-  if (response.$metadata.httpStatusCode){
+  if (response.$metadata.httpStatusCode == 200) {
     tableItems.push(response.Items)
-    return
+    return "Success"
   } else {
     console.log("Unsuccess")
     console.error("Response from table encountered an error")
   };
 };
 
-async function getPopulation (lsoaList, client) {
+export async function getPopulation (lsoaList, client) {
   const populationObject = {};
   await Promise.all(lsoaList.map(async (lsoa) => {
     const lsoaCode = lsoa.S;
@@ -72,7 +62,7 @@ async function getPopulation (lsoaList, client) {
 
     let invitedPopulation = 0;
     response.forEach((person) => {
-      if (person.Invited.S == "true") {
+      if (person?.Invited?.S == "true") {
         ++invitedPopulation;
       };
     });
