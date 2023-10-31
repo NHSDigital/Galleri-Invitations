@@ -11,7 +11,6 @@ def generate_nonprod_lsoa_json(file_path, table_name):
 
 def format_dynamodb_json(csvreader, table_name):
     output = []
-
     # extract relevant information from row and format
     # in dynamodb json
     for row in csvreader:
@@ -78,12 +77,11 @@ def format_dynamodb_json(csvreader, table_name):
                             'N': f'1'
                         },
                         'AVG_EASTING': {
-                            'S' : f'{AVG_EASTING}'
+                            'S': f'{AVG_EASTING}'
                         },
                         'AVG_NORTHING': {
-                            'S' : f'{AVG_NORTHING}'
-                        }
-
+                            'S': f'{AVG_NORTHING}'
+                        },
                     },
                     'TableName': table_name,
                 },
@@ -108,7 +106,7 @@ def batch_write_to_dynamodb(lsoa_data):
 
 if __name__ == "__main__":
     # read in data and generate the json output
-    file_input_path = "/nonprod-lsoa-data/unique_lsoa_data.csv" # change to read in unique lsoa data
+    file_input_path = "/nonprod-lsoa-data/lsoa_with_avg_easting_northing.csv" # change to read in unique lsoa data
 
     path_to_file = os.getcwd() + file_input_path
     generate_nonprod_lsoa_json(path_to_file, "UniqueLsoa")
