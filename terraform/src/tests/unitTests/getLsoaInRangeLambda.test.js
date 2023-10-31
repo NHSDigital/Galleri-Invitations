@@ -7,7 +7,6 @@ describe('getClinicEastingNorthing', () => {
   test('should successfully return eastings and northing from axios request', async () => {
     const mockPostcodeSuccess = "SW1A 2AA"
     const logSpy = jest.spyOn(global.console, 'log');
-    // mock out the axios call to return an object
 
     const result = await getClinicEastingNorthing(mockPostcodeSuccess);
 
@@ -22,10 +21,8 @@ describe('getClinicEastingNorthing', () => {
   });
 
   test('should catch error if API request fails', async () => {
-    // mock out the axios call to return an object
     const mockPostcodeFail = "AAAA BB"
     const logSpy = jest.spyOn(global.console, 'log');
-    // mock out the axios call to return an object
 
     const result = await getClinicEastingNorthing(mockPostcodeFail);
 
@@ -74,7 +71,6 @@ describe('scanLsoaTable', () => {
   });
 
   test('should run last execution on last iteration', async () => {
-    const logSpy = jest.spyOn(global.console, 'log');
 
     mockDynamoDbClient.resolves({
       $metadata: { httpStatusCode: 200 },
@@ -92,7 +88,6 @@ describe('scanLsoaTable', () => {
 
 
 describe('calculateDistance', () => {
-
   test('should correctly return straight line distance between coordinates', async () => {
 
     const lsao =  {
@@ -111,7 +106,6 @@ describe('calculateDistance', () => {
 });
 
 describe('generateLsoaTableData', () => {
-
   test('should format data to be used in table', async () => {
 
     const lsoaData = [

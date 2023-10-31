@@ -42,7 +42,6 @@ describe('getPopulation', () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
   const lsoaList = ["code1", "code2"]
 
-
   test('should loop through and add property of LSOA with population info', async () => {
     const logSpy = jest.spyOn(global.console, 'log');
 
@@ -52,7 +51,7 @@ describe('getPopulation', () => {
       },
       Body: "hello"
     });
-    const result = await getPopulation(lsoaList, mockDynamoDbClient);
+    await getPopulation(lsoaList, mockDynamoDbClient);
 
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledWith(`lsoa being queried number 2. Population object has 1`);
