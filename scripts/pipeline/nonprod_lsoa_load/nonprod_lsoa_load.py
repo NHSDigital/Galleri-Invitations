@@ -11,7 +11,6 @@ def generate_nonprod_lsoa_json(file_path, table_name):
 
 def format_dynamodb_json(csvreader, table_name):
     output = []
-
     # extract relevant information from row and format
     # in dynamodb json
     for row in csvreader:
@@ -19,8 +18,6 @@ def format_dynamodb_json(csvreader, table_name):
         NHS_ENG_REGION = str(row[3])
         SUB_ICB = str(row[4])
         CANCER_REGISTRY = str(row[5])
-        EASTING_1M = str(row[6])
-        NORTHING_1M = str(row[7])
         LSOA_2011 = str(row[8])
         MSOA_2011 = str(row[9])
         CANCER_ALLIANCE = str(row[10])
@@ -30,6 +27,8 @@ def format_dynamodb_json(csvreader, table_name):
         MSOA_2021 = str(row[14])
         IMD_RANK = str(row[15])
         IMD_DECILE = str(row[16])
+        AVG_EASTING = str(row[17])
+        AVG_NORTHING = str(row[18])
         output.append(
             {
                 'Put': {
@@ -45,12 +44,6 @@ def format_dynamodb_json(csvreader, table_name):
                         },
                         'CANCER_REGISTRY': {
                             'S': f'{CANCER_REGISTRY}'
-                        },
-                        'EASTING_1M': {
-                            'N': f'{EASTING_1M}'
-                        },
-                        'NORTHING_1M': {
-                            'N': f'{NORTHING_1M}'
                         },
                         'LSOA_2011': {
                             'S': f'{LSOA_2011}'
@@ -81,7 +74,13 @@ def format_dynamodb_json(csvreader, table_name):
                         },
                         'FORECAST_UPTAKE': {
                             'N': f'1'
-                        }
+                        },
+                        'AVG_EASTING': {
+                            'S': f'{AVG_EASTING}'
+                        },
+                        'AVG_NORTHING': {
+                            'S': f'{AVG_NORTHING}'
+                        },
                     },
                     'TableName': table_name,
                 },
@@ -106,7 +105,7 @@ def batch_write_to_dynamodb(lsoa_data):
 
 if __name__ == "__main__":
     # read in data and generate the json output
-    file_input_path = "/nonprod-lsoa-data/unique_lsoa_data.csv" # change to read in unique lsoa data
+    file_input_path = "/nonprod-lsoa-data/lsoa_with_avg_easting_northing.csv" # change to read in unique lsoa data
 
     path_to_file = os.getcwd() + file_input_path
     generate_nonprod_lsoa_json(path_to_file, "UniqueLsoa")
