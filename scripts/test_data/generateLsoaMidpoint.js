@@ -2,13 +2,15 @@ import { Readable } from "stream";
 import csv from "csv-parser";
 import fs from "fs";
 
+import { groupBy } from "./utils/helper.js";
+
 //Variables
 const lsoaData = fs.readFileSync(
-  "./input/lsoa_data_2023-08-21T16_26_00.578Z.csv"
+  "input/lsoa_data_2023-08-21T16_26_00.578Z.csv"
 );
 
 //Read in csv
-const processData = async (csvString) => {
+export const processData = async (csvString) => {
   const dataArray = [];
 
   return new Promise((resolve, reject) => {
@@ -26,32 +28,6 @@ const processData = async (csvString) => {
   });
 };
 
-//func to group postcodes by lsoa, prop is the property groupBy order and attach avgEasting and avgNorthing
-function groupBy(arr, prop) {
-  const map = new Map(Array.from(arr, (obj) => [obj[prop], []]));
-  arr.forEach((obj) => {
-    map.get(obj[prop]).push(obj);
-  });
-
-  map.forEach((x) => {
-    let avgEasting = 0;
-    let avgNorthing = 0;
-    for (let i = 0; i < x.length; i++) {
-      avgEasting += Math.floor(parseInt(x[i].EASTING_1M, 10) / x.length);
-      avgNorthing += Math.floor(parseInt(x[i].NORTHING_1M, 10) / x.length);
-    }
-    for (let i = 0; i < x.length; i++) {
-      x[i].AVG_EASTING = String(avgEasting);
-      x[i].AVG_NORTHING = avgNorthing.toLocaleString("en-GB", {
-        minimumIntegerDigits: 7,
-        useGrouping: false,
-      });
-    }
-  });
-  const finalArray = Array.from(map.values());
-  return finalArray.flat();
-}
-
 //Convert string to csv
 export const generateCsvString = (header, dataArray) => {
   return [
@@ -61,7 +37,7 @@ export const generateCsvString = (header, dataArray) => {
 };
 
 //Create new file with filename as name, and obj as csv passed in
-const writeFile = (filename, obj) => {
+export const writeFile = (filename, obj) => {
   fs.writeFile(filename, obj, (err) => {
     if (err) {
       console.log(err);
@@ -77,6 +53,6 @@ const lsoaArray = await processData(lsoaData);
 
 const lsoaGrouped = groupBy(lsoaArray, "LSOA_2011");
 
-const lsoaAvgGeneratedCsv = generateCsvString(lsoaHeader, lsoaArray);
+const lsoaAvgGeneratedCsv = generateCsvString(lsoaHeader, lsoaGrouped);
 
 writeFile("./output/AvgLsoaMidpoint.csv", lsoaAvgGeneratedCsv);
