@@ -14,21 +14,22 @@ def format_dynamodb_json(csvreader, table_name):
     # extract relevant information from row and format
     # in dynamodb json
     for row in csvreader:
-        LOCAL_AUT_ORG = str(row[0])
-        NHS_ENG_REGION = str(row[1])
-        SUB_ICB = str(row[2])
-        CANCER_REGISTRY = str(row[3])
-        LSOA_2011 = str(row[4])
-        MSOA_2011 = str(row[5])
-        CANCER_ALLIANCE = str(row[6])
-        ICB = str(row[7])
-        OA_2021 = str(row[8])
-        LSOA_2021 = str(row[9])
-        MSOA_2021 = str(row[10])
-        IMD_RANK = str(row[11])
-        IMD_DECILE = str(row[12])
-        AVG_EASTING = str(row[13])
-        AVG_NORTHING = str(row[14])
+        LOCAL_AUT_ORG = str(row[2])
+        NHS_ENG_REGION = str(row[3])
+        SUB_ICB = str(row[4])
+        CANCER_REGISTRY = str(row[5])
+        LSOA_2011 = str(row[8])
+        MSOA_2011 = str(row[9])
+        CANCER_ALLIANCE = str(row[10])
+        ICB = str(row[11])
+        OA_2021 = str(row[12])
+        LSOA_2021 = str(row[13])
+        MSOA_2021 = str(row[14])
+        IMD_RANK = str(row[15])
+        IMD_DECILE = str(row[16])
+        AVG_EASTING = str(row[17])
+        AVG_NORTHING = str(row[18])
+
 
         output.append(
             {
