@@ -6,7 +6,7 @@ import { groupBy } from "../utils/helper.js";
 
 //Variables
 const lsoaData = fs.readFileSync(
-  "../input/lsoa_data_2023-08-21T16_26_00.578Z.csv"
+  "./input/lsoa_data_2023-08-21T16_26_00.578Z.csv"
 );
 
 //Read in csv
@@ -55,4 +55,4 @@ const lsoaGrouped = groupBy(lsoaArray, "LSOA_2011");
 
 const lsoaAvgGeneratedCsv = generateCsvString(lsoaHeader, lsoaGrouped);
 
-writeFile("../output/lsoa_with_avg_easting_northing.csv", lsoaAvgGeneratedCsv);
+writeFile("./output/lsoa_with_avg_easting_northing.csv", lsoaAvgGeneratedCsv);

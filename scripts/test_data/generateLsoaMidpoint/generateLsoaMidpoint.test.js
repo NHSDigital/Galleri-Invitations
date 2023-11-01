@@ -1,4 +1,4 @@
-import { groupBy } from "./utils/helper";
+import { groupBy } from "../utils/helper.js";
 
 describe("Test Happy path of midpoint generation", () => {
   const testCsvArray = [

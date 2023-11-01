@@ -1,0 +1,11 @@
+{
+  "name": "generateUniqueLsoas",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "generateUniqueLsoas.js",
+  "author": "",
+  "dependencies": {
+    "csv": "^6.3.1",
+    "csv-parser": "^3.0.0"
+  }
+}
