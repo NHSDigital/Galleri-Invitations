@@ -70,7 +70,7 @@ function main() {
   python $PWD/scripts/pipeline/nonprod_postcode_load/nonprod_postcode_load.py
 
   echo Succefully uploaded Postcode data to database
-  
+
 }
 
 # ==============================================================================
