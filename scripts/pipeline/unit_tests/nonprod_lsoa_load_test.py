@@ -49,7 +49,7 @@ expected_output_data = [
                         },
                         'AVG_EASTING': {
                             'S': '14'
-                        }
+                        },
                         'AVG_NORTHING': {
                             'S': '15'
                         }
