@@ -35,7 +35,7 @@ on:
 jobs:
   scan-secrets:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 5
     name: "Scan secrets"
     steps:
       - name: "Checkout code"
