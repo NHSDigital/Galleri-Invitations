@@ -1,10 +1,34 @@
+variable "path_part" {}
 variable "lambda_invoke_arn" {}
-variable "api_gateway_path_part" {}
-variable "api_gateway_method_request_parameters" {}
-variable "api_gateway_method_response_200_response_parameters" {}
-variable "api_gateway_integration_response_response_parameters" {}
-variable "api_gateway_method_response_options_200_response_parameters" {}
-variable "api_gateway_integration_response_options_response_parameters" {}
+variable "method_http_parameters" {}
+variable "integration_response_http_parameters" {
+  default = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+}
+variable "integration_response_options_parameters" {
+  default = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'*'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+}
+variable "method_response_http_parameters" {
+  default = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+}
+variable "method_response_options_parameters" {
+  default = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+}
 variable "lambda_api_gateway_method" {
   default = "GET"
 }

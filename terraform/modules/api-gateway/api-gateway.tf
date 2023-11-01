@@ -6,99 +6,101 @@ resource "aws_api_gateway_rest_api" "galleri" {
   }
 }
 
-resource "aws_api_gateway_resource" "lambda_api_gateway" {
+
+// HTTP METHOD
+resource "aws_api_gateway_resource" "gateway" {
   rest_api_id = aws_api_gateway_rest_api.galleri.id
   parent_id   = aws_api_gateway_rest_api.galleri.root_resource_id
-  path_part   = var.api_gateway_path_part
+  path_part   = var.path_part
 }
 
-resource "aws_api_gateway_method" "lambda_api_gateway_method" {
+resource "aws_api_gateway_method" "http" {
   rest_api_id   = aws_api_gateway_rest_api.galleri.id
-  resource_id   = aws_api_gateway_resource.lambda_api_gateway.id
+  resource_id   = aws_api_gateway_resource.gateway.id
   http_method   = var.lambda_api_gateway_method
   authorization = "NONE"
 
-  request_parameters = var.api_gateway_method_request_parameters
+  request_parameters = var.method_http_parameters
 }
 
-resource "aws_api_gateway_integration" "lambda_api_gateway_integration" {
-  rest_api_id = aws_api_gateway_rest_api.galleri.id
-  resource_id = aws_api_gateway_method.lambda_api_gateway_method.resource_id
-  http_method = aws_api_gateway_method.lambda_api_gateway_method.http_method
-
+resource "aws_api_gateway_integration" "http" {
+  rest_api_id             = aws_api_gateway_rest_api.galleri.id
+  resource_id             = aws_api_gateway_method.http.resource_id
+  http_method             = aws_api_gateway_method.http.http_method
   integration_http_method = var.integration_http_method
   type                    = "AWS_PROXY"
   uri                     = var.lambda_invoke_arn
 
-  depends_on = [aws_api_gateway_method.lambda_api_gateway_method]
+  depends_on = [aws_api_gateway_method.http]
 }
 
-resource "aws_api_gateway_method_response" "lambda_api_gateway_response_200" {
+resource "aws_api_gateway_method_response" "http" {
   rest_api_id = aws_api_gateway_rest_api.galleri.id
-  resource_id = aws_api_gateway_method.lambda_api_gateway_method.resource_id
-  http_method = aws_api_gateway_method.lambda_api_gateway_method.http_method
+  resource_id = aws_api_gateway_method.http.resource_id
+  http_method = aws_api_gateway_method.http.http_method
   status_code = 200
 
   response_models = {
     "application/json" = "Empty"
   }
 
-  response_parameters = var.api_gateway_method_response_200_response_parameters
-
-  depends_on = [aws_api_gateway_method.lambda_api_gateway_method]
+  response_parameters = var.method_response_http_parameters
+  depends_on          = [aws_api_gateway_method.http]
 }
 
-resource "aws_api_gateway_integration_response" "lambda_api_gateway_integration_response" {
-  rest_api_id         = aws_api_gateway_rest_api.galleri.id
-  resource_id         = aws_api_gateway_resource.lambda_api_gateway.id
-  http_method         = aws_api_gateway_method.lambda_api_gateway_method.http_method
-  status_code         = aws_api_gateway_method_response.lambda_api_gateway_response_200.status_code
-  response_parameters = var.api_gateway_integration_response_response_parameters
+resource "aws_api_gateway_integration_response" "http" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.gateway.id
+  http_method = aws_api_gateway_method.http.http_method
+  status_code = aws_api_gateway_method_response.http.status_code
 
-  depends_on = [aws_api_gateway_integration.lambda_api_gateway_integration]
+  response_parameters = var.integration_response_http_parameters
+  depends_on          = [aws_api_gateway_integration.http]
 }
 
-resource "aws_api_gateway_method" "lambda_api_gateway_method_options" {
+
+// OPTIONS METHOD
+resource "aws_api_gateway_method" "options" {
   rest_api_id   = aws_api_gateway_rest_api.galleri.id
-  resource_id   = aws_api_gateway_resource.lambda_api_gateway.id
+  resource_id   = aws_api_gateway_resource.gateway.id
   http_method   = "OPTIONS"
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_integration" "lambda_api_gateway_integration_options" {
+resource "aws_api_gateway_integration" "options" {
   rest_api_id = aws_api_gateway_rest_api.galleri.id
-  resource_id = aws_api_gateway_method.lambda_api_gateway_method_options.resource_id
-  http_method = aws_api_gateway_method.lambda_api_gateway_method_options.http_method
+  resource_id = aws_api_gateway_method.options.resource_id
+  http_method = aws_api_gateway_method.options.http_method
 
   type = "MOCK"
   request_templates = { # Not documented
     "application/json" = "{statusCode: 200}"
   }
 
-  depends_on = [aws_api_gateway_method.lambda_api_gateway_method_options]
+  depends_on = [aws_api_gateway_method.options]
 }
 
-resource "aws_api_gateway_method_response" "lambda_api_gateway_method_response_options_200" {
+resource "aws_api_gateway_method_response" "options" {
   rest_api_id = aws_api_gateway_rest_api.galleri.id
-  resource_id = aws_api_gateway_resource.lambda_api_gateway.id
-  http_method = aws_api_gateway_method.lambda_api_gateway_method_options.http_method
+  resource_id = aws_api_gateway_resource.gateway.id
+  http_method = aws_api_gateway_method.options.http_method
   status_code = 200
 
   response_models = {
     "application/json" = "Empty"
   }
 
-  response_parameters = var.api_gateway_method_response_200_response_parameters
+  response_parameters = var.method_response_options_parameters
 
-  depends_on = [aws_api_gateway_method.lambda_api_gateway_method_options]
+  depends_on = [aws_api_gateway_method.options]
 }
 
-resource "aws_api_gateway_integration_response" "lambda_api_gateway_integration_response_options" {
+resource "aws_api_gateway_integration_response" "options" {
   rest_api_id         = aws_api_gateway_rest_api.galleri.id
-  resource_id         = aws_api_gateway_resource.lambda_api_gateway.id
-  http_method         = aws_api_gateway_method.lambda_api_gateway_method_options.http_method
-  status_code         = aws_api_gateway_method_response.lambda_api_gateway_method_response_options_200.status_code
-  response_parameters = var.api_gateway_integration_response_options_response_parameters
+  resource_id         = aws_api_gateway_resource.gateway.id
+  http_method         = aws_api_gateway_method.options.http_method
+  status_code         = aws_api_gateway_method_response.options.status_code
+  response_parameters = var.integration_response_options_parameters
 
-  depends_on = [aws_api_gateway_integration.lambda_api_gateway_integration_options]
+  depends_on = [aws_api_gateway_integration.options]
 }

@@ -109,32 +109,12 @@ module "clinic_information_cloudwatch" {
 }
 
 module "clinic_information_api_gateway" {
-  source                = "./modules/api-gateway"
-  lambda_invoke_arn     = module.clinic_information_lambda.lambda_invoke_arn
-  api_gateway_path_part = "clinic-information"
-  api_gateway_method_request_parameters = {
+  source            = "./modules/api-gateway"
+  lambda_invoke_arn = module.clinic_information_lambda.lambda_invoke_arn
+  path_part         = "clinic-information"
+  method_http_parameters = {
     "method.request.querystring.clinicId"   = true,
     "method.request.querystring.clinicName" = true
-  }
-  api_gateway_method_response_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  api_gateway_method_response_options_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_options_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
 }
 
@@ -164,31 +144,11 @@ module "clinic_icb_list_cloudwatch" {
 }
 
 module "clinic_icb_list_api_gateway" {
-  source                = "./modules/api-gateway"
-  lambda_invoke_arn     = module.clinic_icb_list_lambda.lambda_invoke_arn
-  api_gateway_path_part = "clinic-icb-list"
-  api_gateway_method_request_parameters = {
+  source            = "./modules/api-gateway"
+  lambda_invoke_arn = module.clinic_icb_list_lambda.lambda_invoke_arn
+  path_part         = "clinic-icb-list"
+  method_http_parameters = {
     "method.request.querystring.participatingIcb" = true
-  }
-  api_gateway_method_response_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  api_gateway_method_response_options_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_options_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
 }
 
@@ -218,30 +178,10 @@ module "participating_icb_list_cloudwatch" {
 }
 
 module "participating_icb_list_api_gateway" {
-  source                                = "./modules/api-gateway"
-  lambda_invoke_arn                     = module.participating_icb_list_lambda.lambda_invoke_arn
-  api_gateway_path_part                 = "participating-icb-list"
-  api_gateway_method_request_parameters = {}
-  api_gateway_method_response_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  api_gateway_method_response_options_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_options_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
+  source                 = "./modules/api-gateway"
+  lambda_invoke_arn      = module.participating_icb_list_lambda.lambda_invoke_arn
+  path_part              = "participating-icb-list"
+  method_http_parameters = {}
 }
 
 module "participating_icb_list_lambda_permissions" {
@@ -270,31 +210,11 @@ module "clinic_summary_list_cloudwatch" {
 }
 
 module "clinic_summary_list_api_gateway" {
-  source                = "./modules/api-gateway"
-  lambda_invoke_arn     = module.clinic_summary_list_lambda.lambda_invoke_arn
-  api_gateway_path_part = "clinic-summary-list"
-  api_gateway_method_request_parameters = {
+  source            = "./modules/api-gateway"
+  lambda_invoke_arn = module.clinic_summary_list_lambda.lambda_invoke_arn
+  path_part         = "clinic-summary-list"
+  method_http_parameters = {
     "method.request.querystring.participatingIcb" = true
-  }
-  api_gateway_method_response_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  api_gateway_method_response_options_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_options_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
 }
 
@@ -324,30 +244,10 @@ module "invitation_parameters_cloudwatch" {
 }
 
 module "invitation_parameters_api_gateway" {
-  source                                = "./modules/api-gateway"
-  lambda_invoke_arn                     = module.invitation_parameters_lambda.lambda_invoke_arn
-  api_gateway_path_part                 = "invitation-parameters"
-  api_gateway_method_request_parameters = {}
-  api_gateway_method_response_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  api_gateway_method_response_options_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_options_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
+  source                 = "./modules/api-gateway"
+  lambda_invoke_arn      = module.invitation_parameters_lambda.lambda_invoke_arn
+  path_part              = "invitation-parameters"
+  method_http_parameters = {}
 }
 
 module "invitation_parameters_lambda_permissions" {
@@ -376,31 +276,11 @@ module "invitation_parameters_put_forecast_uptake_cloudwatch" {
 }
 
 module "invitation_parameters_put_forecast_uptake_api_gateway" {
-  source                                = "./modules/api-gateway"
-  lambda_invoke_arn                     = module.invitation_parameters_lambda.lambda_invoke_arn
-  api_gateway_path_part                 = "invitation-parameters-put-forecast-uptake"
-  api_gateway_method_request_parameters = {}
-  lambda_api_gateway_method             = "PUT"
-  api_gateway_method_response_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  api_gateway_method_response_options_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_options_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
+  source                    = "./modules/api-gateway"
+  lambda_invoke_arn         = module.invitation_parameters_lambda.lambda_invoke_arn
+  path_part                 = "invitation-parameters-put-forecast-uptake"
+  method_http_parameters    = {}
+  lambda_api_gateway_method = "PUT"
 }
 
 module "invitation_parameters_put_forecast_uptake_lambda_permissions" {
@@ -428,31 +308,11 @@ module "invitation_parameters_put_quintiles_cloudwatch" {
 }
 
 module "invitation_parameters_put_quintiles_api_gateway" {
-  source                                = "./modules/api-gateway"
-  lambda_invoke_arn                     = module.invitation_parameters_put_quintiles_lambda.lambda_invoke_arn
-  api_gateway_path_part                 = "invitation-parameters-put-quintiles"
-  api_gateway_method_request_parameters = {}
-  lambda_api_gateway_method             = "PUT"
-  api_gateway_method_response_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  api_gateway_method_response_options_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_options_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
+  source                    = "./modules/api-gateway"
+  lambda_invoke_arn         = module.invitation_parameters_put_quintiles_lambda.lambda_invoke_arn
+  path_part                 = "invitation-parameters-put-quintiles"
+  method_http_parameters    = {}
+  lambda_api_gateway_method = "PUT"
 }
 
 module "invitation_parameters_put_quintiles_lambda_permissions" {
@@ -478,29 +338,14 @@ module "target_fill_to_percentage_put_cloudwatch" {
 }
 
 module "target_fill_to_percentage_put_api_gateway" {
-  source                                = "./modules/api-gateway"
-  lambda_invoke_arn                     = module.target_fill_to_percentage_put_lambda.lambda_invoke_arn
-  api_gateway_path_part                 = "target-percentage"
-  api_gateway_method_request_parameters = {}
-  lambda_api_gateway_method             = "PUT"
-  api_gateway_method_response_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_response_parameters = {
+  source                    = "./modules/api-gateway"
+  lambda_invoke_arn         = module.target_fill_to_percentage_put_lambda.lambda_invoke_arn
+  path_part                 = "target-percentage"
+  method_http_parameters    = {}
+  lambda_api_gateway_method = "PUT"
+  integration_response_http_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
     "method.response.header.Access-Control-Allow-Methods" = "'PUT'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  api_gateway_method_response_options_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_options_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
 }
@@ -528,29 +373,14 @@ module "target_fill_to_percentage_get_cloudwatch" {
 }
 
 module "target_fill_to_percentage_get_api_gateway" {
-  source                                = "./modules/api-gateway"
-  lambda_invoke_arn                     = module.target_fill_to_percentage_get_lambda.lambda_invoke_arn
-  api_gateway_path_part                 = "target-percentage"
-  api_gateway_method_request_parameters = {}
-  lambda_api_gateway_method             = "GET"
-  api_gateway_method_response_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_response_parameters = {
+  source                    = "./modules/api-gateway"
+  lambda_invoke_arn         = module.target_fill_to_percentage_get_lambda.lambda_invoke_arn
+  path_part                 = "target-percentage"
+  method_http_parameters    = {}
+  lambda_api_gateway_method = "GET"
+  integration_response_http_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
     "method.response.header.Access-Control-Allow-Methods" = "'PUT'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  api_gateway_method_response_options_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_options_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
 }
