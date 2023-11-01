@@ -62,7 +62,7 @@ export async function getPopulation (lsoaList, client) {
 
     let invitedPopulation = 0;
     response.forEach((person) => {
-      if (person?.Invited?.S == "true") {
+      if (person?.Invited?.S == "true" && person?.date_of_death?.S == "NULL") {
         ++invitedPopulation;
       };
     });
