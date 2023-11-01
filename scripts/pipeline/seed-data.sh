@@ -41,35 +41,35 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
-  echo Initiating upload of unique LSOA data to database
+  # echo Initiating upload of unique LSOA data to database
 
   mkdir ./nonprod-unique-lsoa-data
 
   aws s3 cp s3://galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
 
-  echo Succefully Downloaded CSV from S3
+  # echo Succefully Downloaded CSV from S3
 
-  echo Uploading items to UniqueLsoa database
+  # echo Uploading items to UniqueLsoa database
 
   python $PWD/scripts/pipeline/nonprod-unique-lsoa-data/nonprod_unique_lsoa_load.py
 
-  echo Succefully uploaded unique Lsoa data to database
+  # echo Succefully uploaded unique Lsoa data to database
 
-  echo "--------------------------------------------------------------"
+  # echo "--------------------------------------------------------------"
 
-  echo Initiating upload of Postcode subset data to database
+  # echo Initiating upload of Postcode subset data to database
 
-  mkdir nonprod-postcode-data
+  # mkdir nonprod-postcode-data
 
   aws s3 cp s3://galleri-ons-data/non_prod_lsoa_data_/lsoa_with_avg_easting_northing.csv ./nonprod-postcode-data
 
-  echo Succefully Downloaded CSV from S3
+  # echo Succefully Downloaded CSV from S3
 
-  echo Uploading items to Postcode database
+  # echo Uploading items to Postcode database
 
-  python $PWD/scripts/pipeline/nonprod_postcode_load/nonprod_postcode_load.py
+  # python $PWD/scripts/pipeline/nonprod_postcode_load/nonprod_postcode_load.py
 
-  echo Succefully uploaded Postcode data to database
+  # echo Succefully uploaded Postcode data to database
 
 }
 
