@@ -61,7 +61,7 @@ function main() {
 
   mkdir nonprod-postcode-data
 
-  aws s3 cp s3://galleri-ons-data/non_prod_lsoa_data_/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv ./nonprod-postcode-data
+  aws s3 cp s3://galleri-ons-data/non_prod_lsoa_data_/unique_lsoa_data.csv ./nonprod-postcode-data
 
   echo Succefully Downloaded CSV from S3
 
