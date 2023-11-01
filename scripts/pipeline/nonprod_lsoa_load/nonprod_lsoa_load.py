@@ -29,8 +29,6 @@ def format_dynamodb_json(csvreader, table_name):
         IMD_DECILE = str(row[16])
         AVG_EASTING = str(row[17])
         AVG_NORTHING = str(row[18])
-
-
         output.append(
             {
                 'Put': {
@@ -105,7 +103,6 @@ def batch_write_to_dynamodb(lsoa_data):
 if __name__ == "__main__":
     # read in data and generate the json output
     file_input_path = "/nonprod-lsoa-data/lsoa_with_avg_easting_northing.csv"
-    # change to read in unique lsoa data
 
     path_to_file = os.getcwd() + file_input_path
     generate_nonprod_lsoa_json(path_to_file, "UniqueLsoa")
