@@ -62,7 +62,5 @@ expected_output_data = [
 
 
 def test_format_dynamodb_json():
-    print (json.dumps(format_dynamodb_json(test_csv_data, 'Table'), indent=2))
-    print (json.dumps(expected_output_data, indent=2))
     assert format_dynamodb_json(test_csv_data, 'Table') == expected_output_data
 
