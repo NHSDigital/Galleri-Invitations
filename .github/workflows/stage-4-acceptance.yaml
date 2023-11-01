@@ -31,7 +31,6 @@ on:
         description: "Version of the software, set by the CI/CD pipeline workflow"
         required: true
         type: string
-
 env:
   role-to-assume: ${{ vars.AWS_ROLE_ARN }}
   aws-region: ${{ vars.aws_region }}
