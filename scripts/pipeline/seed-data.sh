@@ -51,15 +51,15 @@ function main() {
 
   echo Initiating upload of unique LSOA data to database
 
-  mkdir nonprod-lsoa-data
+  mkdir ./nonprod-unique-lsoa-data
 
-  aws s3 cp s3://galleri-ons-data/lsoa_data/lsoa_with_avg_easting_northing.csv ./nonprod-lsoa-data
+  aws s3 cp s3://galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
 
   echo Succefully Downloaded CSV from S3
 
   echo Uploading items to UniqueLsoa database
 
-  python $PWD/scripts/pipeline/nonprod_lsoa_load/nonprod_lsoa_load.py
+  python $PWD/scripts/pipeline/nonprod-unique-lsoa-data/nonprod_unique_lsoa_load.py
 
   echo Succefully uploaded unique Lsoa data to database
 
@@ -70,7 +70,7 @@ function main() {
   aws s3 cp s3://galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-lsoa-data
   # mkdir nonprod-phlebotomy-site-load
 
-  aws s3 cp s3://galleri-ons-data/non_prod_lsoa_data_/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv ./nonprod-postcode-data
+  aws s3 cp s3://galleri-ons-data/non_prod_lsoa_data_/lsoa_with_avg_easting_northing.csv ./nonprod-postcode-data
 
   echo Uploading items to Lsoa database
 
