@@ -1,0 +1,10 @@
+{
+  "name": "targetFillToPercentage",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "targetFillToPercentageLambda.js",
+  "author": "",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.398.0"
+  }
+}

@@ -1,0 +1,165 @@
+{
+  {
+    "ClinicId": {
+      "S": "0001"
+    },
+    "ClinicName": {
+      "S": "Phlebotomy clinic 5"
+    },
+    "Address": {
+      "S": "West hospital Big town"
+    },
+    "Availability": {
+      "N": "240"
+    },
+    "Directions": {
+      "S": "Directions to Clinic"
+    },
+    "Icb": {
+      "S": "Participating ICB 2"
+    },
+    "invitesSent": {
+      "N": "500"
+    },
+    "ODSCode": {
+      "S": "ABC123"
+    },
+    "PostCode": {
+      "S": "RG14 4RH"
+    },
+    "prevInviteDate": {
+      "S": "Tuesday 4 July 2023"
+    },
+    "WeekCommencingDate": {
+      "M": {
+        "11 August 2024": {
+          "S": "10"
+        },
+        "14 July 2024": {
+          "S": "20"
+        },
+        "18 August 2024": {
+          "S": "30"
+        },
+        "21 July 2024": {
+          "S": "40"
+        },
+        "28 July 2024": {
+          "S": "50"
+        },
+        "4 August 2024": {
+          "S": "60"
+        }
+      }
+    }
+  },
+
+  {
+    "ClinicId": {
+      "S": "0002"
+    },
+    "ClinicName": {
+      "S": "Phlebotomy clinic 6"
+    },
+    "Address": {
+      "S": "East hospital Small town"
+    },
+    "Availability": {
+      "N": "340"
+    },
+    "Directions": {
+      "S": "Directions to Clinic"
+    },
+    "Icb": {
+      "S": "Participating ICB 1"
+    },
+    "invitesSent": {
+      "N": "50"
+    },
+    "ODSCode": {
+      "S": "DEF345"
+    },
+    "PostCode": {
+      "S": "AR14 5RH"
+    },
+    "prevInviteDate": {
+      "S": "Friday 7 July 2023"
+    },
+    "WeekCommencingDate": {
+      "M": {
+        "11 August 2024": {
+          "S": "90"
+        },
+        "14 July 2024": {
+          "S": "60"
+        },
+        "18 August 2024": {
+          "S": "12"
+        },
+        "21 July 2024": {
+          "S": "85"
+        },
+        "28 July 2024": {
+          "S": "4"
+        },
+        "4 August 2024": {
+          "S": "0"
+        }
+      }
+    }
+  },
+  {
+    "ClinicId": {
+      "S": "0003"
+    },
+    "ClinicName": {
+      "S": "Phlebotomy clinic 7"
+    },
+    "Address": {
+      "S": "North hospital Medium town"
+    },
+    "Availability": {
+      "N": "240"
+    },
+    "Directions": {
+      "S": "Directions to Clinic"
+    },
+    "Icb": {
+      "S": "Participating ICB 2"
+    },
+    "invitesSent": {
+      "N": "1000"
+    },
+    "ODSCode": {
+      "S": "HIJ789"
+    },
+    "PostCode": {
+      "S": "UB10 9FG"
+    },
+    "prevInviteDate": {
+      "S": "Sunday 9 July 2023"
+    },
+    "WeekCommencingDate": {
+      "M": {
+        "11 August 2024": {
+          "S": "11"
+        },
+        "14 July 2024": {
+          "S": "22"
+        },
+        "18 August 2024": {
+          "S": "33"
+        },
+        "21 July 2024": {
+          "S": "44"
+        },
+        "28 July 2024": {
+          "S": "55"
+        },
+        "4 August 2024": {
+          "S": "66"
+        }
+      }
+    }
+  }
+}
