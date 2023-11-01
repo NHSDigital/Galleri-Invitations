@@ -1,5 +1,4 @@
 import csv
-import json
 import os
 import boto3
 
@@ -33,6 +32,9 @@ def format_dynamodb_json(csvreader, table_name):
         MSOA_2021 = str(row[14])
         IMD_RANK = str(row[15])
         IMD_DECILE = str(row[16])
+        AVG_EASTING = str(row[17])
+        AVG_NORTHING = str(row[18])
+
         output.append(
             {
                 'Put': {
@@ -87,6 +89,12 @@ def format_dynamodb_json(csvreader, table_name):
                         },
                         'IMD_DECILE': {
                             'N': f'{IMD_DECILE}'
+                        },
+                        'AVG_EASTING': {
+                            'S': f'{AVG_EASTING}'
+                        },
+                        'AVG_NORTHING': {
+                            'S': f'{AVG_NORTHING}'
                         }
                     },
                     'TableName': table_name,
