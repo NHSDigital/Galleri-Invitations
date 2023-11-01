@@ -1,4 +1,5 @@
 from scripts.pipeline.nonprod_lsoa_load.nonprod_lsoa_load import format_dynamodb_json
+import json
 
 test_csv_data = [
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
@@ -61,5 +62,7 @@ expected_output_data = [
 
 
 def test_format_dynamodb_json():
+    print (json.dumps(format_dynamodb_json(test_csv_data, 'Table'), indent=2))
+    print (json.dumps(expected_output_data, indent=2))
     assert format_dynamodb_json(test_csv_data, 'Table') == expected_output_data
 
