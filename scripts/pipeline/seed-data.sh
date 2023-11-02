@@ -29,22 +29,6 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
-  echo Initiating upload of LSOA subset data to database
-
-  mkdir nonprod-lsoa-data
-
-  aws s3 cp s3://galleri-ons-data/non_prod_lsoa_data_/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv ./nonprod-lsoa-data
-
-  echo Succefully Downloaded CSV from S3
-
-  echo Uploading items to LSOA database
-
-  python $PWD/scripts/pipeline/nonprod_lsoa_load/nonprod_lsoa_load.py
-
-  echo Succefully uploaded LSOA data to database
-
-  echo "--------------------------------------------------------------"
-
   echo Initiating upload of Phlebotomy clinic data to database
 
   mkdir nonprod-phlebotomy-site-load
@@ -52,6 +36,62 @@ function main() {
   echo Uploading items to Phlebotomy clinic database
 
   python $PWD/scripts/pipeline/nonprod_phlebotomy_site_load/nonprod_phlebotomy_site_load.py
+
+  echo Uploading items to Postcode database
+
+  python $PWD/scripts/pipeline/nonprod_postcode_load/nonprod_postcode_load.py
+
+  # python $PWD/nonprod_postcode_load/nonprod_postcode_load.py
+
+  # python $PWD/nonprod_postcode_load/nonprod_postcode_load.py
+
+  echo Succefully uploaded Postcode data to database
+
+  echo "--------------------------------------------------------------"
+
+  # echo Initiating upload of unique LSOA data to database
+
+  # mkdir ./nonprod-unique-lsoa-data
+
+  # aws s3 cp s3://galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
+
+  # echo Succefully Downloaded CSV from S3
+
+  # echo Uploading items to UniqueLsoa database
+
+  # python $PWD/scripts/pipeline/nonprod-unique-lsoa-data/nonprod_unique_lsoa_load.py
+
+  # echo Succefully uploaded unique Lsoa data to database
+
+  # echo "--------------------------------------------------------------"
+
+  # echo Initiating upload of Postcode subset data to database
+
+  aws s3 cp s3://galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-lsoa-data
+  # mkdir nonprod-phlebotomy-site-load
+
+  # aws s3 cp s3://galleri-ons-data/non_prod_lsoa_data_/lsoa_with_avg_easting_northing.csv ./nonprod-postcode-data
+
+  echo Uploading items to Lsoa database
+
+  python $PWD/scripts/pipeline/nonprod_lsoa_load/nonprod_postcode_load.py
+
+  # python $PWD/nonprod_lsoa_load/nonprod_lsoa_load.py
+
+  echo Succefully uploaded Lsoa data to database
+
+  echo "--------------------------------------------------------------"
+
+  echo Initiating upload of Phlebotomy clinic data to database
+
+  mkdir nonprod-phlebotomy-site-load
+
+  # echo Uploading items to Phlebotomy clinic database
+
+  python $PWD/scripts/pipeline/nonprod_phlebotomy_site_load/nonprod_phlebotomy_site_load.py
+
+  echo Succefully uploaded Phlebotomy clinic data to database
+  # python $PWD/scripts/pipeline/nonprod_phlebotomy_site_load/nonprod_phlebotomy_site_load.py
 
   echo Succefully uploaded Phlebotomy clinic data to database
 

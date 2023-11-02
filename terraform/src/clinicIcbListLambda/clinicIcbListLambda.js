@@ -19,7 +19,7 @@ export const handler = async (event, context) => {
         S: `${participatingIcbSelection}`,
       },
     },
-    FilterExpression: "Icb = :a",
+    FilterExpression: "ICBCode = :a",
     ProjectionExpression: "#CN, #CI",
     TableName: "PhlebotomySite",
   };
