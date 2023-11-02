@@ -51,7 +51,7 @@ function main() {
 
   echo Uploading items to UniqueLsoa database
 
-  python $PWD/scripts/pipeline/nonprod-unique-lsoa-data/nonprod_unique_lsoa_load.py
+  python $PWD/scripts/pipeline/nonprod_unique_lsoa_data/nonprod_unique_lsoa_load.py
 
   echo Succefully uploaded unique Lsoa data to database
 
