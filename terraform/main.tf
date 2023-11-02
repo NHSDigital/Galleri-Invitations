@@ -1,10 +1,10 @@
 terraform {
   backend "s3" {
-    bucket = "galleri-github-oidc-tf-aws-tfstates"
-    key    = "infra.tfstate"
-    region = "eu-west-2"
-    # dynamodb_table = "galleri-terraform-state"
-    # encrypt        = true
+    bucket         = "galleri-github-oidc-tf-aws-tfstates"
+    key            = "infra.tfstate"
+    region         = "eu-west-2"
+    dynamodb_table = "terraform-state-lock-dynamo"
+    encrypt        = true
   }
 }
 
@@ -90,7 +90,7 @@ module "lsoa_loader_cloudwatch" {
 }
 
 
-# clinic information
+# Clinic information
 module "clinic_information_lambda" {
   source               = "./modules/lambda"
   bucket_id            = module.s3_bucket.bucket_id
@@ -141,7 +141,7 @@ module "clinic_information_api_gateway" {
 module "clinic_information_lambda_permissions" {
   source                         = "./modules/lambda_permission"
   lambda_function_name           = module.clinic_information_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}/*/GET/*"
+  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
 }
 
 
@@ -195,11 +195,11 @@ module "clinic_icb_list_api_gateway" {
 module "clinic_icb_list_lambda_permissions" {
   source                         = "./modules/lambda_permission"
   lambda_function_name           = module.clinic_icb_list_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}/*/GET/*"
+  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
 }
 
 
-# partisipating icb list
+# Participating icb list
 module "participating_icb_list_lambda" {
   source               = "./modules/lambda"
   bucket_id            = module.s3_bucket.bucket_id
@@ -247,11 +247,11 @@ module "participating_icb_list_api_gateway" {
 module "participating_icb_list_lambda_permissions" {
   source                         = "./modules/lambda_permission"
   lambda_function_name           = module.participating_icb_list_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}/*/GET/*"
+  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
 }
 
 
-# clinic summary list
+# Clinic summary list
 module "clinic_summary_list_lambda" {
   source               = "./modules/lambda"
   bucket_id            = module.s3_bucket.bucket_id
@@ -301,7 +301,7 @@ module "clinic_summary_list_api_gateway" {
 module "clinic_summary_list_lambda_permissions" {
   source                         = "./modules/lambda_permission"
   lambda_function_name           = module.clinic_summary_list_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}/*/GET/*"
+  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
 }
 
 
@@ -353,7 +353,7 @@ module "invitation_parameters_api_gateway" {
 module "invitation_parameters_lambda_permissions" {
   source                         = "./modules/lambda_permission"
   lambda_function_name           = module.invitation_parameters_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}/*/GET/*"
+  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
 }
 
 
@@ -406,7 +406,7 @@ module "invitation_parameters_put_forecast_uptake_api_gateway" {
 module "invitation_parameters_put_forecast_uptake_lambda_permissions" {
   source                         = "./modules/lambda_permission"
   lambda_function_name           = module.invitation_parameters_put_forecast_uptake_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}/*/GET/*"
+  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
 }
 
 # Invitations Parameters Put Quintiles
@@ -458,7 +458,7 @@ module "invitation_parameters_put_quintiles_api_gateway" {
 module "invitation_parameters_put_quintiles_lambda_permissions" {
   source                         = "./modules/lambda_permission"
   lambda_function_name           = module.invitation_parameters_put_quintiles_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}/*/GET/*"
+  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
 }
 
 # Target Fill to Percentage PUT
@@ -508,7 +508,7 @@ module "target_fill_to_percentage_put_api_gateway" {
 module "target_fill_to_percentage_put_lambda_permissions" {
   source                         = "./modules/lambda_permission"
   lambda_function_name           = module.target_fill_to_percentage_put_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}/*/GET/*"
+  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
 }
 
 # Target Fill to Percentage GET
@@ -558,10 +558,77 @@ module "target_fill_to_percentage_get_api_gateway" {
 module "target_fill_to_percentage_get_lambda_permissions" {
   source                         = "./modules/lambda_permission"
   lambda_function_name           = module.target_fill_to_percentage_get_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}/*/GET/*"
+  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
 }
 
+# LSOA in range
+module "lsoa_in_range_lambda" {
+  source               = "./modules/lambda"
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "getLsoaInRangeLambda"
+  lambda_s3_object_key = "get_lsoa_in_range_lambda.zip"
+  environment_vars     = {}
+}
 
+module "lsoa_in_range_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  lambda_function_name = module.lsoa_in_range_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "lsoa_in_range_api_gateway" {
+  source                                = "./modules/api-gateway"
+  lambda_invoke_arn                     = module.lsoa_in_range_lambda.lambda_invoke_arn
+  api_gateway_path_part                 = "get-lsoa-in-range"
+  api_gateway_method_request_parameters = {
+    "method.request.querystring.clinicPostcode"   = true,
+    "method.request.querystring.miles" = true
+  }
+  lambda_api_gateway_method             = "GET"
+  api_gateway_method_response_200_response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+  api_gateway_integration_response_response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+  api_gateway_method_response_options_200_response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+  api_gateway_integration_response_options_response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'*'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+}
+
+module "lsoa_in_range_lambda_permissions" {
+  source                         = "./modules/lambda_permission"
+  lambda_function_name           = module.lsoa_in_range_lambda.lambda_function_name
+  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
+}
+
+# Population in LSOA
+module "participants_in_lsoa_lambda" {
+  source               = "./modules/lambda"
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "getLsoaParticipantsLambda"
+  lambda_s3_object_key = "get_participants_in_lsoa_lambda.zip"
+  environment_vars     = {}
+}
+
+module "participants_in_lsoa_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  lambda_function_name = module.participants_in_lsoa_lambda.lambda_function_name
+  retention_days       = 14
+}
 
 
 # Dynamodb tables
@@ -724,29 +791,28 @@ module "population_table" {
     {
       name = "LsoaCode"
       type = "N"
-    },
-    {
-      name = "NhsNumber"
-      type = "N"
     }
   ]
   global_secondary_index = [
     {
       name      = "PersonId"
-      hash_key  = "NhsNumber"
-      range_key = "LsoaCode"
+      hash_key  = "LsoaCode"
     }
-  ]
+  ],
+    secondary_write_capacity = 10,
+    secondary_read_capacity = 10,
+    projection_type = "INCLUDE"
+    non_key_attributes = ["Invited"]
   tags = {
     Name        = "Dynamodb Table Population"
     Environment = var.environment
   }
 }
 
-module "LSOA_table" {
+module "postcode_table" {
   source         = "./modules/dynamodb"
   billing_mode   = "PAY_PER_REQUEST"
-  table_name     = "Lsoa"
+  table_name     = "Postcode"
   hash_key       = "POSTCODE"
   range_key      = "IMD_RANK"
   read_capacity  = null
@@ -772,11 +838,35 @@ module "LSOA_table" {
     }
   ]
   tags = {
-    Name        = "Dynamodb Table LSOA"
+    Name        = "Dynamodb Table Postcode"
     Environment = var.environment
   }
 }
 
+module "lsoa_table" {
+  source         = "./modules/dynamodb"
+  billing_mode   = "PAY_PER_REQUEST"
+  table_name     = "UniqueLsoa"
+  hash_key       = "LSOA_2011"
+  read_capacity  = null
+  write_capacity = null
+  attributes = [{
+    name = "LSOA_2011"
+    type = "S"
+    }
+  ]
+  global_secondary_index = [
+    {
+      name      = null
+      hash_key  = null
+      range_key = null
+    }
+  ]
+  tags = {
+    Name        = "Dynamodb Table Lsoa"
+    Environment = var.environment
+  }
+}
 module "invitation_parameters_table" {
   source     = "./modules/dynamodb"
   table_name = "InvitationParameters"
