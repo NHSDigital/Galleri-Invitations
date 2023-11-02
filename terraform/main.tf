@@ -25,22 +25,6 @@ module "s3_bucket" {
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
 }
 
-# module "galleri_api_gateway_deployment" {
-#   source      = "./modules/api-gateway-deployment"
-#   rest_api_id = module.clinic_information_api_gateway.rest_api_galleri_id
-#   stage_name  = "dev"
-#   depends_on = [
-#     module.clinic_information_api_gateway,
-#     module.participating_icb_list_api_gateway,
-#     module.clinic_summary_list_api_gateway,
-#     module.invitation_parameters_api_gateway,
-#     module.invitation_parameters_put_forecast_uptake_api_gateway,
-#     module.invitation_parameters_put_quintiles_api_gateway,
-#     module.target_fill_to_percentage_put_api_gateway,
-#     module.target_fill_to_percentage_get_api_gateway
-#   ]
-# }
-
 
 # Data Filter Gridall IMD
 module "data_filter_gridall_imd_lambda" {
@@ -118,12 +102,6 @@ module "clinic_information_api_gateway" {
   environment          = var.environment
 }
 
-# module "clinic_information_lambda_permissions" {
-#   source                         = "./modules/lambda_permission"
-#   lambda_function_name           = module.clinic_information_lambda.lambda_function_name
-#   rest_api_galleri_execution_arn = module.clinic_information_api_gateway.api_gateway_execution_arn
-# }
-
 
 # Clinic icb list
 module "clinic_icb_list_lambda" {
@@ -154,12 +132,6 @@ module "clinic_icb_list_api_gateway" {
   environment          = var.environment
 }
 
-# module "clinic_icb_list_lambda_permissions" {
-#   source                         = "./modules/lambda_permission"
-#   lambda_function_name           = module.clinic_icb_list_lambda.lambda_function_name
-#   rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
-# }
-
 
 # partisipating icb list
 module "participating_icb_list_lambda" {
@@ -187,12 +159,6 @@ module "participating_icb_list_api_gateway" {
   lambda_function_name   = module.participating_icb_list_lambda.lambda_function_name
   environment            = var.environment
 }
-
-# module "participating_icb_list_lambda_permissions" {
-#   source                         = "./modules/lambda_permission"
-#   lambda_function_name           = module.participating_icb_list_lambda.lambda_function_name
-#   rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
-# }
 
 
 # clinic summary list
@@ -224,12 +190,6 @@ module "clinic_summary_list_api_gateway" {
   environment          = var.environment
 }
 
-# module "clinic_summary_list_lambda_permissions" {
-#   source                         = "./modules/lambda_permission"
-#   lambda_function_name           = module.clinic_summary_list_lambda.lambda_function_name
-#   rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
-# }
-
 
 # Invitation Parameters
 module "invitation_parameters_lambda" {
@@ -257,12 +217,6 @@ module "invitation_parameters_api_gateway" {
   lambda_function_name   = module.invitation_parameters_lambda.lambda_function_name
   environment            = var.environment
 }
-
-# module "invitation_parameters_lambda_permissions" {
-#   source                         = "./modules/lambda_permission"
-#   lambda_function_name           = module.invitation_parameters_lambda.lambda_function_name
-#   rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
-# }
 
 
 # Invitation Parameters Put Forcast Uptake
@@ -294,13 +248,6 @@ module "invitation_parameters_put_forecast_uptake_api_gateway" {
   environment               = var.environment
 }
 
-# module "invitation_parameters_put_forecast_uptake_lambda_permissions" {
-#   source                         = "./modules/lambda_permission"
-#   lambda_function_name           = module.invitation_parameters_put_forecast_uptake_lambda.lambda_function_name
-#   rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
-#   method                         = "/*/PUT/*"
-# }
-
 
 # Invitations Parameters Put Quintiles
 module "invitation_parameters_put_quintiles_lambda" {
@@ -330,13 +277,6 @@ module "invitation_parameters_put_quintiles_api_gateway" {
   method                    = "/*/PUT/*"
   environment               = var.environment
 }
-
-# module "invitation_parameters_put_quintiles_lambda_permissions" {
-#   source                         = "./modules/lambda_permission"
-#   lambda_function_name           = module.invitation_parameters_put_quintiles_lambda.lambda_function_name
-#   rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
-#   method                         = "/*/PUT/*"
-# }
 
 
 # Target Fill to Percentage PUT
@@ -371,13 +311,6 @@ module "target_fill_to_percentage_put_api_gateway" {
   environment          = var.environment
 }
 
-# module "target_fill_to_percentage_put_lambda_permissions" {
-#   source                         = "./modules/lambda_permission"
-#   lambda_function_name           = module.target_fill_to_percentage_put_lambda.lambda_function_name
-#   rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
-#   method                         = "/*/PUT/*"
-# }
-
 
 # Target Fill to Percentage GET
 module "target_fill_to_percentage_get_lambda" {
@@ -409,12 +342,6 @@ module "target_fill_to_percentage_get_api_gateway" {
   lambda_function_name = module.target_fill_to_percentage_get_lambda.lambda_function_name
   environment          = var.environment
 }
-
-# module "target_fill_to_percentage_get_lambda_permissions" {
-#   source                         = "./modules/lambda_permission"
-#   lambda_function_name           = module.target_fill_to_percentage_get_lambda.lambda_function_name
-#   rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
-# }
 
 
 # Dynamodb tables
