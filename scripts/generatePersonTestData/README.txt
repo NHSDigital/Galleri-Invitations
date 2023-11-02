@@ -4,7 +4,7 @@ The new CSV files must include only those postcodes which are present in the LSO
 The generated male/female CSV files will be output to ./csv/output/<filename>.csv
 
 To run/generate files:
-Run the 'node main' command.
+Run the 'node generatePersonTestData' command.
 
 To run/generate files and upload to the s3 bucket:
 Get programmatic access to AWS
