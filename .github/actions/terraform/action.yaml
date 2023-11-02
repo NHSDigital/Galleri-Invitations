@@ -19,19 +19,19 @@ runs:
       with:
         terraform_version: 1.5.0
 
-    - name: Flatten Terrafrom Directory
-      id: flatten
-      shell: bash
-      run: |
-        cd ./terraform/environment/dev
-        mv ./*/* .
-        rm -rf resources
+    # - name: Flatten Terrafrom Directory
+    #   id: flatten
+    #   shell: bash
+    #   run: |
+    #     cd ./terraform
+    #     mv ./*/* .
+    #     rm -rf resources
 
     - name: Terraform fmt
       id: fmt
       shell: bash
       run: |
-        cd ./terraform/environment/dev
+        cd ./terraform
         terraform fmt -check
       continue-on-error: true
 
@@ -39,49 +39,50 @@ runs:
       id: init
       shell: bash
       run: |
-        cd ./terraform/environment/dev
+        cd ./terraform
         terraform init -backend-config="bucket=${{ env.aws-bucket-name }}" -backend-config="key=${{ env.aws-bucket-key-name }}" -backend-config="region=${{ env.aws-region }}"
 
-    - name: Terraform Destroy
-      id: destroy
-      shell: bash
-      run: |
-        cd ./terraform/environment/dev
-        terraform destroy -auto-approve
+    # - name: Terraform Destroy
+    #   id: destroy
+    #   shell: bash
+    #   run: |
+    #     cd ./terraform
+    #     terraform destroy -auto-approve
 
     - name: Terraform Validate
       id: validate
       shell: bash
       run: |
-        cd ./terraform/environment/dev
+        cd ./terraform
         terraform validate -no-color
 
     - name: Terraform Plan
       id: plan
       shell: bash
       run: |
-        cd ./terraform/environment/dev
-        terraform plan -no-color
+        cd ./terraform
+        terraform plan -no-color -var-file=environment/dev/terraform.tfvars
 
     - name: Terraform Plan Status
       if: steps.plan.outcome == 'failure'
       shell: bash
       run: |
-        cd ./terraform/environment/dev
         echo Terraform Plan Status has failed
         exit 1
 
     - name: Terraform Apply
       shell: bash
       run: |
-        cd ./terraform/environment/dev
-        npm install --prefix lambda/filterData/lambdaHandler
-        npm install --prefix lambda/lsoaLoader/lambdaHandler
-        npm install --prefix lambda/clinicIcbList/lambdaHandler
-        npm install --prefix lambda/clinicInformation/lambdaHandler
-        npm install --prefix lambda/clinicSummaryList/lambdaHandler
-        npm install --prefix lambda/invitationParameters/lambdaHandler
-        npm install --prefix lambda/invitationParametersPutForecastUptake/lambdaHandler
-        npm install --prefix lambda/invitationParametersPutQuintiles/lambdaHandler
-        npm install --prefix lambda/participatingIcbList/lambdaHandler
-        terraform apply -auto-approve -input=false
+        cd ./terraform
+        npm install --prefix src/dataFilterLambda
+        npm install --prefix src/lsoaLoaderLambda
+        npm install --prefix src/clinicIcbListLambda
+        npm install --prefix src/clinicInformationLambda
+        npm install --prefix src/clinicSummaryListLambda
+        npm install --prefix src/invitationParametersLambda
+        npm install --prefix src/invitationParametersPutForecastUptakeLambda
+        npm install --prefix src/invitationParametersPutQuintilesLambda
+        npm install --prefix src/participatingIcbList
+        npm install --prefix src/targetFillToPercentage
+        npm install --prefix src/targetFillToPercentagePut
+        terraform apply -auto-approve -input=false -var-file=environment/dev/terraform.tfvars

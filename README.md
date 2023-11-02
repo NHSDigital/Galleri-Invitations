@@ -10,6 +10,7 @@ This is a repo containing the code for the Galleri Invitations Algorithm
     - [Prerequisites](#prerequisites)
   - [Usage](#usage)
     - [Configuration](#configuration)
+  - [Terraform](#terraform)
   - [Contributing](#contributing)
   - [Contacts](#contacts)
   - [Licence](#licence)
@@ -45,15 +46,21 @@ The following software packages or their equivalents are expected to be installe
 After a successful installation, provide an informative example of how this project can be used. Additional code snippets, screenshots and demos work well in this space. You may also link to the other documentation resources, e.g. the [User Guide](./docs/user-guide.md) to demonstrate more use cases and to show more features.
 
 Before pushing to the repo, the developer must run the following commands to run sonarcloud locally;
-  sonar-scanner \
-  -Dsonar.organization=nhsdigital \
-  -Dsonar.projectKey=galleri-invitations \
-  -Dsonar.sources=. \
-  -Dsonar.host.url=<https://sonarcloud.io>
+sonar-scanner \
+ -Dsonar.organization=nhsdigital \
+ -Dsonar.projectKey=galleri-invitations \
+ -Dsonar.sources=. \
+ -Dsonar.host.url=<https://sonarcloud.io>
 
 ### Configuration
 
 Most of the projects are built with customisability and extendability in mind. At a minimum, this can be achieved by implementing service level configuration options and settings. The intention of this section is to show how this can be used. If the system processes data, you could mention here for example how the input is prepared for testing - anonymised, synthetic or live data.
+
+## Terraform
+
+This repository utilises a modular approch to terraform, the config can be found under the `terraform` directory. The `main.yaml` file contains the code which calls the modules and passes in the required variables.
+
+under that directory we have the `modules` directory which has the code which is in logical groups. This makes it easier and quicker to reproduce multiple similar resources.
 
 ## Contributing
 
