@@ -95,9 +95,25 @@ function main() {
 
   echo Succefully uploaded Phlebotomy clinic data to database
 
-}
+  echo "--------------------------------------------------------------"
 
-# ==============================================================================
+  echo Initiating upload of dummy test data to database
+
+  mkdir nonprod-population-data
+
+  aws s3 cp s3://galleri-test-data/non_prod_participant_data/ ./nonprod-population-data --recursive
+
+  echo Succefully Downloaded galleri-test-data CSVs from S3
+
+  echo Uploading items to Population database
+
+  python $PWD/scripts/pipeline/nonprod_population_load/nonprod_population_load.py
+
+  echo Succefully uploaded dummy test data to database
+
+  echo "--------------------------------------------------------------"
+
+}
 
 main $*
 
