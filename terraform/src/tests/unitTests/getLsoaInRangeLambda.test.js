@@ -1,4 +1,4 @@
-import { getClinicEastingNorthing, scanLsoaTable, populateLsoaArray, calculateDistance, generateLsoaTableData } from '../../getLsoaInRange/lambdaHandler/getLsoaInRangeLambda.js';
+import { getClinicEastingNorthing, scanLsoaTable, populateLsoaArray, calculateDistance, generateLsoaTableData } from '../../getLsoaInRange/getLsoaInRangeLambda.js';
 import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
@@ -85,7 +85,6 @@ describe('scanLsoaTable', () => {
 
   });
 });
-
 
 describe('calculateDistance', () => {
   test('should correctly return straight line distance between coordinates', async () => {
