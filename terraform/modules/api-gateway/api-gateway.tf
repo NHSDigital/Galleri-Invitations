@@ -1,9 +1,15 @@
 resource "aws_api_gateway_rest_api" "galleri" {
-  name        = "galleri-dev-local-2"
+  name        = var.path_part
   description = "API for the galleri webapp"
   endpoint_configuration {
     types = ["REGIONAL"]
   }
+}
+
+resource "aws_api_gateway_deployment" "galleri" {
+
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  stage_name  = var.environment
 }
 
 
@@ -103,4 +109,17 @@ resource "aws_api_gateway_integration_response" "options" {
   response_parameters = var.integration_response_options_parameters
 
   depends_on = [aws_api_gateway_integration.options]
+}
+
+# Lambda Permissions
+
+resource "aws_lambda_permission" "lambda_permission" {
+  statement_id  = var.statement_id
+  action        = var.action
+  function_name = var.lambda_function_name
+  principal     = var.principal
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}${var.method}"
 }

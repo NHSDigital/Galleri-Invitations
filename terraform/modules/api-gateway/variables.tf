@@ -35,3 +35,21 @@ variable "lambda_api_gateway_method" {
 variable "integration_http_method" {
   default = "POST"
 }
+
+variable "lambda_function_name" {}
+variable "statement_id" {
+  default = "AllowAPIGatewayInvoke"
+}
+variable "action" {
+  default = "lambda:InvokeFunction"
+}
+variable "principal" {
+  default = "apigateway.amazonaws.com"
+}
+variable "method" {
+  default = "/*/GET/*"
+}
+
+variable "environment" {
+
+}
