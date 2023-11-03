@@ -1,63 +1,60 @@
-from scripts.pipeline.nonprod_population_load.nonprod_population_load import format_dynamodb_json
+from scripts.pipeline.nonprod_unique_lsoa_load.nonprod_unique_lsoa_load import format_dynamodb_json
 
 test_csv_data = [
-    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 ]
 
 expected_output_data = [
     {
         "Put": {
             "Item": {
-                        'POSTCODE': {
+                        'LOCAL_AUT_ORG': {
                             'S': '1'
                         },
-                        'POSTCODE_2': {
+                        'NHS_ENG_REGION': {
                             'S': '2'
                         },
-                        'LOCAL_AUT_ORG': {
+                        'SUB_ICB': {
                             'S': '3'
                         },
-                        'NHS_ENG_REGION': {
+                        'CANCER_REGISTRY': {
                             'S': '4'
                         },
-                        'SUB_ICB': {
+                        'LSOA_2011': {
                             'S': '5'
                         },
-                        'CANCER_REGISTRY': {
+                        'MSOA_2011': {
                             'S': '6'
                         },
-                        'EASTING_1M': {
+                        'CANCER_ALLIANCE': {
                             'N': '7'
                         },
-                        'NORTHING_1M': {
+                        'ICB': {
                             'N': '8'
                         },
-                        'LSOA_2011': {
+                        'OA_2021': {
                             'S': '9'
                         },
-                        'MSOA_2011': {
+                        'LSOA_2021': {
                             'S': '10'
                         },
-                        'CANCER_ALLIANCE': {
+                        'MSOA_2021': {
                             'S': '11'
                         },
-                        'ICB': {
+                        'IMD_RANK': {
                             'S': '12'
                         },
-                        'OA_2021': {
+                        'IMD_DECILE': {
                             'S': '13'
                         },
-                        'LSOA_2021': {
+                        'FORECAST_UPTAKE': {
                             'S': '14'
                         },
-                        'MSOA_2021': {
+                        'AVG_EASTING': {
                             'S': '15'
                         },
-                        'IMD_RANK': {
+                        'AVG_NORTHING': {
                             'N': '16'
-                        },
-                        'IMD_DECILE': {
-                            'N': '17'
                         }
             },
             'TableName': 'Table',
