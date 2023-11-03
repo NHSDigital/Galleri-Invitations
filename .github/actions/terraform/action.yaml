@@ -82,7 +82,7 @@ runs:
         npm install --prefix src/invitationParametersLambda
         npm install --prefix src/invitationParametersPutForecastUptakeLambda
         npm install --prefix src/invitationParametersPutQuintilesLambda
-        npm install --prefix src/participatingIcbList
-        npm install --prefix src/targetFillToPercentage
-        npm install --prefix src/targetFillToPercentagePut
+        npm install --prefix src/participatingIcbListLambda
+        npm install --prefix src/targetFillToPercentageLambda
+        npm install --prefix src/targetFillToPercentagePutLambda
         terraform apply -auto-approve -input=false -var-file=environment/dev/terraform.tfvars
