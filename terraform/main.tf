@@ -781,6 +781,9 @@ module "imd_table" {
 
 module "population_table" {
   source     = "./modules/dynamodb"
+  billing_mode = "PAY_PER_REQUEST"
+  read_capacity = null
+  write_capacity = null
   table_name = "Population"
   hash_key   = "PersonId"
   range_key  = "LsoaCode"
@@ -797,10 +800,11 @@ module "population_table" {
     {
       name      = "PersonId"
       hash_key  = "LsoaCode"
+      range_key = null
     }
-  ],
-    secondary_write_capacity = 10,
-    secondary_read_capacity = 10,
+  ]
+    secondary_write_capacity = null
+    secondary_read_capacity = null
     projection_type = "INCLUDE"
     non_key_attributes = ["Invited"]
   tags = {
@@ -853,13 +857,6 @@ module "lsoa_table" {
   attributes = [{
     name = "LSOA_2011"
     type = "S"
-    }
-  ]
-  global_secondary_index = [
-    {
-      name      = null
-      hash_key  = null
-      range_key = null
     }
   ]
   tags = {

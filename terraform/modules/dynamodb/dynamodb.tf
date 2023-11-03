@@ -24,6 +24,7 @@ resource "aws_dynamodb_table" "dynamodb_table" {
       write_capacity  = var.secondary_write_capacity
       read_capacity   = var.secondary_read_capacity
       projection_type = var.projection_type
+      non_key_attributes = var.non_key_attributes
     }
   }
 
