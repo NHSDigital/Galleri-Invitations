@@ -72,7 +72,6 @@ function main() {
 
   echo Succefully uploaded Postcode data to database
 
-
   echo "--------------------------------------------------------------"
 
   echo Initiating upload of dummy Population data to database
