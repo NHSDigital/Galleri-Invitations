@@ -5,6 +5,9 @@ test_csv_data = [
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 ]
 
+# TODO, when GAL-313 is implement change unit test to read in
+# correct array index for test_csv_data for FORECAST_UPTAKE
+# and adjust the average easting and northing to correct index
 expected_output_data = [
     {
         "Put": {
@@ -28,7 +31,7 @@ expected_output_data = [
                             'S': '6'
                         },
                         'CANCER_ALLIANCE': {
-                            'N': '7'
+                            'S': '7'
                         },
                         'ICB': {
                             'S': '8'
@@ -49,13 +52,13 @@ expected_output_data = [
                             'N': '13'
                         },
                         'FORECAST_UPTAKE': {
-                            'N': '14'
+                            'N': '1'
                         },
                         'AVG_EASTING': {
-                            'S': '15'
+                            'S': '14'
                         },
                         'AVG_NORTHING': {
-                            'N': '16'
+                            'S': '15'
                         }
             },
             'TableName': 'Table',
