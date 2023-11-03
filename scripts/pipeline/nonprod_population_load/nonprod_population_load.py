@@ -40,9 +40,9 @@ def format_dynamodb_json(csvreader, table_name):
             interpreter_required = str(row[22])
             sensitivity_indicator_flag = str(row[23])
             Invited = str(row[24])
-            LSOA_2011 = str(row[25])
+            lsoa_2011 = str(row[25])
 
-            if nhs_number and LSOA_2011:
+            if nhs_number and lsoa_2011:
                 output.append(
                     {
                         'Put': {
@@ -123,7 +123,7 @@ def format_dynamodb_json(csvreader, table_name):
                                     'S': f'{Invited}'
                                 },
                                 'LsoaCode': {
-                                    'S': f'{LSOA_2011}'
+                                    'S': f'{lsoa_2011}'
                                 }
                             },
                             'TableName': table_name,
@@ -149,11 +149,17 @@ def batch_write_to_dynamodb(lsoa_data):
 
 if __name__ == "__main__":
     # read in data and generate the json output
+    # Reading in CSV files
     file_input_path_1 = "/nonprod-population-data/male_participants_with_LSOA_Invited.csv"
     file_input_path_2 = "/nonprod-population-data/female_participants_with_LSOA_Invited.csv"
+    print("Read in both CSV files")
 
-    path_to_file_1 = os.getcwd() + file_input_path_1
-    path_to_file_2 = os.getcwd() + file_input_path_2
+    male_file = os.getcwd() + file_input_path_1
+    female_file = os.getcwd() + file_input_path_2
 
-    generate_nonprod_population_json(path_to_file_1, "Population")
-    generate_nonprod_population_json(path_to_file_2, "Population")
+    print("Initiation male upload")
+    generate_nonprod_population_json(male_file, "Population")
+    print("Male upload complete")
+    print("Initiation female upload")
+    generate_nonprod_population_json(female_file, "Population")
+    print("Female upload complete")
