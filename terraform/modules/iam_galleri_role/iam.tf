@@ -143,72 +143,72 @@ resource "aws_iam_policy" "iam_policy_for_lsoa_in_range_lambda" {
   name        = "aws_iam_policy_for_terraform_aws_lsoa_in_range_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda get lsoa in range role"
-  policy      = jsonencode(
+  policy = jsonencode(
     {
-      "Statement": [
+      "Statement" : [
         {
-          "Action": [
+          "Action" : [
             "logs:CreateLogGroup",
             "logs:CreateLogStream",
             "logs:PutLogEvents"
           ],
-          "Effect": "Allow",
-          "Resource": "arn:aws:logs:*:*:*"
+          "Effect" : "Allow",
+          "Resource" : "arn:aws:logs:*:*:*"
         },
         {
-          "Sid": "AllowDynamodbAccess",
-          "Effect": "Allow",
-          "Action": [
+          "Sid" : "AllowDynamodbAccess",
+          "Effect" : "Allow",
+          "Action" : [
             "dynamodb:*"
           ],
-          "Resource": [
+          "Resource" : [
             "arn:aws:dynamodb:eu-west-2:136293001324:table/UniqueLsoa"
           ]
         },
         {
-          "Sid": "AllowLambdaInvoke",
-          "Effect": "Allow",
-          "Action": [
+          "Sid" : "AllowLambdaInvoke",
+          "Effect" : "Allow",
+          "Action" : [
             "lambda:*"
           ],
-          "Resource": [
+          "Resource" : [
             "arn:aws:lambda:eu-west-2:136293001324:function:getLsoaParticipantsLambda"
           ]
         }
       ],
-      "Version": "2012-10-17"
-    })
+      "Version" : "2012-10-17"
+  })
 }
 
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda get participants in lsoa role"
-  policy      = jsonencode(
+  policy = jsonencode(
     {
-      "Statement": [
+      "Statement" : [
         {
-          "Action": [
+          "Action" : [
             "logs:CreateLogGroup",
             "logs:CreateLogStream",
             "logs:PutLogEvents"
           ],
-          "Effect": "Allow",
-          "Resource": "arn:aws:logs:*:*:*"
+          "Effect" : "Allow",
+          "Resource" : "arn:aws:logs:*:*:*"
         },
         {
-          "Sid": "AllowDynamodbAccess",
-          "Effect": "Allow",
-          "Action": [
+          "Sid" : "AllowDynamodbAccess",
+          "Effect" : "Allow",
+          "Action" : [
             "dynamodb:*"
           ],
-          "Resource": [
+          "Resource" : [
             "arn:aws:dynamodb:eu-west-2:136293001324:table/Population/*/*"
           ]
         }
       ],
-      "Version": "2012-10-17"
-    })
+      "Version" : "2012-10-17"
+  })
 }
 
 resource "aws_iam_role_policy_attachment" "galleri_lambda_policy" {

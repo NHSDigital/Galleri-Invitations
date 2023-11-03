@@ -18,12 +18,12 @@ resource "aws_dynamodb_table" "dynamodb_table" {
   dynamic "global_secondary_index" {
     for_each = var.global_secondary_index
     content {
-      name            = global_secondary_index.value.name
-      hash_key        = global_secondary_index.value.hash_key
-      range_key       = global_secondary_index.value.range_key
-      write_capacity  = var.secondary_write_capacity
-      read_capacity   = var.secondary_read_capacity
-      projection_type = var.projection_type
+      name               = global_secondary_index.value.name
+      hash_key           = global_secondary_index.value.hash_key
+      range_key          = global_secondary_index.value.range_key
+      write_capacity     = var.secondary_write_capacity
+      read_capacity      = var.secondary_read_capacity
+      projection_type    = var.projection_type
       non_key_attributes = var.non_key_attributes
     }
   }
