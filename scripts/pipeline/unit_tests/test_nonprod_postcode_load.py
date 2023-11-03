@@ -28,10 +28,10 @@ expected_output_data = [
                     'S':'6'
                 },
                 'EASTING_1M': {
-                    'S':'7'
+                    'N':'7'
                 },
                 'NORTHING_1M': {
-                    'S':'8'
+                    'N':'8'
                 },
                 'LSOA_2011': {
                     'S':'9'
@@ -55,16 +55,16 @@ expected_output_data = [
                     'S':'15'
                 },
                 'IMD_RANK': {
-                    'S':'16'
+                    'N':'16'
                 },
                 'IMD_DECILE': {
-                    'S':'17'
+                    'N':'17'
                 },
                 'AVG_LSOA_EASTING': {
-                    'S':'18'
+                    'N':'18'
                 },
                 'AVG_LSOA_NORTHING': {
-                    'S':'19'
+                    'N':'19'
                 }
             },
             'TableName': 'Table',

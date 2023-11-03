@@ -30,7 +30,7 @@ expected_output_data = [
                             'N': '7'
                         },
                         'ICB': {
-                            'N': '8'
+                            'S': '8'
                         },
                         'OA_2021': {
                             'S': '9'
@@ -42,13 +42,13 @@ expected_output_data = [
                             'S': '11'
                         },
                         'IMD_RANK': {
-                            'S': '12'
+                            'N': '12'
                         },
                         'IMD_DECILE': {
-                            'S': '13'
+                            'N': '13'
                         },
                         'FORECAST_UPTAKE': {
-                            'S': '14'
+                            'N': '14'
                         },
                         'AVG_EASTING': {
                             'S': '15'
