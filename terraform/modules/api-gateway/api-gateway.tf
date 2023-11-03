@@ -10,6 +10,10 @@ resource "aws_api_gateway_deployment" "galleri" {
 
   rest_api_id = aws_api_gateway_rest_api.galleri.id
   stage_name  = var.environment
+  depends_on = [
+    aws_api_gateway_method.http,
+    aws_api_gateway_method.options
+  ]
 }
 
 
