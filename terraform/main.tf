@@ -138,7 +138,7 @@ module "participating_icb_list_lambda" {
   source               = "./modules/lambda"
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "participatingIcbList"
+  lambda_function_name = "participatingIcbListLambda"
   lambda_timeout       = 100
   memory_size          = 1024
   lambda_s3_object_key = "participating_icb_list_lambda.zip"
@@ -284,7 +284,7 @@ module "target_fill_to_percentage_put_lambda" {
   source               = "./modules/lambda"
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "targetFillToPercentagePut"
+  lambda_function_name = "targetFillToPercentagePutLambda"
   lambda_s3_object_key = "target_fill_to_percentage_put_lambda.zip"
   environment_vars     = {}
 }
@@ -317,7 +317,7 @@ module "target_fill_to_percentage_get_lambda" {
   source               = "./modules/lambda"
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "targetFillToPercentage"
+  lambda_function_name = "targetFillToPercentageLambda"
   lambda_s3_object_key = "target_fill_to_percentage_lambda.zip"
   environment_vars     = {}
 }
@@ -329,18 +329,12 @@ module "target_fill_to_percentage_get_cloudwatch" {
 }
 
 module "target_fill_to_percentage_get_api_gateway" {
-  source                    = "./modules/api-gateway"
-  lambda_invoke_arn         = module.target_fill_to_percentage_get_lambda.lambda_invoke_arn
-  path_part                 = "target-percentage"
-  method_http_parameters    = {}
-  lambda_api_gateway_method = "GET"
-  integration_response_http_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'PUT'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  lambda_function_name = module.target_fill_to_percentage_get_lambda.lambda_function_name
-  environment          = var.environment
+  source                 = "./modules/api-gateway"
+  lambda_invoke_arn      = module.target_fill_to_percentage_get_lambda.lambda_invoke_arn
+  path_part              = "target-percentage"
+  method_http_parameters = {}
+  lambda_function_name   = module.target_fill_to_percentage_get_lambda.lambda_function_name
+  environment            = var.environment
 }
 
 
