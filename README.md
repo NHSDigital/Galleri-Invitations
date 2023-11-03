@@ -68,7 +68,7 @@ there is the `environments` directory, this contains the `tfvar` files that defi
 
 We also have a `src` directory, this is where we keep any code or config which will be utilized by resources created within terraform, for example the lambda functions are defined here, along with unit tests.
 
-To run this config locally you will need to pass in the location of the tfvars file that you want to use, this will depend on the environment you want to deploy into, assuming you want to deploy into the dev environment then you would want to run `tf apply -var-file=environment/dev/terraform.tfvars`, to destroy the environment its the same format `tf destroy -var-file=environment/dev/terraform.tfvars`
+To run this config locally you will need to pass in the location of the tfvars file that you want to use, this will depend on the environment you want to deploy into, assuming you want to deploy into the dev environment then you would want to run `tf apply -var-file=environment/dev/terraform.tfvars`, to destroy the environment its the same format `tf destroy -var-file=environment/dev/terraform.tfvars`.
 
 ### variables
 
