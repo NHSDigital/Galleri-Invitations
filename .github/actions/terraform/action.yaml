@@ -14,77 +14,77 @@ runs:
         aws-region: ${{ env.aws-region }}
         role-session-name: GitHub-OIDC-TERRAFORM
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: 1.5.0
+    # - name: Setup Terraform
+    #   uses: hashicorp/setup-terraform@v2
+    #   with:
+    #     terraform_version: 1.5.0
 
-    # - name: Flatten Terrafrom Directory
-    #   id: flatten
+    # # - name: Flatten Terrafrom Directory
+    # #   id: flatten
+    # #   shell: bash
+    # #   run: |
+    # #     cd ./terraform
+    # #     mv ./*/* .
+    # #     rm -rf resources
+
+    # - name: Terraform fmt
+    #   id: fmt
     #   shell: bash
     #   run: |
     #     cd ./terraform
-    #     mv ./*/* .
-    #     rm -rf resources
+    #     terraform fmt -check
+    #   continue-on-error: true
 
-    - name: Terraform fmt
-      id: fmt
-      shell: bash
-      run: |
-        cd ./terraform
-        terraform fmt -check
-      continue-on-error: true
-
-    - name: Terraform Init
-      id: init
-      shell: bash
-      run: |
-        cd ./terraform
-        terraform init -backend-config="bucket=${{ env.aws-bucket-name }}" -backend-config="key=${{ env.aws-bucket-key-name }}" -backend-config="region=${{ env.aws-region }}"
-
-    # - name: Terraform Destroy
-    #   id: destroy
+    # - name: Terraform Init
+    #   id: init
     #   shell: bash
     #   run: |
     #     cd ./terraform
-    #     terraform destroy -auto-approve
+    #     terraform init -backend-config="bucket=${{ env.aws-bucket-name }}" -backend-config="key=${{ env.aws-bucket-key-name }}" -backend-config="region=${{ env.aws-region }}"
 
-    - name: Terraform Validate
-      id: validate
-      shell: bash
-      run: |
-        cd ./terraform
-        terraform validate -no-color
+    # # - name: Terraform Destroy
+    # #   id: destroy
+    # #   shell: bash
+    # #   run: |
+    # #     cd ./terraform
+    # #     terraform destroy -auto-approve
 
-    - name: Terraform Plan
-      id: plan
-      shell: bash
-      run: |
-        cd ./terraform
-        terraform plan -no-color -var-file=environment/dev/terraform.tfvars
+    # - name: Terraform Validate
+    #   id: validate
+    #   shell: bash
+    #   run: |
+    #     cd ./terraform
+    #     terraform validate -no-color
 
-    - name: Terraform Plan Status
-      if: steps.plan.outcome == 'failure'
-      shell: bash
-      run: |
-        echo Terraform Plan Status has failed
-        exit 1
+    # - name: Terraform Plan
+    #   id: plan
+    #   shell: bash
+    #   run: |
+    #     cd ./terraform
+    #     terraform plan -no-color -var-file=environment/dev/terraform.tfvars
 
-    - name: Terraform Apply
-      shell: bash
-      run: |
-        cd ./terraform
-        npm install --prefix src/dataFilterLambda
-        npm install --prefix src/lsoaLoaderLambda
-        npm install --prefix src/clinicIcbListLambda
-        npm install --prefix src/clinicInformationLambda
-        npm install --prefix src/clinicSummaryListLambda
-        npm install --prefix src/invitationParametersLambda
-        npm install --prefix src/invitationParametersPutForecastUptakeLambda
-        npm install --prefix src/invitationParametersPutQuintilesLambda
-        npm install --prefix src/participatingIcbList
-        npm install --prefix src/targetFillToPercentage
-        npm install --prefix src/targetFillToPercentagePut
-        npm install --prefix src/getLsoaParticipants
-        npm install --prefix src/getLsoaInRange
-        terraform apply -auto-approve -input=false -var-file=environment/dev/terraform.tfvars
+    # - name: Terraform Plan Status
+    #   if: steps.plan.outcome == 'failure'
+    #   shell: bash
+    #   run: |
+    #     echo Terraform Plan Status has failed
+    #     exit 1
+
+    # - name: Terraform Apply
+    #   shell: bash
+    #   run: |
+    #     cd ./terraform
+    #     npm install --prefix src/dataFilterLambda
+    #     npm install --prefix src/lsoaLoaderLambda
+    #     npm install --prefix src/clinicIcbListLambda
+    #     npm install --prefix src/clinicInformationLambda
+    #     npm install --prefix src/clinicSummaryListLambda
+    #     npm install --prefix src/invitationParametersLambda
+    #     npm install --prefix src/invitationParametersPutForecastUptakeLambda
+    #     npm install --prefix src/invitationParametersPutQuintilesLambda
+    #     npm install --prefix src/participatingIcbList
+    #     npm install --prefix src/targetFillToPercentage
+    #     npm install --prefix src/targetFillToPercentagePut
+    #     npm install --prefix src/getLsoaParticipants
+    #     npm install --prefix src/getLsoaInRange
+    #     terraform apply -auto-approve -input=false -var-file=environment/dev/terraform.tfvars
