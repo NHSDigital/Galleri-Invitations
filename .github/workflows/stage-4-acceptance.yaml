@@ -66,8 +66,8 @@ jobs:
       - name: "Seed databases"
         uses: ./.github/actions/seeding
         with:
-          role-to-assume: ${{ env.role-to-assume }}
-          aws-region: ${{ env.aws-region }}
+          role-to-assume: arn:aws:iam::136293001324:role/github-oidc-invitations-role
+          aws-region: eu-west-2
         timeout-minutes: 10
       - name: "Deploy application"
         run: |
