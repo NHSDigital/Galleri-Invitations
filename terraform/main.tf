@@ -141,7 +141,7 @@ module "clinic_information_api_gateway" {
 module "clinic_information_lambda_permissions" {
   source                         = "./modules/lambda_permission"
   lambda_function_name           = module.clinic_information_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
+  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
 }
 
 
@@ -195,7 +195,7 @@ module "clinic_icb_list_api_gateway" {
 module "clinic_icb_list_lambda_permissions" {
   source                         = "./modules/lambda_permission"
   lambda_function_name           = module.clinic_icb_list_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
+  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
 }
 
 
@@ -247,7 +247,7 @@ module "participating_icb_list_api_gateway" {
 module "participating_icb_list_lambda_permissions" {
   source                         = "./modules/lambda_permission"
   lambda_function_name           = module.participating_icb_list_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
+  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
 }
 
 
@@ -301,7 +301,7 @@ module "clinic_summary_list_api_gateway" {
 module "clinic_summary_list_lambda_permissions" {
   source                         = "./modules/lambda_permission"
   lambda_function_name           = module.clinic_summary_list_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
+  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
 }
 
 
@@ -353,7 +353,7 @@ module "invitation_parameters_api_gateway" {
 module "invitation_parameters_lambda_permissions" {
   source                         = "./modules/lambda_permission"
   lambda_function_name           = module.invitation_parameters_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
+  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
 }
 
 
@@ -406,7 +406,7 @@ module "invitation_parameters_put_forecast_uptake_api_gateway" {
 module "invitation_parameters_put_forecast_uptake_lambda_permissions" {
   source                         = "./modules/lambda_permission"
   lambda_function_name           = module.invitation_parameters_put_forecast_uptake_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
+  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
 }
 
 # Invitations Parameters Put Quintiles
@@ -458,7 +458,7 @@ module "invitation_parameters_put_quintiles_api_gateway" {
 module "invitation_parameters_put_quintiles_lambda_permissions" {
   source                         = "./modules/lambda_permission"
   lambda_function_name           = module.invitation_parameters_put_quintiles_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
+  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
 }
 
 # Target Fill to Percentage PUT
@@ -508,7 +508,7 @@ module "target_fill_to_percentage_put_api_gateway" {
 module "target_fill_to_percentage_put_lambda_permissions" {
   source                         = "./modules/lambda_permission"
   lambda_function_name           = module.target_fill_to_percentage_put_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
+  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
 }
 
 # Target Fill to Percentage GET
@@ -558,7 +558,7 @@ module "target_fill_to_percentage_get_api_gateway" {
 module "target_fill_to_percentage_get_lambda_permissions" {
   source                         = "./modules/lambda_permission"
   lambda_function_name           = module.target_fill_to_percentage_get_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
+  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
 }
 
 # LSOA in range
@@ -578,14 +578,14 @@ module "lsoa_in_range_cloudwatch" {
 }
 
 module "lsoa_in_range_api_gateway" {
-  source                                = "./modules/api-gateway"
-  lambda_invoke_arn                     = module.lsoa_in_range_lambda.lambda_invoke_arn
-  api_gateway_path_part                 = "get-lsoa-in-range"
+  source                = "./modules/api-gateway"
+  lambda_invoke_arn     = module.lsoa_in_range_lambda.lambda_invoke_arn
+  api_gateway_path_part = "get-lsoa-in-range"
   api_gateway_method_request_parameters = {
-    "method.request.querystring.clinicPostcode"   = true,
-    "method.request.querystring.miles" = true
+    "method.request.querystring.clinicPostcode" = true,
+    "method.request.querystring.miles"          = true
   }
-  lambda_api_gateway_method             = "GET"
+  lambda_api_gateway_method = "GET"
   api_gateway_method_response_200_response_parameters = {
     "method.response.header.Access-Control-Allow-Origin"  = true
     "method.response.header.Access-Control-Allow-Methods" = true
@@ -611,7 +611,7 @@ module "lsoa_in_range_api_gateway" {
 module "lsoa_in_range_lambda_permissions" {
   source                         = "./modules/lambda_permission"
   lambda_function_name           = module.lsoa_in_range_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = "${module.galleri_api_gateway_deployment.api_gateway_execution_arn}"
+  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
 }
 
 # Population in LSOA
@@ -780,13 +780,13 @@ module "imd_table" {
 }
 
 module "population_table" {
-  source     = "./modules/dynamodb"
-  billing_mode = "PAY_PER_REQUEST"
-  read_capacity = null
+  source         = "./modules/dynamodb"
+  billing_mode   = "PAY_PER_REQUEST"
+  read_capacity  = null
   write_capacity = null
-  table_name = "Population"
-  hash_key   = "PersonId"
-  range_key  = "LsoaCode"
+  table_name     = "Population"
+  hash_key       = "PersonId"
+  range_key      = "LsoaCode"
   attributes = [{
     name = "PersonId"
     type = "S"
@@ -803,10 +803,10 @@ module "population_table" {
       range_key = null
     }
   ]
-    secondary_write_capacity = null
-    secondary_read_capacity = null
-    projection_type = "INCLUDE"
-    non_key_attributes = ["Invited"]
+  secondary_write_capacity = null
+  secondary_read_capacity  = null
+  projection_type          = "INCLUDE"
+  non_key_attributes       = ["Invited"]
   tags = {
     Name        = "Dynamodb Table Population"
     Environment = var.environment
