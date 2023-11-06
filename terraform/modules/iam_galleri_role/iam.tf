@@ -224,7 +224,7 @@ resource "aws_iam_policy" "iam_policy_for_lsoa_in_range_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-                        "arn:aws:dynamodb:eu-west-2:136293001324:table/UniqueLsoa"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/UniqueLsoa"
           ]
         },
         {
@@ -235,11 +235,11 @@ resource "aws_iam_policy" "iam_policy_for_lsoa_in_range_lambda" {
           ],
           "Resource" : [
             "arn:aws:lambda:eu-west-2:136293001324:function:getLsoaParticipantsLambda"
-                      ]
+          ]
         }
       ],
       "Version" : "2012-10-17"
-        })
+  })
 }
 
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {

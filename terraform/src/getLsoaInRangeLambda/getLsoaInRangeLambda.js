@@ -9,14 +9,14 @@ const MTOKM = 1000;
   Lambda to get LSOA in a 100 mile range from the selected clinic
 */
 export const handler = async (event, context) => {
-  console.log(event)
   const start = Date.now();
   // CALCULATE DISTANCE BETWEEN SITE AND LSOAs. RETURN THOSE IN 100 MILE RANGE
-  const clinicPostcode = event.clinicPostcode;
-  const lsoasInRangeMiles = event.miles;
 
-  // const clinicPostcode = event.queryStringParameters.clinicPostcode;
-  // const lsoasInRangeMiles = event.queryStringParameters.miles;
+  // TODO: when accurate clinic data recieved then remove placeholder
+  let clinicPostcode = event.queryStringParameters.clinicPostcode;
+  // Placeholder
+  clinicPostcode = "SE1 9RT";
+  const lsoasInRangeMiles = event.queryStringParameters.miles;
 
   // make API request to get the easting and northing of postcode
   const clinicGridReference = await getClinicEastingNorthing(clinicPostcode);
