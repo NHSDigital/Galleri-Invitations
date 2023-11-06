@@ -298,7 +298,7 @@ module "target_fill_to_percentage_put_cloudwatch" {
 module "target_fill_to_percentage_put_api_gateway" {
   source                    = "./modules/api-gateway"
   lambda_invoke_arn         = module.target_fill_to_percentage_put_lambda.lambda_invoke_arn
-  path_part                 = "target-percentage"
+  path_part                 = "target-percentage-put"
   method_http_parameters    = {}
   lambda_api_gateway_method = "PUT"
   integration_response_http_parameters = {

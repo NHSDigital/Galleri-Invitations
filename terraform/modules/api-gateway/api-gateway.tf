@@ -1,3 +1,10 @@
+# Set up cloudwatch logging
+resource "aws_cloudwatch_log_group" "api_gateway_log_group" {
+  name              = "/aws/apigateway/${var.path_part}"
+  retention_in_days = 90
+}
+
+# Create API Gateway
 resource "aws_api_gateway_rest_api" "galleri" {
   name        = var.path_part
   description = "API for the galleri webapp"
@@ -6,10 +13,37 @@ resource "aws_api_gateway_rest_api" "galleri" {
   }
 }
 
+resource "aws_api_gateway_stage" "stage" {
+  stage_name    = var.environment
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  deployment_id = aws_api_gateway_deployment.galleri.id
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_gateway_log_group.arn
+    format = jsonencode({
+      requestId      = "$context.requestId",
+      ip             = "$context.identity.sourceIp",
+      caller         = "$context.identity.caller",
+      user           = "$context.identity.user",
+      requestTime    = "$context.requestTime",
+      httpMethod     = "$context.httpMethod",
+      resourcePath   = "$context.resourcePath",
+      status         = "$context.status",
+      protocol       = "$context.protocol",
+      responseLength = "$context.responseLength"
+    })
+  }
+
+  xray_tracing_enabled = true
+  depends_on           = [aws_api_gateway_deployment.galleri]
+}
+
 resource "aws_api_gateway_deployment" "galleri" {
 
   rest_api_id = aws_api_gateway_rest_api.galleri.id
-  stage_name  = var.environment
+  lifecycle {
+    create_before_destroy = true
+  }
   depends_on = [
     aws_api_gateway_method.http,
     aws_api_gateway_method.options,
