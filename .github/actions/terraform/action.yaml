@@ -19,14 +19,6 @@ runs:
       with:
         terraform_version: 1.5.0
 
-    # - name: Flatten Terrafrom Directory
-    #   id: flatten
-    #   shell: bash
-    #   run: |
-    #     cd ./terraform
-    #     mv ./*/* .
-    #     rm -rf resources
-
     - name: Terraform fmt
       id: fmt
       shell: bash
@@ -41,13 +33,6 @@ runs:
       run: |
         cd ./terraform
         terraform init -backend-config="bucket=${{ env.aws-bucket-name }}" -backend-config="key=${{ env.aws-bucket-key-name }}" -backend-config="region=${{ env.aws-region }}"
-
-    # - name: Terraform Destroy
-    #   id: destroy
-    #   shell: bash
-    #   run: |
-    #     cd ./terraform
-    #     terraform destroy -auto-approve
 
     - name: Terraform Validate
       id: validate
@@ -82,9 +67,9 @@ runs:
         npm install --prefix src/invitationParametersLambda
         npm install --prefix src/invitationParametersPutForecastUptakeLambda
         npm install --prefix src/invitationParametersPutQuintilesLambda
-        npm install --prefix src/participatingIcbList
-        npm install --prefix src/targetFillToPercentage
-        npm install --prefix src/targetFillToPercentagePut
+        npm install --prefix src/participatingIcbListLambda
+        npm install --prefix src/targetFillToPercentageLambda
+        npm install --prefix src/targetFillToPercentagePutLambda
         npm install --prefix src/getLsoaParticipants
         npm install --prefix src/getLsoaInRange
         terraform apply -auto-approve -input=false -var-file=environment/dev/terraform.tfvars

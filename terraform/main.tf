@@ -25,25 +25,8 @@ module "s3_bucket" {
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
 }
 
-module "galleri_api_gateway_deployment" {
-  source      = "./modules/api-gateway-deployment"
-  rest_api_id = module.clinic_information_api_gateway.rest_api_galleri_id
-  stage_name  = "dev"
-  depends_on = [
-    module.clinic_information_api_gateway,
-    module.participating_icb_list_api_gateway,
-    module.clinic_summary_list_api_gateway,
-    module.invitation_parameters_api_gateway,
-    module.invitation_parameters_put_forecast_uptake_api_gateway,
-    module.invitation_parameters_put_quintiles_api_gateway,
-    module.target_fill_to_percentage_put_api_gateway,
-    module.target_fill_to_percentage_get_api_gateway
-  ]
-}
-
 
 # Data Filter Gridall IMD
-
 module "data_filter_gridall_imd_lambda" {
   source               = "./modules/lambda"
   bucket_id            = module.s3_bucket.bucket_id
@@ -68,7 +51,6 @@ module "data_filter_gridall_imd_cloudwatch" {
 
 
 # LSOA loader
-
 module "lsoa_loader_lambda" {
   source               = "./modules/lambda"
   bucket_id            = module.s3_bucket.bucket_id
@@ -109,39 +91,15 @@ module "clinic_information_cloudwatch" {
 }
 
 module "clinic_information_api_gateway" {
-  source                = "./modules/api-gateway"
-  lambda_invoke_arn     = module.clinic_information_lambda.lambda_invoke_arn
-  api_gateway_path_part = "clinic-information"
-  api_gateway_method_request_parameters = {
+  source            = "./modules/api-gateway"
+  lambda_invoke_arn = module.clinic_information_lambda.lambda_invoke_arn
+  path_part         = "clinic-information"
+  method_http_parameters = {
     "method.request.querystring.clinicId"   = true,
     "method.request.querystring.clinicName" = true
   }
-  api_gateway_method_response_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  api_gateway_method_response_options_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_options_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-}
-
-module "clinic_information_lambda_permissions" {
-  source                         = "./modules/lambda_permission"
-  lambda_function_name           = module.clinic_information_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
+  lambda_function_name = module.clinic_information_lambda.lambda_function_name
+  environment          = var.environment
 }
 
 
@@ -164,38 +122,14 @@ module "clinic_icb_list_cloudwatch" {
 }
 
 module "clinic_icb_list_api_gateway" {
-  source                = "./modules/api-gateway"
-  lambda_invoke_arn     = module.clinic_icb_list_lambda.lambda_invoke_arn
-  api_gateway_path_part = "clinic-icb-list"
-  api_gateway_method_request_parameters = {
+  source            = "./modules/api-gateway"
+  lambda_invoke_arn = module.clinic_icb_list_lambda.lambda_invoke_arn
+  path_part         = "clinic-icb-list"
+  method_http_parameters = {
     "method.request.querystring.participatingIcb" = true
   }
-  api_gateway_method_response_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  api_gateway_method_response_options_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_options_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-}
-
-module "clinic_icb_list_lambda_permissions" {
-  source                         = "./modules/lambda_permission"
-  lambda_function_name           = module.clinic_icb_list_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
+  lambda_function_name = module.clinic_icb_list_lambda.lambda_function_name
+  environment          = var.environment
 }
 
 
@@ -204,7 +138,7 @@ module "participating_icb_list_lambda" {
   source               = "./modules/lambda"
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "participatingIcbList"
+  lambda_function_name = "participatingIcbListLambda"
   lambda_timeout       = 100
   memory_size          = 1024
   lambda_s3_object_key = "participating_icb_list_lambda.zip"
@@ -218,36 +152,12 @@ module "participating_icb_list_cloudwatch" {
 }
 
 module "participating_icb_list_api_gateway" {
-  source                                = "./modules/api-gateway"
-  lambda_invoke_arn                     = module.participating_icb_list_lambda.lambda_invoke_arn
-  api_gateway_path_part                 = "participating-icb-list"
-  api_gateway_method_request_parameters = {}
-  api_gateway_method_response_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  api_gateway_method_response_options_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_options_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-}
-
-module "participating_icb_list_lambda_permissions" {
-  source                         = "./modules/lambda_permission"
-  lambda_function_name           = module.participating_icb_list_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
+  source                 = "./modules/api-gateway"
+  lambda_invoke_arn      = module.participating_icb_list_lambda.lambda_invoke_arn
+  path_part              = "participating-icb-list"
+  method_http_parameters = {}
+  lambda_function_name   = module.participating_icb_list_lambda.lambda_function_name
+  environment            = var.environment
 }
 
 
@@ -270,38 +180,14 @@ module "clinic_summary_list_cloudwatch" {
 }
 
 module "clinic_summary_list_api_gateway" {
-  source                = "./modules/api-gateway"
-  lambda_invoke_arn     = module.clinic_summary_list_lambda.lambda_invoke_arn
-  api_gateway_path_part = "clinic-summary-list"
-  api_gateway_method_request_parameters = {
+  source            = "./modules/api-gateway"
+  lambda_invoke_arn = module.clinic_summary_list_lambda.lambda_invoke_arn
+  path_part         = "clinic-summary-list"
+  method_http_parameters = {
     "method.request.querystring.participatingIcb" = true
   }
-  api_gateway_method_response_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  api_gateway_method_response_options_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_options_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-}
-
-module "clinic_summary_list_lambda_permissions" {
-  source                         = "./modules/lambda_permission"
-  lambda_function_name           = module.clinic_summary_list_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
+  lambda_function_name = module.clinic_summary_list_lambda.lambda_function_name
+  environment          = var.environment
 }
 
 
@@ -324,36 +210,12 @@ module "invitation_parameters_cloudwatch" {
 }
 
 module "invitation_parameters_api_gateway" {
-  source                                = "./modules/api-gateway"
-  lambda_invoke_arn                     = module.invitation_parameters_lambda.lambda_invoke_arn
-  api_gateway_path_part                 = "invitation-parameters"
-  api_gateway_method_request_parameters = {}
-  api_gateway_method_response_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  api_gateway_method_response_options_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_options_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-}
-
-module "invitation_parameters_lambda_permissions" {
-  source                         = "./modules/lambda_permission"
-  lambda_function_name           = module.invitation_parameters_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
+  source                 = "./modules/api-gateway"
+  lambda_invoke_arn      = module.invitation_parameters_lambda.lambda_invoke_arn
+  path_part              = "invitation-parameters"
+  method_http_parameters = {}
+  lambda_function_name   = module.invitation_parameters_lambda.lambda_function_name
+  environment            = var.environment
 }
 
 
@@ -376,38 +238,16 @@ module "invitation_parameters_put_forecast_uptake_cloudwatch" {
 }
 
 module "invitation_parameters_put_forecast_uptake_api_gateway" {
-  source                                = "./modules/api-gateway"
-  lambda_invoke_arn                     = module.invitation_parameters_lambda.lambda_invoke_arn
-  api_gateway_path_part                 = "invitation-parameters-put-forecast-uptake"
-  api_gateway_method_request_parameters = {}
-  lambda_api_gateway_method             = "PUT"
-  api_gateway_method_response_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  api_gateway_method_response_options_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_options_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
+  source                    = "./modules/api-gateway"
+  lambda_invoke_arn         = module.invitation_parameters_lambda.lambda_invoke_arn
+  path_part                 = "invitation-parameters-put-forecast-uptake"
+  method_http_parameters    = {}
+  lambda_api_gateway_method = "PUT"
+  lambda_function_name      = module.invitation_parameters_put_forecast_uptake_lambda.lambda_function_name
+  method                    = "/*/PUT/*"
+  environment               = var.environment
 }
 
-module "invitation_parameters_put_forecast_uptake_lambda_permissions" {
-  source                         = "./modules/lambda_permission"
-  lambda_function_name           = module.invitation_parameters_put_forecast_uptake_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
-}
 
 # Invitations Parameters Put Quintiles
 module "invitation_parameters_put_quintiles_lambda" {
@@ -428,45 +268,23 @@ module "invitation_parameters_put_quintiles_cloudwatch" {
 }
 
 module "invitation_parameters_put_quintiles_api_gateway" {
-  source                                = "./modules/api-gateway"
-  lambda_invoke_arn                     = module.invitation_parameters_put_quintiles_lambda.lambda_invoke_arn
-  api_gateway_path_part                 = "invitation-parameters-put-quintiles"
-  api_gateway_method_request_parameters = {}
-  lambda_api_gateway_method             = "PUT"
-  api_gateway_method_response_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  api_gateway_method_response_options_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_options_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
+  source                    = "./modules/api-gateway"
+  lambda_invoke_arn         = module.invitation_parameters_put_quintiles_lambda.lambda_invoke_arn
+  path_part                 = "invitation-parameters-put-quintiles"
+  method_http_parameters    = {}
+  lambda_api_gateway_method = "PUT"
+  lambda_function_name      = module.invitation_parameters_put_quintiles_lambda.lambda_function_name
+  method                    = "/*/PUT/*"
+  environment               = var.environment
 }
 
-module "invitation_parameters_put_quintiles_lambda_permissions" {
-  source                         = "./modules/lambda_permission"
-  lambda_function_name           = module.invitation_parameters_put_quintiles_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
-}
 
 # Target Fill to Percentage PUT
 module "target_fill_to_percentage_put_lambda" {
   source               = "./modules/lambda"
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "targetFillToPercentagePut"
+  lambda_function_name = "targetFillToPercentagePutLambda"
   lambda_s3_object_key = "target_fill_to_percentage_put_lambda.zip"
   environment_vars     = {}
 }
@@ -478,45 +296,28 @@ module "target_fill_to_percentage_put_cloudwatch" {
 }
 
 module "target_fill_to_percentage_put_api_gateway" {
-  source                                = "./modules/api-gateway"
-  lambda_invoke_arn                     = module.target_fill_to_percentage_put_lambda.lambda_invoke_arn
-  api_gateway_path_part                 = "target-percentage"
-  api_gateway_method_request_parameters = {}
-  lambda_api_gateway_method             = "PUT"
-  api_gateway_method_response_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_response_parameters = {
+  source                    = "./modules/api-gateway"
+  lambda_invoke_arn         = module.target_fill_to_percentage_put_lambda.lambda_invoke_arn
+  path_part                 = "put-target-percentage"
+  method_http_parameters    = {}
+  lambda_api_gateway_method = "PUT"
+  integration_response_http_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
     "method.response.header.Access-Control-Allow-Methods" = "'PUT'",
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
-  api_gateway_method_response_options_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_options_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
+  lambda_function_name = module.target_fill_to_percentage_put_lambda.lambda_function_name
+  method               = "/*/PUT/*"
+  environment          = var.environment
 }
 
-module "target_fill_to_percentage_put_lambda_permissions" {
-  source                         = "./modules/lambda_permission"
-  lambda_function_name           = module.target_fill_to_percentage_put_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
-}
 
 # Target Fill to Percentage GET
 module "target_fill_to_percentage_get_lambda" {
   source               = "./modules/lambda"
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "targetFillToPercentage"
+  lambda_function_name = "targetFillToPercentageLambda"
   lambda_s3_object_key = "target_fill_to_percentage_lambda.zip"
   environment_vars     = {}
 }
@@ -528,37 +329,12 @@ module "target_fill_to_percentage_get_cloudwatch" {
 }
 
 module "target_fill_to_percentage_get_api_gateway" {
-  source                                = "./modules/api-gateway"
-  lambda_invoke_arn                     = module.target_fill_to_percentage_get_lambda.lambda_invoke_arn
-  api_gateway_path_part                 = "target-percentage"
-  api_gateway_method_request_parameters = {}
-  lambda_api_gateway_method             = "GET"
-  api_gateway_method_response_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'PUT'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  api_gateway_method_response_options_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_options_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-}
-
-module "target_fill_to_percentage_get_lambda_permissions" {
-  source                         = "./modules/lambda_permission"
-  lambda_function_name           = module.target_fill_to_percentage_get_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
+  source                 = "./modules/api-gateway"
+  lambda_invoke_arn      = module.target_fill_to_percentage_get_lambda.lambda_invoke_arn
+  path_part              = "target-percentage"
+  method_http_parameters = {}
+  lambda_function_name   = module.target_fill_to_percentage_get_lambda.lambda_function_name
+  environment            = var.environment
 }
 
 # LSOA in range
@@ -578,40 +354,16 @@ module "lsoa_in_range_cloudwatch" {
 }
 
 module "lsoa_in_range_api_gateway" {
-  source                = "./modules/api-gateway"
-  lambda_invoke_arn     = module.lsoa_in_range_lambda.lambda_invoke_arn
-  api_gateway_path_part = "get-lsoa-in-range"
-  api_gateway_method_request_parameters = {
+  source            = "./modules/api-gateway"
+  lambda_invoke_arn = module.lsoa_in_range_lambda.lambda_invoke_arn
+  path_part         = "get-lsoa-in-range"
+  method_http_parameters = {
     "method.request.querystring.clinicPostcode" = true,
     "method.request.querystring.miles"          = true
   }
-  lambda_api_gateway_method = "GET"
-  api_gateway_method_response_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  api_gateway_method_response_options_200_response_parameters = {
-    "method.response.header.Access-Control-Allow-Origin"  = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Headers" = true
-  }
-  api_gateway_integration_response_options_response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'*'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-}
 
-module "lsoa_in_range_lambda_permissions" {
-  source                         = "./modules/lambda_permission"
-  lambda_function_name           = module.lsoa_in_range_lambda.lambda_function_name
-  rest_api_galleri_execution_arn = module.galleri_api_gateway_deployment.api_gateway_execution_arn
+  lambda_function_name = module.lsoa_in_range_lambda.lambda_function_name
+  environment          = var.environment
 }
 
 # Population in LSOA
@@ -629,7 +381,6 @@ module "participants_in_lsoa_cloudwatch" {
   lambda_function_name = module.participants_in_lsoa_lambda.lambda_function_name
   retention_days       = 14
 }
-
 
 # Dynamodb tables
 module "sdrs_table" {
@@ -798,7 +549,7 @@ module "population_table" {
   ]
   global_secondary_index = [
     {
-      name      = "PersonId"
+      name      = "LsoaCode-index"
       hash_key  = "LsoaCode"
       range_key = null
     }
@@ -893,7 +644,8 @@ resource "aws_dynamodb_table_item" "quintileTargets" {
   "QUINTILE_3": {"N": "20"},
   "QUINTILE_4": {"N": "20"},
   "QUINTILE_5": {"N": "20"},
-  "FORECAST_UPTAKE": {"N": "50"}
+  "FORECAST_UPTAKE": {"N": "50"},
+  "TARGET_PERCENTAGE": {"N": "50"}
 }
 ITEM
 }

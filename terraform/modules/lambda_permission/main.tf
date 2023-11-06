@@ -6,5 +6,5 @@ resource "aws_lambda_permission" "lambda_permission" {
 
   # The /*/* portion grants access from any method on any resource
   # within the API Gateway "REST API".
-  source_arn = "${var.rest_api_galleri_execution_arn}/*/GET/*"
+  source_arn = "${var.rest_api_galleri_execution_arn}${var.method}"
 }

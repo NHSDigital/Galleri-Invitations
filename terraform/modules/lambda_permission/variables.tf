@@ -9,3 +9,6 @@ variable "action" {
 variable "principal" {
   default = "apigateway.amazonaws.com"
 }
+variable "method" {
+  default = "/*/GET/*"
+}
