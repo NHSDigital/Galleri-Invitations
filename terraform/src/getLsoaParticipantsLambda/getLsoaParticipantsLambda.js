@@ -37,7 +37,7 @@ export async function queryEligiblePopulation(client, lsoaCode, tableItems) {
       }
     },
     "KeyConditionExpression": "LsoaCode = :code",
-    "ProjectionExpression": "PersonId, Invited",
+    "ProjectionExpression": "PersonId, Invited, date_of_death, removal_date",
     "TableName": "Population",
     "IndexName": "LsoaCode-index"
   };
@@ -62,7 +62,7 @@ export async function getPopulation (lsoaList, client) {
 
     let invitedPopulation = 0;
     response.forEach((person) => {
-      if (person?.Invited?.S == "true" && person?.date_of_death?.S == "NULL") {
+      if (person?.Invited?.S == "true" && person?.date_of_death?.S == "NULL" && person?.removal_date?.S == "NULL") {
         ++invitedPopulation;
       };
     });

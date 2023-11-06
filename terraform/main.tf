@@ -557,7 +557,7 @@ module "population_table" {
   secondary_write_capacity = null
   secondary_read_capacity  = null
   projection_type          = "INCLUDE"
-  non_key_attributes       = ["Invited"]
+  non_key_attributes       = ["Invited", "date_of_death", "removal_date"]
   tags = {
     Name        = "Dynamodb Table Population"
     Environment = var.environment
