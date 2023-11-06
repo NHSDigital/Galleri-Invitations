@@ -44,7 +44,7 @@ jobs:
       id-token: write # This is required for aws oidc connection
       contents: read # This is required for actions/checkout
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 35
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
@@ -68,7 +68,7 @@ jobs:
         with:
           role-to-assume: ${{ env.role-to-assume }}
           aws-region: ${{ env.aws-region }}
-        timeout-minutes: 10
+        timeout-minutes: 20
       - name: "Deploy application"
         run: |
           echo "Deploying application..."

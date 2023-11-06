@@ -70,4 +70,6 @@ runs:
         npm install --prefix src/participatingIcbListLambda
         npm install --prefix src/targetFillToPercentageLambda
         npm install --prefix src/targetFillToPercentagePutLambda
+        npm install --prefix src/getLsoaInRangeLambda
+        npm install --prefix src/getLsoaParticipantsLambda
         terraform apply -auto-approve -input=false -var-file=environment/dev/terraform.tfvars

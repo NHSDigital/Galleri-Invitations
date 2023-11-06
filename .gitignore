@@ -42,3 +42,11 @@ node_modules
 
 # remove zip files from lambdas
 *.zip
+
+# local data
+local_data
+
+# remove local data files
+nonprod-postcode-load
+nonprod-unique-lsoa-data
+nonprod-population-data

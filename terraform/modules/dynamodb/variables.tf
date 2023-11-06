@@ -54,6 +54,10 @@ variable "projection_type" {
   default = "KEYS_ONLY"
 }
 
+variable "non_key_attributes" {
+  default = []
+}
+
 variable "point_in_time_recovery" {
   default = true
 }

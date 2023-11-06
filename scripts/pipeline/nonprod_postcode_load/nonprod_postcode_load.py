@@ -11,7 +11,6 @@ def generate_nonprod_lsoa_json(file_path, table_name):
 
 def format_dynamodb_json(csvreader, table_name):
     output = []
-
     # extract relevant information from row and format
     # in dynamodb json
     for row in csvreader:
@@ -32,6 +31,8 @@ def format_dynamodb_json(csvreader, table_name):
         MSOA_2021 = str(row[14])
         IMD_RANK = str(row[15])
         IMD_DECILE = str(row[16])
+        AVG_EASTING = str(row[17])
+        AVG_NORTHING = str(row[18])
         output.append(
             {
                 'Put': {
@@ -86,6 +87,12 @@ def format_dynamodb_json(csvreader, table_name):
                         },
                         'IMD_DECILE': {
                             'N': f'{IMD_DECILE}'
+                        },
+                        'AVG_LSOA_EASTING': {
+                            'N': f'{AVG_EASTING}'
+                        },
+                        'AVG_LSOA_NORTHING': {
+                            'N': f'{AVG_NORTHING}'
                         }
                     },
                     'TableName': table_name,
@@ -111,7 +118,7 @@ def batch_write_to_dynamodb(lsoa_data):
 
 if __name__ == "__main__":
     # read in data and generate the json output
-    file_input_path = "/nonprod-lsoa-data/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv"
+    file_input_path = "/nonprod-postcode-load/lsoa_with_avg_easting_northing.csv"
 
     path_to_file = os.getcwd() + file_input_path
-    generate_nonprod_lsoa_json(path_to_file, "Lsoa")
+    generate_nonprod_lsoa_json(path_to_file, "Postcode")

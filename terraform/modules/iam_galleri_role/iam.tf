@@ -198,9 +198,81 @@ resource "aws_iam_policy" "invitation_parameters_lambda" {
         }
       ],
       "Version" : "2012-10-17"
-    }
-  )
+  })
 }
+
+resource "aws_iam_policy" "iam_policy_for_lsoa_in_range_lambda" {
+  name        = "aws_iam_policy_for_terraform_aws_lsoa_in_range_lambda_role"
+  path        = "/"
+  description = "AWS IAM Policy for managing aws lambda get lsoa in range role"
+  policy = jsonencode(
+    {
+      "Statement" : [
+        {
+          "Action" : [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+          ],
+          "Effect" : "Allow",
+          "Resource" : "arn:aws:logs:*:*:*"
+        },
+        {
+          "Sid" : "AllowDynamodbAccess",
+          "Effect" : "Allow",
+          "Action" : [
+            "dynamodb:*"
+          ],
+          "Resource" : [
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/UniqueLsoa"
+          ]
+        },
+        {
+          "Sid" : "AllowLambdaInvoke",
+          "Effect" : "Allow",
+          "Action" : [
+            "lambda:*"
+          ],
+          "Resource" : [
+            "arn:aws:lambda:eu-west-2:136293001324:function:getLsoaParticipantsLambda"
+          ]
+        }
+      ],
+      "Version" : "2012-10-17"
+  })
+}
+
+resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
+  name        = "aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
+  path        = "/"
+  description = "AWS IAM Policy for managing aws lambda get participants in lsoa role"
+  policy = jsonencode(
+    {
+      "Statement" : [
+        {
+          "Action" : [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+          ],
+          "Effect" : "Allow",
+          "Resource" : "arn:aws:logs:*:*:*"
+        },
+        {
+          "Sid" : "AllowDynamodbAccess",
+          "Effect" : "Allow",
+          "Action" : [
+            "dynamodb:*"
+          ],
+          "Resource" : [
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/Population/*/*"
+          ]
+        }
+      ],
+      "Version" : "2012-10-17"
+  })
+}
+
 
 resource "aws_iam_role_policy_attachment" "galleri_lambda_policy" {
   role       = aws_iam_role.galleri_lambda_role.name
@@ -230,6 +302,16 @@ resource "aws_iam_role_policy_attachment" "target_percentage" {
 resource "aws_iam_role_policy_attachment" "invitation_parameters" {
   role       = aws_iam_role.galleri_lambda_role.name
   policy_arn = aws_iam_policy.invitation_parameters_lambda.arn
+}
+
+resource "aws_iam_role_policy_attachment" "lsoa_in_range_lambda_policy" {
+  role       = aws_iam_role.galleri_lambda_role.name
+  policy_arn = aws_iam_policy.iam_policy_for_lsoa_in_range_lambda.arn
+}
+
+resource "aws_iam_role_policy_attachment" "participants_in_lsoa_lambda_policy" {
+  role       = aws_iam_role.galleri_lambda_role.name
+  policy_arn = aws_iam_policy.iam_policy_for_participants_in_lsoa_lambda.arn
 }
 
 resource "aws_iam_role" "api_gateway_logging_role" {
@@ -270,7 +352,6 @@ resource "aws_iam_policy" "api_gateway_logging_policy" {
     ]
   })
 }
-
 resource "aws_iam_role_policy_attachment" "api_gateway_logging_attach" {
   role       = aws_iam_role.api_gateway_logging_role.name
   policy_arn = aws_iam_policy.api_gateway_logging_policy.arn
@@ -279,3 +360,4 @@ resource "aws_iam_role_policy_attachment" "api_gateway_logging_attach" {
 resource "aws_api_gateway_account" "account" {
   cloudwatch_role_arn = aws_iam_role.api_gateway_logging_role.arn
 }
+
