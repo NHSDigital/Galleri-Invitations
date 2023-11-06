@@ -1,4 +1,3 @@
-import json
 from scripts.pipeline.nonprod_unique_lsoa_load.nonprod_unique_lsoa_load import format_dynamodb_json
 
 test_csv_data = [
