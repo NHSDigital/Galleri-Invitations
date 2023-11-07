@@ -1,42 +1,36 @@
-import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, ScanCommand, QueryCommand, GetItemCommand } from "@aws-sdk/client-dynamodb";
 
-export async function getItemsFromTable(table, client) {
-  const response = await client.send(
-    new ScanCommand({
-      TableName: table,
-    })
-  );
-
-  return response;
-}
+const client = new DynamoDBClient({ region: "eu-west-2" });
 
 export const handler = async (event, context) => {
-  const client = new DynamoDBClient({ region: "eu-west-2" });
-
-  const response = await getItemsFromTable("InvitationParameters", client);
-  console.log(response);
-
-
-  let responseObject = {};
+  // const targetAppsToFill = event.body !== null ? JSON.parse(event.body).targetAppsToFill : "";
+  // const lsoaCodes = event.body !== null ? JSON.parse(event.body).lsoaCodes : ""; //grab lsoa code e01...
   const CONFIG_ID = 1;
-  const targetAppsToFill = JSON.parse(event.body).targetAppsToFill;
-  const lsoaCodes = JSON.parse(event.body).lsoaCodes; //grab lsoa code e01...
-
-  const params = {
-    "Key": {
-      "CONFIG_ID": {
-        "N": `${CONFIG_ID}`,
-      }
-    },
-    "TableName": "InvitationParameters"
-  };
-
-  //store response.Items quintile 1-5 into variable, forecast uptake
-
   // const command = new UpdateItemCommand(params); //getItems
   // const response = await client.send(command);
 
+  const response = await getItemsFromTable("InvitationParameters", client, CONFIG_ID);
+  console.log(response);
+  let responseObject = {};
+
+  const targetAppsToFill = '2000';
+
+  //store response.Items quintile 1-5 into variable, forecast uptake
+  const quintile1 = response.Item !== null ? (response.Item).QUINTILE_1.N : "";
+  const quintile2 = response.Item !== null ? (response.Item).QUINTILE_2.N : "";
+  const quintile3 = response.Item !== null ? (response.Item).QUINTILE_3.N : "";
+  const quintile4 = response.Item !== null ? (response.Item).QUINTILE_4.N : "";
+  const quintile5 = response.Item !== null ? (response.Item).QUINTILE_5.N : "";
+  const forecastUptake = response.Item !== null ? (response.Item).FORECAST_UPTAKE.N : "";
+
   //calculate breakdown of no of people per quintile
+  //get lsoaCode array, find all people from all codes, calculate total. Divide total length by 5 for quintile division.
+  // match each entry to lsoaCode array to population table in dynamo and pull selected value into object/array.
+  const quintile1Target = targetAppsToFill * (quintile1 / 100);
+  const quintile2Target = targetAppsToFill * (quintile2 / 100);
+  const quintile3Target = targetAppsToFill * (quintile3 / 100);
+  const quintile4Target = targetAppsToFill * (quintile4 / 100);
+  const quintile5Target = targetAppsToFill * (quintile5 / 100);
 
   //return all available participants out of lsoa (ppl that live in lsoa region, population table)
 
@@ -64,3 +58,23 @@ export const handler = async (event, context) => {
   }
   return responseObject;
 };
+
+
+
+
+//METHODS
+export async function getItemsFromTable(table, client, key) {
+
+  const params = {
+    Key: {
+      CONFIG_ID: {
+        N: `${key}`,
+      },
+    },
+    TableName: table,
+  };
+  const command = new GetItemCommand(params);
+  const response = await client.send(command);
+
+  return response;
+}
