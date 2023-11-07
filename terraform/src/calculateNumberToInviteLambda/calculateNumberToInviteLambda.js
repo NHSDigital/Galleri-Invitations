@@ -6,7 +6,7 @@ const client = new DynamoDBClient({ region: "eu-west-2" });
 export const handler = async (event, context) => {
   // const targetAppsToFill = event.body !== null ? JSON.parse(event.body).targetAppsToFill : "";
   // const lsoaCodes = event.body !== null ? JSON.parse(event.body).lsoaCodes : ""; //grab lsoa code [e01...,e0212]
-  const lsoaCodes = [E01022970];
+  const lsoaCodes = ["E01022970"];
   const CONFIG_ID = 1;
   // const command = new UpdateItemCommand(params); //getItems
   // const response = await client.send(command);
@@ -36,28 +36,23 @@ export const handler = async (event, context) => {
 
   //return all available participants out of lsoa (ppl that live in lsoa region, population table)
   const lambdaClient = new LambdaClient({ region: "eu-west-2" });
-  try {
-    const payload = {
-      lsoaCodePayload: lsoaCode,
-      invitationsAlgorithm: true
-    }
-
-    const input = {
-      FunctionName: "getLsoaParticipantsLambda",
-      Payload: payload,
-    };
-    const command = new InvokeCommand(input);
-    const response = await lambdaClient.send(command);
-
-    const participantInLsoa = JSON.parse(Buffer.from(response.Payload).toString())
-
-    // return participantInLsoa;
-    console.log(participantInLsoa);
-  }
-  catch (err) {
-    console.log(err)
+  const payload = {
+    lsoaCodePayload: lsoaCodes,
+    invitationsAlgorithm: true
   }
 
+  const input = {
+    FunctionName: "getLsoaParticipantsLambda",
+    Payload: JSON.stringify(payload),
+  };
+  const command = new InvokeCommand(input);
+  const responseA = await lambdaClient.send(command);
+
+  console.log("logging invoke lambda response: ", responseA)
+
+  const participantInLsoa = JSON.parse(Buffer.from(responseA.Payload).toString())
+
+  console.log("participantInLsoa = ", participantInLsoa)
 
   //rank population in order of depravity, most to least(affluent), and create 5 quintiles by separating
   //this in 1/5ths
