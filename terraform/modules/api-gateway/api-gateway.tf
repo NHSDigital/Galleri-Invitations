@@ -1,6 +1,6 @@
 # Set up cloudwatch logging
 resource "aws_cloudwatch_log_group" "api_gateway_log_group" {
-  name              = "/aws/apigateway/${var.path_part}"
+  name              = "${var.environment}/aws/apigateway/${var.path_part}"
   retention_in_days = 90
 }
 

@@ -1,5 +1,5 @@
 resource "aws_iam_role" "galleri_lambda_role" {
-  name = var.role_name
+  name = "${var.environment}-${var.role_name}"
 
   assume_role_policy = jsonencode({
     "Version" : "2012-10-17",
@@ -16,7 +16,7 @@ resource "aws_iam_role" "galleri_lambda_role" {
 }
 
 resource "aws_iam_policy" "iam_policy_for_lambda" {
-  name        = "aws_iam_policy_for_terraform_aws_lambda_role"
+  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda role"
   policy = jsonencode(
@@ -47,7 +47,7 @@ resource "aws_iam_policy" "iam_policy_for_lambda" {
 }
 
 resource "aws_iam_policy" "clinic_information_lambda" {
-  name        = "aws_iam_policy_for_terraform_aws_clinic_information_lambda_role"
+  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_clinic_information_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda clinic details role"
   policy = jsonencode(
@@ -78,7 +78,7 @@ resource "aws_iam_policy" "clinic_information_lambda" {
 }
 
 resource "aws_iam_policy" "participating_icb_list_lambda" {
-  name        = "aws_iam_policy_for_terraform_aws_participating_icb_list_lambda_role"
+  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participating_icb_list_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda participating icb role"
   policy = jsonencode(
@@ -109,7 +109,7 @@ resource "aws_iam_policy" "participating_icb_list_lambda" {
 }
 
 resource "aws_iam_policy" "clinic_summary_list_lambda" {
-  name        = "aws_iam_policy_for_terraform_aws_clinic_summary_list_lambda_role"
+  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_clinic_summary_list_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda clinic summary role"
   policy = jsonencode(
@@ -140,7 +140,7 @@ resource "aws_iam_policy" "clinic_summary_list_lambda" {
 }
 
 resource "aws_iam_policy" "target_percentage_lambda" {
-  name        = "target_percentage_lambda_policy"
+  name        = "${var.environment}-target_percentage_lambda_policy"
   path        = "/"
   description = "AWS IAM Policy for managing lambda target percentage"
   policy = jsonencode(
@@ -171,7 +171,7 @@ resource "aws_iam_policy" "target_percentage_lambda" {
 }
 
 resource "aws_iam_policy" "invitation_parameters_lambda" {
-  name        = "aws_iam_policy_for_terraform_aws_invitation_parameters_lambda_role"
+  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_invitation_parameters_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda invitation parameter role"
   policy = jsonencode(
@@ -315,7 +315,7 @@ resource "aws_iam_role_policy_attachment" "participants_in_lsoa_lambda_policy" {
 }
 
 resource "aws_iam_role" "api_gateway_logging_role" {
-  name = "galleri_logging_role"
+  name = "${var.environment}-galleri_logging_role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -332,7 +332,7 @@ resource "aws_iam_role" "api_gateway_logging_role" {
 }
 
 resource "aws_iam_policy" "api_gateway_logging_policy" {
-  name        = "galleri_logging_policy"
+  name        = "${var.environment}-galleri_logging_policy"
   path        = "/"
   description = "API Gateway Logging Policy"
 
