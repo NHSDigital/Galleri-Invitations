@@ -5,7 +5,7 @@ import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 */
 export const handler = async (event, context) => {
   const start = Date.now();
-  const lsoaList = event;
+  const lsoaList = event.lsoaCodePayload;
   const client = new DynamoDBClient({ region: "eu-west-2" });
 
   // Loop over incoming array and for each LSOA, query the number of participants within LSOA.
