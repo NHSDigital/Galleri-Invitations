@@ -683,6 +683,7 @@ resource "aws_cloudwatch_log_group" "participants_in_lsoa" {
   retention_in_days = 14
 }
 // Create s3 object
+
 resource "aws_s3_object" "data_filter_gridall_imd_lambda" {
   bucket = aws_s3_bucket.galleri_lambda_bucket.id
 
