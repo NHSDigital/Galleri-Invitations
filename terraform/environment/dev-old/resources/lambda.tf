@@ -670,29 +670,6 @@ resource "aws_cloudwatch_log_group" "get_target_fill_to_percentage" {
 
   retention_in_days = 14
 }
-resource "aws_cloudwatch_log_group" "lsoa_in_range" {
-  name = "/aws/lambda/${aws_lambda_function.lsoa_in_range.function_name}"
-
-  retention_in_days = 14
-}
-
-resource "aws_cloudwatch_log_group" "participants_in_lsoa" {
-  name = "/aws/lambda/${aws_lambda_function.participants_in_lsoa.function_name}"
-
-  retention_in_days = 14
-}
-
-resource "aws_cloudwatch_log_group" "lsoa_in_range" {
-  name = "/aws/lambda/${aws_lambda_function.lsoa_in_range.function_name}"
-
-  retention_in_days = 14
-}
-
-resource "aws_cloudwatch_log_group" "participants_in_lsoa" {
-  name = "/aws/lambda/${aws_lambda_function.participants_in_lsoa.function_name}"
-
-  retention_in_days = 14
-}
 
 // Create s3 object
 resource "aws_s3_object" "data_filter_gridall_imd_lambda" {
