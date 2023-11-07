@@ -29,42 +29,6 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
-  echo Initiating upload of Postcode subset data to database
-
-  mkdir nonprod-postcode-data
-
-  aws s3 cp s3://galleri-ons-data/non_prod_lsoa_data_/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv ./nonprod-postcode-data
-
-  echo Succefully Downloaded CSV from S3
-
-  echo Uploading items to Postcode database
-
-  python $PWD/scripts/pipeline/nonprod_postcode_load/nonprod_postcode_load.py
-
-  # python $PWD/nonprod_postcode_load/nonprod_postcode_load.py
-
-  echo Succefully uploaded Postcode data to database
-
-  echo "--------------------------------------------------------------"
-
-  echo Initiating upload of LSOA subset data to database
-
-  mkdir nonprod-lsoa-data
-
-  aws s3 cp s3://galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-lsoa-data
-
-  echo Succefully Downloaded CSV from S3
-
-  echo Uploading items to Lsoa database
-
-  python $PWD/scripts/pipeline/nonprod_lsoa_load/nonprod_lsoa_load.py
-
-  # python $PWD/nonprod_lsoa_load/nonprod_lsoa_load.py
-
-  echo Succefully uploaded Lsoa data to database
-
-  echo "--------------------------------------------------------------"
-
   echo Initiating upload of Phlebotomy clinic data to database
 
   mkdir nonprod-phlebotomy-site-load
@@ -75,9 +39,58 @@ function main() {
 
   echo Succefully uploaded Phlebotomy clinic data to database
 
-}
 
-# ==============================================================================
+  echo "--------------------------------------------------------------"
+
+  echo Initiating upload of unique LSOA data to database
+
+  mkdir ./nonprod-unique-lsoa-data
+
+  aws s3 cp s3://galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
+
+  echo Succefully Downloaded CSV from S3
+
+  echo Uploading items to UniqueLsoa database
+
+  python $PWD/scripts/pipeline/nonprod_unique_lsoa_load/nonprod_unique_lsoa_load.py
+
+  echo Succefully uploaded unique Lsoa data to database
+
+  echo "--------------------------------------------------------------"
+
+  echo Initiating upload of Postcode subset data to database
+
+  mkdir nonprod-postcode-load
+
+  aws s3 cp s3://galleri-ons-data/lsoa_data/lsoa_with_avg_easting_northing.csv ./nonprod-postcode-load
+
+  echo Succefully Downloaded CSV from S3
+
+  echo Uploading items to Postcode database
+
+  python $PWD/scripts/pipeline/nonprod_postcode_load/nonprod_postcode_load.py
+
+  echo Succefully uploaded Postcode data to database
+
+  echo "--------------------------------------------------------------"
+
+  echo Initiating upload of dummy Population data to database
+
+  mkdir nonprod-population-data
+
+  aws s3 cp s3://galleri-test-data/non_prod_participant_data/ ./nonprod-population-data --recursive
+
+  echo Succefully Downloaded galleri-test-data CSVs from S3
+
+  echo Uploading items to Population database
+
+  python $PWD/scripts/pipeline/nonprod_population_load/nonprod_population_load.py
+
+  echo Succefully uploaded dummy test data to database
+
+  echo "--------------------------------------------------------------"
+
+}
 
 main $*
 

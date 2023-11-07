@@ -44,7 +44,7 @@ jobs:
       id-token: write # This is required for aws oidc connection
       contents: read # This is required for actions/checkout
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 35
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
@@ -62,13 +62,13 @@ jobs:
           aws-region: ${{ env.aws-region }}
           aws-bucket-name: ${{ env.aws-bucket-name }}
           aws-bucket-key-name: ${{ env.aws-bucket-key-name }}
-        timeout-minutes: 5
+        timeout-minutes: 15
       - name: "Seed databases"
         uses: ./.github/actions/seeding
         with:
           role-to-assume: ${{ env.role-to-assume }}
           aws-region: ${{ env.aws-region }}
-        timeout-minutes: 10
+        timeout-minutes: 20
       - name: "Deploy application"
         run: |
           echo "Deploying application..."
