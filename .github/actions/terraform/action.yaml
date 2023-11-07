@@ -55,7 +55,7 @@ runs:
         echo Terraform Plan Status has failed
         exit 1
 
-    - name: Terraform Apply
+    - name: Terraform Apply -lock=false
       shell: bash
       run: |
         cd ./terraform
