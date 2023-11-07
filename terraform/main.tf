@@ -15,14 +15,16 @@ provider "aws" {
 # the role that all lambda's are utilising,
 # we will replace this with individual roles in a future ticket
 module "iam_galleri_lambda_role" {
-  source    = "./modules/iam_galleri_role"
-  role_name = var.role_name
+  source      = "./modules/iam_galleri_role"
+  role_name   = var.role_name
+  environment = var.environment
 }
 
 module "s3_bucket" {
   source                  = "./modules/s3"
   bucket_name             = var.bucket_name
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
 }
 
 
@@ -340,10 +342,11 @@ module "target_fill_to_percentage_get_api_gateway" {
 
 # Dynamodb tables
 module "sdrs_table" {
-  source     = "./modules/dynamodb"
-  table_name = "Sdrs"
-  hash_key   = "NhsNumber"
-  range_key  = "GivenName"
+  source      = "./modules/dynamodb"
+  table_name  = "Sdrs"
+  hash_key    = "NhsNumber"
+  range_key   = "GivenName"
+  environment = var.environment
   attributes = [{
     name = "NhsNumber"
     type = "N"
@@ -375,9 +378,10 @@ module "sdrs_table" {
 }
 
 module "participating_icb_table" {
-  source     = "./modules/dynamodb"
-  table_name = "ParticipatingIcb"
-  hash_key   = "IcbCode"
+  source      = "./modules/dynamodb"
+  table_name  = "ParticipatingIcb"
+  hash_key    = "IcbCode"
+  environment = var.environment
   attributes = [{
     name = "IcbCode"
     type = "S"
@@ -390,10 +394,11 @@ module "participating_icb_table" {
 }
 
 module "gp_practice_table" {
-  source     = "./modules/dynamodb"
-  table_name = "GpPractice"
-  hash_key   = "GpPracticeId"
-  range_key  = "GpPracticeName"
+  source      = "./modules/dynamodb"
+  table_name  = "GpPractice"
+  hash_key    = "GpPracticeId"
+  range_key   = "GpPracticeName"
+  environment = var.environment
   attributes = [{
     name = "GpPracticeId"
     type = "S"
@@ -425,10 +430,11 @@ module "gp_practice_table" {
 }
 
 module "phlebotomy_site_table" {
-  source     = "./modules/dynamodb"
-  table_name = "PhlebotomySite"
-  hash_key   = "ClinicId"
-  range_key  = "ClinicName"
+  source      = "./modules/dynamodb"
+  table_name  = "PhlebotomySite"
+  hash_key    = "ClinicId"
+  range_key   = "ClinicName"
+  environment = var.environment
   attributes = [{
     name = "ClinicId"
     type = "S"
@@ -456,10 +462,11 @@ module "phlebotomy_site_table" {
 }
 
 module "imd_table" {
-  source     = "./modules/dynamodb"
-  table_name = "Imd"
-  hash_key   = "LsoaCode"
-  range_key  = "LsoaName"
+  source      = "./modules/dynamodb"
+  table_name  = "Imd"
+  hash_key    = "LsoaCode"
+  range_key   = "LsoaName"
+  environment = var.environment
   attributes = [{
     name = "LsoaCode"
     type = "S"
@@ -487,10 +494,11 @@ module "imd_table" {
 }
 
 module "population_table" {
-  source     = "./modules/dynamodb"
-  table_name = "Population"
-  hash_key   = "PersonId"
-  range_key  = "LsoaCode"
+  source      = "./modules/dynamodb"
+  table_name  = "Population"
+  hash_key    = "PersonId"
+  range_key   = "LsoaCode"
+  environment = var.environment
   attributes = [{
     name = "PersonId"
     type = "S"
@@ -523,6 +531,7 @@ module "LSOA_table" {
   table_name     = "Lsoa"
   hash_key       = "POSTCODE"
   range_key      = "IMD_RANK"
+  environment    = var.environment
   read_capacity  = null
   write_capacity = null
   attributes = [{
@@ -552,9 +561,10 @@ module "LSOA_table" {
 }
 
 module "invitation_parameters_table" {
-  source     = "./modules/dynamodb"
-  table_name = "InvitationParameters"
-  hash_key   = "CONFIG_ID"
+  source      = "./modules/dynamodb"
+  table_name  = "InvitationParameters"
+  hash_key    = "CONFIG_ID"
+  environment = var.environment
   attributes = [
     {
       name = "CONFIG_ID"
