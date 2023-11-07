@@ -55,7 +55,7 @@ runs:
         echo Terraform Plan Status has failed
         exit 1
 
-    - name: Terraform Apply -lock=false
+    - name: Terraform Apply
       shell: bash
       run: |
         cd ./terraform
@@ -72,4 +72,4 @@ runs:
         npm install --prefix src/targetFillToPercentagePutLambda
         npm install --prefix src/getLsoaInRangeLambda
         npm install --prefix src/getLsoaParticipantsLambda
-        terraform apply -auto-approve -input=false -var-file=environment/dev/terraform.tfvars
+        terraform apply -auto-approve -lock=false -input=false -var-file=environment/dev/terraform.tfvars
