@@ -36,6 +36,7 @@ export const handler = async (event, context) => {
 
   //return all available participants out of lsoa (ppl that live in lsoa region, population table)
   const lambdaClient = new LambdaClient({ region: "eu-west-2" });
+  // try {
   const payload = {
     lsoaCodePayload: lsoaCodes,
     invitationsAlgorithm: true
@@ -53,9 +54,28 @@ export const handler = async (event, context) => {
   const participantInLsoa = JSON.parse(Buffer.from(responseA.Payload).toString())
 
   console.log("participantInLsoa = ", participantInLsoa)
-
+  // }
+  // catch (err) {
+  //   console.log(err)
+  // }
   //rank population in order of depravity, most to least(affluent), and create 5 quintiles by separating
   //this in 1/5ths
+  //sort by IMD_DECILE from POSTCODE dynamo table, then split into 5 arrays/objects
+  // .sort((a, b) => {
+  // return (
+  //   Number(b.IMD_DECILE) - Number(a.IMD_DECILE)
+  // );
+
+  //items per chunck would be arr.length/5
+  //.reduce((resultArray, item, index) => {
+  //   const chunckIndex = Math.floor(index/perChunk)
+
+  //   if(!resultArray[chunkIndex]) {
+  //     resultArray[chunkIndex] = []
+  //   }
+  //   resultArray[chunkIndex].push(item)
+  //   return resultArray
+  // }, []);
 
   //randomly select people to inv and multiple by participant uptake value e.g. 0.16, increment a counter with number i.e. 0.16
   //loop through grouped quintile until no of people per quintile is met e.g. 40/0.16
