@@ -6,10 +6,18 @@ const client = new DynamoDBClient({ region: "eu-west-2" });
 export const handler = async (event, context) => {
   // const targetAppsToFill = event.body !== null ? JSON.parse(event.body).targetAppsToFill : "";
   // const lsoaCodes = event.body !== null ? JSON.parse(event.body).lsoaCodes : ""; //grab lsoa code [e01...,e0212]
-  const lsoaCodes = ["E01022970"];
+  const lsoaInfo = {
+    "E01022970": {
+      "IMD_DECILE": 2,
+      "FORECAST_UPTAKE": 13
+    },
+    "E01030492": {
+      "IMD_DECILE": 9,
+      "FORECAST_UPTAKE": 35
+    }
+  }
+
   const CONFIG_ID = 1;
-  // const command = new UpdateItemCommand(params); //getItems
-  // const response = await client.send(command);
 
   const response = await getItemsFromTable("InvitationParameters", client, CONFIG_ID);
   console.log(response);
@@ -38,7 +46,7 @@ export const handler = async (event, context) => {
   const lambdaClient = new LambdaClient({ region: "eu-west-2" });
   // try {
   const payload = {
-    lsoaCodePayload: lsoaCodes,
+    lsoaCodePayload: Object.keys(lsoaInfo),
     invitationsAlgorithm: true
   }
 

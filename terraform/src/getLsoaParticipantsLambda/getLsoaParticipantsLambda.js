@@ -5,14 +5,14 @@ import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 */
 export const handler = async (event, context) => {
   const start = Date.now();
-  const lsoaList = JSON.parse(event).lsoaCodePayload;
+  const lsoaList = event.lsoaCodePayload;
   const client = new DynamoDBClient({ region: "eu-west-2" });
 
   // Loop over incoming array and for each LSOA, query the number of participants within LSOA.
   // Return counts for Eligible and Invited
   let eligibleInvitedPopulation;
 
-  if (JSON.parse(event).invitationsAlgorithm){
+  if (event.invitationsAlgorithm){
     eligibleInvitedPopulation = await getEligiblePopulation(lsoaList, client);
   } else {
     eligibleInvitedPopulation = await getPopulation(lsoaList, client);
