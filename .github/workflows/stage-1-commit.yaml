@@ -33,17 +33,17 @@ on:
         type: string
 
 jobs:
-  # scan-secrets:
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 2
-  #   name: "Scan secrets"
-  #   steps:
-  #     - name: "Checkout code"
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0 # Full history is needed to scan all commits
-  #     - name: "Scan secrets"
-  #       uses: ./.github/actions/scan-secrets
+  scan-secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    name: "Scan secrets"
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history is needed to scan all commits
+      - name: "Scan secrets"
+        uses: ./.github/actions/scan-secrets
   check-file-format:
     runs-on: ubuntu-latest
     timeout-minutes: 2
