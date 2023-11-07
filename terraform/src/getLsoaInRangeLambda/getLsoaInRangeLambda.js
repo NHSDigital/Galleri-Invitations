@@ -4,9 +4,6 @@ import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
   Lambda to get participants in LSOA from the list of available LSOAs
 */
 export const handler = async (event, context) => {
-  console.log(event)
-  console.log(typeof event)
-
   const start = Date.now();
   const lsoaList = event.lsoaCodePayload;
   const client = new DynamoDBClient({ region: "eu-west-2" });
@@ -17,7 +14,6 @@ export const handler = async (event, context) => {
 
   if (event.invitationsAlgorithm){
     eligibleInvitedPopulation = await getEligiblePopulation(lsoaList, client);
-    console.log("eligibleInvitedPopulation:", eligibleInvitedPopulation)
   } else {
     eligibleInvitedPopulation = await getPopulation(lsoaList, client);
   }
@@ -94,7 +90,6 @@ export async function getEligiblePopulation(lsoaList, client) {
     // const lsoaCode = lsoa.S;
     // gets all the people in LSOA
     const response = await populateEligibleArray(client, lsoa);
-    console.log("Response from db:", response)
 
     const eligiblePopInLsoa = response.filter((person) => {
       if (person?.Invited?.S == "false" && person?.date_of_death?.S == "NULL" && person?.removal_date?.S == "NULL") {
