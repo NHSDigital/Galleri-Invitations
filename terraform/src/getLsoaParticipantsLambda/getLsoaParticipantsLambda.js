@@ -10,8 +10,13 @@ export const handler = async (event, context) => {
 
   // Loop over incoming array and for each LSOA, query the number of participants within LSOA.
   // Return counts for Eligible and Invited
+  let eligibleInvitedPopulation;
 
-  const eligibleInvitedPopulation = await getPopulation(lsoaList, client);
+  if (event.invitationsAlgorithm){
+    eligibleInvitedPopulation = await getEligiblePopulation(lsoaList, client);
+  } else {
+    eligibleInvitedPopulation = await getPopulation(lsoaList, client);
+  }
 
   if (Object.keys(eligibleInvitedPopulation).length > 0) {
     const complete = Date.now() - start;
@@ -71,6 +76,28 @@ export async function getPopulation (lsoaList, client) {
       ELIGIBLE_POPULATION: {"S": response.length},
       INVITED_POPULATION: {"S": invitedPopulation}
     };
+  }));
+
+  console.log(`lsoa being queried number ${lsoaList.length}. Population object has ${Object.keys(populationObject).length}`);
+
+  return populationObject;
+}
+
+// Query eligible people
+export async function getEligiblePopulation(lsoaList, client) {
+  const populationObject = {};
+  await Promise.all(lsoaList.map(async (lsoa) => {
+    const lsoaCode = lsoa.S;
+    // gets all the people in LSOA
+    const response = await populateEligibleArray(client, lsoaCode);
+
+    const eligiblePopInLsoa = response.filter((person) => {
+      if (person?.Invited?.S == "false" && person?.date_of_death?.S == "NULL" && person?.removal_date?.S == "NULL") {
+        return person
+      };
+    });
+
+    populationObject[lsoaCode] = eligiblePopInLsoa;
   }));
 
   console.log(`lsoa being queried number ${lsoaList.length}. Population object has ${Object.keys(populationObject).length}`);
