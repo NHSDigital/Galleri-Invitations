@@ -399,7 +399,7 @@ module "calculate_number_to_invite_cloudwatch" {
 
 module "calculate_number_to_invite_api_gateway" {
   source                    = "./modules/api-gateway"
-  lambda_invoke_arn         = module.calculate_number_to_invite__lambda.lambda_invoke_arn
+  lambda_invoke_arn         = module.calculate_number_to_invite_lambda.lambda_invoke_arn
   path_part                 = "calculate-num-to-invite"
   method_http_parameters    = {}
   lambda_api_gateway_method = "PUT"
