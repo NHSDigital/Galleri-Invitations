@@ -1,6 +1,6 @@
 
 resource "aws_iam_role" "iam_role" {
-  name = var.role_name
+  name = "${var.environment}-${var.role_name}"
 
   assume_role_policy = jsonencode({
     "Version" : "2012-10-17",
@@ -17,7 +17,7 @@ resource "aws_iam_role" "iam_role" {
 }
 
 resource "aws_iam_policy" "iam_policy" {
-  name        = var.name
+  name        = "${var.environment}-${var.name}"
   path        = var.path
   description = var.description
 

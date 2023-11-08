@@ -6,7 +6,7 @@ data "archive_file" "lambda_archive" {
 }
 
 resource "aws_lambda_function" "lambda" {
-  function_name = var.lambda_function_name
+  function_name = "${var.environment}-${var.lambda_function_name}"
   role          = var.lambda_iam_role
   handler       = "${var.lambda_function_name}.handler"
   runtime       = var.runtime

@@ -18,3 +18,5 @@ variable "policy" {
 }
 
 # variable "aws_account_number" {}
+
+variable "environment" {}
