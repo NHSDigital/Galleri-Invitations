@@ -121,6 +121,8 @@ export const handler = async (event, context) => {
     ...getParticipantsInQuintile(quintile4Population, quintile4Target),
     ...getParticipantsInQuintile(quintile5Population, quintile5Target),
   ]
+
+  const numberOfPeopleToInvite = selectedParticipants.length
   //sort by IMD_DECILE from POSTCODE dynamo table, then split into 5 arrays/objects
   // .sort((a, b) => {
   // return (
