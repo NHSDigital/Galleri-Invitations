@@ -62,13 +62,13 @@ export const handler = async (event, context) => {
   if (records.length != 0) {
     responseObject.statusCode = 200;
     responseObject.isBase64Encoded = true;
-    (responseObject.headers = {
+    responseObject.headers = {
       "Access-Control-Allow-Headers":
         "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,GET",
-    }),
-      (responseObject.body = JSON.stringify(combinedLsoaParticipants));
+    }
+    responseObject.body = JSON.stringify(combinedLsoaParticipants);
   } else {
     responseObject.statusCode = 404;
     responseObject.isBase64Encoded = true;
