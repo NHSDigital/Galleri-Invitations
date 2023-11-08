@@ -61,16 +61,66 @@ export const handler = async (event, context) => {
   console.log("participantInLsoa = ", participantInLsoa)
 
   // connect LsoaInfo with participantsInLsoa
-  const participantInLsoaIncoming =  {
-      '9000211252': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false', imdDecile: 2, forecastUptake: 13, lsoaCode: 'E01022970' },
-      '9000174777': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false', imdDecile: 2, forecastUptake: 13, lsoaCode: 'E01022970' },
-      '9000011589': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false', imdDecile: 9, forecastUptake: 35, lsoaCode: 'E01030492' },
-      '9000230168': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false', imdDecile: 9, forecastUptake: 35, lsoaCode: 'E01030492' }
-    }
-
+  const participantInLsoaIncoming =  [
+    { personId: '9000211252', dateOfDeath:  'NULL', removalDate: 'NULL', invited: 'false', imdDecile: 2, forecastUptake: 13, lsoaCode: 'E01022970' },
+    { personId: '9000174777', dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false', imdDecile: 2, forecastUptake: 13, lsoaCode: 'E01022970' },
+    { personId: '9000011589', dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false', imdDecile: 9, forecastUptake: 35, lsoaCode: 'E01030492' },
+    { personId: '9000230168', dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false', imdDecile: 9, forecastUptake: 35, lsoaCode: 'E01030492' }
+  ]
 
   //rank population in order of depravity, least(affluent) to most, and create 5 quintiles by separating
   //this in 1/5ths
+  const numberOfPeople = participantInLsoa.length
+  const quintileBlockSize = Math.floor(numberOfPeople/5)
+  // const selectedParticipants = participantInLsoa.sort((a, b) => {
+  //   a.imdDecile < b.imdDecile
+  // }).
+  // const selectedParticipants = participantInLsoa.sort((a, b) => {
+  //     a.imdDecile < b.imdDecile
+  //   }).map( (element, index) => {
+  //     let count = 0
+  //     const selectedPeople = []
+  //     while (count < quintileTarget) {
+  //       // in quintiles
+  //       // randomly select element within block
+  //       // add them to an array
+  //       // add forecast uptake as decimal to counter
+  //       // keep doing so until counter reachs quintile target
+  //     }
+  //   });
+  //QUINTILE 1
+  const q1UpperBound = quintileBlockSize
+  const quintile1Population = participantInLsoa.sort((a, b) => {
+    a.imdDecile < b.imdDecile
+  }).splice(0, q1UpperBound)
+  //QUINTILE 2
+  const q2UpperBound = q1UpperBound + quintileBlockSize
+  const quintile2Population = participantInLsoa.sort((a, b) => {
+    a.imdDecile < b.imdDecile
+  }).splice(q1UpperBound + 1, q2UpperBound)
+  //QUINTILE 3
+  const q3UpperBound = q2UpperBound + quintileBlockSize
+  const quintile3Population = participantInLsoa.sort((a, b) => {
+    a.imdDecile < b.imdDecile
+  }).splice(q2UpperBound + 1, q3UpperBound)
+  //QUINTILE 4
+  const q4UpperBound = q3UpperBound + quintileBlockSize
+  const quintile4Population = participantInLsoa.sort((a, b) => {
+    a.imdDecile < b.imdDecile
+  }).splice(q3UpperBound + 1, q4UpperBound)
+  //QUINTILE 5
+  const endOfList = q4UpperBound + quintileBlockSize
+  const quintile5Population = participantInLsoa.sort((a, b) => {
+    a.imdDecile < b.imdDecile
+  }).splice(q4UpperBound + 1, endOfList)
+
+  const selectedParticipants = [
+    ...getParticipantsInQuintile(quintile1Population, quintile1Target),
+    ...getParticipantsInQuintile(quintile2Population, quintile2Target),
+    ...getParticipantsInQuintile(quintile3Population, quintile3Target),
+    ...getParticipantsInQuintile(quintile4Population, quintile4Target),
+    ...getParticipantsInQuintile(quintile5Population, quintile5Target),
+  ]
   //sort by IMD_DECILE from POSTCODE dynamo table, then split into 5 arrays/objects
   // .sort((a, b) => {
   // return (
@@ -128,4 +178,15 @@ export async function getItemsFromTable(table, client, key) {
   const response = await client.send(command);
 
   return response;
+}
+
+const getParticipantsInQuintile = (quintilePopulation, quintileTarget) => {
+  let count = 0;
+  const selectedParticipants = []
+  while (count < quintileTarget){
+    const personSelected = quintilePopulation[Math.random() * quintileBlockSize]
+    selectedParticipants.push(personSelected)
+    count += (personSelected.forecastUptake)/100
+  }
+  return selectedParticipants
 }
