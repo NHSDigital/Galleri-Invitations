@@ -31,6 +31,7 @@ module "s3_bucket" {
 # Data Filter Gridall IMD
 module "data_filter_gridall_imd_lambda" {
   source               = "./modules/lambda"
+  environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "dataFilterLambda"
@@ -47,6 +48,7 @@ module "data_filter_gridall_imd_lambda" {
 
 module "data_filter_gridall_imd_cloudwatch" {
   source               = "./modules/cloudwatch"
+  environment          = var.environment
   lambda_function_name = module.data_filter_gridall_imd_lambda.lambda_function_name
   retention_days       = 14
 }
@@ -55,6 +57,7 @@ module "data_filter_gridall_imd_cloudwatch" {
 # LSOA loader
 module "lsoa_loader_lambda" {
   source               = "./modules/lambda"
+  environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "lsoaLoaderLambda"
@@ -69,6 +72,7 @@ module "lsoa_loader_lambda" {
 
 module "lsoa_loader_cloudwatch" {
   source               = "./modules/cloudwatch"
+  environment          = var.environment
   lambda_function_name = module.lsoa_loader_lambda.lambda_function_name
   retention_days       = 14
 }
@@ -77,6 +81,7 @@ module "lsoa_loader_cloudwatch" {
 # clinic information
 module "clinic_information_lambda" {
   source               = "./modules/lambda"
+  environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "clinicInformationLambda"
@@ -88,12 +93,14 @@ module "clinic_information_lambda" {
 
 module "clinic_information_cloudwatch" {
   source               = "./modules/cloudwatch"
+  environment          = var.environment
   lambda_function_name = module.clinic_information_lambda.lambda_function_name
   retention_days       = 14
 }
 
 module "clinic_information_api_gateway" {
   source            = "./modules/api-gateway"
+  environment       = var.environment
   lambda_invoke_arn = module.clinic_information_lambda.lambda_invoke_arn
   path_part         = "clinic-information"
   method_http_parameters = {
@@ -101,13 +108,13 @@ module "clinic_information_api_gateway" {
     "method.request.querystring.clinicName" = true
   }
   lambda_function_name = module.clinic_information_lambda.lambda_function_name
-  environment          = var.environment
 }
 
 
 # Clinic icb list
 module "clinic_icb_list_lambda" {
   source               = "./modules/lambda"
+  environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "clinicIcbListLambda"
@@ -119,25 +126,27 @@ module "clinic_icb_list_lambda" {
 
 module "clinic_icb_list_cloudwatch" {
   source               = "./modules/cloudwatch"
+  environment          = var.environment
   lambda_function_name = module.clinic_icb_list_lambda.lambda_function_name
   retention_days       = 14
 }
 
 module "clinic_icb_list_api_gateway" {
   source            = "./modules/api-gateway"
+  environment       = var.environment
   lambda_invoke_arn = module.clinic_icb_list_lambda.lambda_invoke_arn
   path_part         = "clinic-icb-list"
   method_http_parameters = {
     "method.request.querystring.participatingIcb" = true
   }
   lambda_function_name = module.clinic_icb_list_lambda.lambda_function_name
-  environment          = var.environment
 }
 
 
 # partisipating icb list
 module "participating_icb_list_lambda" {
   source               = "./modules/lambda"
+  environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "participatingIcbListLambda"
@@ -149,23 +158,25 @@ module "participating_icb_list_lambda" {
 
 module "participating_icb_list_cloudwatch" {
   source               = "./modules/cloudwatch"
+  environment          = var.environment
   lambda_function_name = module.participating_icb_list_lambda.lambda_function_name
   retention_days       = 14
 }
 
 module "participating_icb_list_api_gateway" {
   source                 = "./modules/api-gateway"
+  environment            = var.environment
   lambda_invoke_arn      = module.participating_icb_list_lambda.lambda_invoke_arn
   path_part              = "participating-icb-list"
   method_http_parameters = {}
   lambda_function_name   = module.participating_icb_list_lambda.lambda_function_name
-  environment            = var.environment
 }
 
 
 # clinic summary list
 module "clinic_summary_list_lambda" {
   source               = "./modules/lambda"
+  environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "clinicSummaryListLambda"
@@ -177,25 +188,27 @@ module "clinic_summary_list_lambda" {
 
 module "clinic_summary_list_cloudwatch" {
   source               = "./modules/cloudwatch"
+  environment          = var.environment
   lambda_function_name = module.clinic_summary_list_lambda.lambda_function_name
   retention_days       = 14
 }
 
 module "clinic_summary_list_api_gateway" {
   source            = "./modules/api-gateway"
+  environment       = var.environment
   lambda_invoke_arn = module.clinic_summary_list_lambda.lambda_invoke_arn
   path_part         = "clinic-summary-list"
   method_http_parameters = {
     "method.request.querystring.participatingIcb" = true
   }
   lambda_function_name = module.clinic_summary_list_lambda.lambda_function_name
-  environment          = var.environment
 }
 
 
 # Invitation Parameters
 module "invitation_parameters_lambda" {
   source               = "./modules/lambda"
+  environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "invitationParametersLambda"
@@ -207,23 +220,25 @@ module "invitation_parameters_lambda" {
 
 module "invitation_parameters_cloudwatch" {
   source               = "./modules/cloudwatch"
+  environment          = var.environment
   lambda_function_name = module.invitation_parameters_lambda.lambda_function_name
   retention_days       = 14
 }
 
 module "invitation_parameters_api_gateway" {
   source                 = "./modules/api-gateway"
+  environment            = var.environment
   lambda_invoke_arn      = module.invitation_parameters_lambda.lambda_invoke_arn
   path_part              = "invitation-parameters"
   method_http_parameters = {}
   lambda_function_name   = module.invitation_parameters_lambda.lambda_function_name
-  environment            = var.environment
 }
 
 
 # Invitation Parameters Put Forcast Uptake
 module "invitation_parameters_put_forecast_uptake_lambda" {
   source               = "./modules/lambda"
+  environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "invitationParametersPutForecastUptakeLambda"
@@ -235,25 +250,27 @@ module "invitation_parameters_put_forecast_uptake_lambda" {
 
 module "invitation_parameters_put_forecast_uptake_cloudwatch" {
   source               = "./modules/cloudwatch"
+  environment          = var.environment
   lambda_function_name = module.invitation_parameters_put_forecast_uptake_lambda.lambda_function_name
   retention_days       = 14
 }
 
 module "invitation_parameters_put_forecast_uptake_api_gateway" {
   source                    = "./modules/api-gateway"
+  environment               = var.environment
   lambda_invoke_arn         = module.invitation_parameters_lambda.lambda_invoke_arn
   path_part                 = "invitation-parameters-put-forecast-uptake"
   method_http_parameters    = {}
   lambda_api_gateway_method = "PUT"
   lambda_function_name      = module.invitation_parameters_put_forecast_uptake_lambda.lambda_function_name
   method                    = "/*/PUT/*"
-  environment               = var.environment
 }
 
 
 # Invitations Parameters Put Quintiles
 module "invitation_parameters_put_quintiles_lambda" {
   source               = "./modules/lambda"
+  environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "invitationParametersPutQuintilesLambda"
@@ -265,25 +282,27 @@ module "invitation_parameters_put_quintiles_lambda" {
 
 module "invitation_parameters_put_quintiles_cloudwatch" {
   source               = "./modules/cloudwatch"
+  environment          = var.environment
   lambda_function_name = module.invitation_parameters_put_quintiles_lambda.lambda_function_name
   retention_days       = 14
 }
 
 module "invitation_parameters_put_quintiles_api_gateway" {
   source                    = "./modules/api-gateway"
+  environment               = var.environment
   lambda_invoke_arn         = module.invitation_parameters_put_quintiles_lambda.lambda_invoke_arn
   path_part                 = "invitation-parameters-put-quintiles"
   method_http_parameters    = {}
   lambda_api_gateway_method = "PUT"
   lambda_function_name      = module.invitation_parameters_put_quintiles_lambda.lambda_function_name
   method                    = "/*/PUT/*"
-  environment               = var.environment
 }
 
 
 # Target Fill to Percentage PUT
 module "target_fill_to_percentage_put_lambda" {
   source               = "./modules/lambda"
+  environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "targetFillToPercentagePutLambda"
@@ -293,12 +312,14 @@ module "target_fill_to_percentage_put_lambda" {
 
 module "target_fill_to_percentage_put_cloudwatch" {
   source               = "./modules/cloudwatch"
+  environment          = var.environment
   lambda_function_name = module.target_fill_to_percentage_put_lambda.lambda_function_name
   retention_days       = 14
 }
 
 module "target_fill_to_percentage_put_api_gateway" {
   source                    = "./modules/api-gateway"
+  environment               = var.environment
   lambda_invoke_arn         = module.target_fill_to_percentage_put_lambda.lambda_invoke_arn
   path_part                 = "put-target-percentage"
   method_http_parameters    = {}
@@ -310,13 +331,13 @@ module "target_fill_to_percentage_put_api_gateway" {
   }
   lambda_function_name = module.target_fill_to_percentage_put_lambda.lambda_function_name
   method               = "/*/PUT/*"
-  environment          = var.environment
 }
 
 
 # Target Fill to Percentage GET
 module "target_fill_to_percentage_get_lambda" {
   source               = "./modules/lambda"
+  environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "targetFillToPercentageLambda"
@@ -326,17 +347,18 @@ module "target_fill_to_percentage_get_lambda" {
 
 module "target_fill_to_percentage_get_cloudwatch" {
   source               = "./modules/cloudwatch"
+  environment          = var.environment
   lambda_function_name = module.target_fill_to_percentage_get_lambda.lambda_function_name
   retention_days       = 14
 }
 
 module "target_fill_to_percentage_get_api_gateway" {
   source                 = "./modules/api-gateway"
+  environment            = var.environment
   lambda_invoke_arn      = module.target_fill_to_percentage_get_lambda.lambda_invoke_arn
   path_part              = "target-percentage"
   method_http_parameters = {}
   lambda_function_name   = module.target_fill_to_percentage_get_lambda.lambda_function_name
-  environment            = var.environment
 }
 
 
