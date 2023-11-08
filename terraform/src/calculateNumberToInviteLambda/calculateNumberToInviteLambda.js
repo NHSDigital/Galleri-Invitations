@@ -61,26 +61,20 @@ export const handler = async (event, context) => {
   console.log("participantInLsoa = ", participantInLsoa)
 
   // connect LsoaInfo with participantsInLsoa
-  // participantInLsoa =  {
-  //   E01022970: [
-  //     {
-  //       PersonId: [Object],
-  //       date_of_death: [Object],
-  //       removal_date: [Object],
-  //       Invited: [Object]
-  //     }
-  //   ],
-  //   E01030492: [
-  //     {
-  //       PersonId: [Object],
-  //       date_of_death: [Object],
-  //       removal_date: [Object],
-  //       Invited: [Object]
-  //     }
-  //   ]
-  // }
+//   const participantInLsoaIncoming =  {
+//   "E01022970": {
+//     '9000211252': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false' },
+//     '9000174777': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false' },
+//     '9000151988': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false' },
+//   },
+//   "E01030492": {
+//     '9000011589': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false' },
+//     '9000230168': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false' },
+//     '9000078370': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false' }
+//   }
+// }
 
-  //rank population in order of depravity, most to least(affluent), and create 5 quintiles by separating
+  //rank population in order of depravity, least(affluent) to most, and create 5 quintiles by separating
   //this in 1/5ths
   //sort by IMD_DECILE from POSTCODE dynamo table, then split into 5 arrays/objects
   // .sort((a, b) => {

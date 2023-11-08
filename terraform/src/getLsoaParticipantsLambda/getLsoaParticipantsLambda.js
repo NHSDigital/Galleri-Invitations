@@ -92,16 +92,23 @@ export async function getEligiblePopulation(lsoaList, client) {
     const response = await populateEligibleArray(client, lsoa);
     let count = 0 // DEBUG
 
-    const eligiblePopInLsoa = response.filter((person) => {
+    let personObject = {}
+    response.forEach((person) => {
       if (person?.Invited?.S == "false" && person?.date_of_death?.S == "NULL" && person?.removal_date?.S == "NULL") {
         // DEBUG
         ++count
-        return person
+
+        personObject[person?.PersonId.S] = {
+          "dateOfDeath": person?.date_of_death.S,
+          "removalDate": person?.removal_date.S,
+          "invited": person?.Invited?.S
+        }
       };
     });
 
+    console.log("Person object = ", JSON.stringify(personObject))
     console.log(`In ${lsoa}, there are ${count} number of people available to invite`)
-    populationObject[lsoa] = eligiblePopInLsoa;
+    populationObject[lsoa] = personObject;
   }));
 
   console.log(`lsoa being queried number ${lsoaList.length}. Population object has ${Object.keys(populationObject).length}`);
