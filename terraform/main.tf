@@ -382,6 +382,7 @@ module "participants_in_lsoa_cloudwatch" {
   retention_days       = 14
 }
 
+# Calculate number of participatnts to invite
 module "calculate_number_to_invite_lambda" {
   source               = "./modules/lambda"
   bucket_id            = module.s3_bucket.bucket_id
@@ -402,14 +403,14 @@ module "calculate_number_to_invite_api_gateway" {
   lambda_invoke_arn         = module.calculate_number_to_invite_lambda.lambda_invoke_arn
   path_part                 = "calculate-num-to-invite"
   method_http_parameters    = {}
-  lambda_api_gateway_method = "PUT"
+  lambda_api_gateway_method = "POST"
   integration_response_http_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'PUT'",
+    "method.response.header.Access-Control-Allow-Methods" = "'POST'",
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
   lambda_function_name = module.calculate_number_to_invite_lambda.lambda_function_name
-  method               = "/*/PUT/*"
+  method               = "/*/POST/*"
   environment          = var.environment
 }
 
