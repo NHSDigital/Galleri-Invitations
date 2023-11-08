@@ -59,10 +59,27 @@ export const handler = async (event, context) => {
   const participantInLsoa = JSON.parse(Buffer.from(responseA.Payload).toString())
 
   console.log("participantInLsoa = ", participantInLsoa)
+
+  // connect LsoaInfo with participantsInLsoa
+  // participantInLsoa =  {
+  //   E01022970: [
+  //     {
+  //       PersonId: [Object],
+  //       date_of_death: [Object],
+  //       removal_date: [Object],
+  //       Invited: [Object]
+  //     }
+  //   ],
+  //   E01030492: [
+  //     {
+  //       PersonId: [Object],
+  //       date_of_death: [Object],
+  //       removal_date: [Object],
+  //       Invited: [Object]
+  //     }
+  //   ]
   // }
-  // catch (err) {
-  //   console.log(err)
-  // }
+
   //rank population in order of depravity, most to least(affluent), and create 5 quintiles by separating
   //this in 1/5ths
   //sort by IMD_DECILE from POSTCODE dynamo table, then split into 5 arrays/objects
