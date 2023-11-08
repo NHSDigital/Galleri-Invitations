@@ -1,8 +1,8 @@
 {
-  "name": "generatePersonTestData",
+  "name": "uploadUniqueLsoas",
   "version": "1.0.0",
   "type": "module",
-  "main": "generatePersonTestData.js",
+  "main": "uploadUniqueLsoas.js",
   "author": "",
   "dependencies": {
     "csv": "^6.3.1",
