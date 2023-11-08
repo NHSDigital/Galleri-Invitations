@@ -46,7 +46,7 @@ runs:
       shell: bash
       run: |
         cd ./terraform
-        terraform plan -no-color -lock=false -var-file=environment/dev/terraform.tfvars
+        terraform plan -no-color -var-file=environment/dev/terraform.tfvars
 
     - name: Terraform Plan Status
       if: steps.plan.outcome == 'failure'
@@ -72,4 +72,4 @@ runs:
         npm install --prefix src/targetFillToPercentagePutLambda
         npm install --prefix src/getLsoaInRangeLambda
         npm install --prefix src/getLsoaParticipantsLambda
-        terraform apply -auto-approve -lock=false -input=false -var-file=environment/dev/terraform.tfvars
+        terraform apply -auto-approve -input=false -var-file=environment/dev/terraform.tfvars
