@@ -34,15 +34,21 @@ export const handler = async (event, context) => {
 
   if ((response.$metadata.httpStatusCode = 200)) {
     responseObject.statusCode = 200;
-    (responseObject.headers = {
+    responseObject.headers = {
       "Access-Control-Allow-Headers":
         "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,PUT",
-    }),
-      (responseObject.isBase64Encoded = true);
+    }
+    responseObject.isBase64Encoded = true;
   } else {
     responseObject.statusCode = 404;
+    responseObject.headers = {
+      "Access-Control-Allow-Headers":
+        "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "OPTIONS,PUT",
+    }
     responseObject.isBase64Encoded = true;
     responseObject.body = "error";
   }

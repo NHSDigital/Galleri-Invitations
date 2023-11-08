@@ -31,16 +31,22 @@ export const handler = async (event, context) => {
 
   if (response.hasOwnProperty("Item")) {
     responseObject.statusCode = 200;
-    (responseObject.headers = {
+    responseObject.headers = {
       "Access-Control-Allow-Headers":
         "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,GET",
-    }),
-      (responseObject.isBase64Encoded = true);
+    }
+    responseObject.isBase64Encoded = true;
     responseObject.body = JSON.stringify(response.Item);
   } else {
     responseObject.statusCode = 404;
+    responseObject.headers = {
+      "Access-Control-Allow-Headers":
+        "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "OPTIONS,GET",
+    }
     responseObject.isBase64Encoded = true;
     responseObject.body = "error";
   }

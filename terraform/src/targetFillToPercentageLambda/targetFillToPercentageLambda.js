@@ -25,16 +25,22 @@ export const handler = async () => {
 
   if (response.Item?.TARGET_PERCENTAGE !== null) {
     responseObject.statusCode = 200;
-    (responseObject.headers = {
+    responseObject.headers = {
       "Access-Control-Allow-Headers":
         "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,GET",
-    }),
-      (responseObject.isBase64Encoded = true);
+    }
+    responseObject.isBase64Encoded = true;
     responseObject.body = JSON.stringify(attribute);
   } else {
     responseObject.statusCode = 404;
+    responseObject.headers = {
+      "Access-Control-Allow-Headers":
+        "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "OPTIONS,GET",
+    }
     responseObject.isBase64Encoded = true;
     responseObject.body = "error";
   }
