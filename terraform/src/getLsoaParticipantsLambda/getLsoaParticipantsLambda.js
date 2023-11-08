@@ -87,17 +87,21 @@ export async function getPopulation (lsoaList, client) {
 export async function getEligiblePopulation(lsoaList, client) {
   const populationObject = {};
   await Promise.all(lsoaList.map(async (lsoa) => {
-    const lsoaCode = lsoa.S;
+    // const lsoaCode = lsoa.S; //DEBUG
     // gets all the people in LSOA
-    const response = await populateEligibleArray(client, lsoaCode);
+    const response = await populateEligibleArray(client, lsoa);
+    let count = 0 // DEBUG
 
     const eligiblePopInLsoa = response.filter((person) => {
       if (person?.Invited?.S == "false" && person?.date_of_death?.S == "NULL" && person?.removal_date?.S == "NULL") {
+        // DEBUG
+        ++count
         return person
       };
     });
 
-    populationObject[lsoaCode] = eligiblePopInLsoa;
+    console.log(`In ${lsoa}, there are ${count} number of people available to invite`)
+    populationObject[lsoa] = eligiblePopInLsoa;
   }));
 
   console.log(`lsoa being queried number ${lsoaList.length}. Population object has ${Object.keys(populationObject).length}`);

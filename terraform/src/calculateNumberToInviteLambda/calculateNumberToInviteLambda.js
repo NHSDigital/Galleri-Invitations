@@ -20,7 +20,6 @@ export const handler = async (event, context) => {
   const CONFIG_ID = 1;
 
   const response = await getItemsFromTable("InvitationParameters", client, CONFIG_ID);
-  console.log(response);
   let responseObject = {};
 
   const targetAppsToFill = '2000';
@@ -56,8 +55,6 @@ export const handler = async (event, context) => {
   };
   const command = new InvokeCommand(input);
   const responseA = await lambdaClient.send(command);
-
-  console.log("logging invoke lambda response: ", responseA)
 
   const participantInLsoa = JSON.parse(Buffer.from(responseA.Payload).toString())
 
