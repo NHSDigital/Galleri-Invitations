@@ -86,32 +86,33 @@ export async function getPopulation (lsoaList, client) {
 // Query eligible people
 export async function getEligiblePopulation(lsoaList, client) {
   const populationObject = {};
-  await Promise.all(lsoaList.map(async (lsoa) => {
+  await Promise.all(Object.keys(lsoaList).map(async (lsoa) => {
     // const lsoaCode = lsoa.S; //DEBUG
     // gets all the people in LSOA
     const response = await populateEligibleArray(client, lsoa);
     let count = 0 // DEBUG
 
-    let personObject = {}
     response.forEach((person) => {
       if (person?.Invited?.S == "false" && person?.date_of_death?.S == "NULL" && person?.removal_date?.S == "NULL") {
         // DEBUG
         ++count
 
-        personObject[person?.PersonId.S] = {
+        populationObject[person?.PersonId.S] = {
           "dateOfDeath": person?.date_of_death.S,
           "removalDate": person?.removal_date.S,
-          "invited": person?.Invited?.S
+          "invited": person?.Invited?.S,
+          "imdDecile": lsoaList[lsoa].IMD_DECILE,
+          "forecastUptake": lsoaList[lsoa].FORECAST_UPTAKE,
+          "lsoaCode": lsoa
         }
+
       };
     });
 
-    console.log("Person object = ", JSON.stringify(personObject))
     console.log(`In ${lsoa}, there are ${count} number of people available to invite`)
-    populationObject[lsoa] = personObject;
   }));
 
-  console.log(`lsoa being queried number ${lsoaList.length}. Population object has ${Object.keys(populationObject).length}`);
+  console.log(`lsoa being queried number ${Object.keys(lsoaList).length}. Population object has ${Object.keys(populationObject).length}`);
 
   return populationObject;
 }

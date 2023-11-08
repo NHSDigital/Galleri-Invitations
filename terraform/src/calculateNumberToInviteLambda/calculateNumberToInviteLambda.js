@@ -45,7 +45,7 @@ export const handler = async (event, context) => {
   const lambdaClient = new LambdaClient({ region: "eu-west-2" });
   // try {
   const payload = {
-    lsoaCodePayload: Object.keys(lsoaInfo),
+    lsoaCodePayload: lsoaInfo,
     invitationsAlgorithm: true
   }
 
@@ -61,18 +61,13 @@ export const handler = async (event, context) => {
   console.log("participantInLsoa = ", participantInLsoa)
 
   // connect LsoaInfo with participantsInLsoa
-//   const participantInLsoaIncoming =  {
-//   "E01022970": {
-//     '9000211252': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false' },
-//     '9000174777': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false' },
-//     '9000151988': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false' },
-//   },
-//   "E01030492": {
-//     '9000011589': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false' },
-//     '9000230168': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false' },
-//     '9000078370': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false' }
-//   }
-// }
+  const participantInLsoaIncoming =  {
+      '9000211252': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false', imdDecile: 2, forecastUptake: 13, lsoaCode: 'E01022970' },
+      '9000174777': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false', imdDecile: 2, forecastUptake: 13, lsoaCode: 'E01022970' },
+      '9000011589': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false', imdDecile: 9, forecastUptake: 35, lsoaCode: 'E01030492' },
+      '9000230168': { dateOfDeath: 'NULL', removalDate: 'NULL', invited: 'false', imdDecile: 9, forecastUptake: 35, lsoaCode: 'E01030492' }
+    }
+
 
   //rank population in order of depravity, least(affluent) to most, and create 5 quintiles by separating
   //this in 1/5ths
