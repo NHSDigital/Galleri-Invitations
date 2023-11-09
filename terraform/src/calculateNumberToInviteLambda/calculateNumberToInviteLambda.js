@@ -1,4 +1,4 @@
-import { DynamoDBClient, ScanCommand, QueryCommand, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 
 const client = new DynamoDBClient({ region: "eu-west-2" });
@@ -143,14 +143,12 @@ export const handler = async (event, context) => {
   const numberOfPeopleToInvite = selectedParticipants.length
   console.log("numberOfPeopleToInvite = ", numberOfPeopleToInvite)
 
-  const returnObject = {
-    "selectedParticipants": selectedParticipants,
-    "numberOfPeopleToInvite": numberOfPeopleToInvite
-  }
-
   if (response.$metadata.httpStatusCode = 200) {
     responseObject.statusCode = 200;
-    responseObject.body = JSON.stringify(returnObject)
+    responseObject.body = JSON.stringify({
+      "selectedParticipants": selectedParticipants,
+      "numberOfPeopleToInvite": numberOfPeopleToInvite
+    })
   } else {
     responseObject.statusCode = 404;
     responseObject.body = "error";
