@@ -74,11 +74,11 @@ export const handler = async (event, context) => {
   const response = await getItemsFromTable("InvitationParameters", client, CONFIG_ID);
 
   let responseObject = {
-    "headers" : {
-    "Access-Control-Allow-Headers":
-      "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "OPTIONS,PUT",
+    "headers": {
+      "Access-Control-Allow-Headers":
+        "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "OPTIONS,POST",
     },
     "isBase64Encoded": true
   };
@@ -111,7 +111,7 @@ export const handler = async (event, context) => {
   const numberOfPeople = participantInLsoa.length
   console.log(`numberOfPeople = ${numberOfPeople}`)
   // Get Quintile block size
-  const quintileBlockSize = Math.floor(numberOfPeople/5)
+  const quintileBlockSize = Math.floor(numberOfPeople / 5)
   console.log(`quintileBlockSize = ${quintileBlockSize}`)
 
   //QUINTILE 1 Block
@@ -187,11 +187,11 @@ export const getParticipantsInQuintile = (quintilePopulation, quintileTarget, na
   console.log(`In ${Q}. # people available to invite = ${quintilePopulation.length}. Target to meet = ${quintileTarget}`)
   let count = 0;
   const selectedParticipants = []
-  while (count < quintileTarget){
+  while (count < quintileTarget) {
     const randomPersonIndex = Math.floor(Math.random() * (quintilePopulation.length - 1))
     const personSelected = quintilePopulation[randomPersonIndex]
     selectedParticipants.push(personSelected)
-    count += (personSelected.forecastUptake)/100
+    count += (personSelected.forecastUptake) / 100
   }
   return selectedParticipants
 }
