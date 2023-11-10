@@ -70,7 +70,8 @@ export const handler = async (event, context) => {
   //   }
   // }
 
-  const lsoaInfo = JSON.stringify(event.body);
+  const lsoaInfo = JSON.stringify(event);
+  console.log('LSOAINFO -abdul');
   console.log(lsoaInfo);
 
 
@@ -206,3 +207,4 @@ export const generateQuintileBlocks = (participantList, lowerBound, upperBound, 
     return a.imdDecile < b.imdDecile
   }).slice(lowerBound + 1, upperBound)
 }
+

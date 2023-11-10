@@ -6,13 +6,17 @@ import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 export const handler = async (event, context) => {
   const start = Date.now();
   const client = new DynamoDBClient({ region: "eu-west-2" });
+  console.log('EVENT -abdul');
+  console.log(JSON.stringify(event));
 
   // Loop over incoming array and for each LSOA, query the number of participants within LSOA.
   // Return counts for Eligible and Invited
   let eligibleInvitedPopulation;
 
-  if (event.invitationsAlgorithm){
-    eligibleInvitedPopulation = await getEligiblePopulation(event.lsoaCodePayload, client);
+  if (event.invitationsAlgorithm) {
+    const payload = JSON.parse(event.lsoaCodePayload).body;
+
+    eligibleInvitedPopulation = await getEligiblePopulation(JSON.parse(payload), client);
   } else {
     eligibleInvitedPopulation = await getPopulation(event, client);
   }
@@ -27,7 +31,7 @@ export const handler = async (event, context) => {
 };
 
 // METHODS
-async function populateEligibleArray(client, lsoaCode){
+async function populateEligibleArray(client, lsoaCode) {
   const tableItems = [];
   await queryEligiblePopulation(client, lsoaCode, tableItems);
   return tableItems.flat();
@@ -58,7 +62,9 @@ export async function queryEligiblePopulation(client, lsoaCode, tableItems) {
   };
 };
 
-export async function getPopulation (lsoaList, client) {
+export async function getPopulation(lsoaList, client) {
+  console.log('lsoaList -abdul');
+  console.log(lsoaList);
   const populationObject = {};
   await Promise.all(lsoaList.map(async (lsoa) => {
     const lsoaCode = lsoa.S;
@@ -72,8 +78,8 @@ export async function getPopulation (lsoaList, client) {
     });
 
     populationObject[lsoaCode] = {
-      ELIGIBLE_POPULATION: {"S": response.length},
-      INVITED_POPULATION: {"S": invitedPopulation}
+      ELIGIBLE_POPULATION: { "S": response.length },
+      INVITED_POPULATION: { "S": invitedPopulation }
     };
   }));
 
@@ -85,7 +91,14 @@ export async function getPopulation (lsoaList, client) {
 // Query eligible people
 export async function getEligiblePopulation(lsoaList, client) {
   const populationArray = [];
+  console.log("OBJECT KEYS -abdul");
+  console.log(lsoaList);
+  console.log(typeof lsoaList);
+  console.log(lsoaList["E01000005"]);
+
   await Promise.all(Object.keys(lsoaList).map(async (lsoa) => {
+    console.log('LSOA -abdul');
+    console.log(lsoa);
     // const lsoaCode = lsoa.S; //DEBUG
     // gets all the people in LSOA
     const response = await populateEligibleArray(client, lsoa);
@@ -109,7 +122,7 @@ export async function getEligiblePopulation(lsoaList, client) {
       };
     });
 
-    console.log(`In ${lsoa}, there are ${count} number of people available to invite`)
+    // console.log(`In ${lsoa}, there are ${count} number of people available to invite`)
   }));
 
   console.log(`lsoa being queried number ${Object.keys(lsoaList).length}. Population object has ${populationArray.length}`);
