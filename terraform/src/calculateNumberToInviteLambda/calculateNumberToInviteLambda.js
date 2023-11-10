@@ -7,68 +7,72 @@ const lambdaClient = new LambdaClient({ region: "eu-west-2" });
 export const handler = async (event, context) => {
   // const targetAppsToFill = event.body !== null ? JSON.parse(event.body).targetAppsToFill : "";
   // const lsoaCodes = event.body !== null ? JSON.parse(event.body).lsoaCodes : ""; //grab lsoa code [e01...,e0212]
-  const lsoaInfo = {
-    "E01022970": {
-      "IMD_DECILE": 2,
-      "FORECAST_UPTAKE": 13
-    },
-    "E01030492": {
-      "IMD_DECILE": 9,
-      "FORECAST_UPTAKE": 35
-    },
-    "E01001902": {
-      "IMD_DECILE": 6,
-      "FORECAST_UPTAKE": 20
-    },
-    "E01001345": {
-      "IMD_DECILE": 6,
-      "FORECAST_UPTAKE": 20
-    },
-    "E01023749": {
-      "IMD_DECILE": 10,
-      "FORECAST_UPTAKE": 40
-    },
-    "E01014702": {
-      "IMD_DECILE": 7,
-      "FORECAST_UPTAKE": 25
-    },
-    "E01015768": {
-      "IMD_DECILE": 5,
-      "FORECAST_UPTAKE": 18
-    },
-    "E01020272": {
-      "IMD_DECILE": 3,
-      "FORECAST_UPTAKE": 15
-    },
-    "E01028809": {
-      "IMD_DECILE": 4,
-      "FORECAST_UPTAKE": 16
-    },
-    "E01012621": {
-      "IMD_DECILE": 1,
-      "FORECAST_UPTAKE": 10
-    },
-    "E01028549": {
-      "IMD_DECILE": 8,
-      "FORECAST_UPTAKE": 25
-    },
-    "E01011568": {
-      "IMD_DECILE": 9,
-      "FORECAST_UPTAKE": 18
-    },
-    "E01032669": {
-      "IMD_DECILE": 7,
-      "FORECAST_UPTAKE": 15
-    },
-    "E01003556": {
-      "IMD_DECILE": 2,
-      "FORECAST_UPTAKE": 16
-    },
-    "E01022357": {
-      "IMD_DECILE": 9,
-      "FORECAST_UPTAKE": 10
-    }
-  }
+  // const lsoaInfo = {
+  //   "E01022970": {
+  //     "IMD_DECILE": 2,
+  //     "FORECAST_UPTAKE": 13
+  //   },
+  //   "E01030492": {
+  //     "IMD_DECILE": 9,
+  //     "FORECAST_UPTAKE": 35
+  //   },
+  //   "E01001902": {
+  //     "IMD_DECILE": 6,
+  //     "FORECAST_UPTAKE": 20
+  //   },
+  //   "E01001345": {
+  //     "IMD_DECILE": 6,
+  //     "FORECAST_UPTAKE": 20
+  //   },
+  //   "E01023749": {
+  //     "IMD_DECILE": 10,
+  //     "FORECAST_UPTAKE": 40
+  //   },
+  //   "E01014702": {
+  //     "IMD_DECILE": 7,
+  //     "FORECAST_UPTAKE": 25
+  //   },
+  //   "E01015768": {
+  //     "IMD_DECILE": 5,
+  //     "FORECAST_UPTAKE": 18
+  //   },
+  //   "E01020272": {
+  //     "IMD_DECILE": 3,
+  //     "FORECAST_UPTAKE": 15
+  //   },
+  //   "E01028809": {
+  //     "IMD_DECILE": 4,
+  //     "FORECAST_UPTAKE": 16
+  //   },
+  //   "E01012621": {
+  //     "IMD_DECILE": 1,
+  //     "FORECAST_UPTAKE": 10
+  //   },
+  //   "E01028549": {
+  //     "IMD_DECILE": 8,
+  //     "FORECAST_UPTAKE": 25
+  //   },
+  //   "E01011568": {
+  //     "IMD_DECILE": 9,
+  //     "FORECAST_UPTAKE": 18
+  //   },
+  //   "E01032669": {
+  //     "IMD_DECILE": 7,
+  //     "FORECAST_UPTAKE": 15
+  //   },
+  //   "E01003556": {
+  //     "IMD_DECILE": 2,
+  //     "FORECAST_UPTAKE": 16
+  //   },
+  //   "E01022357": {
+  //     "IMD_DECILE": 9,
+  //     "FORECAST_UPTAKE": 10
+  //   }
+  // }
+
+  const lsoaInfo = JSON.stringify(event.body);
+  console.log(lsoaInfo);
+
 
   const CONFIG_ID = 1;
   const response = await getItemsFromTable("InvitationParameters", client, CONFIG_ID);
