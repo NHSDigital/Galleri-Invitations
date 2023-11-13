@@ -204,7 +204,8 @@ export function generateLsoaTableData(lsoaData, populationData) {
     if (matchingLsoa != undefined){
       return tableInfo.push({
         ...lsoaItem,
-        ...matchingLsoa
+        ...matchingLsoa,
+        checked: false
       })
     }
   })
