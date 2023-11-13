@@ -70,7 +70,7 @@ export const handler = async (event, context) => {
   //   }
   // }
 
-  const lsoaInfo = JSON.stringify(event.body);
+  const lsoaInfo = JSON.stringify(event.body.replace(/ /g, ''));
   console.log('LSOAINFO -abdul');
   // console.log(lsoaInfo);
   console.log(JSON.parse(lsoaInfo));
