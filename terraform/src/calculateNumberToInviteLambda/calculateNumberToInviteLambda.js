@@ -5,6 +5,20 @@ const client = new DynamoDBClient({ region: "eu-west-2" });
 const lambdaClient = new LambdaClient({ region: "eu-west-2" });
 
 export const handler = async (event, context) => {
+
+  let responseObject = {
+    "headers": {
+      "Access-Control-Allow-Headers":
+        "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "OPTIONS,POST",
+    },
+    "isBase64Encoded": true,
+    "statusCode": 200,
+    "body": JSON.stringify('hello from lambda')
+  };
+
+  return responseObject;
   // const targetAppsToFill = event.body !== null ? JSON.parse(event.body).targetAppsToFill : "";
   // const lsoaCodes = event.body !== null ? JSON.parse(event.body).lsoaCodes : ""; //grab lsoa code [e01...,e0212]
   // const lsoaInfo = {
@@ -78,15 +92,15 @@ export const handler = async (event, context) => {
   const CONFIG_ID = 1;
   const response = await getItemsFromTable("InvitationParameters", client, CONFIG_ID);
 
-  let responseObject = {
-    "headers": {
-      "Access-Control-Allow-Headers":
-        "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "OPTIONS,POST",
-    },
-    "isBase64Encoded": true
-  };
+  // let responseObject = {
+  //   "headers": {
+  //     "Access-Control-Allow-Headers":
+  //       "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+  //     "Access-Control-Allow-Origin": "*",
+  //     "Access-Control-Allow-Methods": "OPTIONS,POST",
+  //   },
+  //   "isBase64Encoded": true
+  // };
 
   const targetAppsToFill = 10;
 
@@ -150,6 +164,7 @@ export const handler = async (event, context) => {
   const numberOfPeopleToInvite = selectedParticipants.length
   console.log("numberOfPeopleToInvite = ", numberOfPeopleToInvite)
 
+
   if (response.$metadata.httpStatusCode = 200) {
     responseObject.statusCode = 200;
     responseObject.body = JSON.stringify({
@@ -160,6 +175,9 @@ export const handler = async (event, context) => {
     responseObject.statusCode = 404;
     responseObject.body = "error";
   }
+  console.log('RESPONSEOBJ :');
+  console.log(responseObject);
+
   return responseObject;
 };
 
