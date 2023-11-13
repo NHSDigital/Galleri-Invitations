@@ -14,9 +14,11 @@ export const handler = async (event, context) => {
   let eligibleInvitedPopulation;
 
   if (event.invitationsAlgorithm) {
-    const payload = JSON.parse(event.lsoaCodePayload).body;
-
-    eligibleInvitedPopulation = await getEligiblePopulation(JSON.parse(payload), client);
+    // const payload = JSON.parse(event.lsoaCodePayload).body;
+    const payload = JSON.parse(event.lsoaCodePayload).lsoaCodes;
+    console.log(payload);
+    // console.log(payload);
+    eligibleInvitedPopulation = await getEligiblePopulation(payload, client);
   } else {
     eligibleInvitedPopulation = await getPopulation(event, client);
   }

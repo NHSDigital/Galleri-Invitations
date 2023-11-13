@@ -70,10 +70,10 @@ export const handler = async (event, context) => {
   //   }
   // }
 
-  const lsoaInfo = JSON.stringify(event);
+  const lsoaInfo = JSON.stringify(event.body);
   console.log('LSOAINFO -abdul');
-  console.log(lsoaInfo);
-
+  // console.log(lsoaInfo);
+  console.log(JSON.parse(lsoaInfo));
 
   const CONFIG_ID = 1;
   const response = await getItemsFromTable("InvitationParameters", client, CONFIG_ID);
@@ -107,9 +107,11 @@ export const handler = async (event, context) => {
 
   // Return participants available to invite
   const payload = {
-    lsoaCodePayload: lsoaInfo,
+    lsoaCodePayload: JSON.parse(lsoaInfo),
     invitationsAlgorithm: true
   }
+  console.log('payload -abdul');
+  console.log(payload);
   const participantInLsoa = await invokeParticipantListLambda("getLsoaParticipantsLambda", payload, lambdaClient)
   console.log("participantInLsoa.length = ", participantInLsoa.length)
 
