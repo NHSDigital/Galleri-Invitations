@@ -201,11 +201,13 @@ export function generateLsoaTableData(lsoaData, populationData) {
   lsoaData.forEach((lsoaItem) => {
     const matchingLsoa = populationData[lsoaItem.LSOA_2011.S]
 
-    if (matchingLsoa != undefined){
+    if (matchingLsoa != undefined) {
+      let defaultChecked = false
+      if (lsoaItem.DISTANCE_TO_SITE.N <= 1) defaultChecked = true
       return tableInfo.push({
         ...lsoaItem,
         ...matchingLsoa,
-        checked: false
+        checked: defaultChecked
       })
     }
   })

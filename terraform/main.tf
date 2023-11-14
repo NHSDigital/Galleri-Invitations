@@ -406,7 +406,7 @@ module "calculate_number_to_invite_api_gateway" {
   lambda_api_gateway_method = "POST"
   integration_response_http_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'POST'",
+    "method.response.header.Access-Control-Allow-Methods" = "'POST,GET'",
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
   lambda_function_name = module.calculate_number_to_invite_lambda.lambda_function_name
