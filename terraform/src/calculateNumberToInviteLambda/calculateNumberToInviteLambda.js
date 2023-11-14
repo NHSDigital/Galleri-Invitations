@@ -5,6 +5,7 @@ const client = new DynamoDBClient({ region: "eu-west-2" });
 const lambdaClient = new LambdaClient({ region: "eu-west-2" });
 
 export const handler = async (event, context) => {
+  // let responseObject = {};
 
   const targetAppsToFill = event.body !== null ? JSON.parse(event.body).targetAppsToFill : "";
   const lsoaCodes = event.body !== null ? JSON.parse(event.body).lsoaCodes : ""; //grab lsoa code [e01...,e0212]
