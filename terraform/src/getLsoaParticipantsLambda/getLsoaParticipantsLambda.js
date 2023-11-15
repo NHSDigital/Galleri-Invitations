@@ -73,14 +73,18 @@ export async function getPopulation(lsoaList, client) {
     const response = await populateEligibleArray(client, lsoaCode);
 
     let invitedPopulation = 0;
+    let eligiblePopulation = 0;
     response.forEach((person) => {
-      if (person?.Invited?.S == "true" && person?.date_of_death?.S == "NULL" && person?.removal_date?.S == "NULL") {
-        ++invitedPopulation;
-      };
+      if(person?.date_of_death?.S == "NULL" && person?.removal_date?.S == "NULL"){
+        ++eligiblePopulation
+        if (person?.Invited?.S == "true") {
+          ++invitedPopulation;
+        };
+      }
     });
 
     populationObject[lsoaCode] = {
-      ELIGIBLE_POPULATION: { "S": response.length },
+      ELIGIBLE_POPULATION: { "S": eligiblePopulation },
       INVITED_POPULATION: { "S": invitedPopulation }
     };
   }));

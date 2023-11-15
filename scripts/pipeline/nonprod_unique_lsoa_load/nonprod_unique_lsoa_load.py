@@ -1,6 +1,7 @@
 import csv
 import os
 import boto3
+from random import randrange
 
 def generate_nonprod_lsoa_json(file_path, table_name):
     with open(file_path, 'r', encoding='utf-8-sig') as file:
@@ -27,6 +28,7 @@ def format_dynamodb_json(csvreader, table_name):
         MSOA_2021 = str(row[10])
         IMD_RANK = str(row[11])
         IMD_DECILE = str(row[12])
+        FORECAST_UPTAKE = str(randrange(10, 30))
         AVG_EASTING = str(row[13])
         AVG_NORTHING = str(row[14])
         output.append(
@@ -73,7 +75,7 @@ def format_dynamodb_json(csvreader, table_name):
                             'N': f'{IMD_DECILE}'
                         },
                         'FORECAST_UPTAKE': {
-                            'N': f'1'
+                            'N': f'{FORECAST_UPTAKE}'
                         },
                         'AVG_EASTING': {
                             'S': f'{AVG_EASTING}'
