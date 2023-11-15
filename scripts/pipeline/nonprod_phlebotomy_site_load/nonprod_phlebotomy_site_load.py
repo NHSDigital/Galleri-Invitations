@@ -124,6 +124,12 @@ def create_data_set(table_name):
                         'InvitesSent': {
                             'N': str(invite_sent)
                         },
+                        'TargetFillToPercentage': {
+                            'N': str(50)
+                        },
+                        'LastSelectedRange': {
+                            'N': str(1)
+                        },
                         },
                     'TableName': table_name
                 }
