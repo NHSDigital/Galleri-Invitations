@@ -6,21 +6,21 @@ const lambdaClient = new LambdaClient({ region: "eu-west-2" });
 
 export const handler = async (event, context) => {
 
-  let responseObject = {
-    "headers": {
-      "Access-Control-Allow-Headers":
-        "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "OPTIONS,POST",
-    },
-    "isBase64Encoded": true,
-    "statusCode": 200,
-    "body": JSON.stringify('hello from lambda')
-  };
+  // let responseObject = {
+  //   "headers": {
+  //     "Access-Control-Allow-Headers":
+  //       "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+  //     "Access-Control-Allow-Origin": "*",
+  //     "Access-Control-Allow-Methods": "OPTIONS,POST",
+  //   },
+  //   "isBase64Encoded": true,
+  //   "statusCode": 200,
+  //   "body": JSON.stringify('hello from lambda')
+  // };
 
-  return responseObject;
-  // const targetAppsToFill = event.body !== null ? JSON.parse(event.body).targetAppsToFill : "";
-  // const lsoaCodes = event.body !== null ? JSON.parse(event.body).lsoaCodes : ""; //grab lsoa code [e01...,e0212]
+  // return responseObject
+  const targetAppsToFill = event.body !== null ? JSON.parse(event.body).targetAppsToFill : "";
+  const lsoaCodes = event.body !== null ? JSON.parse(event.body).lsoaCodes : ""; //grab lsoa code [e01...,e0212]
   // const lsoaInfo = {
   //   "E01022970": {
   //     "IMD_DECILE": 2,
@@ -85,6 +85,7 @@ export const handler = async (event, context) => {
   // }
 
   const lsoaInfo = JSON.stringify(event.body.replace(/ /g, ''));
+  const buffer = Buffer.from(JSON.stringify(lsoaInfo));
   console.log('LSOAINFO -abdul');
   // console.log(lsoaInfo);
   console.log(JSON.parse(lsoaInfo));
@@ -92,17 +93,17 @@ export const handler = async (event, context) => {
   const CONFIG_ID = 1;
   const response = await getItemsFromTable("InvitationParameters", client, CONFIG_ID);
 
-  // let responseObject = {
-  //   "headers": {
-  //     "Access-Control-Allow-Headers":
-  //       "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-  //     "Access-Control-Allow-Origin": "*",
-  //     "Access-Control-Allow-Methods": "OPTIONS,POST",
-  //   },
-  //   "isBase64Encoded": true
-  // };
+  let responseObject = {
+    "headers": {
+      "Access-Control-Allow-Headers":
+        "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "OPTIONS,POST",
+    },
+    "isBase64Encoded": true
+  };
 
-  const targetAppsToFill = 10;
+  // const targetAppsToFill = 10;
 
   // Store Quintile 1-5 into variable and National Forecast Uptake
   const quintile1 = response.Item !== null ? (response.Item).QUINTILE_1.N : "";
@@ -121,7 +122,8 @@ export const handler = async (event, context) => {
 
   // Return participants available to invite
   const payload = {
-    lsoaCodePayload: JSON.parse(lsoaInfo),
+    // lsoaCodePayload: JSON.parse(lsoaInfo),
+    lsoaCodePayload: buffer,
     invitationsAlgorithm: true
   }
   console.log('payload -abdul');
