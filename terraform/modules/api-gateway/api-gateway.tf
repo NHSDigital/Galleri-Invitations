@@ -39,7 +39,7 @@ resource "aws_api_gateway_rest_api" "galleri" {
 # }
 
 resource "aws_api_gateway_deployment" "galleri" {
-  stage_name = var.environment
+  stage_name  = var.environment
   rest_api_id = aws_api_gateway_rest_api.galleri.id
   lifecycle {
     create_before_destroy = true
