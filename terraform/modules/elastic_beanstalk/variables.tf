@@ -12,7 +12,7 @@ variable "description" {
 
 variable "solution_stack_name" {
   description = "The stak that elastic beanstalk will be running on"
-  default     = "64bit Amazon Linux 2 v3.3.6 running Python 3.8"
+  default     = "64bit Amazon Linux 2 v5.8.7 running Node.js 18"
 }
 
 variable "namespace" {
@@ -33,6 +33,18 @@ variable "frontend_repo_location" {
   description = "the filepath to the frontend repo"
 }
 
-variable "version" {
+variable "app_version" {
   description = "The version of the frontend"
+}
+
+variable "vpc_id" {
+
+}
+
+variable "subnet_1" {
+
+}
+
+variable "subnet_2" {
+
 }
