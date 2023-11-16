@@ -33,10 +33,6 @@ variable "frontend_repo_location" {
   description = "the filepath to the frontend repo"
 }
 
-variable "app_version" {
-  description = "The version of the frontend"
-}
-
 variable "vpc_id" {
 
 }
