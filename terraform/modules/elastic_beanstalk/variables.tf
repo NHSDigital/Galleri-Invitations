@@ -44,3 +44,15 @@ variable "subnet_1" {
 variable "subnet_2" {
 
 }
+
+variable "vpc_id" {
+
+}
+
+variable "subnet_1" {
+
+}
+
+variable "subnet_2" {
+
+}
