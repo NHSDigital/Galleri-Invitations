@@ -120,29 +120,6 @@ resource "aws_vpc_security_group_ingress_rule" "https" {
   cidr_ipv4   = "0.0.0.0/0"
 }
 
-<<<<<<< HEAD
-=======
-# allow inbound tcp 3000
-resource "aws_vpc_security_group_ingress_rule" "tcp_3000" {
-  security_group_id = aws_security_group.screens.id
-
-  from_port   = 3000
-  to_port     = 3000
-  ip_protocol = "tcp"
-  cidr_ipv4   = "0.0.0.0/0"
-}
-
-# allow ssh on port 22
-resource "aws_vpc_security_group_ingress_rule" "ssh" {
-  security_group_id = aws_security_group.screens.id
-
-  from_port   = 22
-  to_port     = 22
-  ip_protocol = "tcp"
-  cidr_ipv4   = "10.0.0.0/16"
-}
-
->>>>>>> 9124e28 (AC - got elastic beanstalk working)
 resource "aws_elastic_beanstalk_environment" "screens" {
   name                = "test-invitations-frontend"
   application         = aws_elastic_beanstalk_application.screens.name
@@ -178,18 +155,8 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     name      = "SecurityGroups"
     value     = aws_security_group.screens.id
   }
-
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
-<<<<<<< HEAD
-=======
-    name      = "NPM_CONFIG_UNSAFE_PERM"
-    value     = "true"
-  }
-
-  setting {
-    namespace = "aws:elasticbeanstalk:application:environment"
->>>>>>> 9124e28 (AC - got elastic beanstalk working)
     name      = "PORT"
     value     = 8080
   }
