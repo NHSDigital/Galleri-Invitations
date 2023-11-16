@@ -25,7 +25,6 @@ module "galleri_invitations_screen" {
   description            = "The frontend for interacting with the invitations system"
   frontend_repo_location = var.frontend_repo_location
   environment            = var.environment
-  app_version            = "v1"
   vpc_id                 = module.vpc.vpc_id
   subnet_1               = module.vpc.subnet_ids[0]
   subnet_2               = module.vpc.subnet_ids[1]
