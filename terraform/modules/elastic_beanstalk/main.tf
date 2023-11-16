@@ -1,5 +1,5 @@
 locals {
-  source_files = fileset("/home/acleveland/repo/Galleri-Frontend", "**/*")
+  source_files = fileset(var.frontend_repo_location, "**/*")
   source_hash  = sha256(join("", [for f in local.source_files : filesha256("/home/acleveland/repo/Galleri-Frontend/${f}")]))
 }
 
@@ -29,10 +29,10 @@ resource "aws_iam_role" "screens" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "beanstalk" {
-  role       = aws_iam_role.screens.name
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess-AWSElasticBeanstalk"
-}
+# resource "aws_iam_role_policy_attachment" "beanstalk" {
+#   role       = aws_iam_role.screens.name
+#   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess-AWSElasticBeanstalk"
+# }
 
 resource "aws_iam_role_policy_attachment" "screens" {
   role       = aws_iam_role.screens.name
@@ -129,25 +129,25 @@ resource "aws_vpc_security_group_ingress_rule" "https" {
   cidr_ipv4   = "0.0.0.0/0"
 }
 
-# allow inbound tcp 3000
-resource "aws_vpc_security_group_ingress_rule" "tcp_3000" {
-  security_group_id = aws_security_group.screens.id
+# # allow inbound tcp 3000
+# resource "aws_vpc_security_group_ingress_rule" "tcp_3000" {
+#   security_group_id = aws_security_group.screens.id
 
-  from_port   = 3000
-  to_port     = 3000
-  ip_protocol = "tcp"
-  cidr_ipv4   = "0.0.0.0/0"
-}
+#   from_port   = 3000
+#   to_port     = 3000
+#   ip_protocol = "tcp"
+#   cidr_ipv4   = "0.0.0.0/0"
+# }
 
-# allow ssh on port 22
-resource "aws_vpc_security_group_ingress_rule" "ssh" {
-  security_group_id = aws_security_group.screens.id
+## allow ssh on port 22
+# resource "aws_vpc_security_group_ingress_rule" "ssh" {
+#   security_group_id = aws_security_group.screens.id
 
-  from_port   = 22
-  to_port     = 22
-  ip_protocol = "tcp"
-  cidr_ipv4   = "10.0.0.0/16"
-}
+#   from_port   = 22
+#   to_port     = 22
+#   ip_protocol = "tcp"
+#   cidr_ipv4   = "10.0.0.0/16"
+# }
 
 resource "aws_elastic_beanstalk_environment" "screens" {
   name                = "test-invitations-frontend"
@@ -185,11 +185,11 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     value     = aws_security_group.screens.id
   }
 
-  setting {
-    namespace = "aws:elasticbeanstalk:application:environment"
-    name      = "NPM_CONFIG_UNSAFE_PERM"
-    value     = "true"
-  }
+  # setting {
+  #   namespace = "aws:elasticbeanstalk:application:environment"
+  #   name      = "NPM_CONFIG_UNSAFE_PERM"
+  #   value     = "true"
+  # }
 
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
