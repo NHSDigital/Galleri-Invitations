@@ -7,15 +7,44 @@ export const handler = async (event, context) => {
   const start = Date.now();
   const client = new DynamoDBClient({ region: "eu-west-2" });
   console.log('EVENT -abdul');
-  console.log(JSON.stringify(event));
+  console.log(event);
+  // {
+  //   lsoaCodePayload: {
+  //     type: 'Buffer',
+  //     data: [
+  //        34,  92,  34, 123,  92,  92,  92,  34, 116,  97, 114, 103,
+  //       101, 116,  65, 112, 112, 115,  84, 111,  70, 105, 108, 108,
+  //        92,  92,  92,  34,  58,  49,  55,  55,  44,  92,  92,  92,
+  //        34, 108, 115, 111,  97,  67, 111, 100, 101, 115,  92,  92,
+  //        92,  34,  58, 123,  92,  92,  92,  34,  69,  48,  49,  48,
+  //        48,  48,  48,  48,  53,  92,  92,  92,  34,  58, 123,  92,
+  //        92,  92,  34,  73,  77,  68,  95,  68,  69,  67,  73,  76,
+  //        69,  92,  92,  92,  34,  58,  92,  92,  92,  34,  51,  92,
+  //        92,  92,  34,  44,
+  //       ... 376 more items
+  //     ]
+  //   },
+  //   invitationsAlgorithm: true
+  // }
+
+  // console.log(event.lsoaCodePayload.data);
+
+
+  // console.log(JSON.parse(event));
+  // console.log(JSON.parse(event.invitationsAlgorithm));
+  // console.log(JSON.stringify(event));
 
   // Loop over incoming array and for each LSOA, query the number of participants within LSOA.
   // Return counts for Eligible and Invited
   let eligibleInvitedPopulation;
-
+  console.log('is invitation algorithm key there?');
+  console.log(event.invitationsAlgorithm);
   if (event.invitationsAlgorithm) {
     // const payload = JSON.parse(event.lsoaCodePayload).body;
-    const payload = JSON.parse(event.lsoaCodePayload).lsoaCodes;
+    // const payload = JSON.parse(event.lsoaCodePayload).lsoaCodes;
+    // const payload = JSON.parse(event.lsoaCodePayload).data;
+    const payload = JSON.parse(event.toString());
+    console.log('PAYLOAD -abdul');
     console.log(payload);
     // console.log(payload);
     eligibleInvitedPopulation = await getEligiblePopulation(payload, client);
@@ -65,8 +94,8 @@ export async function queryEligiblePopulation(client, lsoaCode, tableItems) {
 };
 
 export async function getPopulation(lsoaList, client) {
-  console.log('lsoaList -abdul');
-  console.log(lsoaList);
+  // console.log('lsoaList -abdul');
+  // console.log(lsoaList);
   const populationObject = {};
   await Promise.all(lsoaList.map(async (lsoa) => {
     const lsoaCode = lsoa.S;
@@ -75,7 +104,7 @@ export async function getPopulation(lsoaList, client) {
     let invitedPopulation = 0;
     let eligiblePopulation = 0;
     response.forEach((person) => {
-      if(person?.date_of_death?.S == "NULL" && person?.removal_date?.S == "NULL"){
+      if (person?.date_of_death?.S == "NULL" && person?.removal_date?.S == "NULL") {
         ++eligiblePopulation
         if (person?.Invited?.S == "true") {
           ++invitedPopulation;
@@ -97,14 +126,14 @@ export async function getPopulation(lsoaList, client) {
 // Query eligible people
 export async function getEligiblePopulation(lsoaList, client) {
   const populationArray = [];
-  console.log("OBJECT KEYS -abdul");
-  console.log(lsoaList);
-  console.log(typeof lsoaList);
-  console.log(lsoaList["E01000005"]);
+  // console.log("OBJECT KEYS -abdul");
+  // console.log(lsoaList);
+  // console.log(typeof lsoaList);
+  // console.log(lsoaList["E01000005"]);
 
   await Promise.all(Object.keys(lsoaList).map(async (lsoa) => {
-    console.log('LSOA -abdul');
-    console.log(lsoa);
+    // console.log('LSOA -abdul');
+    // console.log(lsoa);
     // const lsoaCode = lsoa.S; //DEBUG
     // gets all the people in LSOA
     const response = await populateEligibleArray(client, lsoa);

@@ -5,21 +5,7 @@ const client = new DynamoDBClient({ region: "eu-west-2" });
 const lambdaClient = new LambdaClient({ region: "eu-west-2" });
 
 export const handler = async (event, context) => {
-  let responseObject = {};
 
-  // let responseObject = {
-  //   "headers": {
-  //     "Access-Control-Allow-Headers":
-  //       "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-  //     "Access-Control-Allow-Origin": "*",
-  //     "Access-Control-Allow-Methods": "OPTIONS,POST",
-  //   },
-  //   "isBase64Encoded": true,
-  //   "statusCode": 200,
-  //   "body": JSON.stringify('hello from lambda')
-  // };
-
-  // return responseObject
   const targetAppsToFill = event.body !== null ? JSON.parse(event.body).targetAppsToFill : "";
   const lsoaCodes = event.body !== null ? JSON.parse(event.body).lsoaCodes : ""; //grab lsoa code [e01...,e0212]
   // const lsoaInfo = {
