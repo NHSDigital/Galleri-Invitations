@@ -27,6 +27,13 @@ export const handler = async (event, context) => {
   //   invitationsAlgorithm: true
   // }
 
+  // console.log(event.lsoaCodePayload.data);
+
+
+  // console.log(JSON.parse(event));
+  // console.log(JSON.parse(event.invitationsAlgorithm));
+  // console.log(JSON.stringify(event));
+
   // Loop over incoming array and for each LSOA, query the number of participants within LSOA.
   // Return counts for Eligible and Invited
   let eligibleInvitedPopulation;
