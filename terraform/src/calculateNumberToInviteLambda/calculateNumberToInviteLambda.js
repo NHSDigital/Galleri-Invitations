@@ -71,11 +71,49 @@ export const handler = async (event, context) => {
   //   }
   // }
 
+  // const dummy = {
+  //   "targetAppsToFill": 150,
+  //   "lsoaCodes": {
+  //     "E01000005": {
+  //       "IMD_DECILE": "3",
+  //       "FORECAST_UPTAKE": "1"
+  //     },
+  //     "E01004294": {
+  //       "IMD_DECILE": "5",
+  //       "FORECAST_UPTAKE": "1"
+  //     },
+  //     "E01032767": {
+  //       "IMD_DECILE": "7",
+  //       "FORECAST_UPTAKE": "1"
+  //     },
+  //     "E01032739": {
+  //       "IMD_DECILE": "7",
+  //       "FORECAST_UPTAKE": "1"
+  //     },
+  //     "E01004293": {
+  //       "IMD_DECILE": "8",
+  //       "FORECAST_UPTAKE": "1"
+  //     }
+  //   }
+  // };
+
+  // console.log(dummy);
+  // console.log(JSON.stringify(dummy));
+
+
   const lsoaInfo = JSON.stringify(event.body.replace(/ /g, ''));
   const buffer = Buffer.from(JSON.stringify(lsoaInfo));
   console.log('LSOAINFO -abdul');
+  // console.log(buffer);
   // console.log(lsoaInfo);
-  console.log(JSON.parse(lsoaInfo));
+  // console.log(JSON.parse(lsoaInfo));
+  // console.log(buffer);
+  // console.log('decoded:');
+
+  // const decoded = JSON.parse(JSON.parse(buffer.toString()));
+  // const decodedParse = JSON.parse(decoded);
+  // console.log(typeof decoded);
+  // console.log(decoded);
 
   const CONFIG_ID = 1;
   const response = await getItemsFromTable("InvitationParameters", client, CONFIG_ID);

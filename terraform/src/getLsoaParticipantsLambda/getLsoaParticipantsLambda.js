@@ -28,11 +28,17 @@ export const handler = async (event, context) => {
   // }
 
   // console.log(event.lsoaCodePayload.data);
-
+  // console.log(payload);
+  // console.log('typeof event');
+  // console.log(typeof event);
+  // console.log('typeof lsoaCodePayload');
+  // console.log(typeof event.lsoaCodePayload);
+  // console.log(event.lsoaCodePayload);
 
   // console.log(JSON.parse(event));
   // console.log(JSON.parse(event.invitationsAlgorithm));
   // console.log(JSON.stringify(event));
+  // const payload = event.lsoaCodePayload.toString();
 
   // Loop over incoming array and for each LSOA, query the number of participants within LSOA.
   // Return counts for Eligible and Invited
@@ -43,9 +49,18 @@ export const handler = async (event, context) => {
     // const payload = JSON.parse(event.lsoaCodePayload).body;
     // const payload = JSON.parse(event.lsoaCodePayload).lsoaCodes;
     // const payload = JSON.parse(event.lsoaCodePayload).data;
-    const payload = JSON.parse(event.toString());
     console.log('PAYLOAD -abdul');
+    const buff = Buffer.from(event.lsoaCodePayload);
+    console.log(buff);
+    const payload = JSON.parse(JSON.parse(JSON.parse(buff.toString('utf-8'))))?.lsoaCodes;
     console.log(payload);
+
+
+    // const payload = event.lsoaCodePayload.toString();
+    // console.log(JSON.parse(payload));
+    // console.log(JSON.parse(JSON.parse(payload)));
+
+
     // console.log(payload);
     eligibleInvitedPopulation = await getEligiblePopulation(payload, client);
   } else {
