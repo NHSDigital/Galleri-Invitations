@@ -54,7 +54,7 @@ runs:
       shell: bash
       run: |
         cd ./terraform
-        terraform plan -no-color -var-file=environment/test/terraform.tfvars
+        terraform plan -no-color -var-file=environment/test/test.tfvars
 
     - name: Terraform Plan Status
       if: steps.plan.outcome == 'failure'
