@@ -60,14 +60,14 @@ jobs:
           pip install boto3
           pip install rstr
           pip install random_word
-      # - name: "Create infractructure"
-      #   uses: ./.github/actions/terraform
-      #   with:
-      #     role-to-assume: ${{ env.role-to-assume }}
-      #     aws-region: ${{ env.aws-region }}
-      #     aws-bucket-name: ${{ env.aws-bucket-name }}
-      #     aws-bucket-key-name: ${{ env.aws-bucket-key-name }}
-      #   timeout-minutes: 15
+      - name: "Create infractructure"
+        uses: ./.github/actions/terraform
+        with:
+          role-to-assume: ${{ env.role-to-assume }}
+          aws-region: ${{ env.aws-region }}
+          aws-bucket-name: ${{ env.aws-bucket-name }}
+          aws-bucket-key-name: ${{ env.aws-bucket-key-name }}
+        timeout-minutes: 15
       # - name: "Seed databases"
       #   uses: ./.github/actions/seeding
       #   with:

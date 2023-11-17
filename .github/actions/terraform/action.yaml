@@ -27,6 +27,13 @@ runs:
       uses: hashicorp/setup-terraform@v2
       with:
         terraform_version: 1.5.0
+    
+    - name: Terraform workspace
+      id: workspace
+      shell: bash
+      run: |
+        cd ./terraform
+        terraform workspace select test
 
     - name: Terraform fmt
       id: fmt
