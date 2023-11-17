@@ -9,10 +9,7 @@ variable "environment" {
 
 variable "frontend_repo_location" {
   description = "The location of the Galler-Frontend repo on the filesystem"
+  default     = "../../Gallery/Frontend"
 }
 
 # variable "aws_account_number" {}
-
-variable "frontend_repo_location" {
-  default = "../../Gallery/Frontend"
-}
