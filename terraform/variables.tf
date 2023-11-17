@@ -14,5 +14,5 @@ variable "frontend_repo_location" {
 # variable "aws_account_number" {}
 
 variable "frontend_repo_location" {
-  default = ""
+  default = "../../Gallery/Frontend"
 }
