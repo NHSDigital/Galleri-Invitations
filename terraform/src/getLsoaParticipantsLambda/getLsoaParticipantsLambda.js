@@ -27,41 +27,19 @@ export const handler = async (event, context) => {
   //   invitationsAlgorithm: true
   // }
 
-  // console.log(event.lsoaCodePayload.data);
-  // console.log(payload);
-  // console.log('typeof event');
-  // console.log(typeof event);
-  // console.log('typeof lsoaCodePayload');
-  // console.log(typeof event.lsoaCodePayload);
-  // console.log(event.lsoaCodePayload);
-
-  // console.log(JSON.parse(event));
-  // console.log(JSON.parse(event.invitationsAlgorithm));
-  // console.log(JSON.stringify(event));
-  // const payload = event.lsoaCodePayload.toString();
-
   // Loop over incoming array and for each LSOA, query the number of participants within LSOA.
   // Return counts for Eligible and Invited
   let eligibleInvitedPopulation;
   console.log('is invitation algorithm key there?');
   console.log(event.invitationsAlgorithm);
   if (event.invitationsAlgorithm) {
-    // const payload = JSON.parse(event.lsoaCodePayload).body;
-    // const payload = JSON.parse(event.lsoaCodePayload).lsoaCodes;
-    // const payload = JSON.parse(event.lsoaCodePayload).data;
     console.log('PAYLOAD -abdul');
+    //Initialize Buffer from buffer array and convert back to original payload sent from front end
     const buff = Buffer.from(event.lsoaCodePayload);
     console.log(buff);
     const payload = JSON.parse(JSON.parse(JSON.parse(buff.toString('utf-8'))))?.lsoaCodes;
     console.log(payload);
 
-
-    // const payload = event.lsoaCodePayload.toString();
-    // console.log(JSON.parse(payload));
-    // console.log(JSON.parse(JSON.parse(payload)));
-
-
-    // console.log(payload);
     eligibleInvitedPopulation = await getEligiblePopulation(payload, client);
   } else {
     eligibleInvitedPopulation = await getPopulation(event, client);
@@ -161,8 +139,8 @@ export async function getEligiblePopulation(lsoaList, client) {
 
         populationArray.push({
           "personId": person?.PersonId.S,
-          "dateOfDeath": person?.date_of_death.S,
-          "removalDate": person?.removal_date.S,
+          // "dateOfDeath": person?.date_of_death.S, //commented out for now, as these columns exceed response limit for lambda
+          // "removalDate": person?.removal_date.S,
           "invited": person?.Invited?.S,
           "imdDecile": lsoaList[lsoa].IMD_DECILE,
           "forecastUptake": lsoaList[lsoa].FORECAST_UPTAKE,
