@@ -1,15 +1,13 @@
-name: "CI/CD Pull Request"
+name: "CI/CD Commit"
 
 # The total recommended execution time for the "CI/CD Pull Request" workflow is around 20 minutes.
 
 on:
-  # TODO: Remove push trigger once testing confirm all is working expected
   push:
     branches:
       - "**"
   pull_request:
     types: [opened, reopened]
-    branches: ["main"]
 
 jobs:
   metadata:
@@ -25,7 +23,6 @@ jobs:
       terraform_version: ${{ steps.variables.outputs.terraform_version }}
       version: ${{ steps.variables.outputs.version }}
       does_pull_request_exist: ${{ steps.pr_exists.outputs.does_pull_request_exist }}
-      environment: ${{ steps.variables.outputs.environment }}
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
@@ -41,7 +38,6 @@ jobs:
           echo "python_version=$(grep python .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
-          echo "environment=test" >> $GITHUB_OUTPUT
       - name: "Check if pull request exists for this branch"
         id: pr_exists
         env:
@@ -121,5 +117,4 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
-      environment: "${{ needs.metadata.outputs.environment }}"
     secrets: inherit
