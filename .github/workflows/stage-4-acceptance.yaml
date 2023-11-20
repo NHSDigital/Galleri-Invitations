@@ -31,6 +31,10 @@ on:
         description: "Version of the software, set by the CI/CD pipeline workflow"
         required: true
         type: string
+      TF_VAR_frontend_repo_location:
+        description: "Location of the 'Galleri-Frontend' repo"
+        required: true
+        type: string
 
 env:
   role-to-assume: ${{ vars.AWS_ROLE_ARN }}
