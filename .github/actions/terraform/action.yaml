@@ -5,11 +5,14 @@ runs:
   using: "composite"
   steps:
     - name: Git checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
+      with:
+        path: 'Galleri-Invitations'
 
     - name: "Checkout frontend"
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
+        path: 'Galleri-Frontend'
         repository: NHSDigital/Galleri-Frontend
         ref: main
 
@@ -17,11 +20,12 @@ runs:
       id: pwd
       shell: bash
       run: |
-        ls -lh
+        cd $GITHUB_WORKSPACE/Galleri-Frontend
         pwd
-        ls -l ../
-        ls -l ../../
-        ls -l ../../../
+        ls -l
+        cd $GITHUB_WORKSPACE/Galleri-Invitations
+        pwd
+        ls -l
       continue-on-error: true
 
     - name: Configure AWS credentials from AWS account
