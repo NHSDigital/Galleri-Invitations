@@ -92,7 +92,7 @@ There are times when a resource inside a module will require some information fr
 
 So if we have a module defined in the main branch which is called `my-api` which is calling the `api-gateway` module then we can get the output by calling `module.my-api.rest_api_galleri_execution_arn`, this is the same way you would call a resource or data block so its consistent with references.
 
-## Contributing
+## Contributing-
 
 ## Contacts
 
