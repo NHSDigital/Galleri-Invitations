@@ -26,13 +26,6 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
-      - name: "Checkout frontend"
-        uses: ./.github/actions/frontend/action.yaml
-        # uses: actions/checkout@master
-        # with:
-        #   repository: NHSDigital/Galleri-Frontend
-        #   ref: main
-        #   path: "Galleri-Frontend"
       - name: "Set CI/CD variables"
         id: variables
         run: |
