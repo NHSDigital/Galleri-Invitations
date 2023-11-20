@@ -9,7 +9,7 @@ runs:
       with:
         path: 'Galleri-Invitations'
 
-    - name: "Checkout frontend"
+    - name: Checkout frontend
       uses: actions/checkout@v4
       with:
         path: 'Galleri-Frontend'
