@@ -18,17 +18,17 @@ module "vpc" {
   name        = "Galleri-VPC"
 }
 
-# # Deploy frontend in elastic beanstalk
-# module "galleri_invitations_screen" {
-#   source                 = "./modules/elastic_beanstalk"
-#   name                   = "gallery-invitations"
-#   description            = "The frontend for interacting with the invitations system"
-#   frontend_repo_location = var.frontend_repo_location
-#   environment            = var.environment
-#   vpc_id                 = module.vpc.vpc_id
-#   subnet_1               = module.vpc.subnet_ids[0]
-#   subnet_2               = module.vpc.subnet_ids[1]
-# }
+# Deploy frontend in elastic beanstalk
+module "galleri_invitations_screen" {
+  source                 = "./modules/elastic_beanstalk"
+  name                   = "gallery-invitations"
+  description            = "The frontend for interacting with the invitations system"
+  frontend_repo_location = var.frontend_repo_location
+  environment            = var.environment
+  vpc_id                 = module.vpc.vpc_id
+  subnet_1               = module.vpc.subnet_ids[0]
+  subnet_2               = module.vpc.subnet_ids[1]
+}
 
 # the role that all lambda's are utilising,
 # we will replace this with individual roles in a future ticket
