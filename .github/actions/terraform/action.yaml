@@ -19,7 +19,7 @@ runs:
       run: |
         ls -lh
         pwd
-        ls -l ./Galleri-Frontend
+        ls -l ../
       continue-on-error: true
 
     - name: Configure AWS credentials from AWS account
