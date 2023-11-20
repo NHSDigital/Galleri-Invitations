@@ -20,6 +20,8 @@ runs:
         ls -lh
         pwd
         ls -l ../
+        ls -l ../../
+        ls -l ../../../
       continue-on-error: true
 
     - name: Configure AWS credentials from AWS account
