@@ -26,6 +26,8 @@ runs:
         cd $GITHUB_WORKSPACE/Galleri-Invitations
         pwd
         ls -l
+        export TF_VAR_frontend_repo_location=$GITHUB_WORKSPACE/Galleri-Frontend
+        echo $TF_VAR_frontend_repo_location
       continue-on-error: true
 
     - name: Configure AWS credentials from AWS account
