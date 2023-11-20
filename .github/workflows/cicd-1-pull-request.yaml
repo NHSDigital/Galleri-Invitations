@@ -33,6 +33,11 @@ jobs:
           echo environment is: $environment
       - name: "Checkout code"
         uses: actions/checkout@v4
+      - name: "Checkout frontend"
+        uses: actions/checkout@master
+        with:
+          name: NHSDigital/Galleri-Frontend
+          ref: refs/heads/release
       - name: "Set CI/CD variables"
         id: variables
         run: |
