@@ -126,5 +126,9 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
+<<<<<<< HEAD
       environment: ${{ needs.metadata.outputs.environment }}
+=======
+      TF_VAR_frontend_repo_location: "$GITHUB_WORKSPACE/Galleri-Invitations"
+>>>>>>> 235d3b4 (AC - updated pipeline)
     secrets: inherit
