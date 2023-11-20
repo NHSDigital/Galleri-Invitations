@@ -90,9 +90,9 @@ you can also pass in variables as environment variables. to do this you create t
 
 There are times when a resource inside a module will require some information from a different resource in another module. We can supply this using outputs. Each module has an `output.tf` file, inside that it will supply an output based on a value from a resource within that modules. For example in the `api-gateway` module we have an output called `rest_api_galleri_execution_arn` we can call that output to get that value from the main file by calling the module and output.
 
-So if we have a module defined in the main branch which is called `my-api` which is calling the `api-gateway` module then we can get the output by calling `module.my-api.rest_api_galleri_execution_arn`, this is the same way you would call a resource or data block so its consistent with references.
+So if we have a module defined in the main branch which is called `my-api` which is calling the `api-gateway` module then we can get the output by calling `module.my-api.rest_api_galleri_execution_arn`, this is the same way you would call a resource or data block so its consistent with references.-
 
-## Contributing-
+## Contributing
 
 ## Contacts
 
