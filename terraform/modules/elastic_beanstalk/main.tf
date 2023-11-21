@@ -1,6 +1,6 @@
 locals {
   source_files = fileset(var.frontend_repo_location, "**/*")
-  source_hash  = sha256(join("", [for f in local.source_files : filesha256("${var.frontend_repo_location}${f}")]))
+  source_hash  = sha256(join("", [for f in local.source_files : filesha256("${var.frontend_repo_location}/${f}")]))
 }
 
 data "archive_file" "screens" {
