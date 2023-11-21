@@ -150,6 +150,8 @@ export const handler = async (event, context) => {
     lsoaCodePayload: buffer,
     invitationsAlgorithm: true
   }
+  console.log('payload -abdul');
+  console.log(payload);
   const participantInLsoa = await invokeParticipantListLambda("getLsoaParticipantsLambda", payload, lambdaClient)
   console.log("participantInLsoa.length = ", participantInLsoa.length)
 
@@ -188,6 +190,7 @@ export const handler = async (event, context) => {
   const numberOfPeopleToInvite = selectedParticipants.length
   console.log("numberOfPeopleToInvite = ", numberOfPeopleToInvite)
 
+
   if (response.$metadata.httpStatusCode = 200) {
     responseObject.statusCode = 200;
     responseObject.body = JSON.stringify({
@@ -198,6 +201,9 @@ export const handler = async (event, context) => {
     responseObject.statusCode = 404;
     responseObject.body = "error";
   }
+  console.log('RESPONSEOBJ :');
+  console.log(responseObject);
+
   return responseObject;
 };
 
@@ -255,4 +261,3 @@ export const generateQuintileBlocks = (participantList, lowerBound, upperBound, 
     return a.imdDecile < b.imdDecile
   }).slice(lowerBound + 1, upperBound)
 }
-
