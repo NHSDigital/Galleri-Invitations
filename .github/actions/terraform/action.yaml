@@ -66,7 +66,7 @@ runs:
       shell: bash
       run: |
         cd ./terraform
-        terraform workspace select test
+        terraform workspace select ${{ env.environment }}
 
     - name: Terraform Validate
       id: validate
@@ -80,7 +80,7 @@ runs:
       shell: bash
       run: |
         cd ./terraform
-        terraform plan -no-color -var-file=environment/test/test.tfvars
+        terraform plan -no-color -var-file=environment/${{ env.environment }}/${{ env.environment }}.tfvars
 
     - name: Terraform Plan Status
       if: steps.plan.outcome == 'failure'
@@ -104,4 +104,4 @@ runs:
         npm install --prefix src/participatingIcbListLambda
         npm install --prefix src/targetFillToPercentageLambda
         npm install --prefix src/targetFillToPercentagePutLambda
-        terraform apply -auto-approve -input=false -var-file=environment/test/test.tfvars
+        terraform apply -auto-approve -input=false -var-file=environment/${{ env.environment }}/${{ env.environment }}.tfvars
