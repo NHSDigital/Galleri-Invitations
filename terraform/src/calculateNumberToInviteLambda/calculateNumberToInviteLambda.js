@@ -69,37 +69,6 @@ export const handler = async (event, context) => {
   //     "FORECAST_UPTAKE": 10
   //   }
   // }
-
-  // const dummy = {
-  //   "targetAppsToFill": 150,
-  //   "lsoaCodes": {
-  //     "E01000005": {
-  //       "IMD_DECILE": "3",
-  //       "FORECAST_UPTAKE": "1"
-  //     },
-  //     "E01004294": {
-  //       "IMD_DECILE": "5",
-  //       "FORECAST_UPTAKE": "1"
-  //     },
-  //     "E01032767": {
-  //       "IMD_DECILE": "7",
-  //       "FORECAST_UPTAKE": "1"
-  //     },
-  //     "E01032739": {
-  //       "IMD_DECILE": "7",
-  //       "FORECAST_UPTAKE": "1"
-  //     },
-  //     "E01004293": {
-  //       "IMD_DECILE": "8",
-  //       "FORECAST_UPTAKE": "1"
-  //     }
-  //   }
-  // };
-
-  // console.log(dummy);
-  // console.log(JSON.stringify(dummy));
-
-
   const lsoaInfo = JSON.stringify(event.body.replace(/ /g, ''));
   const buffer = Buffer.from(JSON.stringify(lsoaInfo));
   console.log('LSOAINFO -abdul');
