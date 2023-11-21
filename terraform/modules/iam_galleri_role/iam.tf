@@ -202,7 +202,7 @@ resource "aws_iam_policy" "invitation_parameters_lambda" {
 }
 
 resource "aws_iam_policy" "iam_policy_for_lsoa_in_range_lambda" {
-  name        = "aws_iam_policy_for_terraform_aws_lsoa_in_range_lambda_role"
+  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_lsoa_in_range_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda get lsoa in range role"
   policy = jsonencode(
@@ -243,7 +243,7 @@ resource "aws_iam_policy" "iam_policy_for_lsoa_in_range_lambda" {
 }
 
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
-  name        = "aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
+  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda get participants in lsoa role"
   policy = jsonencode(
