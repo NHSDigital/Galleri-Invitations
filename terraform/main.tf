@@ -96,7 +96,7 @@ module "lsoa_loader_cloudwatch" {
 }
 
 
-# Clinic information
+# clinic information
 module "clinic_information_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
@@ -161,7 +161,7 @@ module "clinic_icb_list_api_gateway" {
 }
 
 
-# Participating icb list
+# partisipating icb list
 module "participating_icb_list_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
@@ -191,7 +191,7 @@ module "participating_icb_list_api_gateway" {
 }
 
 
-# Clinic summary list
+# clinic summary list
 module "clinic_summary_list_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
@@ -379,50 +379,6 @@ module "target_fill_to_percentage_get_api_gateway" {
   lambda_function_name   = module.target_fill_to_percentage_get_lambda.lambda_function_name
 }
 
-# LSOA in range
-module "lsoa_in_range_lambda" {
-  source               = "./modules/lambda"
-  bucket_id            = module.s3_bucket.bucket_id
-  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "getLsoaInRangeLambda"
-  lambda_s3_object_key = "get_lsoa_in_range_lambda.zip"
-  environment_vars     = {}
-}
-
-module "lsoa_in_range_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  lambda_function_name = module.lsoa_in_range_lambda.lambda_function_name
-  retention_days       = 14
-}
-
-module "lsoa_in_range_api_gateway" {
-  source            = "./modules/api-gateway"
-  lambda_invoke_arn = module.lsoa_in_range_lambda.lambda_invoke_arn
-  path_part         = "get-lsoa-in-range"
-  method_http_parameters = {
-    "method.request.querystring.clinicPostcode" = true,
-    "method.request.querystring.miles"          = true
-  }
-
-  lambda_function_name = module.lsoa_in_range_lambda.lambda_function_name
-  environment          = var.environment
-}
-
-# Population in LSOA
-module "participants_in_lsoa_lambda" {
-  source               = "./modules/lambda"
-  bucket_id            = module.s3_bucket.bucket_id
-  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "getLsoaParticipantsLambda"
-  lambda_s3_object_key = "get_participants_in_lsoa_lambda.zip"
-  environment_vars     = {}
-}
-
-module "participants_in_lsoa_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  lambda_function_name = module.participants_in_lsoa_lambda.lambda_function_name
-  retention_days       = 14
-}
 
 # Dynamodb tables
 module "sdrs_table" {
@@ -589,30 +545,30 @@ module "population_table" {
     },
     {
       name = "LsoaCode"
-      type = "S"
+      type = "N"
+    },
+    {
+      name = "NhsNumber"
+      type = "N"
     }
   ]
   global_secondary_index = [
     {
-      name      = "LsoaCode-index"
-      hash_key  = "LsoaCode"
-      range_key = null
+      name      = "PersonId"
+      hash_key  = "NhsNumber"
+      range_key = "LsoaCode"
     }
   ]
-  secondary_write_capacity = null
-  secondary_read_capacity  = null
-  projection_type          = "INCLUDE"
-  non_key_attributes       = ["Invited", "date_of_death", "removal_date"]
   tags = {
     Name        = "Dynamodb Table Population"
     Environment = var.environment
   }
 }
 
-module "postcode_table" {
+module "LSOA_table" {
   source         = "./modules/dynamodb"
   billing_mode   = "PAY_PER_REQUEST"
-  table_name     = "Postcode"
+  table_name     = "Lsoa"
   hash_key       = "POSTCODE"
   range_key      = "IMD_RANK"
   environment    = var.environment
@@ -639,28 +595,11 @@ module "postcode_table" {
     }
   ]
   tags = {
-    Name        = "Dynamodb Table Postcode"
+    Name        = "Dynamodb Table LSOA"
     Environment = var.environment
   }
 }
 
-module "lsoa_table" {
-  source         = "./modules/dynamodb"
-  billing_mode   = "PAY_PER_REQUEST"
-  table_name     = "UniqueLsoa"
-  hash_key       = "LSOA_2011"
-  read_capacity  = null
-  write_capacity = null
-  attributes = [{
-    name = "LSOA_2011"
-    type = "S"
-    }
-  ]
-  tags = {
-    Name        = "Dynamodb Table Lsoa"
-    Environment = var.environment
-  }
-}
 module "invitation_parameters_table" {
   source      = "./modules/dynamodb"
   table_name  = "InvitationParameters"
@@ -691,8 +630,7 @@ resource "aws_dynamodb_table_item" "quintileTargets" {
   "QUINTILE_3": {"N": "20"},
   "QUINTILE_4": {"N": "20"},
   "QUINTILE_5": {"N": "20"},
-  "FORECAST_UPTAKE": {"N": "50"},
-  "TARGET_PERCENTAGE": {"N": "50"}
+  "FORECAST_UPTAKE": {"N": "50"}
 }
 ITEM
 }
