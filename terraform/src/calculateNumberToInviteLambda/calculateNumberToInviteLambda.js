@@ -8,6 +8,7 @@ export const handler = async (event, context) => {
   const targetAppsToFill = event.body !== null ? JSON.parse(event.body).targetAppsToFill : "";
   const lsoaInfo = event.body !== null ? JSON.stringify(event.body.replace(/ /g, '')) : "";
   const buffer = Buffer.from(JSON.stringify(lsoaInfo));
+
   const CONFIG_ID = 1;
   const response = await getItemsFromTable("InvitationParameters", client, CONFIG_ID);
 
@@ -42,10 +43,10 @@ export const handler = async (event, context) => {
     invitationsAlgorithm: true
   }
   const participantInLsoa = await invokeParticipantListLambda("getLsoaParticipantsLambda", payload, lambdaClient)
-  console.log("participantInLsoa.length = ", participantInLsoa.length)
-
   const numberOfPeople = participantInLsoa.length
-  console.log(`numberOfPeople = ${numberOfPeople}`)
+  console.log("participantInLsoa.length = ", numberOfPeople)
+
+  // Split incoming person data into quintile blocks
   // Get Quintile block size
   const quintileBlockSize = Math.floor(numberOfPeople / 5)
   console.log(`quintileBlockSize = ${quintileBlockSize}`)
@@ -54,17 +55,16 @@ export const handler = async (event, context) => {
   const q1UpperBound = quintileBlockSize
   const quintile1Population = generateQuintileBlocks(participantInLsoa, 0, q1UpperBound, "Q1")
   //QUINTILE 2 Block
-  const q2UpperBound = q1UpperBound + quintileBlockSize
+  const q2UpperBound = q1UpperBound + quintileBlockSize + 1
   const quintile2Population = generateQuintileBlocks(participantInLsoa, q1UpperBound + 1, q2UpperBound, "Q2")
   //QUINTILE 3 Block
-  const q3UpperBound = q2UpperBound + quintileBlockSize
+  const q3UpperBound = q2UpperBound + quintileBlockSize + 1
   const quintile3Population = generateQuintileBlocks(participantInLsoa, q2UpperBound + 1, q3UpperBound, "Q3")
   //QUINTILE 4 Block
-  const q4UpperBound = q3UpperBound + quintileBlockSize
+  const q4UpperBound = q3UpperBound + quintileBlockSize + 1
   const quintile4Population = generateQuintileBlocks(participantInLsoa, q3UpperBound + 1, q4UpperBound, "Q4")
   //QUINTILE 5 Block
-  const endOfList = q4UpperBound + quintileBlockSize
-  const quintile5Population = generateQuintileBlocks(participantInLsoa, q4UpperBound + 1, endOfList, "Q5")
+  const quintile5Population = generateQuintileBlocks(participantInLsoa, q4UpperBound + 1, numberOfPeople, "Q5")
 
   // Store selected participants in single array
   const selectedParticipants = [
@@ -75,7 +75,6 @@ export const handler = async (event, context) => {
     ...getParticipantsInQuintile(quintile5Population, quintile5Target, nationalForecastUptake, "Q5"),
   ]
 
-  console.log("Selected participants = ", selectedParticipants)
   const numberOfPeopleToInvite = selectedParticipants.length
   console.log("numberOfPeopleToInvite = ", numberOfPeopleToInvite)
 
@@ -136,8 +135,8 @@ export const getParticipantsInQuintile = (quintilePopulation, quintileTarget, na
 }
 
 export const generateQuintileBlocks = (participantList, lowerBound, upperBound, quintile) => {
-  console.log(`${quintile} Lower bound = ${lowerBound + 1}. Q5 Upper bound = ${upperBound}`)
+  console.log(`${quintile} Lower bound = ${lowerBound}. ${quintile} Upper bound = ${upperBound}`)
   return participantList.sort((a, b) => {
     return a.imdDecile < b.imdDecile
-  }).slice(lowerBound + 1, upperBound)
+  }).slice(lowerBound, upperBound)
 }
