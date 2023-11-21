@@ -41,7 +41,7 @@ env:
   aws-region: ${{ vars.aws_region }}
   aws-bucket-name: ${{ vars.aws_bucket_name }}
   aws-bucket-key-name: ${{ vars.aws_bucket_key_name }}
-  environment: ${{ vars.environment }}
+  environment: ${{ inputs.environment }}
 
 jobs:
   environment-set-up:
