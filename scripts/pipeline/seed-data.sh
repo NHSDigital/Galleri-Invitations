@@ -54,58 +54,6 @@ function main() {
   fi
 }
 
-  echo "--------------------------------------------------------------"
-
-  echo Initiating upload of unique LSOA data to database
-
-  mkdir ./nonprod-unique-lsoa-data
-
-  aws s3 cp s3://galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
-
-  echo Succefully Downloaded CSV from S3
-
-  echo Uploading items to UniqueLsoa database
-
-  python $PWD/scripts/pipeline/nonprod_unique_lsoa_load/nonprod_unique_lsoa_load.py
-
-  echo Succefully uploaded unique Lsoa data to database
-
-  echo "--------------------------------------------------------------"
-
-  echo Initiating upload of Postcode subset data to database
-
-  mkdir nonprod-postcode-load
-
-  aws s3 cp s3://galleri-ons-data/lsoa_data/lsoa_with_avg_easting_northing.csv ./nonprod-postcode-load
-
-  echo Succefully Downloaded CSV from S3
-
-  echo Uploading items to Postcode database
-
-  python $PWD/scripts/pipeline/nonprod_postcode_load/nonprod_postcode_load.py
-
-  echo Succefully uploaded Postcode data to database
-
-  echo "--------------------------------------------------------------"
-
-  echo Initiating upload of dummy Population data to database
-
-  mkdir nonprod-population-data
-
-  aws s3 cp s3://galleri-test-data/non_prod_participant_data/ ./nonprod-population-data --recursive
-
-  echo Succefully Downloaded galleri-test-data CSVs from S3
-
-  echo Uploading items to Population database
-
-  python $PWD/scripts/pipeline/nonprod_population_load/nonprod_population_load.py
-
-  echo Succefully uploaded dummy test data to database
-
-  echo "--------------------------------------------------------------"
-
-}
-
 main $*
 
 exit 0
