@@ -54,7 +54,7 @@ jobs:
       - name: print environment name
         run: |
           echo environment name: $environment
-          echo environment name: ${{ vars.environment }}
+          echo environment name: ${{ env.environment }}
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
