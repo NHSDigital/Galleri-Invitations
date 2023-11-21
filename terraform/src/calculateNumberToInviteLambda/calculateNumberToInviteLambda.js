@@ -6,83 +6,8 @@ const lambdaClient = new LambdaClient({ region: "eu-west-2" });
 
 export const handler = async (event, context) => {
   const targetAppsToFill = event.body !== null ? JSON.parse(event.body).targetAppsToFill : "";
-  const lsoaCodes = event.body !== null ? JSON.parse(event.body).lsoaCodes : ""; //grab lsoa code [e01...,e0212]
-  // const lsoaInfo = {
-  //   "E01022970": {
-  //     "IMD_DECILE": 2,
-  //     "FORECAST_UPTAKE": 13
-  //   },
-  //   "E01030492": {
-  //     "IMD_DECILE": 9,
-  //     "FORECAST_UPTAKE": 35
-  //   },
-  //   "E01001902": {
-  //     "IMD_DECILE": 6,
-  //     "FORECAST_UPTAKE": 20
-  //   },
-  //   "E01001345": {
-  //     "IMD_DECILE": 6,
-  //     "FORECAST_UPTAKE": 20
-  //   },
-  //   "E01023749": {
-  //     "IMD_DECILE": 10,
-  //     "FORECAST_UPTAKE": 40
-  //   },
-  //   "E01014702": {
-  //     "IMD_DECILE": 7,
-  //     "FORECAST_UPTAKE": 25
-  //   },
-  //   "E01015768": {
-  //     "IMD_DECILE": 5,
-  //     "FORECAST_UPTAKE": 18
-  //   },
-  //   "E01020272": {
-  //     "IMD_DECILE": 3,
-  //     "FORECAST_UPTAKE": 15
-  //   },
-  //   "E01028809": {
-  //     "IMD_DECILE": 4,
-  //     "FORECAST_UPTAKE": 16
-  //   },
-  //   "E01012621": {
-  //     "IMD_DECILE": 1,
-  //     "FORECAST_UPTAKE": 10
-  //   },
-  //   "E01028549": {
-  //     "IMD_DECILE": 8,
-  //     "FORECAST_UPTAKE": 25
-  //   },
-  //   "E01011568": {
-  //     "IMD_DECILE": 9,
-  //     "FORECAST_UPTAKE": 18
-  //   },
-  //   "E01032669": {
-  //     "IMD_DECILE": 7,
-  //     "FORECAST_UPTAKE": 15
-  //   },
-  //   "E01003556": {
-  //     "IMD_DECILE": 2,
-  //     "FORECAST_UPTAKE": 16
-  //   },
-  //   "E01022357": {
-  //     "IMD_DECILE": 9,
-  //     "FORECAST_UPTAKE": 10
-  //   }
-  // }
-  const lsoaInfo = JSON.stringify(event.body.replace(/ /g, ''));
+  const lsoaInfo = event.body !== null ? JSON.stringify(event.body.replace(/ /g, '')) : "";
   const buffer = Buffer.from(JSON.stringify(lsoaInfo));
-  console.log('LSOAINFO -abdul');
-  // console.log(buffer);
-  // console.log(lsoaInfo);
-  // console.log(JSON.parse(lsoaInfo));
-  // console.log(buffer);
-  // console.log('decoded:');
-
-  // const decoded = JSON.parse(JSON.parse(buffer.toString()));
-  // const decodedParse = JSON.parse(decoded);
-  // console.log(typeof decoded);
-  // console.log(decoded);
-
   const CONFIG_ID = 1;
   const response = await getItemsFromTable("InvitationParameters", client, CONFIG_ID);
 
@@ -95,8 +20,6 @@ export const handler = async (event, context) => {
     },
     "isBase64Encoded": true
   };
-
-  // const targetAppsToFill = 10;
 
   // Store Quintile 1-5 into variable and National Forecast Uptake
   const quintile1 = response.Item !== null ? (response.Item).QUINTILE_1.N : "";
@@ -115,12 +38,9 @@ export const handler = async (event, context) => {
 
   // Return participants available to invite
   const payload = {
-    // lsoaCodePayload: JSON.parse(lsoaInfo),
     lsoaCodePayload: buffer,
     invitationsAlgorithm: true
   }
-  console.log('payload -abdul');
-  console.log(payload);
   const participantInLsoa = await invokeParticipantListLambda("getLsoaParticipantsLambda", payload, lambdaClient)
   console.log("participantInLsoa.length = ", participantInLsoa.length)
 
@@ -163,15 +83,13 @@ export const handler = async (event, context) => {
   if (response.$metadata.httpStatusCode = 200) {
     responseObject.statusCode = 200;
     responseObject.body = JSON.stringify({
-      // "selectedParticipants": selectedParticipants,
+      "selectedParticipants": selectedParticipants,
       "numberOfPeopleToInvite": numberOfPeopleToInvite
     })
   } else {
     responseObject.statusCode = 404;
     responseObject.body = "error";
   }
-  console.log('RESPONSEOBJ :');
-  console.log(responseObject);
 
   return responseObject;
 };
@@ -192,34 +110,27 @@ export async function getItemsFromTable(table, client, key) {
   return response;
 }
 
-export async function invokeParticipantListLambda(lamdaName, payload, client) {
+export async function invokeParticipantListLambda(lamdaName, payload, lambdaClient) {
   const input = {
     FunctionName: lamdaName,
     Payload: JSON.stringify(payload),
   };
   const command = new InvokeCommand(input);
-  const responseA = await lambdaClient.send(command);
+  const response = await lambdaClient.send(command);
 
-  return JSON.parse(Buffer.from(responseA.Payload).toString());
+  return JSON.parse(Buffer.from(response.Payload).toString());
 }
 
 export const getParticipantsInQuintile = (quintilePopulation, quintileTarget, nationalForecastUptake, Q) => {
   console.log(`In ${Q}. # people available to invite = ${quintilePopulation.length}. Target to meet = ${quintileTarget}`)
   let count = 0;
   const selectedParticipants = []
+  //Select random person within quintile, loop through until quintile target is met
   while (count < quintileTarget) {
     const randomPersonIndex = Math.floor(Math.random() * (quintilePopulation.length - 1))
-    console.log('quintilePopulate -abdul');
-    console.log(quintilePopulation);
     const personSelected = quintilePopulation[randomPersonIndex]
     selectedParticipants.push(personSelected)
     count += (personSelected.forecastUptake) / 100
-    // console.log('personselected.forecastuptake');
-    // console.log(personSelected.forecastUptake);
-    // console.log(typeof count);
-    // console.log(count);
-    // console.log('SELECTEDPARTICIPANTS -abdul');
-    console.log(selectedParticipants);
   }
   return selectedParticipants
 }
