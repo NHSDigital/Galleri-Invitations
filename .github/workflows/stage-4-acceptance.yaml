@@ -51,9 +51,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
-      - name: "print environment name"
-        run: |
-          echo environment is: ${{ env.environment }}
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
