@@ -71,6 +71,7 @@ jobs:
           aws-region: ${{ env.aws-region }}
           aws-bucket-name: ${{ env.aws-bucket-name }}
           aws-bucket-key-name: ${{ env.aws-bucket-key-name }}
+          environment: ${{ env.environment }}
         timeout-minutes: 15
       - name: "Seed databases"
         uses: ./.github/actions/seeding
