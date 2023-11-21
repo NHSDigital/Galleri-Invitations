@@ -4,12 +4,6 @@ description: "Build infrastructure"
 runs:
   using: "composite"
   steps:
-    - name: print environment name
-      shell: bash
-      run: |
-        echo environment name: $environment
-        echo environment name: ${{ env.environment }}
-
     - name: Git checkout
       uses: actions/checkout@v4
       with:
