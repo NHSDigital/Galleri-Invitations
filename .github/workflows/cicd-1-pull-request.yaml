@@ -23,6 +23,7 @@ jobs:
       terraform_version: ${{ steps.variables.outputs.terraform_version }}
       version: ${{ steps.variables.outputs.version }}
       does_pull_request_exist: ${{ steps.pr_exists.outputs.does_pull_request_exist }}
+      environment: "test"
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
@@ -38,6 +39,7 @@ jobs:
           echo "python_version=$(grep python .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
+          echo "environment=test" >> $GITHUB_OUTPUT
       - name: "Check if pull request exists for this branch"
         id: pr_exists
         env:
@@ -75,6 +77,7 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
+      environment: "test"
     secrets: inherit
   test-stage: # Recommended maximum execution time is 5 minutes
     needs: [metadata, commit-stage]
@@ -87,6 +90,7 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
+      environment: "test"
     secrets: inherit
   # build-stage: # Recommended maximum execution time is 3 minutes
   #   needs: [metadata, test-stage]
@@ -100,6 +104,7 @@ jobs:
   #     python_version: "${{ needs.metadata.outputs.python_version }}"
   #     terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
   #     version: "${{ needs.metadata.outputs.version }}"
+  #     environment: "test"
   #   secrets: inherit
   acceptance-stage: # Recommended maximum execution time is 10 minutes
     needs: [
@@ -117,4 +122,5 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
+      environment: "test"
     secrets: inherit
