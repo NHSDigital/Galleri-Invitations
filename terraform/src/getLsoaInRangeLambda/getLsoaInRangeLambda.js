@@ -1,22 +1,19 @@
-import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
-import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
-import axios from "axios";
-
-const KMTOMILES = 1.6;
-const MTOKM = 1000;
+import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 
 /*
-  Lambda to get LSOA in a 100 mile range from the selected clinic
+  Lambda to get participants in LSOA from the list of available LSOAs
 */
 export const handler = async (event, context) => {
-  const start = Date.now();
-  // CALCULATE DISTANCE BETWEEN SITE AND LSOAs. RETURN THOSE IN 100 MILE RANGE
+  console.log(event)
+  console.log(typeof event)
 
-  // TODO: when accurate clinic data recieved then remove placeholder
-  let clinicPostcode = event.queryStringParameters.clinicPostcode;
-  // Placeholder
-  clinicPostcode = "SE1 9RT";
-  const lsoasInRangeMiles = event.queryStringParameters.miles;
+  const start = Date.now();
+  const lsoaList = event.lsoaCodePayload;
+  const client = new DynamoDBClient({ region: "eu-west-2" });
+
+  // Loop over incoming array and for each LSOA, query the number of participants within LSOA.
+  // Return counts for Eligible and Invited
+  let eligibleInvitedPopulation;
 
   // make API request to get the easting and northing of postcode
   const clinicGridReference = await getClinicEastingNorthing(clinicPostcode);
@@ -81,9 +78,13 @@ export const handler = async (event, context) => {
       responseObject.body = "error";
   }
 
-  const complete = Date.now() - start;
-  console.log("Lambda path completion took: ", complete / 1000);
-  return responseObject;
+  if (Object.keys(eligibleInvitedPopulation).length > 0) {
+    const complete = Date.now() - start;
+    console.log("Lambda path completion took: ", complete / 1000);
+    return eligibleInvitedPopulation;
+  } else {
+    return "none eligible";
+  }
 };
 
 // METHODS
@@ -194,23 +195,76 @@ export const calculateDistance = (lsoa, clinicGridReference) => {
   return distanceMiles;
 };
 
-export function generateLsoaTableData(lsoaData, populationData) {
-  const tableInfo = []
-  console.log(`lsoaData.length = ${lsoaData.length}| populationData.length = ${Object.keys(populationData).length}`)
+export async function queryEligiblePopulation(client, lsoaCode, tableItems) {
+  const input = {
+    "ExpressionAttributeValues": {
+      ":code": {
+        "S": `${lsoaCode}`
+      }
+    },
+    "KeyConditionExpression": "LsoaCode = :code",
+    "ProjectionExpression": "PersonId, Invited, date_of_death, removal_date",
+    "TableName": "Population",
+    "IndexName": "LsoaCode-index"
+  };
 
-  lsoaData.forEach((lsoaItem) => {
-    const matchingLsoa = populationData[lsoaItem.LSOA_2011.S]
+  const command = new QueryCommand(input);
+  const response = await client.send(command);
 
-    if (matchingLsoa != undefined) {
-      let defaultChecked = false
-      if (lsoaItem.DISTANCE_TO_SITE.N <= 1) defaultChecked = true
-      return tableInfo.push({
-        ...lsoaItem,
-        ...matchingLsoa,
-        checked: defaultChecked
-      })
-    }
-  })
+  if (matchingLsoa != undefined) {
+    let defaultChecked = false
+    if (lsoaItem.DISTANCE_TO_SITE.N <= 1) defaultChecked = true
+    return tableInfo.push({
+      ...lsoaItem,
+      ...matchingLsoa,
+      checked: defaultChecked
+    })
+  }
+}
 
-  return tableInfo;
+export async function getPopulation(lsoaList, client) {
+  const populationObject = {};
+  await Promise.all(lsoaList.map(async (lsoa) => {
+    const lsoaCode = lsoa.S;
+    const response = await populateEligibleArray(client, lsoaCode);
+
+    let invitedPopulation = 0;
+    response.forEach((person) => {
+      if (person?.Invited?.S == "true" && person?.date_of_death?.S == "NULL" && person?.removal_date?.S == "NULL") {
+        ++invitedPopulation;
+      };
+    });
+
+    populationObject[lsoaCode] = {
+      ELIGIBLE_POPULATION: { "S": response.length },
+      INVITED_POPULATION: { "S": invitedPopulation }
+    };
+  }));
+
+  console.log(`lsoa being queried number ${lsoaList.length}. Population object has ${Object.keys(populationObject).length}`);
+
+  return populationObject;
+}
+
+// Query eligible people
+export async function getEligiblePopulation(lsoaList, client) {
+  const populationObject = {};
+  await Promise.all(lsoaList.map(async (lsoa) => {
+    // const lsoaCode = lsoa.S;
+    // gets all the people in LSOA
+    const response = await populateEligibleArray(client, lsoa);
+    console.log("Response from db:", response)
+
+    const eligiblePopInLsoa = response.filter((person) => {
+      if (person?.Invited?.S == "false" && person?.date_of_death?.S == "NULL" && person?.removal_date?.S == "NULL") {
+        return person
+      };
+    });
+
+    populationObject[lsoa] = eligiblePopInLsoa;
+  }));
+
+  console.log(`lsoa being queried number ${lsoaList.length}. Population object has ${Object.keys(populationObject).length}`);
+
+  return populationObject;
 }
