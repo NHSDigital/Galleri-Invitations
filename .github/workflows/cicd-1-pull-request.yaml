@@ -77,7 +77,6 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
-      environment: "test"
     secrets: inherit
   test-stage: # Recommended maximum execution time is 5 minutes
     needs: [metadata, commit-stage]
@@ -90,7 +89,6 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
-      environment: "test"
     secrets: inherit
   # build-stage: # Recommended maximum execution time is 3 minutes
   #   needs: [metadata, test-stage]
@@ -122,5 +120,4 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
-      environment: "test"
     secrets: inherit
