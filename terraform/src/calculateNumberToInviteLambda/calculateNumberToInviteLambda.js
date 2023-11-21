@@ -195,7 +195,7 @@ export const handler = async (event, context) => {
   if (response.$metadata.httpStatusCode = 200) {
     responseObject.statusCode = 200;
     responseObject.body = JSON.stringify({
-      "selectedParticipants": selectedParticipants,
+      // "selectedParticipants": selectedParticipants,
       "numberOfPeopleToInvite": numberOfPeopleToInvite
     })
   } else {
@@ -241,9 +241,17 @@ export const getParticipantsInQuintile = (quintilePopulation, quintileTarget, na
   const selectedParticipants = []
   while (count < quintileTarget) {
     const randomPersonIndex = Math.floor(Math.random() * (quintilePopulation.length - 1))
+    console.log('quintilePopulate -abdul');
+    console.log(quintilePopulation);
     const personSelected = quintilePopulation[randomPersonIndex]
     selectedParticipants.push(personSelected)
     count += (personSelected.forecastUptake) / 100
+    // console.log('personselected.forecastuptake');
+    // console.log(personSelected.forecastUptake);
+    // console.log(typeof count);
+    // console.log(count);
+    // console.log('SELECTEDPARTICIPANTS -abdul');
+    console.log(selectedParticipants);
   }
   return selectedParticipants
 }

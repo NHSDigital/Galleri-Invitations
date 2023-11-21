@@ -141,10 +141,10 @@ export async function getEligiblePopulation(lsoaList, client) {
           "personId": person?.PersonId.S,
           // "dateOfDeath": person?.date_of_death.S, //commented out for now, as these columns exceed response limit for lambda
           // "removalDate": person?.removal_date.S,
-          "invited": person?.Invited?.S,
+          // "invited": person?.Invited?.S,
           "imdDecile": lsoaList[lsoa].IMD_DECILE,
           "forecastUptake": lsoaList[lsoa].FORECAST_UPTAKE,
-          "lsoaCode": lsoa
+          // "lsoaCode": lsoa
         })
 
       };
