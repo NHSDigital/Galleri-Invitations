@@ -125,5 +125,5 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
-      environment: "test"
+      environment: "${{ needs.metadata.env.environment}}"
     secrets: inherit

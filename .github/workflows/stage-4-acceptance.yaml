@@ -31,16 +31,13 @@ on:
         description: "Version of the software, set by the CI/CD pipeline workflow"
         required: true
         type: string
-      environment:
-        description: "Which environment to deploy terraform code into"
-        required: true
-        type: string
 
 env:
   role-to-assume: ${{ vars.AWS_ROLE_ARN }}
   aws-region: ${{ vars.aws_region }}
   aws-bucket-name: ${{ vars.aws_bucket_name }}
   aws-bucket-key-name: ${{ vars.aws_bucket_key_name }}
+  environment: ${{ vars.environment }}
 
 jobs:
   environment-set-up:
@@ -50,6 +47,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
+      - name: print environment name
+        run: |
+          echo environment name: $environment
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
