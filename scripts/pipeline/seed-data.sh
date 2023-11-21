@@ -21,6 +21,8 @@ function main() {
     aws dynamodb batch-write-item --request-items \
             file://$PWD/test-data/participating_icb.json
     echo Succefully uploaded Participating ICBs test data to database
+  else
+    echo ParticipatingICB table already populated
   fi
 
   echo "--------------------------------------------------------------"
@@ -34,6 +36,8 @@ function main() {
     echo Uploading items to LSOA database
     python $PWD/scripts/pipeline/nonprod_lsoa_load/nonprod_lsoa_load.py
     echo Succefully uploaded LSOA data to database
+  else
+    echo LSOA table already populated
   fi
 
   echo "--------------------------------------------------------------"
@@ -45,6 +49,8 @@ function main() {
     echo Uploading items to Phlebotomy clinic database
     python $PWD/scripts/pipeline/nonprod_phlebotomy_site_load/nonprod_phlebotomy_site_load.py
     echo Succefully uploaded Phlebotomy clinic data to database
+  else
+    echo PhlebotomySite table already populated
   fi
 }
 
