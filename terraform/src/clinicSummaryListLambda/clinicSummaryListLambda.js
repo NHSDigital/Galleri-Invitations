@@ -18,6 +18,7 @@ export const handler = async (event, context) => {
       "#AV": "Availability",
       "#IS": "InvitesSent",
       "#IC": "ICBCode",
+      "#UD": "UpdatedDate"
     },
     ExpressionAttributeValues: {
       ":a": {
@@ -25,7 +26,7 @@ export const handler = async (event, context) => {
       },
     },
     FilterExpression: "ICBCode = :a",
-    ProjectionExpression: "#CI, #CN, #PID, #AV, #IS, #IC",
+    ProjectionExpression: "#CI, #CN, #PID, #AV, #IS, #IC, #UD",
     TableName: "PhlebotomySite",
   };
 
