@@ -51,10 +51,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: print environment name
-        run: |
-          echo environment name: $environment
-          echo environment name: ${{ env.environment }}
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
@@ -78,6 +74,7 @@ jobs:
         with:
           role-to-assume: ${{ env.role-to-assume }}
           aws-region: ${{ env.aws-region }}
+          environment: ${{ env.environment }}
         timeout-minutes: 10
       - name: "Deploy application"
         run: |

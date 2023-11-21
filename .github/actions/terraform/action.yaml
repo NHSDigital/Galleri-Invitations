@@ -4,12 +4,6 @@ description: "Build infrastructure"
 runs:
   using: "composite"
   steps:
-    - name: print environment name
-      shell: bash
-      run: |
-        echo environment name: $environment
-        echo environment name: ${{ env.environment }}
-
     - name: Git checkout
       uses: actions/checkout@v4
       with:
@@ -21,18 +15,6 @@ runs:
         path: 'Galleri-Frontend'
         repository: NHSDigital/Galleri-Frontend
         ref: main
-
-    - name: pwd
-      id: pwd
-      shell: bash
-      run: |
-        cd $GITHUB_WORKSPACE/Galleri-Frontend
-        pwd
-        ls -l
-        cd $GITHUB_WORKSPACE/Galleri-Invitations
-        pwd
-        ls -l
-      continue-on-error: true
 
     - name: Configure AWS credentials from AWS account
       uses: aws-actions/configure-aws-credentials@v2
