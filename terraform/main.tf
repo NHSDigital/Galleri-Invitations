@@ -578,21 +578,11 @@ module "imd_table" {
 }
 
 module "population_table" {
-<<<<<<< HEAD
-  source         = "./modules/dynamodb"
-  billing_mode   = "PAY_PER_REQUEST"
-  read_capacity  = null
-  write_capacity = null
-  table_name     = "Population"
-  hash_key       = "PersonId"
-  range_key      = "LsoaCode"
-=======
   source      = "./modules/dynamodb"
   table_name  = "Population"
   hash_key    = "PersonId"
   range_key   = "LsoaCode"
   environment = var.environment
->>>>>>> abcbbdc (AC - began updating names to add environment prefix)
   attributes = [{
     name = "PersonId"
     type = "S"
