@@ -31,6 +31,10 @@ on:
         description: "Version of the software, set by the CI/CD pipeline workflow"
         required: true
         type: string
+      environment:
+        description: "Which environment to deploy terraform code into"
+        required: true
+        type: string
 
 env:
   role-to-assume: ${{ vars.AWS_ROLE_ARN }}
