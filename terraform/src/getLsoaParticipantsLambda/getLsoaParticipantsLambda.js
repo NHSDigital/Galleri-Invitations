@@ -106,8 +106,6 @@ export async function getEligiblePopulation(lsoaList, client) {
 
       };
     });
-
-    // console.log(`In ${lsoa}, there are ${count} number of people available to invite`)
   }));
 
   console.log(`lsoa being queried number ${Object.keys(lsoaList).length}. Population object has ${populationArray.length}`);

@@ -1,4 +1,4 @@
-import { populateEligibleArray, queryEligiblePopulation, getPopulation } from '../../getLsoaParticipants/getLsoaParticipantsLambda.js';
+import { queryEligiblePopulation, getPopulation } from '../../getLsoaParticipantsLambda/getLsoaParticipantsLambda';
 import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
