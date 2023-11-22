@@ -78,7 +78,7 @@ export const handler = async (event, context) => {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,GET",
     },
-      responseObject.body = "error";
+    responseObject.body = "error";
   }
 
   const complete = Date.now() - start;
@@ -134,7 +134,7 @@ export async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
     ProjectionExpression: "#LC, #ET, #NT, #ID, #FU",
     TableName: "UniqueLsoa",
   };
-  if (Object.keys(lastEvaluatedItem).length != 0) {
+  if (Object.keys(lastEvaluatedItem).length != 0){
     input.ExclusiveStartKey = lastEvaluatedItem;
   }
 
@@ -142,7 +142,7 @@ export async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
   const response = await client.send(command);
 
   if (response.LastEvaluatedKey) {
-    if (response.$metadata.httpStatusCode == 200) {
+    if (response.$metadata.httpStatusCode == 200){
       console.log("Table is larger than 1Mb hence recursively routing through to obtain all data")
       tableItems.push(response.Items)
       lastEvaluatedItem = response.LastEvaluatedKey
@@ -158,7 +158,7 @@ export async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
     const command = new ScanCommand(input);
     const response = await client.send(command);
 
-    if (response.$metadata.httpStatusCode == 200) {
+    if (response.$metadata.httpStatusCode == 200){
       tableItems.push(response.Items)
       return `UniqueLsoa table scanned. Returning ${tableItems.length} records`
     } else {
@@ -167,7 +167,7 @@ export async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
   }
 }
 
-async function populateLsoaArray(client) {
+async function populateLsoaArray(client){
   const tableItems = []
   let lastEvaluatedItem = {}
   await scanLsoaTable(client, lastEvaluatedItem, tableItems)
@@ -188,7 +188,7 @@ export const calculateDistance = (lsoa, clinicGridReference) => {
     Math.sqrt(
       Math.pow(Math.abs(clinicEasting - lsoaEasting), 2) +
       Math.pow(Math.abs(clinicNorthing - lsoaNorthing), 2)
-    ) /
+    )/
     (MTOKM * KMTOMILES);
 
   return distanceMiles;
@@ -201,7 +201,7 @@ export function generateLsoaTableData(lsoaData, populationData) {
   lsoaData.forEach((lsoaItem) => {
     const matchingLsoa = populationData[lsoaItem.LSOA_2011.S]
 
-    if (matchingLsoa != undefined) {
+    if (matchingLsoa != undefined){
       return tableInfo.push({
         ...lsoaItem,
         ...matchingLsoa

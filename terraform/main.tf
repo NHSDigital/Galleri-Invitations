@@ -667,7 +667,7 @@ module "invitation_parameters_table" {
 resource "aws_dynamodb_table_item" "quintileTargets" {
   table_name = module.invitation_parameters_table.dynamodb_table_name
   hash_key   = module.invitation_parameters_table.dynamodb_hash_key
-
+  //LAST_UPDATE will be used in a future story, meantime will act as placeholder
   item = <<ITEM
 {
   "CONFIG_ID": {"N": "1"},
