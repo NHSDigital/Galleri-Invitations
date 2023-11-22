@@ -1,4 +1,4 @@
-import { getItemsFromTable, invokeParticipantListLambda, getParticipantsInQuintile, generateQuintileBlocks } from '../../calculateNumberToInviteLambda/calculateNumberToInviteLambda'
+import { getItemsFromTable, invokeParticipantListLambda, getParticipantsInQuintile } from '../../calculateNumberToInviteLambda/calculateNumberToInviteLambda'
 import { mockClient } from 'aws-sdk-client-mock';
 import { LambdaClient } from '@aws-sdk/client-lambda';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
@@ -68,36 +68,3 @@ describe('getParticipantsInQuintile', () => {
 
   });
 });
-
-describe('generateQuintileBlocks', () => {
-
-  test('should loop through and add property of LSOA with population info', async () => {
-    const forecastUptakeObj = {
-      forecastUptake: 100
-    }
-
-    const randomStringKey = [...Array(10)].map(() => {
-      const randomStr = "abcdefghij".split('').sort(() => .5-Math.random()).join('');
-      return [randomStr.slice(0, Math.random()*10 + 2)]
-    })
-    const quintilePopulationArray = randomStringKey.map(el => {
-      let obj = {}
-      obj["person"] = el[0]
-      obj["imdDecile"] = Math.floor(Math.random() * 10)
-      return obj;
-    })
-
-    const lowerBound = 0
-    const upperBound = 5
-    const quintile = "test"
-    const result =  generateQuintileBlocks(quintilePopulationArray, lowerBound, upperBound, quintile);
-
-    expect(result.length).toEqual(5);
-    expect(result[0].imdDecile <= result[1].imdDecile).toEqual(true);
-    expect(result[1].imdDecile <= result[2].imdDecile).toEqual(true);
-    expect(result[2].imdDecile <= result[3].imdDecile).toEqual(true);
-    expect(result[3].imdDecile <= result[4].imdDecile).toEqual(true);
-
-  });
-});
-

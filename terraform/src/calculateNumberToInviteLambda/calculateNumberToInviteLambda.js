@@ -44,7 +44,10 @@ export const handler = async (event, context) => {
     lsoaCodePayload: buffer,
     invitationsAlgorithm: true
   }
-  const participantInLsoa = await invokeParticipantListLambda("getLsoaParticipantsLambda", payload, lambdaClient)
+  const returnData = await invokeParticipantListLambda("getLsoaParticipantsLambda", payload, lambdaClient)
+  const participantInLsoa = returnData.sort((a, b) => {
+    return a.imdDecile - b.imdDecile
+  })
   const numberOfPeople = participantInLsoa.length
   console.log("participantInLsoa.length = ", numberOfPeople)
 
@@ -139,7 +142,5 @@ export const getParticipantsInQuintile = (quintilePopulation, quintileTarget, na
 
 export const generateQuintileBlocks = (participantList, lowerBound, upperBound, quintile) => {
   console.log(`${quintile} Lower bound = ${lowerBound}. ${quintile} Upper bound = ${upperBound}`)
-  return participantList.sort((a, b) => {
-    return a.imdDecile - b.imdDecile
-  }).slice(lowerBound, upperBound)
+  return participantList.slice(lowerBound, upperBound)
 }

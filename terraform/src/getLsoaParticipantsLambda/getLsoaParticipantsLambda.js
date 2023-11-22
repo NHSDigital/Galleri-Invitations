@@ -109,7 +109,5 @@ export async function getEligiblePopulation(lsoaList, client) {
   }));
 
   console.log(`lsoa being queried number ${Object.keys(lsoaList).length}. Population object has ${populationArray.length}`);
-  console.log('popArr');
-  console.log(populationArray);
   return populationArray;
 }
