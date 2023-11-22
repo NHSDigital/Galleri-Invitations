@@ -59,14 +59,6 @@ runs:
         cd ./terraform
         terraform validate -no-color
 
-    - name: Terraform Switch Workspace
-      id: workspace
-      shell: bash
-      run: |
-        cd ./terraform
-        terraform workspace list
-        terraform workspace select test
-
     - name: Terraform Plan
       id: plan
       shell: bash
