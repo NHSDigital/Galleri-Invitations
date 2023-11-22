@@ -14,7 +14,7 @@ runs:
       with:
         path: 'Galleri-Frontend'
         repository: NHSDigital/Galleri-Frontend
-        ref: gal-414/cal-num-to-invite
+        ref: main
 
     - name: Configure AWS credentials from AWS account
       uses: aws-actions/configure-aws-credentials@v2
@@ -73,19 +73,19 @@ runs:
         echo Terraform Plan Status has failed
         exit 1
 
-    # - name: Terraform Apply
-    #   shell: bash
-    #   run: |
-    #     cd ./terraform
-    #     npm install --prefix src/dataFilterLambda
-    #     npm install --prefix src/lsoaLoaderLambda
-    #     npm install --prefix src/clinicIcbListLambda
-    #     npm install --prefix src/clinicInformationLambda
-    #     npm install --prefix src/clinicSummaryListLambda
-    #     npm install --prefix src/invitationParametersLambda
-    #     npm install --prefix src/invitationParametersPutForecastUptakeLambda
-    #     npm install --prefix src/invitationParametersPutQuintilesLambda
-    #     npm install --prefix src/participatingIcbListLambda
-    #     npm install --prefix src/targetFillToPercentageLambda
-    #     npm install --prefix src/targetFillToPercentagePutLambda
-    #     terraform apply -auto-approve -input=false -var-file=environment/${{ env.environment }}/${{ env.environment }}.tfvars
+    - name: Terraform Apply
+      shell: bash
+      run: |
+        cd ./terraform
+        npm install --prefix src/dataFilterLambda
+        npm install --prefix src/lsoaLoaderLambda
+        npm install --prefix src/clinicIcbListLambda
+        npm install --prefix src/clinicInformationLambda
+        npm install --prefix src/clinicSummaryListLambda
+        npm install --prefix src/invitationParametersLambda
+        npm install --prefix src/invitationParametersPutForecastUptakeLambda
+        npm install --prefix src/invitationParametersPutQuintilesLambda
+        npm install --prefix src/participatingIcbListLambda
+        npm install --prefix src/targetFillToPercentageLambda
+        npm install --prefix src/targetFillToPercentagePutLambda
+        terraform apply -auto-approve -input=false -var-file=environment/${{ env.environment }}/${{ env.environment }}.tfvars
