@@ -6,8 +6,6 @@ on:
   push:
     branches:
       - "**"
-  pull_request:
-    types: [opened, reopened]
 
 jobs:
   metadata:
@@ -103,10 +101,10 @@ jobs:
   #   secrets: inherit
   acceptance-stage: # Recommended maximum execution time is 10 minutes
     needs: [
-      metadata,
-      test-stage
-      # build-stage
-    ]
+        metadata,
+        test-stage,
+        # build-stage
+      ]
     uses: ./.github/workflows/stage-4-acceptance.yaml
     # if: needs.metadata.outputs.does_pull_request_exist == 'true' || (github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened'))
     with:
