@@ -104,7 +104,6 @@ export async function getEligiblePopulation(lsoaList, client) {
           "imdDecile": lsoaList[lsoa].IMD_DECILE,
           "forecastUptake": lsoaList[lsoa].FORECAST_UPTAKE
         })
-
       };
     });
   }));

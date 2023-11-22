@@ -205,7 +205,6 @@ export function generateLsoaTableData(lsoaData, populationData) {
       return tableInfo.push({
         ...lsoaItem,
         ...matchingLsoa
-        //        checked: defaultChecked
       })
     }
   })
