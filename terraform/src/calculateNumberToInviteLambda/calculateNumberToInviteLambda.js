@@ -140,6 +140,6 @@ export const getParticipantsInQuintile = (quintilePopulation, quintileTarget, na
 export const generateQuintileBlocks = (participantList, lowerBound, upperBound, quintile) => {
   console.log(`${quintile} Lower bound = ${lowerBound}. ${quintile} Upper bound = ${upperBound}`)
   return participantList.sort((a, b) => {
-    return a.imdDecile < b.imdDecile
+    return a.imdDecile - b.imdDecile
   }).slice(lowerBound, upperBound)
 }

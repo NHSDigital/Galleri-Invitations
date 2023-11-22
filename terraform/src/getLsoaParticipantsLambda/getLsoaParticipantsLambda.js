@@ -30,13 +30,13 @@ export const handler = async (event, context) => {
 };
 
 // METHODS
-async function populateEligibleArray(client, lsoaCode) {
+async function populateEligibleArray(client, lsoaCode){
   const tableItems = [];
   await queryEligiblePopulation(client, lsoaCode, tableItems);
   return tableItems.flat();
 };
 
-export async function queryEligiblePopulation(client, lsoaCode, tableItems){
+export async function queryEligiblePopulation(client, lsoaCode, tableItems) {
   const input = {
     "ExpressionAttributeValues": {
       ":code": {
@@ -79,8 +79,8 @@ export async function getPopulation (lsoaList, client) {
     });
 
     populationObject[lsoaCode] = {
-      ELIGIBLE_POPULATION: { "S": eligiblePopulation },
-      INVITED_POPULATION: { "S": invitedPopulation }
+      ELIGIBLE_POPULATION: {"S": eligiblePopulation},
+      INVITED_POPULATION: {"S": invitedPopulation}
     };
   }));
 

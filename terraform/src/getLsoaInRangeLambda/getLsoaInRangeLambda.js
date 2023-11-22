@@ -141,8 +141,8 @@ export async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
   const command = new ScanCommand(input);
   const response = await client.send(command);
 
-  if (response.LastEvaluatedKey){
-    if (response.$metadata.httpStatusCode == 200) {
+  if (response.LastEvaluatedKey) {
+    if (response.$metadata.httpStatusCode == 200){
       console.log("Table is larger than 1Mb hence recursively routing through to obtain all data")
       tableItems.push(response.Items)
       lastEvaluatedItem = response.LastEvaluatedKey
