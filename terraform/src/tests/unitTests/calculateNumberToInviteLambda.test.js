@@ -50,7 +50,7 @@ describe('getParticipantsInQuintile', () => {
     }
 
     const randomStringKey = [...Array(10)].map(() => {
-      const randomStr = "abcdefghij".split('').sort(() => .5-Math.random()).join('');
+      const randomStr = "abcdefghij".split('').sort(() => 0.5 - Math.random()).join('');
       return [randomStr.slice(0, Math.random()*10 + 2)]
     })
     const quintilePopulationArray = randomStringKey.map(el => {

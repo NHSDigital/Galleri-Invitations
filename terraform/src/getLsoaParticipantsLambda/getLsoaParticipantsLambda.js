@@ -30,9 +30,10 @@ export const handler = async (event, context) => {
 };
 
 // METHODS
-async function populateEligibleArray(client, lsoaCode){
+export async function populateEligibleArray(client, lsoaCode){
   const tableItems = [];
   await queryEligiblePopulation(client, lsoaCode, tableItems);
+  console.log(tableItems)
   return tableItems.flat();
 };
 
@@ -109,6 +110,7 @@ export async function getEligiblePopulation(lsoaList, client) {
   }));
 
   console.log(`lsoa being queried number ${Object.keys(lsoaList).length}. Population object has ${populationArray.length}`);
-
+  console.log('popArr');
+  console.log(populationArray);
   return populationArray;
 }
