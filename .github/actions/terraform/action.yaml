@@ -14,7 +14,7 @@ runs:
       with:
         path: 'Galleri-Frontend'
         repository: NHSDigital/Galleri-Frontend
-        ref: main
+        ref: gal-414/cal-num-to-invite
 
     - name: Configure AWS credentials from AWS account
       uses: aws-actions/configure-aws-credentials@v2
