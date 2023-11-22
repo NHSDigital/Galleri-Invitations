@@ -78,4 +78,4 @@ if __name__ == "__main__":
     file_input_path = "/nonprod-unique-lsoa-data/unique_lsoa_data.csv"
 
     path_to_file = os.getcwd() + file_input_path
-    generate_nonprod_lsoa_json(path_to_file, ENVIRONMENT + "-UniqueLsoa")
+    generate_nonprod_lsoa_json(path_to_file, ENVIRONMENT + "-Lsoa")
