@@ -17,7 +17,7 @@ function main() {
       mkdir -p test-data
       aws s3 cp s3://participating-icb/Participating_ICBs.csv ./test-data
       echo "Successfully Downloaded CSV from S3"
-      source $PWD/scripts/pipeline/create-data-files.sh
+      python $PWD/scripts/pipeline/data_cleanse/generate_participating_icb_data.py
       echo "Successfully formatted Participating ICBs test data"
       aws dynamodb batch-write-item --request-items file://$PWD/test-data/participating_icb.json
       echo "Successfully uploaded Participating ICBs test data to database"
