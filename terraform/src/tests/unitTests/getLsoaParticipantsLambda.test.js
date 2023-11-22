@@ -63,41 +63,19 @@ import { getEligiblePopulation } from '../../getLsoaParticipantsLambda/getLsoaPa
 
 describe('getEligiblePopulation', () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
-  const mocky = mockClient(new DynamoDBClient({}));
-  const lsoaCode = ["E6", "E7"];
-  const lsoaObj = [{
-    "E6":
-    {
-      "invited": { "S": "false" },
-      "date_of_death": { "S": "NULL" },
-      "removal_date": { "S": "NULL" }
-    }
-  }];
+  const lsoaCode = ["E01000005"];
+  const lsoaObj = {
+    "E01000005": { "IMD_DECILE": "3", "FORECAST_UPTAKE": "23" }
+  };
 
   test('If eligible return pushed popArr', async () => {
     const logSpy = jest.spyOn(global.console, 'log');
 
     mockDynamoDbClient.resolves({
-      $metadata: {
-        httpStatusCode: 200
-      },
-      Body: "TEST"
+      $metadata: { httpStatusCode: 200 },
+      body: [{ personId: '9000149009', imdDecile: '5', forecastUptake: '25' },
+      { personId: '9000221463', imdDecile: '5', forecastUptake: '25' }]
     });
-
-    mocky.resolves({
-      $metadata: {
-        httpStatusCode: 200
-      },
-      Body: "TEST",
-      "E6":
-      {
-        "invited": { "S": "false" },
-        "date_of_death": { "S": "NULL" },
-        "removal_date": { "S": "NULL" }
-      }
-    });
-
-    await populateEligibleArray(mocky, lsoaCode);
     await getEligiblePopulation(lsoaObj, mockDynamoDbClient);
 
     expect(logSpy).toHaveBeenCalled();
