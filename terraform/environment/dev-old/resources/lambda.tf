@@ -95,7 +95,6 @@ resource "aws_iam_policy" "iam_policy_for_clinic_information_lambda" {
 EOF
 }
 
-
 resource "aws_iam_policy" "iam_policy_for_participating_icb_list_lambda" {
   name        = "aws_iam_policy_for_terraform_aws_participating_icb_list_lambda_role"
   path        = "/"
@@ -127,7 +126,6 @@ resource "aws_iam_policy" "iam_policy_for_participating_icb_list_lambda" {
 }
 EOF
 }
-
 
 resource "aws_iam_policy" "iam_policy_for_clinic_summary_list_lambda" {
   name        = "aws_iam_policy_for_terraform_aws_clinic_summary_list_lambda_role"
@@ -193,6 +191,79 @@ resource "aws_iam_policy" "iam_policy_for_invitation_parameters_lambda" {
 EOF
 }
 
+resource "aws_iam_policy" "iam_policy_for_lsoa_in_range_lambda" {
+  name        = "aws_iam_policy_for_terraform_aws_lsoa_in_range_lambda_role"
+  path        = "/"
+  description = "AWS IAM Policy for managing aws lambda get lsoa in range role"
+  policy      = <<EOF
+{
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:logs:*:*:*"
+    },
+    {
+      "Sid": "AllowDynamodbAccess",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:*"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:eu-west-2:136293001324:table/UniqueLsoa"
+      ]
+    },
+    {
+      "Sid": "AllowLambdaInvoke",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:*"
+      ],
+      "Resource": [
+        "arn:aws:lambda:eu-west-2:136293001324:function:getLsoaParticipantsLambda"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+EOF
+}
+
+resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
+  name        = "aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
+  path        = "/"
+  description = "AWS IAM Policy for managing aws lambda get participants in lsoa role"
+  policy      = <<EOF
+{
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:logs:*:*:*"
+    },
+    {
+      "Sid": "AllowDynamodbAccess",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:*"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:eu-west-2:136293001324:table/Population/*/*"
+      ]
+    }
+  ],
+  "Version": "2012-10-17"
+}
+EOF
+}
 
 resource "aws_iam_role_policy_attachment" "galleri_lambda_policy" {
   role       = aws_iam_role.galleri_lambda_role.name
@@ -203,7 +274,6 @@ resource "aws_iam_role_policy_attachment" "clinic_information_lambda_policy" {
   role       = aws_iam_role.galleri_lambda_role.name
   policy_arn = aws_iam_policy.iam_policy_for_clinic_information_lambda.arn
 }
-
 
 resource "aws_iam_role_policy_attachment" "participating_icb_list_lambda_policy" {
   role       = aws_iam_role.galleri_lambda_role.name
@@ -220,7 +290,15 @@ resource "aws_iam_role_policy_attachment" "invitation_parameters_lambda_policy" 
   policy_arn = aws_iam_policy.iam_policy_for_invitation_parameters_lambda.arn
 }
 
+resource "aws_iam_role_policy_attachment" "lsoa_in_range_lambda_policy" {
+  role       = aws_iam_role.galleri_lambda_role.name
+  policy_arn = aws_iam_policy.iam_policy_for_lsoa_in_range_lambda.arn
+}
 
+resource "aws_iam_role_policy_attachment" "participants_in_lsoa_lambda_policy" {
+  role       = aws_iam_role.galleri_lambda_role.name
+  policy_arn = aws_iam_policy.iam_policy_for_participants_in_lsoa_lambda.arn
+}
 
 // Zip lambda folders
 data "archive_file" "data_filter_gridall_imd_lambda" {
@@ -298,6 +376,19 @@ data "archive_file" "target_fill_to_percentage_lambda" {
 
   source_dir  = "${path.cwd}/lambda/targetFillToPercentage/lambdaHandler"
   output_path = "${path.cwd}/lambda/targetFillToPercentage/lambdaHandler/targetFillToPercentageLambda.zip"
+}
+data "archive_file" "lsoa_in_range_lambda" {
+  type = "zip"
+
+  source_dir  = "${path.cwd}/lambda/getLsoaInRange/lambdaHandler"
+  output_path = "${path.cwd}/lambda/getLsoaInRange/lambdaHandler/getLsoaInRangeLambda.zip"
+}
+
+data "archive_file" "participants_in_lsoa_lambda" {
+  type = "zip"
+
+  source_dir  = "${path.cwd}/lambda/getLsoaParticipants/lambdaHandler"
+  output_path = "${path.cwd}/lambda/getLsoaParticipants/lambdaHandler/getLsoaParticipantsLambda.zip"
 }
 
 // Create lambda functions
@@ -483,6 +574,35 @@ resource "aws_lambda_function" "get_target_fill_to_percentage" {
 
 }
 
+resource "aws_lambda_function" "lsoa_in_range" {
+  function_name = "getLsoaInRangeLambda"
+  role          = aws_iam_role.galleri_lambda_role.arn
+  handler       = "getLsoaInRangeLambda.handler"
+  runtime       = "nodejs18.x"
+  timeout       = 100
+  memory_size   = 1024
+
+  s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
+  s3_key    = aws_s3_object.lsoa_in_range_lambda.key // may need to change
+
+  source_code_hash = data.archive_file.lsoa_in_range_lambda.output_base64sha256
+
+}
+
+resource "aws_lambda_function" "participants_in_lsoa" {
+  function_name = "getLsoaParticipantsLambda"
+  role          = aws_iam_role.galleri_lambda_role.arn
+  handler       = "getLsoaParticipantsLambda.handler"
+  runtime       = "nodejs18.x"
+  timeout       = 100
+  memory_size   = 1024
+
+  s3_bucket = aws_s3_bucket.galleri_lambda_bucket.id
+  s3_key    = aws_s3_object.participants_in_lsoa_lambda.key // may need to change
+
+  source_code_hash = data.archive_file.participants_in_lsoa_lambda.output_base64sha256
+
+}
 
 // Create cloudwatch log group
 resource "aws_cloudwatch_log_group" "data_filter_gridall_imd" {
@@ -547,6 +667,18 @@ resource "aws_cloudwatch_log_group" "target_fill_to_percentage_put" {
 
 resource "aws_cloudwatch_log_group" "get_target_fill_to_percentage" {
   name = "/aws/lambda/${aws_lambda_function.get_target_fill_to_percentage.function_name}"
+
+  retention_in_days = 14
+}
+
+resource "aws_cloudwatch_log_group" "lsoa_in_range" {
+  name = "/aws/lambda/${aws_lambda_function.lsoa_in_range.function_name}"
+
+  retention_in_days = 14
+}
+
+resource "aws_cloudwatch_log_group" "participants_in_lsoa" {
+  name = "/aws/lambda/${aws_lambda_function.participants_in_lsoa.function_name}"
 
   retention_in_days = 14
 }
@@ -651,7 +783,23 @@ resource "aws_s3_object" "target_fill_to_percentage_lambda" {
   etag = filemd5(data.archive_file.target_fill_to_percentage_lambda.output_path)
 }
 
+resource "aws_s3_object" "lsoa_in_range_lambda" {
+  bucket = aws_s3_bucket.galleri_lambda_bucket.id
 
+  key    = "lsoa_in_range_lambda.zip"
+  source = data.archive_file.lsoa_in_range_lambda.output_path
+
+  etag = filemd5(data.archive_file.lsoa_in_range_lambda.output_path)
+}
+
+resource "aws_s3_object" "participants_in_lsoa_lambda" {
+  bucket = aws_s3_bucket.galleri_lambda_bucket.id
+
+  key    = "participants_in_lsoa_lambda.zip"
+  source = data.archive_file.participants_in_lsoa_lambda.output_path
+
+  etag = filemd5(data.archive_file.participants_in_lsoa_lambda.output_path)
+}
 
 resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
   bucket = "galleri-ons-data"
@@ -805,6 +953,7 @@ resource "aws_api_gateway_integration_response" "options_clinic_information" {
 
   depends_on = [aws_api_gateway_integration.options_clinic_information]
 }
+
 // CLINIC ICB LIST - HTTP METHOD
 resource "aws_api_gateway_resource" "clinic_icb_list" {
   rest_api_id = aws_api_gateway_rest_api.galleri.id
@@ -1713,6 +1862,123 @@ resource "aws_api_gateway_integration_response" "options_put_target_percentage" 
   depends_on = [aws_api_gateway_integration.options_put_target_percentage]
 }
 
+// LSOA IN RANGE - HTTP METHOD
+resource "aws_api_gateway_resource" "lsoa_in_range" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  parent_id   = aws_api_gateway_rest_api.galleri.root_resource_id
+  path_part   = "get-lsoa-in-range"
+}
+
+resource "aws_api_gateway_method" "lsoa_in_range" {
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  resource_id   = aws_api_gateway_resource.lsoa_in_range.id
+  http_method   = "GET"
+  authorization = "NONE"
+
+  request_parameters = {
+    "method.request.querystring.clinicPostcode" = true
+    "method.request.querystring.miles"          = true
+  }
+}
+
+resource "aws_api_gateway_integration" "lsoa_in_range_lambda" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.lsoa_in_range.resource_id
+  http_method = aws_api_gateway_method.lsoa_in_range.http_method
+
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.lsoa_in_range.invoke_arn
+
+  depends_on = [aws_api_gateway_method.lsoa_in_range]
+}
+
+resource "aws_api_gateway_integration_response" "lsoa_in_range_integration_response" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.lsoa_in_range.id
+  http_method = aws_api_gateway_method.lsoa_in_range.http_method
+  status_code = aws_api_gateway_method_response.lsoa_in_range_response_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'GET'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.lsoa_in_range_lambda]
+}
+
+resource "aws_api_gateway_method_response" "lsoa_in_range_response_200" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.lsoa_in_range.resource_id
+  http_method = aws_api_gateway_method.lsoa_in_range.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+
+  depends_on = [aws_api_gateway_method.lsoa_in_range]
+}
+
+// LSOA IN RANGE - OPTIONS METHOD
+resource "aws_api_gateway_method" "options_lsoa_in_range" {
+  rest_api_id   = aws_api_gateway_rest_api.galleri.id
+  resource_id   = aws_api_gateway_resource.lsoa_in_range.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "options_lsoa_in_range" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_method.options_lsoa_in_range.resource_id
+  http_method = aws_api_gateway_method.options_lsoa_in_range.http_method
+
+  type = "MOCK"
+  request_templates = { # Not documented
+    "application/json" = "{statusCode: 200}"
+  }
+
+  depends_on = [aws_api_gateway_method.options_lsoa_in_range]
+}
+
+resource "aws_api_gateway_method_response" "options_lsoa_in_range_200" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.lsoa_in_range.id
+  http_method = aws_api_gateway_method.options_lsoa_in_range.http_method
+  status_code = 200
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin"  = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Headers" = true
+  }
+
+  depends_on = [aws_api_gateway_method.options_lsoa_in_range]
+}
+
+resource "aws_api_gateway_integration_response" "options_lsoa_in_range" {
+  rest_api_id = aws_api_gateway_rest_api.galleri.id
+  resource_id = aws_api_gateway_resource.lsoa_in_range.id
+  http_method = aws_api_gateway_method.options_lsoa_in_range.http_method
+  status_code = aws_api_gateway_method_response.options_lsoa_in_range_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'*'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.options_lsoa_in_range]
+}
 
 // AWS LAMBDA PERMISSIONS
 resource "aws_lambda_permission" "api_gw_clinic_information" {
@@ -1814,6 +2080,16 @@ resource "aws_lambda_permission" "api_gw_put_target_percentage" {
   source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/PUT/*"
 }
 
+resource "aws_lambda_permission" "api_gw_lsoa_in_range" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lsoa_in_range.function_name
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API".
+  source_arn = "${aws_api_gateway_rest_api.galleri.execution_arn}/*/GET/*"
+}
 
 resource "aws_api_gateway_deployment" "galleri" {
 
