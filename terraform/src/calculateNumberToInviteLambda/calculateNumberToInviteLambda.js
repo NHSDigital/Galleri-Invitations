@@ -5,8 +5,10 @@ const client = new DynamoDBClient({ region: "eu-west-2" });
 const lambdaClient = new LambdaClient({ region: "eu-west-2" });
 
 export const handler = async (event, context) => {
+  //values extracted from front-end payload when calculate number to invite button is fired
   const targetAppsToFill = event.body !== null ? JSON.parse(event.body).targetAppsToFill : "";
   const lsoaInfo = event.body !== null ? JSON.stringify(event.body.replace(/ /g, '')) : "";
+
   const buffer = Buffer.from(JSON.stringify(lsoaInfo));
 
   const CONFIG_ID = 1;
@@ -110,6 +112,7 @@ export async function getItemsFromTable(table, client, key) {
 }
 
 export async function invokeParticipantListLambda(lamdaName, payload, lambdaClient) {
+  //Change format of JSON to expected format when sending payload to subsequent lambda
   const input = {
     FunctionName: lamdaName,
     Payload: JSON.stringify(payload),

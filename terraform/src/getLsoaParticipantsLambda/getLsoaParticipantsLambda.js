@@ -12,6 +12,7 @@ export const handler = async (event, context) => {
   if (event.invitationsAlgorithm) {
     //Initialize Buffer from buffer array and convert back to original payload sent from front end
     const buff = Buffer.from(event.lsoaCodePayload);
+    //Required to unpack payload to a readable format for lambda to process values
     const payload = JSON.parse(JSON.parse(JSON.parse(buff.toString('utf-8'))))?.lsoaCodes;
 
     eligibleInvitedPopulation = await getEligiblePopulation(payload, client);
@@ -35,7 +36,7 @@ async function populateEligibleArray(client, lsoaCode) {
   return tableItems.flat();
 };
 
-export async function queryEligiblePopulation(client, lsoaCode, tableItems) {
+export async function queryEligiblePopulation(client, lsoaCode, tableItems){
   const input = {
     "ExpressionAttributeValues": {
       ":code": {
@@ -60,7 +61,7 @@ export async function queryEligiblePopulation(client, lsoaCode, tableItems) {
   };
 };
 
-export async function getPopulation(lsoaList, client) {
+export async function getPopulation (lsoaList, client) {
   const populationObject = {};
   await Promise.all(lsoaList.map(async (lsoa) => {
     const lsoaCode = lsoa.S;
@@ -99,12 +100,8 @@ export async function getEligiblePopulation(lsoaList, client) {
       if (person?.Invited?.S == "false" && person?.date_of_death?.S == "NULL" && person?.removal_date?.S == "NULL") {
         populationArray.push({
           "personId": person?.PersonId.S,
-          // "dateOfDeath": person?.date_of_death.S, //commented out for now, as these columns exceed response limit for lambda
-          // "removalDate": person?.removal_date.S,
-          // "invited": person?.Invited?.S,
           "imdDecile": lsoaList[lsoa].IMD_DECILE,
-          "forecastUptake": lsoaList[lsoa].FORECAST_UPTAKE,
-          // "lsoaCode": lsoa
+          "forecastUptake": lsoaList[lsoa].FORECAST_UPTAKE
         })
 
       };
