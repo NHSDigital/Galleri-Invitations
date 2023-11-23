@@ -76,7 +76,7 @@ def get_all_urls():
 
 
 # Assembles the url from the api id, api name, environment name and resource path.
-# API url's follow a standard format so the only variable is the ID which we get from the get_all_urls function
+# url's follow a standard format, only variable is the ID which we get from get_all_urls
 def get_invoke_url(response, api):
     name = api["name"]
     api_name = f"{environment}-{name}"
@@ -96,8 +96,7 @@ def get_invoke_url(response, api):
         return None
 
 
-# This makes a GET call to the specified url, you have to pass in the expected status code
-# Optionally you can also pass in an expected response which will be checked
+# This makes a GET call to the specified url
 def test_get_request(api_list, api):
     url = get_invoke_url(api_list, api)
     print(url)
@@ -116,8 +115,7 @@ def test_get_request(api_list, api):
     print(f"GET request to {url} passed with status code {expected_status_code}.")
 
 
-# This makes a PUT call to the specified url, you have to pass in the data to send and expected status code
-# Optionally you can also pass in an expected response which will be checked
+# This makes a PUT call to the specified url
 def test_put_request(url, data, expected_status_code, expected_response=None):
     response = requests.put(url, json=data)
     assert (
