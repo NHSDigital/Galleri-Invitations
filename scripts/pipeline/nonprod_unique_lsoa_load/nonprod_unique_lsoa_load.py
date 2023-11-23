@@ -71,6 +71,7 @@ def batch_write_to_dynamodb(lsoa_data):
     for i in range(1, len(lsoa_data), 100):
         upper_bound_slice = i + 100
         test_data = lsoa_data[i:upper_bound_slice]
+        print(test_data)
         dynamodb_client.transact_write_items(TransactItems=test_data)
     return "Finished"
 
