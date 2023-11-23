@@ -89,7 +89,8 @@ def get_invoke_url(response, api):
 
     if api_id:
         # Construct the invoke URL
-        invoke_url = f"https://{api_id}.execute-api.{region}.amazonaws.com/{environment}/{resource_path}"
+        invoke_url = f"https://{api_id}.execute-api.{region}.\
+            amazonaws.com/{environment}/{resource_path}"
         return invoke_url
     else:
         print(f"API with the name {api_name} was not found.")
