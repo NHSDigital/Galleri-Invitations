@@ -60,7 +60,8 @@ module "data_filter_gridall_imd_lambda" {
     BUCKET_NAME     = "galleri-ons-data",
     GRIDALL_CHUNK_1 = "gridall/chunk_data/chunk_1.csv",
     GRIDALL_CHUNK_2 = "gridall/chunk_data/chunk_2.csv",
-    GRIDALL_CHUNK_3 = "gridall/chunk_data/chunk_3.csv"
+    GRIDALL_CHUNK_3 = "gridall/chunk_data/chunk_3.csv",
+    environment     = "${var.environment}"
   }
 }
 
@@ -84,7 +85,8 @@ module "lsoa_loader_lambda" {
   lambda_s3_object_key = "non_prod_lsoa_loader.zip"
   environment_vars = {
     BUCKET_NAME = "galleri-ons-data",
-    KEY         = "lsoa_data/lsoa_data_2023-08-15T15:42:13.301Z.csv"
+    KEY         = "lsoa_data/lsoa_data_2023-08-15T15:42:13.301Z.csv",
+    environment = "${var.environment}"
   }
 }
 
@@ -106,7 +108,9 @@ module "clinic_information_lambda" {
   lambda_timeout       = 100
   memory_size          = 1024
   lambda_s3_object_key = "clinic_information_lambda.zip"
-  environment_vars     = {}
+  environment_vars = {
+    environment = "${var.environment}"
+  }
 }
 
 module "clinic_information_cloudwatch" {
@@ -139,7 +143,9 @@ module "clinic_icb_list_lambda" {
   lambda_timeout       = 100
   memory_size          = 1024
   lambda_s3_object_key = "clinic_icb_list_lambda.zip"
-  environment_vars     = {}
+  environment_vars = {
+    environment = "${var.environment}"
+  }
 }
 
 module "clinic_icb_list_cloudwatch" {
@@ -171,7 +177,9 @@ module "participating_icb_list_lambda" {
   lambda_timeout       = 100
   memory_size          = 1024
   lambda_s3_object_key = "participating_icb_list_lambda.zip"
-  environment_vars     = {}
+  environment_vars = {
+    environment = "${var.environment}"
+  }
 }
 
 module "participating_icb_list_cloudwatch" {
@@ -201,7 +209,9 @@ module "clinic_summary_list_lambda" {
   lambda_timeout       = 100
   memory_size          = 1024
   lambda_s3_object_key = "clinic_summary_list_lambda.zip"
-  environment_vars     = {}
+  environment_vars = {
+    environment = "${var.environment}"
+  }
 }
 
 module "clinic_summary_list_cloudwatch" {
@@ -233,7 +243,9 @@ module "invitation_parameters_lambda" {
   lambda_timeout       = 100
   memory_size          = 1024
   lambda_s3_object_key = "invitation_parameters_lambda.zip"
-  environment_vars     = {}
+  environment_vars = {
+    environment = "${var.environment}"
+  }
 }
 
 module "invitation_parameters_cloudwatch" {
@@ -263,7 +275,9 @@ module "invitation_parameters_put_forecast_uptake_lambda" {
   lambda_timeout       = 100
   memory_size          = 1024
   lambda_s3_object_key = "invitation_parameters_put_forecast_uptake_lambda.zip"
-  environment_vars     = {}
+  environment_vars = {
+    environment = "${var.environment}"
+  }
 }
 
 module "invitation_parameters_put_forecast_uptake_cloudwatch" {
@@ -295,7 +309,9 @@ module "invitation_parameters_put_quintiles_lambda" {
   lambda_timeout       = 100
   memory_size          = 1024
   lambda_s3_object_key = "invitation_parameters_put_quintiles_lambda.zip"
-  environment_vars     = {}
+  environment_vars = {
+    environment = "${var.environment}"
+  }
 }
 
 module "invitation_parameters_put_quintiles_cloudwatch" {
@@ -325,7 +341,9 @@ module "target_fill_to_percentage_put_lambda" {
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "targetFillToPercentagePutLambda"
   lambda_s3_object_key = "target_fill_to_percentage_put_lambda.zip"
-  environment_vars     = {}
+  environment_vars = {
+    environment = "${var.environment}"
+  }
 }
 
 module "target_fill_to_percentage_put_cloudwatch" {
@@ -360,7 +378,9 @@ module "target_fill_to_percentage_get_lambda" {
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "targetFillToPercentageLambda"
   lambda_s3_object_key = "target_fill_to_percentage_lambda.zip"
-  environment_vars     = {}
+  environment_vars = {
+    environment = "${var.environment}"
+  }
 }
 
 module "target_fill_to_percentage_get_cloudwatch" {
@@ -587,13 +607,13 @@ module "LSOA_table" {
       type = "N"
     }
   ]
-  # global_secondary_index = [
-  #   {
-  #     name      = "POSTCODE"
-  #     hash_key  = "IMD_RANK"
-  #     range_key = "IMD_DECILE"
-  #   }
-  # ]
+  global_secondary_index = [
+    {
+      name      = "POSTCODE"
+      hash_key  = "IMD_RANK"
+      range_key = "IMD_DECILE"
+    }
+  ]
   tags = {
     Name        = "Dynamodb Table LSOA"
     Environment = var.environment
