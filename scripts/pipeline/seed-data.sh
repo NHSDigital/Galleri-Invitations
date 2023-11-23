@@ -30,7 +30,7 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
-  NONPROD_LSOA_DATA_COUNT=$(aws dynamodb scan --table-name $environment-Lsoa --select "COUNT" | jq -r ".Count")
+  NONPROD_LSOA_DATA_COUNT=$(aws dynamodb scan --table-name $environment-UniqueLsoa --select "COUNT" | jq -r ".Count")
   if [[ $? -eq 0 ]] && [[ $NONPROD_LSOA_DATA_COUNT =~ ^[0-9]+$ ]]; then
     if (($NONPROD_LSOA_DATA_COUNT < 1)); then
       echo Initiating upload of LSOA subset data to database
