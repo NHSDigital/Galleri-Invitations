@@ -2,6 +2,8 @@ import csv
 import os
 import boto3
 
+environment = os.environ("environment")
+
 
 def generate_nonprod_lsoa_json(file_path, table_name):
     with open(file_path, "r", encoding="utf-8-sig") as file:
@@ -67,16 +69,13 @@ def batch_write_to_dynamodb(lsoa_data):
     for i in range(1, len(lsoa_data), 100):
         upper_bound_slice = i + 100
         test_data = lsoa_data[i:upper_bound_slice]
-        print(test_data)
         dynamodb_client.transact_write_items(TransactItems=test_data)
     return "Finished"
 
 
-ENVIRONMENT = os.getenv("environment")
-
 if __name__ == "__main__":
     # read in data and generate the json output
-    file_input_path = "/nonprod-lsoa-data/nonprod-lsoa-data.csv"
+    file_input_path = "/nonprod-unique-lsoa-data/unique_lsoa_data.csv"
 
     path_to_file = os.getcwd() + file_input_path
-    generate_nonprod_lsoa_json(path_to_file, ENVIRONMENT + "-Lsoa")
+    generate_nonprod_lsoa_json(path_to_file, f"{environment}-UniqueLsoa")
