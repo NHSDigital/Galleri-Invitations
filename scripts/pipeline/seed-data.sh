@@ -35,7 +35,7 @@ function main() {
     if (($NONPROD_LSOA_DATA_COUNT < 1)); then
       echo Initiating upload of LSOA subset data to database
       mkdir nonprod-unique-lsoa-data
-      aws s3 cp s3://galleri-ons-data/non_prod_lsoa_data_/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv ./nonprod-unique-lsoa-data/unique_lsoa_data.csv
+      aws s3 cp s3://galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
       ls -l ./nonprod-unique-lsoa-data
       echo Succefully Downloaded CSV from S3
       echo Uploading items to LSOA database
