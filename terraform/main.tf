@@ -575,7 +575,7 @@ module "LSOA_table" {
   read_capacity  = null
   write_capacity = null
   attributes = [{
-    name = "POSTCODE"
+    name = "LSOA_2011"
     type = "S"
     },
     {
@@ -587,13 +587,13 @@ module "LSOA_table" {
       type = "N"
     }
   ]
-  global_secondary_index = [
-    {
-      name      = "POSTCODE"
-      hash_key  = "IMD_RANK"
-      range_key = "IMD_DECILE"
-    }
-  ]
+  # global_secondary_index = [
+  #   {
+  #     name      = "POSTCODE"
+  #     hash_key  = "IMD_RANK"
+  #     range_key = "IMD_DECILE"
+  #   }
+  # ]
   tags = {
     Name        = "Dynamodb Table LSOA"
     Environment = var.environment
