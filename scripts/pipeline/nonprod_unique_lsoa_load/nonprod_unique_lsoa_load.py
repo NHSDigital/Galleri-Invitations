@@ -1,6 +1,7 @@
 import csv
 import os
 import boto3
+from random import randrange
 
 environment = os.getenv("environment")
 
@@ -31,9 +32,9 @@ def format_dynamodb_json(csvreader, table_name):
         MSOA_2021 = str(row[10])
         IMD_RANK = str(row[11])
         IMD_DECILE = str(row[12])
-        FORECAST_UPTAKE = str(row[13])
-        AVG_EASTING = str(row[14])
-        AVG_NORTHING = str(row[15])
+        FORECAST_UPTAKE = str(randrange(10, 30))
+        AVG_EASTING = str(row[13])
+        AVG_NORTHING = str(row[14])
         output.append(
             {
                 "Put": {
@@ -70,7 +71,6 @@ def batch_write_to_dynamodb(lsoa_data):
     for i in range(1, len(lsoa_data), 100):
         upper_bound_slice = i + 100
         test_data = lsoa_data[i:upper_bound_slice]
-        print(test_data)
         dynamodb_client.transact_write_items(TransactItems=test_data)
     return "Finished"
 
