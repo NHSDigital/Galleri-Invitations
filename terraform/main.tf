@@ -568,7 +568,7 @@ module "population_table" {
 module "LSOA_table" {
   source         = "./modules/dynamodb"
   billing_mode   = "PAY_PER_REQUEST"
-  table_name     = "Lsoa"
+  table_name     = "UniqueLsoa"
   hash_key       = "POSTCODE"
   range_key      = "IMD_RANK"
   environment    = var.environment
