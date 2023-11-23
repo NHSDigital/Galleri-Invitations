@@ -586,11 +586,11 @@ module "population_table" {
 }
 
 module "LSOA_table" {
-  source       = "./modules/dynamodb"
-  billing_mode = "PAY_PER_REQUEST"
-  table_name   = "UniqueLsoa"
-  hash_key     = "LSOA_2011"
-  # range_key      = "IMD_RANK"
+  source         = "./modules/dynamodb"
+  billing_mode   = "PAY_PER_REQUEST"
+  table_name     = "UniqueLsoa"
+  hash_key       = "LSOA_2011"
+  range_key      = "IMD_RANK"
   environment    = var.environment
   read_capacity  = null
   write_capacity = null
@@ -609,7 +609,7 @@ module "LSOA_table" {
   ]
   global_secondary_index = [
     {
-      name      = "POSTCODE"
+      name      = "LSOA_2011"
       hash_key  = "IMD_RANK"
       range_key = "IMD_DECILE"
     }
