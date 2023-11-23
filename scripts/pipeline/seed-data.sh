@@ -36,7 +36,7 @@ function main() {
       echo Initiating upload of LSOA subset data to database
       mkdir nonprod-unique-lsoa-data
       aws s3 cp s3://galleri-ons-data/non_prod_lsoa_data_/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv ./nonprod-unique-lsoa-data/unique_lsoa_data.csv
-      ls -l ./unique_lsoa_data.csv
+      ls -l ./nonprod-unique-lsoa-data
       echo Succefully Downloaded CSV from S3
       echo Uploading items to LSOA database
       python $PWD/scripts/pipeline/nonprod_unique_lsoa_load/nonprod_unique_lsoa_load.py
