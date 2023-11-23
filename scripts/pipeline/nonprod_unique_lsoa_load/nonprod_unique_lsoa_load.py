@@ -75,7 +75,7 @@ ENVIRONMENT = os.getenv("environment")
 
 if __name__ == "__main__":
     # read in data and generate the json output
-    file_input_path = "./nonprod-lsoa-data/nonprod-lsoa-data.csv"
+    file_input_path = "/nonprod-lsoa-data/nonprod-lsoa-data.csv"
 
     path_to_file = os.getcwd() + file_input_path
     generate_nonprod_lsoa_json(path_to_file, ENVIRONMENT + "-Lsoa")
