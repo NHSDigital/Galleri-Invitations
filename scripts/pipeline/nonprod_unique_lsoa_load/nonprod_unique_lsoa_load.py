@@ -31,8 +31,9 @@ def format_dynamodb_json(csvreader, table_name):
         MSOA_2021 = str(row[10])
         IMD_RANK = str(row[11])
         IMD_DECILE = str(row[12])
-        AVG_EASTING = str(row[13])
-        AVG_NORTHING = str(row[14])
+        FORECAST_UPTAKE = str(row[13])
+        AVG_EASTING = str(row[14])
+        AVG_NORTHING = str(row[15])
         output.append(
             {
                 "Put": {
@@ -50,7 +51,7 @@ def format_dynamodb_json(csvreader, table_name):
                         "MSOA_2021": {"S": f"{MSOA_2021}"},
                         "IMD_RANK": {"N": f"{IMD_RANK}"},
                         "IMD_DECILE": {"N": f"{IMD_DECILE}"},
-                        "FORECAST_UPTAKE": {"N": f"1"},
+                        "FORECAST_UPTAKE": {"N": f"{FORECAST_UPTAKE}"},
                         "AVG_EASTING": {"S": f"{AVG_EASTING}"},
                         "AVG_NORTHING": {"S": f"{AVG_NORTHING}"},
                     },
