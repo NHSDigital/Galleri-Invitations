@@ -2,7 +2,7 @@ import csv
 import os
 import boto3
 
-environment = os.environ("environment")
+environment = os.getenv("environment")
 
 
 def generate_nonprod_lsoa_json(file_path, table_name):
