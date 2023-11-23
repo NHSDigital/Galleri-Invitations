@@ -60,7 +60,7 @@ jobs:
           pip install boto3
           pip install rstr
           pip install random_word
-      - name: "Create infractructure"
+      - name: "Create infrastructure"
         uses: ./.github/actions/terraform
         with:
           role-to-assume: ${{ env.role-to-assume }}
