@@ -68,15 +68,15 @@ def batch_write_to_dynamodb(lsoa_data):
     # format and send these to the batch write function
     # repeat till no records left
     dynamodb_client = boto3.client("dynamodb")
-    for i in range(1, len(lsoa_data), 1):
-        upper_bound_slice = i + 1
+    for i in range(1, len(lsoa_data), 100):
+        upper_bound_slice = i + 100
         test_data = lsoa_data[i:upper_bound_slice]
         # print(test_data)
         # dynamodb_client.transact_write_items(TransactItems=test_data)
         try:
             dynamodb_client.transact_write_items(TransactItems=test_data)
         except Exception as e:
-            print(f"Error processing batch {i // 1 + 1}: {str(e)}")
+            print(f"Error processing batch {i // 100 + 1}: {str(e)}")
             print("Error occurred with the following data:")
             print(test_data)
     return "Finished"
