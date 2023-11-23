@@ -38,7 +38,7 @@ function main() {
       aws s3 cp s3://galleri-ons-data/non_prod_lsoa_data_/non_prod_lsoa_data_2023-08-22T15:27:52.810Z.csv ./nonprod-lsoa-data
       echo Succefully Downloaded CSV from S3
       echo Uploading items to LSOA database
-      python $PWD/scripts/pipeline/nonprod_lsoa_load/nonprod_lsoa_load.py
+      python $PWD/scripts/pipeline/nonprod_unique_lsoa_load/nonprod_unique_lsoa_load.py
       echo Succefully uploaded LSOA data to database
     else
       echo "LSOA table already populated"
