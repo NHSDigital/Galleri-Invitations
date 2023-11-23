@@ -1,5 +1,5 @@
 import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
-
+let environment = process.env.environment;
 /*
   Lambda to load clinics from and ICB and pass on to GPS client.
 */
@@ -26,7 +26,7 @@ export const handler = async (event, context) => {
     },
     FilterExpression: "ICBCode = :a",
     ProjectionExpression: "#CI, #CN, #PID, #AV, #IS, #IC",
-    TableName: "PhlebotomySite",
+    TableName: `${environment}-PhlebotomySite`,
   };
 
   const command = new ScanCommand(input);
@@ -42,7 +42,7 @@ export const handler = async (event, context) => {
         "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,GET",
-    }
+    };
     responseObject.body = JSON.stringify(response.Items);
   } else {
     responseObject.statusCode = 404;
@@ -51,7 +51,7 @@ export const handler = async (event, context) => {
         "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,GET",
-    }
+    };
     responseObject.isBase64Encoded = true;
     responseObject.body = "error";
   }
