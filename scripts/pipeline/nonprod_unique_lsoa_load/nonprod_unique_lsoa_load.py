@@ -6,6 +6,7 @@ import boto3
 def generate_nonprod_lsoa_json(file_path, table_name):
     with open(file_path, "r", encoding="utf-8-sig") as file:
         csvreader = csv.reader(file)
+        print(csvreader)
         dynamodb_json_object = format_dynamodb_json(csvreader, table_name)
 
     batch_write_to_dynamodb(dynamodb_json_object)
