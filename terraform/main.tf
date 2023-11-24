@@ -389,6 +389,7 @@ module "calculate_number_to_invite_lambda" {
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "calculateNumberToInviteLambda"
   lambda_s3_object_key = "calculate_number_to_invite.zip"
+  lambda_timeout       = 100
   environment_vars     = {}
 }
 

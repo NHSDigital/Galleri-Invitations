@@ -79,12 +79,11 @@ export const handler = async (event, context) => {
     ...getParticipantsInQuintile(quintile4Population, quintile4Target, nationalForecastUptake, "Q4"),
     ...getParticipantsInQuintile(quintile5Population, quintile5Target, nationalForecastUptake, "Q5"),
   ]
-  console.log('selectedParticipants');
-  console.log(selectedParticipants);
+
   const numberOfPeopleToInvite = selectedParticipants.length
   console.log("numberOfPeopleToInvite = ", numberOfPeopleToInvite)
 
-  if (response.$metadata.httpStatusCode = 200) {
+  if (!selectedParticipants.includes(false)) {
     responseObject.statusCode = 200;
     responseObject.body = JSON.stringify({
       "selectedParticipants": selectedParticipants,
@@ -128,26 +127,33 @@ export async function invokeParticipantListLambda(lamdaName, payload, lambdaClie
 
 export const getParticipantsInQuintile = (quintilePopulation, quintileTarget, nationalForecastUptake, Q) => {
   console.log(`In ${Q}. # people available to invite = ${quintilePopulation.length}. Target to meet = ${quintileTarget}`)
+  // preform a quick check to see whether there are roughly enough people to continue with process
+  const avgExpectedUpdtakeInQuintile = quintilePopulation.reduce((acc, curr) => acc + Number(curr.forecastUptake) ,0) / quintilePopulation.length
+  console.log("avgExpectedUpdtakeInQuintile = ",  avgExpectedUpdtakeInQuintile)
+  if (quintilePopulation.length * (avgExpectedUpdtakeInQuintile / 100) < quintileTarget) {
+    console.log("Exiting")
+    return false
+  }
+
   let count = 0;
-  console.log('quintile pop');
-  console.log(quintilePopulation);
+  let iterationNumber = 0;
   const selectedParticipants = new Set();
-  //Select random person within quintile, loop through until quintile target is met
+  // Select random person within quintile, loop through until quintile target is met
   while (count < quintileTarget) {
+    iterationNumber++
+
     const randomPersonIndex = Math.floor(Math.random() * (quintilePopulation.length - 1))
     const personSelected = quintilePopulation[randomPersonIndex]
-    console.log('selectedParticipants.size inside loop');
-    console.log(selectedParticipants.size);
+
     if (!selectedParticipants.has(personSelected.personId)) {
       selectedParticipants.add(personSelected.personId)
       count += (personSelected.forecastUptake) / 100
-      console.log('count -->' + count);
     } else {
-      console.log('collision');
+      console.log("Jumping out at iteration ", iterationNumber)
+      continue
     }
   }
-  console.log('selectedParticipants.size');
-  console.log(selectedParticipants.size);
+  console.log("highlighted participants size = ", selectedParticipants.size)
   return selectedParticipants
 }
 
