@@ -566,17 +566,13 @@ module "population_table" {
     {
       name = "LsoaCode"
       type = "S"
-    },
-    {
-      name = "NhsNumber"
-      type = "N"
     }
   ]
   global_secondary_index = [
     {
-      name      = "PersonId"
-      hash_key  = "NhsNumber"
-      range_key = "LsoaCode"
+      name      = "LsoaCode-index"
+      hash_key  = "LsoaCode"
+      range_key = null
     }
   ]
   tags = {
