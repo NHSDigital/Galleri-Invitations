@@ -32,7 +32,7 @@ function main() {
 
   NONPROD_LSOA_DATA_COUNT=$(aws dynamodb scan --table-name $environment-UniqueLsoa --select "COUNT" | jq -r ".Count")
   if [[ $? -eq 0 ]] && [[ $NONPROD_LSOA_DATA_COUNT =~ ^[0-9]+$ ]]; then
-    if (($NONPROD_LSOA_DATA_COUNT < 17742)); then
+    if (($NONPROD_LSOA_DATA_COUNT < 17741)); then
       echo Initiating upload of LSOA subset data to database
       mkdir nonprod-unique-lsoa-data
       aws s3 cp s3://galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
