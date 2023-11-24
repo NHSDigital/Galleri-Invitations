@@ -33,11 +33,11 @@ export const handler = async (event, context) => {
   const nationalForecastUptake = response.Item !== null ? (response.Item).FORECAST_UPTAKE.N : "";
 
   // Calculate breakdown of no of people per quintile
-  const quintile1Target = targetAppsToFill * (quintile1 / 100);
-  const quintile2Target = targetAppsToFill * (quintile2 / 100);
-  const quintile3Target = targetAppsToFill * (quintile3 / 100);
-  const quintile4Target = targetAppsToFill * (quintile4 / 100);
-  const quintile5Target = targetAppsToFill * (quintile5 / 100);
+  const quintile1Target = Math.ceil(targetAppsToFill * (quintile1 / 100));
+  const quintile2Target = Math.ceil(targetAppsToFill * (quintile2 / 100));
+  const quintile3Target = Math.ceil(targetAppsToFill * (quintile3 / 100));
+  const quintile4Target = Math.ceil(targetAppsToFill * (quintile4 / 100));
+  const quintile5Target = Math.floor(targetAppsToFill * (quintile5 / 100));
 
   // Return participants available to invite
   const payload = {
@@ -79,7 +79,8 @@ export const handler = async (event, context) => {
     ...getParticipantsInQuintile(quintile4Population, quintile4Target, nationalForecastUptake, "Q4"),
     ...getParticipantsInQuintile(quintile5Population, quintile5Target, nationalForecastUptake, "Q5"),
   ]
-
+  console.log('selectedParticipants');
+  console.log(selectedParticipants);
   const numberOfPeopleToInvite = selectedParticipants.length
   console.log("numberOfPeopleToInvite = ", numberOfPeopleToInvite)
 
@@ -128,18 +129,25 @@ export async function invokeParticipantListLambda(lamdaName, payload, lambdaClie
 export const getParticipantsInQuintile = (quintilePopulation, quintileTarget, nationalForecastUptake, Q) => {
   console.log(`In ${Q}. # people available to invite = ${quintilePopulation.length}. Target to meet = ${quintileTarget}`)
   let count = 0;
-  const selectedParticipants = []
+  console.log('quintile pop');
+  console.log(quintilePopulation);
+  const selectedParticipants = new Set();
   //Select random person within quintile, loop through until quintile target is met
   while (count < quintileTarget) {
     const randomPersonIndex = Math.floor(Math.random() * (quintilePopulation.length - 1))
     const personSelected = quintilePopulation[randomPersonIndex]
-    if (!selectedParticipants.includes((el) => {
-      return el = personSelected;
-    })) {
-      selectedParticipants.push(personSelected.personId)
+    console.log('selectedParticipants.size inside loop');
+    console.log(selectedParticipants.size);
+    if (!selectedParticipants.has(personSelected.personId)) {
+      selectedParticipants.add(personSelected.personId)
       count += (personSelected.forecastUptake) / 100
+      console.log('count -->' + count);
+    } else {
+      console.log('collision');
     }
   }
+  console.log('selectedParticipants.size');
+  console.log(selectedParticipants.size);
   return selectedParticipants
 }
 
