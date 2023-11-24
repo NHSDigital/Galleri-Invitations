@@ -681,7 +681,8 @@ resource "aws_dynamodb_table_item" "quintileTargets" {
   "QUINTILE_3": {"N": "20"},
   "QUINTILE_4": {"N": "20"},
   "QUINTILE_5": {"N": "20"},
-  "FORECAST_UPTAKE": {"N": "50"}
+  "FORECAST_UPTAKE": {"N": "50"},
+  "TARGET_PERCENTAGE": {"N": "50"}
 }
 ITEM
 }

@@ -28,18 +28,15 @@ export const handler = async (event, context) => {
   const records = await populateLsoaArray(dynamoDbclient);
   console.log(`Total records from dynamoDB = ${records.length}`);
 
-  const lsoaCodePayload = [];
+  const lsoaCodePayload = []
   const filterLsoaRecords = records.filter((lsoaRecord) => {
-    const distanceToSiteMiles = calculateDistance(
-      lsoaRecord,
-      clinicGridReference
-    );
+    const distanceToSiteMiles = calculateDistance(lsoaRecord, clinicGridReference);
     if (distanceToSiteMiles <= lsoasInRangeMiles) {
       // attach to record
       lsoaRecord.DISTANCE_TO_SITE = {
-        N: JSON.stringify(Math.round(distanceToSiteMiles * 100) / 100),
+        N: JSON.stringify(Math.round(distanceToSiteMiles * 100) / 100)
       };
-      lsoaCodePayload.push(lsoaRecord.LSOA_2011);
+      lsoaCodePayload.push(lsoaRecord.LSOA_2011)
       return lsoaRecord;
     }
   });
@@ -60,10 +57,7 @@ export const handler = async (event, context) => {
     Buffer.from(response.Payload).toString()
   );
 
-  const combinedLsoaParticipants = generateLsoaTableData(
-    filterLsoaRecords,
-    participantInLsoa
-  );
+  const combinedLsoaParticipants = generateLsoaTableData(filterLsoaRecords, participantInLsoa);
 
   console.log("combinedLsoaParticipants = ", combinedLsoaParticipants.length);
 
