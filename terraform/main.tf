@@ -553,6 +553,41 @@ module "imd_table" {
   }
 }
 
+module "postcode_table" {
+  source         = "./modules/dynamodb"
+  billing_mode   = "PAY_PER_REQUEST"
+  table_name     = "Postcode"
+  hash_key       = "POSTCODE"
+  range_key      = "IMD_RANK"
+  environment    = var.environment
+  read_capacity  = null
+  write_capacity = null
+  attributes = [{
+    name = "POSTCODE"
+    type = "S"
+    },
+    {
+      name = "IMD_RANK"
+      type = "N"
+    },
+    {
+      name = "IMD_DECILE"
+      type = "N"
+    }
+  ]
+  global_secondary_index = [
+    {
+      name      = "POSTCODE"
+      hash_key  = "IMD_RANK"
+      range_key = "IMD_DECILE"
+    }
+  ]
+  tags = {
+    Name        = "Dynamodb Table Postcode"
+    Environment = var.environment
+  }
+}
+
 module "population_table" {
   source      = "./modules/dynamodb"
   table_name  = "Population"

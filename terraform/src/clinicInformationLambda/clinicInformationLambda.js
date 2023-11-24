@@ -1,6 +1,7 @@
 import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
 
-let environment = process.env.environment;
+const ENVIRONMENT = process.env.environment;
+
 /*
   Lambda to load clinic information and pass on to GPS client.
 */
@@ -23,7 +24,7 @@ export const handler = async (event, context) => {
         S: `${clinicName}`,
       },
     },
-    TableName: `${environment}-PhlebotomySite`,
+    TableName: `${ENVIRONMENT}-PhlebotomySite`,
   };
   const command = new GetItemCommand(params);
   const response = await client.send(command);

@@ -1,6 +1,6 @@
 import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 
-let environment = process.env.environment;
+const ENVIRONMENT = process.env.environment;
 
 /*
   Lambda to PUT target fill to percentage value to Dynamo DB config table
@@ -27,7 +27,7 @@ export const handler = async (event, context) => {
         N: `${CONFIG_ID}`,
       },
     },
-    TableName: `${environment}-InvitationParameters`,
+    TableName: `${ENVIRONMENT}-InvitationParameters`,
     UpdateExpression: "SET #TARGET_PERCENTAGE_VALUE = :target_percentage_new",
   };
 

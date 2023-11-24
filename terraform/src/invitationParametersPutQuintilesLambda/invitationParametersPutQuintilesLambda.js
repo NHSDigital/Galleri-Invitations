@@ -1,6 +1,6 @@
 import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 
-let environment = process.env.environment;
+const ENVIRONMENT = process.env.environment;
 
 /*
   Lambda to PUT invitation parameters to Dynamo DB invitation parameters table
@@ -51,7 +51,7 @@ export const handler = async (event, context) => {
         N: `${CONFIG_ID}`,
       },
     },
-    TableName: `${environment}-InvitationParameters`,
+    TableName: `${ENVIRONMENT}-InvitationParameters`,
     UpdateExpression:
       "SET #Q1 = :q1_new, #Q2 = :q2_new, #Q3 = :q3_new, #Q4 = :q4_new, #Q5 = :q5_new",
   };

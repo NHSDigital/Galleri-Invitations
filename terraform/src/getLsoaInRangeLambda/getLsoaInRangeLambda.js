@@ -2,7 +2,7 @@ import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import axios from "axios";
 
-let environment = process.env.environment;
+const ENVIRONMENT = process.env.environment;
 
 const KMTOMILES = 1.6;
 const MTOKM = 1000;
@@ -50,7 +50,7 @@ export const handler = async (event, context) => {
   const lambdaClient = new LambdaClient({ region: "eu-west-2" });
 
   const input = {
-    FunctionName: `${environment}-getLsoaParticipantsLambda`,
+    FunctionName: `${ENVIRONMENT}-getLsoaParticipantsLambda`,
     Payload: JSON.stringify(lsoaCodePayload),
   };
   const command = new InvokeCommand(input);

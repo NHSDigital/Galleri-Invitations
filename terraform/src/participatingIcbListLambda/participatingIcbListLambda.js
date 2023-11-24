@@ -1,6 +1,6 @@
 import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 
-let environment = process.env.environment;
+const ENVIRONMENT = process.env.environment;
 
 /*
   Lambda to load icb information and pass on to GPS client.
@@ -19,7 +19,7 @@ export async function getItemsFromTable(table, client) {
 export const handler = async () => {
   const client = new DynamoDBClient({ region: "eu-west-2" });
   const response = await getItemsFromTable(
-    `${environment}-ParticipatingIcb`,
+    `${ENVIRONMENT}-ParticipatingIcb`,
     client
   );
 
