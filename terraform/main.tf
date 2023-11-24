@@ -565,7 +565,7 @@ module "population_table" {
     },
     {
       name = "LsoaCode"
-      type = "N"
+      type = "S"
     },
     {
       name = "NhsNumber"
