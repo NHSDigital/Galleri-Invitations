@@ -133,8 +133,12 @@ export const getParticipantsInQuintile = (quintilePopulation, quintileTarget, na
   while (count < quintileTarget) {
     const randomPersonIndex = Math.floor(Math.random() * (quintilePopulation.length - 1))
     const personSelected = quintilePopulation[randomPersonIndex]
-    selectedParticipants.push(personSelected.personId)
-    count += (personSelected.forecastUptake) / 100
+    if (!selectedParticipants.includes((el) => {
+      return el = personSelected;
+    })) {
+      selectedParticipants.push(personSelected.personId)
+      count += (personSelected.forecastUptake) / 100
+    }
   }
   return selectedParticipants
 }
