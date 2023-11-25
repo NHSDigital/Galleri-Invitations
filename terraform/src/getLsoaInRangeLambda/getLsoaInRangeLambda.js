@@ -44,12 +44,16 @@ export const handler = async (event, context) => {
   // FIND THE PARTICIPANTS IN THOSE LSOAs AND COMBINE THE RESPECTIVE ARRAYS
   const lambdaClient = new LambdaClient({ region: "eu-west-2" });
 
+  const triggerLambda = Date.now();
+  console.log("Invoking getLsoaParticipantsLambda to get eligible and invited participants")
   const input = {
     FunctionName: "getLsoaParticipantsLambda",
     Payload: JSON.stringify(lsoaCodePayload),
   };
   const command = new InvokeCommand(input);
   const response = await lambdaClient.send(command);
+  console.log("Lambda invoke completed. Took: ", (Date.now() - triggerLambda)/1000)
+
 
   const participantInLsoa = JSON.parse(Buffer.from(response.Payload).toString())
 

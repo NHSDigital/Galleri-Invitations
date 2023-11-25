@@ -6,7 +6,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 describe('getItemsFromTable', () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
-  test('should push items to array on successful response', async () => {
+  test('should mock call to dynamoDb successfully', async () => {
     mockDynamoDbClient.resolves({
       $metadata: {
         httpStatusCode: 200
@@ -23,7 +23,7 @@ describe('getItemsFromTable', () => {
 describe('invokeParticipantListLambda', () => {
   const mockLambdaClient = mockClient(new LambdaClient({}));
 
-  test('should loop through and add property of LSOA with population info', async () => {
+  test('should mock lambda invocation successfully', async () => {
     const payload = JSON.stringify({"message": "hello from payload"})
 
     mockLambdaClient.resolves({
@@ -55,7 +55,7 @@ describe('getParticipantsInQuintile', () => {
     })
     const quintilePopulationArray = randomStringKey.map(el => {
       let obj = {}
-      obj["person"] = el[0]
+      obj["personId"] = el[0]
       obj["forecastUptake"] = 100
       return obj;
     })
@@ -64,7 +64,7 @@ describe('getParticipantsInQuintile', () => {
     const Q = "test"
     const result =  getParticipantsInQuintile(quintilePopulationArray, quintileTarget, nationalForecastUptake, Q);
 
-    expect(result.length).toEqual(5);
+    expect(result.size).toEqual(5);
 
   });
 });

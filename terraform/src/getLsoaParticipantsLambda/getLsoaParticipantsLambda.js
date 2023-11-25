@@ -33,7 +33,6 @@ export const handler = async (event, context) => {
 export async function populateEligibleArray(client, lsoaCode){
   const tableItems = [];
   await queryEligiblePopulation(client, lsoaCode, tableItems);
-  console.log(tableItems)
   return tableItems.flat();
 };
 

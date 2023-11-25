@@ -58,43 +58,44 @@ export const handler = async (event, context) => {
 
   //QUINTILE 1 Block
   const q1UpperBound = quintileBlockSize
-  const quintile1Population = generateQuintileBlocks(participantInLsoa, 0, q1UpperBound, "Q1")
+  const quintile1Population = generateQuintileBlocks(participantInLsoa, 0, q1UpperBound , "Q1")
   //QUINTILE 2 Block
-  const q2UpperBound = q1UpperBound + quintileBlockSize + 1
-  const quintile2Population = generateQuintileBlocks(participantInLsoa, q1UpperBound + 1, q2UpperBound, "Q2")
+  const q2UpperBound = q1UpperBound + quintileBlockSize
+  const quintile2Population = generateQuintileBlocks(participantInLsoa, q1UpperBound, q2UpperBound, "Q2")
   //QUINTILE 3 Block
-  const q3UpperBound = q2UpperBound + quintileBlockSize + 1
-  const quintile3Population = generateQuintileBlocks(participantInLsoa, q2UpperBound + 1, q3UpperBound, "Q3")
+  const q3UpperBound = q2UpperBound + quintileBlockSize
+  const quintile3Population = generateQuintileBlocks(participantInLsoa, q2UpperBound, q3UpperBound, "Q3")
   //QUINTILE 4 Block
-  const q4UpperBound = q3UpperBound + quintileBlockSize + 1
-  const quintile4Population = generateQuintileBlocks(participantInLsoa, q3UpperBound + 1, q4UpperBound, "Q4")
+  const q4UpperBound = q3UpperBound + quintileBlockSize
+  const quintile4Population = generateQuintileBlocks(participantInLsoa, q3UpperBound, q4UpperBound, "Q4")
   //QUINTILE 5 Block
-  const quintile5Population = generateQuintileBlocks(participantInLsoa, q4UpperBound + 1, numberOfPeople, "Q5")
+  const quintile5Population = generateQuintileBlocks(participantInLsoa, q4UpperBound, numberOfPeople, "Q5")
 
   // Store selected participants in single array
-  const selectedParticipants = [
-    ...getParticipantsInQuintile(quintile1Population, quintile1Target, nationalForecastUptake, "Q1"),
-    ...getParticipantsInQuintile(quintile2Population, quintile2Target, nationalForecastUptake, "Q2"),
-    ...getParticipantsInQuintile(quintile3Population, quintile3Target, nationalForecastUptake, "Q3"),
-    ...getParticipantsInQuintile(quintile4Population, quintile4Target, nationalForecastUptake, "Q4"),
-    ...getParticipantsInQuintile(quintile5Population, quintile5Target, nationalForecastUptake, "Q5"),
-  ]
+  try{
+    const selectedParticipants = [
+      ...getParticipantsInQuintile(quintile1Population, quintile1Target, nationalForecastUptake, "Q1"),
+      ...getParticipantsInQuintile(quintile2Population, quintile2Target, nationalForecastUptake, "Q2"),
+      ...getParticipantsInQuintile(quintile3Population, quintile3Target, nationalForecastUptake, "Q3"),
+      ...getParticipantsInQuintile(quintile4Population, quintile4Target, nationalForecastUptake, "Q4"),
+      ...getParticipantsInQuintile(quintile5Population, quintile5Target, nationalForecastUptake, "Q5"),
+    ]
+    const numberOfPeopleToInvite = selectedParticipants.length
+    console.log("numberOfPeopleToInvite = ", numberOfPeopleToInvite)
 
-  const numberOfPeopleToInvite = selectedParticipants.length
-  console.log("numberOfPeopleToInvite = ", numberOfPeopleToInvite)
-
-  if (!selectedParticipants.includes(false)) {
     responseObject.statusCode = 200;
     responseObject.body = JSON.stringify({
       "selectedParticipants": selectedParticipants,
       "numberOfPeopleToInvite": numberOfPeopleToInvite
     })
-  } else {
-    responseObject.statusCode = 404;
-    responseObject.body = "error";
-  }
 
-  return responseObject;
+    return responseObject
+  } catch(e){
+    responseObject.statusCode = 404;
+    responseObject.body = e;
+
+    return responseObject
+  }
 };
 
 //METHODS
@@ -125,35 +126,55 @@ export async function invokeParticipantListLambda(lamdaName, payload, lambdaClie
   return JSON.parse(Buffer.from(response.Payload).toString());
 }
 
+// Convert array of objects to an object with key = personId and value = uptake
+// Randomly select a participants from above object
+// Add their forecast uptake to count
+// Remove them from the object
+// Store the personId in selectedParticipants set
 export const getParticipantsInQuintile = (quintilePopulation, quintileTarget, nationalForecastUptake, Q) => {
   console.log(`In ${Q}. # people available to invite = ${quintilePopulation.length}. Target to meet = ${quintileTarget}`)
-  // preform a quick check to see whether there are roughly enough people to continue with process
-  const avgExpectedUpdtakeInQuintile = quintilePopulation.reduce((acc, curr) => acc + Number(curr.forecastUptake) ,0) / quintilePopulation.length
-  console.log("avgExpectedUpdtakeInQuintile = ",  avgExpectedUpdtakeInQuintile)
-  if (quintilePopulation.length * (avgExpectedUpdtakeInQuintile / 100) < quintileTarget) {
-    console.log("Exiting")
-    return false
-  }
+  let quintilePopulationObject = quintilePopulation.reduce((obj, person) => Object.assign(obj, { [person.personId]: person.forecastUptake }), {}); // O(n)
+  const quintilePopulationObjectKeys = Object.keys(quintilePopulationObject) // O(n)
 
   let count = 0;
   let iterationNumber = 0;
+  let selectedParticipantCount = 1
   const selectedParticipants = new Set();
+
   // Select random person within quintile, loop through until quintile target is met
   while (count < quintileTarget) {
     iterationNumber++
 
-    const randomPersonIndex = Math.floor(Math.random() * (quintilePopulation.length - 1))
-    const personSelected = quintilePopulation[randomPersonIndex]
+    const sizeAfterIteration = quintilePopulationObjectKeys.length - iterationNumber
 
-    if (!selectedParticipants.has(personSelected.personId)) {
-      selectedParticipants.add(personSelected.personId)
-      count += (personSelected.forecastUptake) / 100
-    } else {
-      console.log("Jumping out at iteration ", iterationNumber)
-      continue
+    const localQuintilePopulationObjectKeys = Object.keys(quintilePopulationObject)
+
+    const randomPersonIndex = Math.floor(Math.random() * (localQuintilePopulationObjectKeys.length)) // O(1)
+    const personSelectedId = localQuintilePopulationObjectKeys[randomPersonIndex]
+
+    // person has not been previous indexed
+    if (!selectedParticipants.has(personSelectedId)) {
+        selectedParticipants.add(personSelectedId)
+        const personSelectedForecastUptake = quintilePopulationObject[personSelectedId]
+        count += (personSelectedForecastUptake) / 100
+        // increment selectedPerson count
+        selectedParticipantCount++
+        // remove that person from pool of people that can be invited
+        delete quintilePopulationObject[personSelectedId]
+      } else {
+        console.log(`Person ${personSelectedId} has already been landed on`)
+        // check if length of the original quintilePopulationObject isn't 0
+        if (sizeAfterIteration > 0 ){
+          // still records left to parse
+          continue
+        } else {
+          // break out of loop as gone through all records but cant generate enough invites
+          console.log(`Reached the MAX size of iteraitons with quintile block. Iterations = ${iterationNumber} and original object size is ${quintilePopulationObjectKeys.length}\nBreaking out of loop`)
+          return new Error("Unable to generate enough invitations")
+        }
+      }
     }
-  }
-  console.log("highlighted participants size = ", selectedParticipants.size)
+  console.log(`Highlighted participants size = ${selectedParticipants.size} with an average quintile block uptake of ${Math.floor((quintileTarget/ selectedParticipants.size) *100)}%`)
   return selectedParticipants
 }
 
