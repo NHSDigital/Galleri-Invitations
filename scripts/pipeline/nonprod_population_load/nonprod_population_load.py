@@ -124,7 +124,11 @@ def format_dynamodb_json(csvreader, table_name):
                                 },
                                 'LsoaCode': {
                                     'S': f'{lsoa_2011}'
+                                },
+                                'identified_to_be_invited': {
+                                    'BOOL': False
                                 }
+
                             },
                             'TableName': table_name,
                         },
