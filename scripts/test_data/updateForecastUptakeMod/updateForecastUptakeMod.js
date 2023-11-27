@@ -3,7 +3,7 @@ import csv from "csv-parser";
 import fs from "fs";
 
 const lsoaData = fs.readFileSync(
-  "./input/copyunique_lsoa_data.csv"
+  "./input/copyunique_lsoa_data.csv" //remove copy
 );
 
 const LsoaModerators = fs.readFileSync(
@@ -47,8 +47,7 @@ export const writeFile = (filename, obj) => {
   });
 };
 
-
-const lsoaArray = await processData(lsoaData);
+const lsoaUniqueArray = await processData(lsoaData);
 const arrWithMod = await processData(LsoaModerators);
 // console.log(arrWithMod);
 
@@ -59,7 +58,6 @@ const decimalPlace = (lsoa) => {
   lsoa.forEach((lsoa) => {
     // console.log(lsoa); //{ LSOA_CODE: 'E01024900', ICB: 'QE1', Moderator: '0.712937978' }
     for (const element in lsoa) {
-      console.log(element);
       delete lsoa['ICB'];
       if (element === 'Moderator') {
         let roundedElement = Math.round(lsoa[element] * 1000) / 1000;
@@ -68,27 +66,65 @@ const decimalPlace = (lsoa) => {
       lsoaRecords.push(lsoa);
     }
   });
-  console.log('here');
   return lsoaRecords;
 };
 
-console.log(decimalPlace(arrWithMod));
+const newModArr = decimalPlace(arrWithMod);
+// console.log(decimalPlace(arrWithMod));
 
 //compare lsoacodes of both arrays and append moderator if it matches
 const match = (lsoa, data) => {
-  const lsoaRecords = {};
+  const lsoaRecords = [];
+  // console.log('lsoa:');
+  // console.log(lsoa);
+  // lsoa:
+  // [
+  //   {
+  //     LOCAL_AUT_ORG: '714',
+  //     NHS_ENG_REGION: 'Y56',
+  //     SUB_ICB: '',
+  //     CANCER_REGISTRY: 'Y0801',
+  //     LSOA_2011: 'E01000001',
+  //     MSOA_2011: 'E02000001',
+  //     CANCER_ALLIANCE: 'E56000028',
+  //     ICB: 'QMF',
+  //     OA_2021: 'E00166756',
+  //     LSOA_2021: 'E01000001',
+  //     MSOA_2021: 'E02000001',
+  //     IMD_RANK: '29199',
+  //     IMD_DECILE: '9',
+  //     AVG_EASTING: '532130',
+  //     AVG_NORTHING: '0181602'
+  //   }
+  // ]
+  // console.log('data:');
+  // console.log(data);
+  //   data:
+  // [
+  //   { LSOA_CODE: 'E01012641', Moderator: 0.539 }
+  // ]
   lsoa.forEach((lsoa) => {
+    // console.log('lsoa data:');
+    // console.log(lsoa.LSOA_2011);
     for (const element of data) {
-      if (String(element.LSOA_2011) === String(lsoa)) {
-        lsoaRecords.push(element);
+      if (String(element.LSOA_CODE) === lsoa.LSOA_2021) {
+        // console.log(element); //{ LSOA_CODE: 'E01024906', Moderator: 0.782 }
+        // console.log('match');
+        lsoa.Moderator = element.Moderator.toLocaleString("en-GB", {
+          minimumSignificantDigits: 3,
+          useGrouping: false,
+        });
         break;
+      } else {
+        lsoa.Moderator = 'Not Found'; //need to test with all data
       }
     }
+    lsoaRecords.push(lsoa);
   });
   return lsoaRecords;
 };
 
-// const matyy = match(lsoaArray, lsoaWithModCodes);
-// console.log(matyy);
+const matched = match(lsoaUniqueArray, newModArr);
+console.log(matched);
 
 //in python script, update it to seed in a new column
