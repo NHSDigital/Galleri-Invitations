@@ -31,6 +31,10 @@ on:
         description: "Version of the software, set by the CI/CD pipeline workflow"
         required: true
         type: string
+      branch:
+        description: "Branch of invitations repository to checkout"
+        required: false
+        type: string
 
 jobs:
   scan-secrets:
@@ -41,6 +45,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
+          branch: "${{ inputs.branch }}"
           fetch-depth: 0 # Full history is needed to scan all commits
       - name: "Scan secrets"
         uses: ./.github/actions/scan-secrets
@@ -52,6 +57,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
+          branch: "${{ inputs.branch }}"
           fetch-depth: 0 # Full history is needed to scan all commits
       - name: "Check file format"
         uses: ./.github/actions/check-file-format
@@ -63,6 +69,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
+          branch: "${{ inputs.branch }}"
           fetch-depth: 0 # Full history is needed to scan all commits
       - name: "Check markdown format"
         uses: ./.github/actions/check-markdown-format
@@ -73,6 +80,8 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
+        with:
+          branch: "${{ inputs.branch }}"
       - name: "Check Terraform format"
         uses: ./.github/actions/check-terraform-format
   cloc-repository:
@@ -85,6 +94,8 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
+        with:
+          branch: "${{ inputs.branch }}"
       - name: "Count lines of code"
         uses: ./.github/actions/cloc-repository
         with:
@@ -104,6 +115,8 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
+        with:
+          branch: "${{ inputs.branch }}"
       - name: "Scan dependencies"
         uses: ./.github/actions/scan-dependencies
         with:

@@ -35,6 +35,10 @@ on:
         description: "the environment to deploy terraform into"
         required: true
         type: string
+      branch:
+        description: "Branch of invitations repository to checkout"
+        required: false
+        type: string
 
 env:
   role-to-assume: ${{ vars.AWS_ROLE_ARN }}
@@ -54,6 +58,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
+          branch: "${{ inputs.branch }}"
           fetch-depth: 0 # Full history is needed to scan all commits
       - name: Install dependency
         run: |
