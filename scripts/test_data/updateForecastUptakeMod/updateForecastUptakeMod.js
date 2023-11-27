@@ -3,11 +3,11 @@ import csv from "csv-parser";
 import fs from "fs";
 
 const lsoaData = fs.readFileSync(
-  "./input/copyunique_lsoa_data.csv" //remove copy
+  "./input/unique_lsoa_data.csv" //remove copy
 );
 
 const LsoaModerators = fs.readFileSync(
-  "./input/copyLSOA_moderators.csv"
+  "./input/LSOA_moderators.csv"
 );
 
 //Read in csv
@@ -47,6 +47,7 @@ export const writeFile = (filename, obj) => {
   });
 };
 
+console.time();
 const lsoaUniqueArray = await processData(lsoaData);
 const arrWithMod = await processData(LsoaModerators);
 // console.log(arrWithMod);
@@ -59,7 +60,7 @@ const decimalPlace = (lsoa) => {
     // console.log(lsoa); //{ LSOA_CODE: 'E01024900', ICB: 'QE1', Moderator: '0.712937978' }
     for (const element in lsoa) {
       delete lsoa['ICB'];
-      if (element === 'Moderator') {
+      if (element === 'MODERATOR') {
         let roundedElement = Math.round(lsoa[element] * 1000) / 1000;
         lsoa[element] = roundedElement;
       }
@@ -107,10 +108,10 @@ const match = (lsoa, data) => {
     // console.log('lsoa data:');
     // console.log(lsoa.LSOA_2011);
     for (const element of data) {
-      if (String(element.LSOA_CODE) === lsoa.LSOA_2021) {
+      if (String(element.LSOA_CODE) === String(lsoa.LSOA_2011)) {
         // console.log(element); //{ LSOA_CODE: 'E01024906', Moderator: 0.782 }
         // console.log('match');
-        lsoa.MODERATOR = element.Moderator.toLocaleString("en-GB", {
+        lsoa.MODERATOR = element.MODERATOR.toLocaleString("en-GB", {
           minimumSignificantDigits: 3,
           useGrouping: false,
         });
@@ -133,5 +134,5 @@ const uniqueDataHeader =
 const uniqueLsoaCsv = generateCsvString(uniqueDataHeader, matched);
 
 writeFile("./output/unique_lsoa_with_moderator.csv", uniqueLsoaCsv);
-
+console.timeEnd(); //taking approx 5s
 //in python script, update it to seed in a new column
