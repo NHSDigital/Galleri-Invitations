@@ -110,13 +110,13 @@ const match = (lsoa, data) => {
       if (String(element.LSOA_CODE) === lsoa.LSOA_2021) {
         // console.log(element); //{ LSOA_CODE: 'E01024906', Moderator: 0.782 }
         // console.log('match');
-        lsoa.Moderator = element.Moderator.toLocaleString("en-GB", {
+        lsoa.MODERATOR = element.Moderator.toLocaleString("en-GB", {
           minimumSignificantDigits: 3,
           useGrouping: false,
         });
         break;
       } else {
-        lsoa.Moderator = 'Not Found'; //need to test with all data
+        lsoa.MODERATOR = 'Not Found'; //need to test with all data
       }
     }
     lsoaRecords.push(lsoa);
@@ -126,5 +126,12 @@ const match = (lsoa, data) => {
 
 const matched = match(lsoaUniqueArray, newModArr);
 console.log(matched);
+
+const uniqueDataHeader =
+  "LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021,IMD_RANK,IMD_DECILE,AVG_EASTING,AVG_NORTHING,MODERATOR";
+
+const uniqueLsoaCsv = generateCsvString(uniqueDataHeader, matched);
+
+writeFile("./output/unique_lsoa_with_moderator.csv", uniqueLsoaCsv);
 
 //in python script, update it to seed in a new column
