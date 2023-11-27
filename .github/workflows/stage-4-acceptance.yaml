@@ -75,7 +75,7 @@ jobs:
           role-to-assume: ${{ env.role-to-assume }}
           aws-region: ${{ env.aws-region }}
           environment: ${{ env.environment }}
-        timeout-minutes: 10
+        timeout-minutes: 20
       - name: "Deploy application"
         run: |
           echo "Deploying application..."
