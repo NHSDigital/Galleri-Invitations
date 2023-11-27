@@ -58,7 +58,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          branch: "${{ inputs.branch }}"
+          ref: "${{ inputs.branch }}"
           fetch-depth: 0 # Full history is needed to scan all commits
       - name: Install dependency
         run: |

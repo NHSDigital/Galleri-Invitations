@@ -44,7 +44,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          branch: "${{ inputs.branch }}"
+          ref: "${{ inputs.branch }}"
       - name: "Run unit test suite"
         run: |
           make test-unit
@@ -82,7 +82,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          branch: "${{ inputs.branch }}"
+          ref: "${{ inputs.branch }}"
       - name: "Run test coverage check"
         run: |
           make test-coverage
