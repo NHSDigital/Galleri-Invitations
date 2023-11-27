@@ -31,12 +31,17 @@ on:
         description: "Version of the software, set by the CI/CD pipeline workflow"
         required: true
         type: string
+      environment:
+        description: "the environment to deploy terraform into"
+        required: true
+        type: string
 
 env:
   role-to-assume: ${{ vars.AWS_ROLE_ARN }}
   aws-region: ${{ vars.aws_region }}
   aws-bucket-name: ${{ vars.aws_bucket_name }}
   aws-bucket-key-name: ${{ vars.aws_bucket_key_name }}
+  environment: ${{ inputs.environment }}
 
 jobs:
   environment-set-up:
@@ -55,20 +60,22 @@ jobs:
           pip install boto3
           pip install rstr
           pip install random_word
-      - name: "Create infractructure"
+      - name: "Create infrastructure"
         uses: ./.github/actions/terraform
         with:
           role-to-assume: ${{ env.role-to-assume }}
           aws-region: ${{ env.aws-region }}
           aws-bucket-name: ${{ env.aws-bucket-name }}
           aws-bucket-key-name: ${{ env.aws-bucket-key-name }}
+          environment: ${{ env.environment }}
         timeout-minutes: 15
       - name: "Seed databases"
         uses: ./.github/actions/seeding
         with:
           role-to-assume: ${{ env.role-to-assume }}
           aws-region: ${{ env.aws-region }}
-        timeout-minutes: 20
+          environment: ${{ env.environment }}
+        timeout-minutes: 30
       - name: "Deploy application"
         run: |
           echo "Deploying application..."

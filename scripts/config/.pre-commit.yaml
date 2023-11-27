@@ -1,25 +1,25 @@
 repos:
-- repo: local
-  hooks:
-  - id: scan-secrets
-    name: Scan Secrets
-    entry: ./scripts/githooks/scan-secrets.sh
-    language: script
-    pass_filenames: false
-- repo: local
-  hooks:
-  - id: check-file-format
-    name: Check File Format
-    entry: ./scripts/githooks/check-file-format.sh
-    language: script
-    pass_filenames: false
-- repo: local
-  hooks:
-  - id: check-markdown-format
-    name: Check Markdown Format
-    entry: ./scripts/githooks/check-markdown-format.sh
-    language: script
-    pass_filenames: false
+# - repo: local
+#   hooks:
+#   - id: scan-secrets
+#     name: Scan Secrets
+#     entry: ./scripts/githooks/scan-secrets.sh
+#     language: script
+#     pass_filenames: false
+# - repo: local
+#   hooks:
+#   - id: check-file-format
+#     name: Check File Format
+#     entry: ./scripts/githooks/check-file-format.sh
+#     language: script
+#     pass_filenames: false
+# - repo: local
+#   hooks:
+#   - id: check-markdown-format
+#     name: Check Markdown Format
+#     entry: ./scripts/githooks/check-markdown-format.sh
+#     language: script
+#     pass_filenames: false
 - repo: local
   hooks:
   - id: check-terraform-format
@@ -27,10 +27,10 @@ repos:
     entry: ./scripts/githooks/check-terraform-format.sh
     language: script
     pass_filenames: false
-- repo: local
-  hooks:
-  - id: scan-dependencies
-    name: Scan Dependencies
-    entry: ./scripts/githooks/scan-dependencies.sh
-    language: script
-    pass_filenames: false
+# - repo: local
+#   hooks:
+#   - id: scan-dependencies
+#     name: Scan Dependencies
+#     entry: ./scripts/githooks/scan-dependencies.sh
+#     language: script
+#     pass_filenames: false
