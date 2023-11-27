@@ -22,22 +22,19 @@ runs:
         role-to-assume: ${{ env.role-to-assume }}
         aws-region: ${{ env.aws-region }}
         role-session-name: GitHub-OIDC-TERRAFORM
-    
+
     - name: setup variables for nextjs
       shell: bash
       run: |
         apis=$(aws apigateway get-rest-apis)
-
         while read -r id name; do
             if [[ $name == dev-* ]]; then
                 env_name=$(echo "$name" | sed 's/^dev-//' | tr '[:lower:]-' '[:upper:]_')
-                export "$env_name=$id"
+                export "NEXT_PUBLIC_$env_name=$id"
                 # echo "NEXT_PUBLIC_$env_name=$id" >> /home/runner/work/Galleri-Invitations/Galleri-Invitations/Galleri-Frontend/.env.local
-                echo "export $env_name=\"$id\""
+                echo "API ID: NEXT_PUBLIC_$env_name=\"$id\""
             fi
         done < <(echo "$apis" | jq -r '.items[] | "\(.id) \(.name)"')
-        export $ENVIRONMENT=${{ env.environment }}
-        # echo $ENVIRONMENT=${{ env.environment }} >> /home/runner/work/Galleri-Invitations/Galleri-Invitations/Galleri-Frontend/.env.local
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
