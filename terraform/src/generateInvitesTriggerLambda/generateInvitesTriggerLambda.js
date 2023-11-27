@@ -78,8 +78,15 @@ export const handler = async (event, context) => {
     // set person
     let personUpdated = false;
     let siteUpdated = true; // change back to false once person is done
-    const responsePopulation = await updatePersonsToBeInvited(personIdentifiedArray, client);
-    const responsePhlebotomySite = await updateClinicFields(clincInfo, client);
+    // const requestPopulation = updatePersonsToBeInvited(personIdentifiedArray, client);
+    // const requestPhlebotomySite = updateClinicFields(clincInfo, client);
+
+    const sendUpdateRequests = await Promise.allSettled[
+      updatePersonsToBeInvited(personIdentifiedArray, client),
+      updateClinicFields(clincInfo, client)
+    ]
+
+    const { responsePopulation, responsePhlebotomySite } = sendUpdateRequests
 
     if (responsePopulation.every(element => element.value === 200)){
       personUpdated = true;
@@ -106,7 +113,7 @@ export const handler = async (event, context) => {
 };
 
 //METHODS
-export async function getLsoaCode(record, clinet){
+export async function getLsoaCode(record, client){
   const input = {
     "ExpressionAttributeValues": {
       ":person": {
