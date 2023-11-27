@@ -1,5 +1,7 @@
 import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
 
+const ENVIRONMENT = process.env.environment;
+
 /*
   Lambda to load clinic information and pass on to GPS client.
 */
@@ -22,7 +24,7 @@ export const handler = async (event, context) => {
         S: `${clinicName}`,
       },
     },
-    TableName: "PhlebotomySite",
+    TableName: `${ENVIRONMENT}-PhlebotomySite`,
   };
   const command = new GetItemCommand(params);
   const response = await client.send(command);
@@ -36,7 +38,7 @@ export const handler = async (event, context) => {
         "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,GET",
-    }
+    };
     responseObject.isBase64Encoded = true;
     responseObject.body = JSON.stringify(response.Item);
   } else {
@@ -46,7 +48,7 @@ export const handler = async (event, context) => {
         "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,GET",
-    }
+    };
     responseObject.isBase64Encoded = true;
     responseObject.body = "error";
   }

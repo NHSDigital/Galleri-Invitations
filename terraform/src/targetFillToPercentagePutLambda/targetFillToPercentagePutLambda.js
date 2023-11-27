@@ -1,5 +1,7 @@
 import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 
+const ENVIRONMENT = process.env.environment;
+
 /*
   Lambda to PUT target fill to percentage value to Dynamo DB config table
 */
@@ -25,7 +27,7 @@ export const handler = async (event, context) => {
         N: `${CONFIG_ID}`,
       },
     },
-    TableName: "InvitationParameters",
+    TableName: `${ENVIRONMENT}-InvitationParameters`,
     UpdateExpression: "SET #TARGET_PERCENTAGE_VALUE = :target_percentage_new",
   };
 
@@ -39,7 +41,7 @@ export const handler = async (event, context) => {
         "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,PUT",
-    }
+    };
     responseObject.isBase64Encoded = true;
   } else {
     responseObject.statusCode = 404;
@@ -48,7 +50,7 @@ export const handler = async (event, context) => {
         "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,PUT",
-    }
+    };
     responseObject.isBase64Encoded = true;
     responseObject.body = "error";
   }

@@ -5,7 +5,16 @@ runs:
   using: "composite"
   steps:
     - name: Git checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
+      with:
+        path: 'Galleri-Invitations'
+
+    - name: Checkout frontend
+      uses: actions/checkout@v4
+      with:
+        path: 'Galleri-Frontend'
+        repository: NHSDigital/Galleri-Frontend
+        ref: main
 
     - name: Configure AWS credentials from AWS account
       uses: aws-actions/configure-aws-credentials@v2
@@ -34,6 +43,15 @@ runs:
         cd ./terraform
         terraform init -backend-config="bucket=${{ env.aws-bucket-name }}" -backend-config="key=${{ env.aws-bucket-key-name }}" -backend-config="region=${{ env.aws-region }}"
 
+    - name: Terraform workspace
+      id: workspace
+      shell: bash
+      run: |
+        cd ./terraform
+        if [ "${{ env.environment }}" != "dev" ]; then
+        terraform workspace select ${{ env.environment }}
+        fi
+
     - name: Terraform Validate
       id: validate
       shell: bash
@@ -46,7 +64,7 @@ runs:
       shell: bash
       run: |
         cd ./terraform
-        terraform plan -no-color -var-file=environment/dev/terraform.tfvars
+        terraform plan -no-color -var-file=environment/${{ env.environment }}/${{ env.environment }}.tfvars
 
     - name: Terraform Plan Status
       if: steps.plan.outcome == 'failure'
@@ -72,4 +90,4 @@ runs:
         npm install --prefix src/targetFillToPercentagePutLambda
         npm install --prefix src/getLsoaInRangeLambda
         npm install --prefix src/getLsoaParticipantsLambda
-        terraform apply -auto-approve -input=false -var-file=environment/dev/terraform.tfvars
+        terraform apply -auto-approve -input=false -var-file=environment/${{ env.environment }}/${{ env.environment }}.tfvars

@@ -1,5 +1,7 @@
 import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 
+const ENVIRONMENT = process.env.environment;
+
 /*
   Lambda to get participants in LSOA from the list of available LSOAs
 */
@@ -38,7 +40,7 @@ export async function queryEligiblePopulation(client, lsoaCode, tableItems) {
     },
     "KeyConditionExpression": "LsoaCode = :code",
     "ProjectionExpression": "PersonId, Invited, date_of_death, removal_date",
-    "TableName": "Population",
+    "TableName": `${ENVIRONMENT}-Population`,
     "IndexName": "LsoaCode-index"
   };
 
