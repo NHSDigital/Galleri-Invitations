@@ -20,14 +20,25 @@ module "vpc" {
 
 # Deploy frontend in elastic beanstalk
 module "galleri_invitations_screen" {
-  source                 = "./modules/elastic_beanstalk"
-  name                   = "gallery-invitations"
-  description            = "The frontend for interacting with the invitations system"
-  frontend_repo_location = var.frontend_repo_location
-  environment            = var.environment
-  vpc_id                 = module.vpc.vpc_id
-  subnet_1               = module.vpc.subnet_ids[0]
-  subnet_2               = module.vpc.subnet_ids[1]
+  source                                                = "./modules/elastic_beanstalk"
+  name                                                  = "gallery-invitations"
+  description                                           = "The frontend for interacting with the invitations system"
+  frontend_repo_location                                = var.frontend_repo_location
+  environment                                           = var.environment
+  vpc_id                                                = module.vpc.vpc_id
+  subnet_1                                              = module.vpc.subnet_ids[0]
+  subnet_2                                              = module.vpc.subnet_ids[1]
+  NEXT_PUBLIC_CALCULATE_NUM_TO_INVITE                   = module.calculate_number_to_invite_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_CLINIC_ICB_LIST                           = module.clinic_icb_list_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_CLINIC_INFORMATION                        = module.clinic_information_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_CLINIC_SUMMARY_LIST                       = module.clinic_summary_list_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_GET_LSOA_IN_RANGE                         = module.lsoa_in_range_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_INVITATION_PARAMETERS                     = module.invitation_parameters_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_FORECAST_UPTAKE = module.invitation_parameters_put_forecast_uptake_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_QUINTILES       = module.invitation_parameters_put_quintiles_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_PARTICIPATING_ICB_LIST                    = module.participating_icb_list_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_PUT_TARGET_PERCENTAGE                     = module.target_fill_to_percentage_put_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_TARGET_PERCENTAGE                         = module.target_fill_to_percentage_get_api_gateway.rest_api_galleri_id
 }
 
 # the role that all lambda's are utilising,
@@ -450,6 +461,43 @@ module "participants_in_lsoa_cloudwatch" {
   environment          = var.environment
   lambda_function_name = module.participants_in_lsoa_lambda.lambda_function_name
   retention_days       = 14
+}
+
+# Calculate number of participatnts to invite
+module "calculate_number_to_invite_lambda" {
+  source               = "./modules/lambda"
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "calculateNumberToInviteLambda"
+  lambda_s3_object_key = "calculate_number_to_invite.zip"
+  lambda_timeout       = 100
+  environment          = var.environment
+  environment_vars = {
+    environment = "${var.environment}"
+  }
+}
+
+module "calculate_number_to_invite_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.calculate_number_to_invite_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "calculate_number_to_invite_api_gateway" {
+  source                    = "./modules/api-gateway"
+  lambda_invoke_arn         = module.calculate_number_to_invite_lambda.lambda_invoke_arn
+  path_part                 = "calculate-num-to-invite"
+  method_http_parameters    = {}
+  lambda_api_gateway_method = "POST"
+  integration_response_http_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'POST,GET'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+  lambda_function_name = module.calculate_number_to_invite_lambda.lambda_function_name
+  method               = "/*/POST/*"
+  environment          = var.environment
 }
 
 
