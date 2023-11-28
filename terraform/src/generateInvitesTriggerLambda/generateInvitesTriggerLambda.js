@@ -45,7 +45,9 @@ export const handler = async (event, context) => {
 
       return responseObject;
     } else {
-      throw new Error(`Action to update Population was successful? ${personUpdated}\nAction to update PhlebotomySite was successful? ${siteUpdated}`);
+      throw new Error(`Action to update Population was successful? ${personUpdated}
+        Action to update PhlebotomySite was successful? ${siteUpdated}`
+      );
     }
   } catch(e){
     responseObject.statusCode = 404;
@@ -116,7 +118,6 @@ export async function updatePersonsToBeInvited(recordArray, client){
     })
   );
 }
-
 
 export async function updateClinicFields(clinicInfo, client){
   const { clinicId, clinicName, rangeSelected, targetPercentage } = clinicInfo;
