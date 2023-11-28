@@ -35,6 +35,7 @@ def format_dynamodb_json(csvreader, table_name):
         FORECAST_UPTAKE = str(randrange(10, 30))
         AVG_EASTING = str(row[13])
         AVG_NORTHING = str(row[14])
+        MODERATOR = str(row[15])
         output.append(
             {
                 'Put': {
@@ -86,6 +87,9 @@ def format_dynamodb_json(csvreader, table_name):
                         },
                         'AVG_NORTHING': {
                             'S': f'{AVG_NORTHING}'
+                        },
+                        'MODERATOR': {
+                            'S': f'{MODERATOR}'
                         },
                     },
                     "TableName": table_name,

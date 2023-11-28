@@ -680,14 +680,16 @@ module "imd_table" {
 }
 
 module "postcode_table" {
-  source         = "./modules/dynamodb"
-  billing_mode   = "PAY_PER_REQUEST"
-  table_name     = "Postcode"
-  hash_key       = "POSTCODE"
-  range_key      = "IMD_RANK"
-  environment    = var.environment
-  read_capacity  = null
-  write_capacity = null
+  source                   = "./modules/dynamodb"
+  billing_mode             = "PAY_PER_REQUEST"
+  table_name               = "Postcode"
+  hash_key                 = "POSTCODE"
+  range_key                = "IMD_RANK"
+  environment              = var.environment
+  read_capacity            = null
+  write_capacity           = null
+  secondary_write_capacity = null
+  secondary_read_capacity  = null
   attributes = [{
     name = "POSTCODE"
     type = "S"
@@ -715,14 +717,18 @@ module "postcode_table" {
 }
 
 module "population_table" {
-  source         = "./modules/dynamodb"
-  billing_mode   = "PAY_PER_REQUEST"
-  read_capacity  = null
-  write_capacity = null
-  table_name     = "Population"
-  hash_key       = "PersonId"
-  range_key      = "LsoaCode"
-  environment    = var.environment
+  source                   = "./modules/dynamodb"
+  billing_mode             = "PAY_PER_REQUEST"
+  table_name               = "Population"
+  hash_key                 = "PersonId"
+  range_key                = "LsoaCode"
+  read_capacity            = null
+  write_capacity           = null
+  secondary_write_capacity = null
+  secondary_read_capacity  = null
+  environment              = var.environment
+  non_key_attributes       = ["Invited", "date_of_death", "removal_date"]
+  projection_type          = "INCLUDE"
   attributes = [{
     name = "PersonId"
     type = "S"
