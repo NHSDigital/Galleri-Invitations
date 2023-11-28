@@ -97,7 +97,7 @@ module "lsoa_loader_lambda" {
   environment_vars = {
     BUCKET_NAME = "galleri-ons-data",
     KEY         = "lsoa_data/lsoa_data_2023-08-15T15:42:13.301Z.csv",
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -120,7 +120,7 @@ module "clinic_information_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "clinic_information_lambda.zip"
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -155,7 +155,7 @@ module "clinic_icb_list_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "clinic_icb_list_lambda.zip"
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -189,7 +189,7 @@ module "participating_icb_list_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "participating_icb_list_lambda.zip"
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -221,7 +221,7 @@ module "clinic_summary_list_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "clinic_summary_list_lambda.zip"
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -255,7 +255,7 @@ module "invitation_parameters_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "invitation_parameters_lambda.zip"
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -287,7 +287,7 @@ module "invitation_parameters_put_forecast_uptake_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "invitation_parameters_put_forecast_uptake_lambda.zip"
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -321,7 +321,7 @@ module "invitation_parameters_put_quintiles_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "invitation_parameters_put_quintiles_lambda.zip"
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -353,7 +353,7 @@ module "target_fill_to_percentage_put_lambda" {
   lambda_function_name = "targetFillToPercentagePutLambda"
   lambda_s3_object_key = "target_fill_to_percentage_put_lambda.zip"
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -390,7 +390,7 @@ module "target_fill_to_percentage_get_lambda" {
   lambda_function_name = "targetFillToPercentageLambda"
   lambda_s3_object_key = "target_fill_to_percentage_lambda.zip"
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -419,7 +419,7 @@ module "lsoa_in_range_lambda" {
   lambda_s3_object_key = "get_lsoa_in_range_lambda.zip"
   environment          = var.environment
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -452,7 +452,7 @@ module "participants_in_lsoa_lambda" {
   lambda_s3_object_key = "get_participants_in_lsoa_lambda.zip"
   environment          = var.environment
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -463,7 +463,7 @@ module "participants_in_lsoa_cloudwatch" {
   retention_days       = 14
 }
 
-# Calculate number of participatnts to invite
+# Calculate number of participants to invite
 module "calculate_number_to_invite_lambda" {
   source               = "./modules/lambda"
   bucket_id            = module.s3_bucket.bucket_id
@@ -473,7 +473,7 @@ module "calculate_number_to_invite_lambda" {
   lambda_timeout       = 100
   environment          = var.environment
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -763,14 +763,16 @@ module "population_table" {
 }
 
 module "LSOA_table" {
-  source         = "./modules/dynamodb"
-  billing_mode   = "PAY_PER_REQUEST"
-  table_name     = "UniqueLsoa"
-  hash_key       = "LSOA_2011"
-  range_key      = "IMD_RANK"
-  environment    = var.environment
-  read_capacity  = null
-  write_capacity = null
+  source                   = "./modules/dynamodb"
+  billing_mode             = "PAY_PER_REQUEST"
+  table_name               = "UniqueLsoa"
+  hash_key                 = "LSOA_2011"
+  range_key                = "IMD_RANK"
+  environment              = var.environment
+  read_capacity            = null
+  write_capacity           = null
+  secondary_write_capacity = null
+  secondary_read_capacity  = null
   attributes = [{
     name = "LSOA_2011"
     type = "S"
