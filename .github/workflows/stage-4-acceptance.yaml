@@ -46,6 +46,7 @@ env:
   aws-bucket-name: ${{ vars.aws_bucket_name }}
   aws-bucket-key-name: ${{ vars.aws_bucket_key_name }}
   environment: ${{ inputs.environment }}
+  branch: ${{ inputs.branch }}
 
 jobs:
   environment-set-up:
@@ -58,7 +59,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          ref: "${{ inputs.branch }}"
+          ref: "${{ env.branch }}"
           fetch-depth: 0 # Full history is needed to scan all commits
       - name: Install dependency
         run: |
@@ -73,6 +74,7 @@ jobs:
           aws-bucket-name: ${{ env.aws-bucket-name }}
           aws-bucket-key-name: ${{ env.aws-bucket-key-name }}
           environment: ${{ env.environment }}
+          branch: ${{ env.branch }}
         timeout-minutes: 15
       - name: "Seed databases"
         uses: ./.github/actions/seeding
