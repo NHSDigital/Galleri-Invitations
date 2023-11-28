@@ -27,12 +27,14 @@ export const handler = async (event, context) => {
     const responsePopulation = await updatePersonsToBeInvited(personIdentifiedArray, client)
     const responsePhlebotomySite = await updateClinicFields(clinicInfo, client)
 
-    if (responsePopulation.every(element => element.value === 200)){
+    const SUCCESSFULL_REPSONSE = 200
+
+    if (responsePopulation.every(element => element.value === SUCCESSFULL_REPSONSE)){
       console.log("All persons successfully updated")
       personUpdated = true;
     }
 
-    if (responsePhlebotomySite == 200){
+    if (responsePhlebotomySite == SUCCESSFULL_REPSONSE){
       console.log("Site successfully updated")
       siteUpdated = true;
     }
