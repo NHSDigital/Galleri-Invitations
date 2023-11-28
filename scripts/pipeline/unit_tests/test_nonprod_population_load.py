@@ -86,6 +86,9 @@ expected_output_data = [
                 },
                 'LsoaCode': {
                     'S':'26'
+                },
+                'identified_to_be_invited': {
+                    'BOOL': False
                 }
             },
             'TableName': 'Table',
