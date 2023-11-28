@@ -14,7 +14,7 @@ resource "aws_s3_bucket_public_access_block" "block_public_access" {
 }
 
 resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
-  bucket = "galleri-ons-data"
+  bucket = aws_s3_bucket.bucket.id
   policy = data.aws_iam_policy_document.allow_access_to_lambda.json
 }
 
