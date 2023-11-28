@@ -5,4 +5,4 @@ bucket_name = "galleri-lambda-bucket"
 role_name = "galleri-lambda-role"
 
 # environment name
-environment = "uat"
+environment = "uat-1"
