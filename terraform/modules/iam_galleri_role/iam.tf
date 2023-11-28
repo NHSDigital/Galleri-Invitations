@@ -69,7 +69,7 @@ resource "aws_iam_policy" "clinic_information_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/PhlebotomySite"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite"
           ]
         }
       ],
@@ -100,7 +100,7 @@ resource "aws_iam_policy" "participating_icb_list_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/ParticipatingIcb"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-ParticipatingIcb"
           ]
         }
       ],
@@ -131,7 +131,7 @@ resource "aws_iam_policy" "clinic_summary_list_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/PhlebotomySite"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite"
           ]
         }
       ],
@@ -162,7 +162,7 @@ resource "aws_iam_policy" "target_percentage_lambda" {
             "dynamodb:GetItem"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/InvitationParameters"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-InvitationParameters"
           ]
         }
       ],
@@ -193,7 +193,7 @@ resource "aws_iam_policy" "invitation_parameters_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/InvitationParameters"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-InvitationParameters"
           ]
         }
       ],
@@ -224,7 +224,7 @@ resource "aws_iam_policy" "iam_policy_for_lsoa_in_range_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/UniqueLsoa"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-UniqueLsoa"
           ]
         },
         {
@@ -265,7 +265,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/Population/*/*"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population/*/*"
           ]
         }
       ],

@@ -7,7 +7,7 @@ import {
 import { Readable } from "stream";
 import csv from "csv-parser";
 
-let environment = process.env.environment;
+const ENVIRONMENT = process.env.environment;
 
 const GALLERI_ONS_BUCKET_NAME = process.env.BUCKET_NAME;
 const LSOA_FILE_KEY = process.env.KEY;
@@ -74,7 +74,7 @@ export const generateCsvString = (header, dataArray) => {
 };
 
 export const handler = async () => {
-  const bucketName = `${environment}-${GALLERI_ONS_BUCKET_NAME}`;
+  const bucketName = `${ENVIRONMENT}-${GALLERI_ONS_BUCKET_NAME}`;
   const key = LSOA_FILE_KEY;
   const client = new S3Client({});
   let nonProdLsoaDataString = "";

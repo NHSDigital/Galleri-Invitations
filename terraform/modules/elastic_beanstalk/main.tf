@@ -147,7 +147,7 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   setting {
     namespace = "aws:ec2:vpc"
     name      = "Subnets"
-    value     = join(",", [var.subnet_1, var.subnet_2])
+    value     = join(",", [var.subnet_1])
   }
 
   setting {
@@ -155,7 +155,6 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     name      = "SecurityGroups"
     value     = aws_security_group.screens.id
   }
-
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "PORT"

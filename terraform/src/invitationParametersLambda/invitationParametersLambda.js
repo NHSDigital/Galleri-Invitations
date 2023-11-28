@@ -1,6 +1,6 @@
 import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
 
-let environment = process.env.environment;
+const ENVIRONMENT = process.env.environment;
 
 /*
   Lambda to load invitation parameters and pass on to GPS client.
@@ -18,7 +18,7 @@ export const handler = async () => {
         N: `${CONFIG_ID_VALUE}`,
       },
     },
-    TableName: `${environment}-InvitationParameters`,
+    TableName: `${ENVIRONMENT}-InvitationParameters`,
   };
   const command = new GetItemCommand(params);
   const response = await client.send(command);
