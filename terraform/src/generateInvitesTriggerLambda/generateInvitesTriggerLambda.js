@@ -1,54 +1,4 @@
 import { DynamoDBClient, UpdateItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb";
-// {
-//   "clinicInfo": {
-//     "clinicId": "CA49B190",
-//     "clinicName": "Phlebotomy clinic 12",
-//     "rangeSelected": "3",
-//     "targetPercentage": "99"
-//   },
-//   "selectedParticipants": [
-//     "9000134926",
-//     "9000202600",
-//     "9000199958",
-//     "9000278081",
-//     "9000197491",
-//     "9000233937",
-//     "9000171423",
-//     "9000109252",
-//     "9000228556",
-//     "9000058996",
-//     "9000019544",
-//     "9000044634",
-//     "9000020041",
-//     "9000094871",
-//     "9000011031",
-//     "9000221463",
-//     "9000220974",
-//     "9000276739",
-//     "9000161766",
-//     "9000101012",
-//     "9000251372",
-//     "9000149009",
-//     "9000019743",
-//     null,
-//     "9000076685",
-//     "9000021542",
-//     "9000207401",
-//     "9000105463",
-//     "9000073561",
-//     "9000061067",
-//     "9000078452",
-//     "9000272212",
-//     "9000113733",
-//     null,
-//     "9000178033",
-//     "9000061749",
-//     "9000021637",
-//     "9000177683",
-//     "9000056144",
-//     "9000169036"
-//   ]
-// }
 
 const client = new DynamoDBClient({ region: "eu-west-2" });
 
@@ -56,10 +6,6 @@ const ENVIRONMENT = process.env.environment;
 
 
 export const handler = async (event, context) => {
-  //values extracted from front-end payload when calculate number to invite button is fired
-  // const personIdentified = event.body !== null ? JSON.stringify(event.body.replace(/ /g, '')) : "";
-
-  // const buffer = Buffer.from(JSON.stringify(personIdentified));
   const eventJson = JSON.parse(event.body);
   const personIdentifiedArray = eventJson.selectedParticipants;
   const clinicInfo = eventJson.clinicInfo;
@@ -74,10 +20,7 @@ export const handler = async (event, context) => {
     "isBase64Encoded": true
   };
 
-  // take the list and async update the records to set flag to true
-  // once done return success and
   try {
-    // set person
     let personUpdated = false;
     let siteUpdated = false;
 
@@ -94,7 +37,7 @@ export const handler = async (event, context) => {
       siteUpdated = true;
     }
 
-    if (siteUpdated && personUpdated){ // should separate out
+    if (siteUpdated && personUpdated){
       responseObject.statusCode = 200;
       responseObject.body = "Success";
 
@@ -129,10 +72,9 @@ export async function getLsoaCode(record, client){
   return response
 }
 
+// Takes single record and update that individual to have a identifiedToBeInvited field = true
 export async function updateRecord(record, client){
-  // Get the Lsoa code for the record
   const lsoaCodeReturn = await getLsoaCode(record, client);
-  // take single record and update that individual to have a identifiedToBeInvited field = true
   const items = lsoaCodeReturn.Items
   const lsoaCode = items[0].LsoaCode.S
 
