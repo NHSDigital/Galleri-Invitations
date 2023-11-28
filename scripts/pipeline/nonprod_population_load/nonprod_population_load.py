@@ -2,12 +2,15 @@ import csv
 import os
 import boto3
 
+ENVIRONMENT = os.getenv("environment")
+
 def generate_nonprod_population_json(file_path, table_name):
-    with open(file_path, 'r', encoding='utf-8-sig') as file:
+    with open(file_path, "r", encoding="utf-8-sig") as file:
         csvreader = csv.reader(file)
         dynamodb_json_object = format_dynamodb_json(csvreader, table_name)
 
     batch_write_to_dynamodb(dynamodb_json_object)
+
 
 def format_dynamodb_json(csvreader, table_name):
     output = []
@@ -45,25 +48,43 @@ def format_dynamodb_json(csvreader, table_name):
             if nhs_number and lsoa_2011:
                 output.append(
                     {
-                        'Put': {
-                            'Item': {
-                                'PersonId': {
-                                    'S': f'{nhs_number}'
+                        "Put": {
+                            "Item": {
+                                "PersonId": {"S": f"{nhs_number}"},
+                                "superseded_by_subject_id": {
+                                    "S": f"{superseded_by_subject_id}"
                                 },
-                                'superseded_by_subject_id': {
-                                    'S': f'{superseded_by_subject_id}'
+                                "primary_care_provider": {
+                                    "S": f"{primary_care_provider}"
                                 },
-                                'primary_care_provider': {
-                                    'S': f'{primary_care_provider}'
+                                "name_prefix": {"S": f"{name_prefix}"},
+                                "first_given_name": {"S": f"{first_given_name}"},
+                                "other_given_names": {"S": f"{other_given_names}"},
+                                "family_name": {"S": f"{family_name}"},
+                                "date_of_birth": {"S": f"{date_of_birth}"},
+                                "gender_code": {"S": f"{gender_code}"},
+                                "address_line_1": {"S": f"{address_line_1}"},
+                                "address_line_2": {"S": f"{address_line_2}"},
+                                "address_line_3": {"S": f"{address_line_3}"},
+                                "address_line_4": {"S": f"{address_line_4}"},
+                                "address_line_5": {"S": f"{address_line_5}"},
+                                "postcode": {"S": f"{postcode}"},
+                                "removal_reason": {"S": f"{removal_reason}"},
+                                "removal_date": {"S": f"{removal_date}"},
+                                "date_of_death": {"S": f"{date_of_death}"},
+                                "telephone_number_home": {
+                                    "S": f"{telephone_number_home}"
                                 },
-                                'name_prefix': {
-                                    'S': f'{name_prefix}'
+                                "telephone_number_mobile": {
+                                    "S": f"{telephone_number_mobile}"
                                 },
-                                'first_given_name': {
-                                    'S': f'{first_given_name}'
+                                "email_address_home": {"S": f"{email_address_home}"},
+                                "preferred_language": {"S": f"{preferred_language}"},
+                                "interpreter_required": {
+                                    "S": f"{interpreter_required}"
                                 },
-                                'other_given_names': {
-                                    'S': f'{other_given_names}'
+                                "sensitivity_indicator_flag": {
+                                    "S": f"{sensitivity_indicator_flag}"
                                 },
                                 'family_name': {
                                     'S': f'{family_name}'
@@ -130,40 +151,43 @@ def format_dynamodb_json(csvreader, table_name):
                                 }
 
                             },
-                            'TableName': table_name,
+                            "TableName": table_name,
                         },
                     }
                 )
     return output
 
+
 def batch_write_to_dynamodb(lsoa_data):
     # splice array 100 records at a time
     # format and send these to the batch write function
     # repeat till no records are left
-    dynamodb_client = boto3.client('dynamodb')
+    dynamodb_client = boto3.client("dynamodb")
     for i in range(1, 100000, 100):
-        upper_bound_slice = i+100
+        upper_bound_slice = i + 100
         test_data = lsoa_data[i:upper_bound_slice]
-        dynamodb_client.transact_write_items(
-            TransactItems=test_data
-        )
-    return 'Finished'
-
+        dynamodb_client.transact_write_items(TransactItems=test_data)
+        print(f"{i} records uploaded")
+    return "Finished"
 
 
 if __name__ == "__main__":
     # read in data and generate the json output
     # Reading in CSV files
-    file_input_path_1 = "/nonprod-population-data/male_participants_with_LSOA_Invited.csv"
-    file_input_path_2 = "/nonprod-population-data/female_participants_with_LSOA_Invited.csv"
+    file_input_path_1 = (
+        "/nonprod-population-data/male_participants_with_LSOA_Invited.csv"
+    )
+    file_input_path_2 = (
+        "/nonprod-population-data/female_participants_with_LSOA_Invited.csv"
+    )
     print("Read in both CSV files")
 
     male_file = os.getcwd() + file_input_path_1
     female_file = os.getcwd() + file_input_path_2
 
     print("Initiation male upload")
-    generate_nonprod_population_json(male_file, "Population")
+    generate_nonprod_population_json(male_file, ENVIRONMENT + "-Population")
     print("Male upload complete")
     print("Initiation female upload")
-    generate_nonprod_population_json(female_file, "Population")
+    generate_nonprod_population_json(female_file, ENVIRONMENT + "-Population")
     print("Female upload complete")

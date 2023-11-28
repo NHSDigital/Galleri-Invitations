@@ -1,5 +1,5 @@
 resource "aws_iam_role" "galleri_lambda_role" {
-  name = var.role_name
+  name = "${var.environment}-${var.role_name}"
 
   assume_role_policy = jsonencode({
     "Version" : "2012-10-17",
@@ -16,7 +16,7 @@ resource "aws_iam_role" "galleri_lambda_role" {
 }
 
 resource "aws_iam_policy" "iam_policy_for_lambda" {
-  name        = "aws_iam_policy_for_terraform_aws_lambda_role"
+  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda role"
   policy = jsonencode(
@@ -47,7 +47,7 @@ resource "aws_iam_policy" "iam_policy_for_lambda" {
 }
 
 resource "aws_iam_policy" "clinic_information_lambda" {
-  name        = "aws_iam_policy_for_terraform_aws_clinic_information_lambda_role"
+  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_clinic_information_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda clinic details role"
   policy = jsonencode(
@@ -69,7 +69,7 @@ resource "aws_iam_policy" "clinic_information_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/PhlebotomySite"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite"
           ]
         }
       ],
@@ -78,7 +78,7 @@ resource "aws_iam_policy" "clinic_information_lambda" {
 }
 
 resource "aws_iam_policy" "participating_icb_list_lambda" {
-  name        = "aws_iam_policy_for_terraform_aws_participating_icb_list_lambda_role"
+  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participating_icb_list_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda participating icb role"
   policy = jsonencode(
@@ -100,7 +100,7 @@ resource "aws_iam_policy" "participating_icb_list_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/ParticipatingIcb"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-ParticipatingIcb"
           ]
         }
       ],
@@ -109,7 +109,7 @@ resource "aws_iam_policy" "participating_icb_list_lambda" {
 }
 
 resource "aws_iam_policy" "clinic_summary_list_lambda" {
-  name        = "aws_iam_policy_for_terraform_aws_clinic_summary_list_lambda_role"
+  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_clinic_summary_list_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda clinic summary role"
   policy = jsonencode(
@@ -131,7 +131,7 @@ resource "aws_iam_policy" "clinic_summary_list_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/PhlebotomySite"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite"
           ]
         }
       ],
@@ -140,7 +140,7 @@ resource "aws_iam_policy" "clinic_summary_list_lambda" {
 }
 
 resource "aws_iam_policy" "target_percentage_lambda" {
-  name        = "target_percentage_lambda_policy"
+  name        = "${var.environment}-target_percentage_lambda_policy"
   path        = "/"
   description = "AWS IAM Policy for managing lambda target percentage"
   policy = jsonencode(
@@ -162,7 +162,7 @@ resource "aws_iam_policy" "target_percentage_lambda" {
             "dynamodb:GetItem"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/InvitationParameters"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-InvitationParameters"
           ]
         }
       ],
@@ -171,7 +171,7 @@ resource "aws_iam_policy" "target_percentage_lambda" {
 }
 
 resource "aws_iam_policy" "invitation_parameters_lambda" {
-  name        = "aws_iam_policy_for_terraform_aws_invitation_parameters_lambda_role"
+  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_invitation_parameters_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda invitation parameter role"
   policy = jsonencode(
@@ -193,7 +193,7 @@ resource "aws_iam_policy" "invitation_parameters_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/InvitationParameters"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-InvitationParameters"
           ]
         }
       ],
@@ -202,7 +202,7 @@ resource "aws_iam_policy" "invitation_parameters_lambda" {
 }
 
 resource "aws_iam_policy" "iam_policy_for_calculate_num_to_invite_lambda" {
-  name        = "aws_iam_policy_for_terraform_aws_calculate_num_to_invite_lambda_role"
+  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_calculate_num_to_invite_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda calculating number of people to invite role"
   policy = jsonencode(
@@ -224,7 +224,48 @@ resource "aws_iam_policy" "iam_policy_for_calculate_num_to_invite_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/InvitationParameters"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-InvitationParameters"
+            ]
+        },
+        {
+          "Sid" : "AllowLambdaInvoke",
+          "Effect" : "Allow",
+          "Action" : [
+            "lambda:*"
+          ],
+          "Resource" : [
+            "arn:aws:lambda:eu-west-2:136293001324:function:${var.environment}-getLsoaParticipantsLambda"
+          ]
+        }
+      ],
+      "Version" : "2012-10-17"
+  })
+}
+
+resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
+  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_get_lsoa_in_range_lambda_role"
+  path        = "/"
+  description = "AWS IAM Policy for managing aws lambda calculating number of people to invite role"
+  policy = jsonencode(
+    {
+      "Statement" : [
+        {
+          "Action" : [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+          ],
+          "Effect" : "Allow",
+          "Resource" : "arn:aws:logs:*:*:*"
+        },
+        {
+          "Sid" : "AllowDynamodbAccess",
+          "Effect" : "Allow",
+          "Action" : [
+            "dynamodb:*"
+          ],
+          "Resource" : [
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-UniqueLsoa"
           ]
         },
         {
@@ -234,7 +275,7 @@ resource "aws_iam_policy" "iam_policy_for_calculate_num_to_invite_lambda" {
             "lambda:*"
           ],
           "Resource" : [
-            "arn:aws:lambda:eu-west-2:136293001324:function:getLsoaParticipantsLambda"
+            "arn:aws:lambda:eu-west-2:136293001324:function:${var.environment}-getLsoaParticipantsLambda"
           ]
         }
       ],
@@ -243,7 +284,7 @@ resource "aws_iam_policy" "iam_policy_for_calculate_num_to_invite_lambda" {
 }
 
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
-  name        = "aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
+  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda get participants in lsoa role"
   policy = jsonencode(
@@ -265,57 +306,15 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/Population/*/*"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population/*/*"
           ]
         }
       ],
       "Version" : "2012-10-17"
   })
 }
-
-resource "aws_iam_policy" "iam_policy_for_lsoa_in_range_lambda" {
-  name        = "aws_iam_policy_for_terraform_aws_lsoa_in_range_lambda_role"
-  path        = "/"
-  description = "AWS IAM Policy for managing aws lambda get lsoa in range role"
-  policy = jsonencode(
-    {
-      "Statement" : [
-        {
-          "Action" : [
-            "logs:CreateLogGroup",
-            "logs:CreateLogStream",
-            "logs:PutLogEvents"
-          ],
-          "Effect" : "Allow",
-          "Resource" : "arn:aws:logs:*:*:*"
-        },
-        {
-          "Sid" : "AllowDynamodbAccess",
-          "Effect" : "Allow",
-          "Action" : [
-            "dynamodb:*"
-          ],
-          "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/UniqueLsoa"
-          ]
-        },
-        {
-          "Sid" : "AllowLambdaInvoke",
-          "Effect" : "Allow",
-          "Action" : [
-            "lambda:*"
-          ],
-          "Resource" : [
-            "arn:aws:lambda:eu-west-2:136293001324:function:getLsoaParticipantsLambda"
-          ]
-        }
-      ],
-      "Version" : "2012-10-17"
-  })
-}
-
 resource "aws_iam_policy" "iam_policy_for_generate_invites_lambda" {
-  name        = "aws_iam_policy_for_terraform_aws_generate_invites_lambda_role"
+  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_generate_invites_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda generate invites role"
   policy = jsonencode(
@@ -337,7 +336,7 @@ resource "aws_iam_policy" "iam_policy_for_generate_invites_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/PhlebotomySite"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite"
           ]
         },
         {
@@ -347,7 +346,7 @@ resource "aws_iam_policy" "iam_policy_for_generate_invites_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/Population"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population"
           ]
         }
       ],
@@ -385,9 +384,9 @@ resource "aws_iam_role_policy_attachment" "invitation_parameters" {
   policy_arn = aws_iam_policy.invitation_parameters_lambda.arn
 }
 
-resource "aws_iam_role_policy_attachment" "lsoa_in_range_lambda_policy" {
+resource "aws_iam_role_policy_attachment" "get_lsoa_in_range_lambda_policy" {
   role       = aws_iam_role.galleri_lambda_role.name
-  policy_arn = aws_iam_policy.iam_policy_for_lsoa_in_range_lambda.arn
+  policy_arn = aws_iam_policy.iam_policy_for_get_lsoa_in_range_lambda.arn
 }
 
 resource "aws_iam_role_policy_attachment" "participants_in_lsoa_lambda_policy" {
@@ -407,7 +406,7 @@ resource "aws_iam_role_policy_attachment" "generate_invites_policy" {
 
 
 resource "aws_iam_role" "api_gateway_logging_role" {
-  name = "galleri_logging_role"
+  name = "${var.environment}-galleri_logging_role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -424,7 +423,7 @@ resource "aws_iam_role" "api_gateway_logging_role" {
 }
 
 resource "aws_iam_policy" "api_gateway_logging_policy" {
-  name        = "galleri_logging_policy"
+  name        = "${var.environment}-galleri_logging_policy"
   path        = "/"
   description = "API Gateway Logging Policy"
 

@@ -4,6 +4,8 @@ import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 const client = new DynamoDBClient({ region: "eu-west-2" });
 const lambdaClient = new LambdaClient({ region: "eu-west-2" });
 
+const ENVIRONMENT = process.env.environment;
+
 export const handler = async (event, context) => {
   //values extracted from front-end payload when calculate number to invite button is fired
   const targetAppsToFill = event.body !== null ? JSON.parse(event.body).targetAppsToFill : "";
@@ -12,7 +14,7 @@ export const handler = async (event, context) => {
   const buffer = Buffer.from(JSON.stringify(lsoaInfo));
 
   const CONFIG_ID = 1;
-  const response = await getItemsFromTable("InvitationParameters", client, CONFIG_ID);
+  const response = await getItemsFromTable(`${ENVIRONMENT}-InvitationParameters`, client, CONFIG_ID);
 
   let responseObject = {
     "headers": {
@@ -44,7 +46,7 @@ export const handler = async (event, context) => {
     lsoaCodePayload: buffer,
     invitationsAlgorithm: true
   }
-  const returnData = await invokeParticipantListLambda("getLsoaParticipantsLambda", payload, lambdaClient)
+  const returnData = await invokeParticipantListLambda(`${ENVIRONMENT}-getLsoaParticipantsLambda`, payload, lambdaClient)
   const participantInLsoa = returnData.sort((a, b) => {
     return a.imdDecile - b.imdDecile
   })

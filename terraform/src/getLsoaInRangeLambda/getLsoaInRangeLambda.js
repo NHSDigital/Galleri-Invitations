@@ -2,6 +2,8 @@ import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import axios from "axios";
 
+const ENVIRONMENT = process.env.environment;
+
 const KMTOMILES = 1.6;
 const MTOKM = 1000;
 
@@ -47,7 +49,7 @@ export const handler = async (event, context) => {
   const triggerLambda = Date.now();
   console.log("Invoking getLsoaParticipantsLambda to get eligible and invited participants")
   const input = {
-    FunctionName: "getLsoaParticipantsLambda",
+    FunctionName: `${ENVIRONMENT}-getLsoaParticipantsLambda`,
     Payload: JSON.stringify(lsoaCodePayload),
   };
   const command = new InvokeCommand(input);
@@ -55,9 +57,11 @@ export const handler = async (event, context) => {
   console.log("Lambda invoke completed. Took: ", (Date.now() - triggerLambda)/1000)
 
 
-  const participantInLsoa = JSON.parse(Buffer.from(response.Payload).toString())
+  const participantInLsoa = JSON.parse(
+    Buffer.from(response.Payload).toString()
+  );
 
-  const combinedLsoaParticipants = generateLsoaTableData(filterLsoaRecords, participantInLsoa)
+  const combinedLsoaParticipants = generateLsoaTableData(filterLsoaRecords, participantInLsoa);
 
   console.log("combinedLsoaParticipants = ", combinedLsoaParticipants.length)
 
@@ -82,7 +86,7 @@ export const handler = async (event, context) => {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,GET",
     },
-    responseObject.body = "error";
+    (responseObject.body = "error");
   }
 
   const complete = Date.now() - start;
@@ -136,24 +140,25 @@ export async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
       "#FU": "FORECAST_UPTAKE",
     },
     ProjectionExpression: "#LC, #ET, #NT, #ID, #FU",
-    TableName: "UniqueLsoa",
+    TableName: `${ENVIRONMENT}-UniqueLsoa`,
   };
-  if (Object.keys(lastEvaluatedItem).length != 0){
+  if (Object.keys(lastEvaluatedItem).length != 0) {
     input.ExclusiveStartKey = lastEvaluatedItem;
   }
 
   const command = new ScanCommand(input);
   const response = await client.send(command);
 
-  if (response.LastEvaluatedKey) {
-    if (response.$metadata.httpStatusCode == 200){
-      console.log("Table is larger than 1Mb hence recursively routing through to obtain all data")
-      tableItems.push(response.Items)
-      lastEvaluatedItem = response.LastEvaluatedKey
-      await scanLsoaTable(client, lastEvaluatedItem, tableItems)
+  if (response.LastEvaluatedKey){
+    if (response.$metadata.httpStatusCode == 200) {
+      console.log("Table is larger than 1Mb hence recursively routing through to obtain all data"
+      );
+      tableItems.push(response.Items);
+      lastEvaluatedItem = response.LastEvaluatedKey;
+      await scanLsoaTable(client, lastEvaluatedItem, tableItems);
     } else {
       console.log("Unsuccess")
-      console.error("Response from table encountered an error")
+      console.error("Response from table encountered an error");
     }
   } else {
     // run last invocation
@@ -164,14 +169,14 @@ export async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
 
     if (response.$metadata.httpStatusCode == 200){
       tableItems.push(response.Items)
-      return `UniqueLsoa table scanned. Returning ${tableItems.length} records`
+      return `UniqueLsoa table scanned. Returning ${tableItems.length} records`;
     } else {
       console.error("Something went wrong with last request")
     }
   }
 }
 
-async function populateLsoaArray(client){
+async function populateLsoaArray(client) {
   const tableItems = []
   let lastEvaluatedItem = {}
   await scanLsoaTable(client, lastEvaluatedItem, tableItems)
@@ -199,13 +204,14 @@ export const calculateDistance = (lsoa, clinicGridReference) => {
 };
 
 export function generateLsoaTableData(lsoaData, populationData) {
-  const tableInfo = []
-  console.log(`lsoaData.length = ${lsoaData.length}| populationData.length = ${Object.keys(populationData).length}`)
+  const tableInfo = [];
+  console.log(`lsoaData.length = ${lsoaData.length}| populationData.length = ${
+      Object.keys(populationData).length}`);
 
   lsoaData.forEach((lsoaItem) => {
-    const matchingLsoa = populationData[lsoaItem.LSOA_2011.S]
+    const matchingLsoa = populationData[lsoaItem.LSOA_2011.S];
 
-    if (matchingLsoa != undefined){
+    if (matchingLsoa != undefined) {
       return tableInfo.push({
         ...lsoaItem,
         ...matchingLsoa

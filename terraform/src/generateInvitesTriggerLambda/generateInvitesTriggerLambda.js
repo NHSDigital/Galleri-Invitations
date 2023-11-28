@@ -52,15 +52,17 @@ import { DynamoDBClient, UpdateItemCommand, QueryCommand } from "@aws-sdk/client
 
 const client = new DynamoDBClient({ region: "eu-west-2" });
 
+const ENVIRONMENT = process.env.environment;
+
+
 export const handler = async (event, context) => {
   //values extracted from front-end payload when calculate number to invite button is fired
   // const personIdentified = event.body !== null ? JSON.stringify(event.body.replace(/ /g, '')) : "";
 
   // const buffer = Buffer.from(JSON.stringify(personIdentified));
-
-  // const eventJson = JSON.parse(event.body);
-  const personIdentifiedArray = event.selectedParticipants;
-  const clincInfo = event.clinicInfo;
+  const eventJson = JSON.parse(event.body);
+  const personIdentifiedArray = eventJson.selectedParticipants;
+  const clinicInfo = eventJson.clinicInfo;
 
   let responseObject = {
     "headers": {
@@ -77,22 +79,18 @@ export const handler = async (event, context) => {
   try {
     // set person
     let personUpdated = false;
-    let siteUpdated = true; // change back to false once person is done
-    // const requestPopulation = updatePersonsToBeInvited(personIdentifiedArray, client);
-    // const requestPhlebotomySite = updateClinicFields(clincInfo, client);
+    let siteUpdated = false;
 
-    const sendUpdateRequests = await Promise.allSettled[
-      updatePersonsToBeInvited(personIdentifiedArray, client),
-      updateClinicFields(clincInfo, client)
-    ]
-
-    const { responsePopulation, responsePhlebotomySite } = sendUpdateRequests
+    const responsePopulation = await updatePersonsToBeInvited(personIdentifiedArray, client)
+    const responsePhlebotomySite = await updateClinicFields(clinicInfo, client)
 
     if (responsePopulation.every(element => element.value === 200)){
+      console.log("All persons successfully updated")
       personUpdated = true;
     }
 
     if (responsePhlebotomySite == 200){
+      console.log("Site successfully updated")
       siteUpdated = true;
     }
 
@@ -122,7 +120,7 @@ export async function getLsoaCode(record, client){
     },
     "KeyConditionExpression": "PersonId = :person",
     "ProjectionExpression": "LsoaCode",
-    "TableName": "Population",
+    "TableName": `${ENVIRONMENT}-Population`,
   };
 
   const command = new QueryCommand(input);
@@ -155,7 +153,7 @@ export async function updateRecord(record, client){
         "S": `${lsoaCode}`
       }
     },
-    "TableName": "Population",
+    "TableName": `${ENVIRONMENT}-Population`,
     "UpdateExpression": "SET #IDENTIFIED_TO_BE_UPDATED = :to_be_invited"
   };
 
@@ -199,7 +197,7 @@ export async function updateClinicFields(clinicInfo, client){
         "S": `${clinicName}`,
       }
     },
-    "TableName": "PhlebotomySite",
+    "TableName": `${ENVIRONMENT}-PhlebotomySite`,
     "UpdateExpression": "SET #TARGETFILL = :targetPercentage, #RANGE = :rangeSelected",
   };
   const command = new UpdateItemCommand(input);

@@ -24,3 +24,5 @@ variable "lambda_iam_role" {}
 variable "lambda_s3_object_key" {}
 
 variable "environment_vars" {}
+
+variable "environment" {}
