@@ -7,7 +7,7 @@ const lambdaClient = new LambdaClient({ region: "eu-west-2" });
 const ENVIRONMENT = process.env.environment;
 
 export const handler = async (event, context) => {
-  //values extracted from front-end payload when calculate number to invite button is fired
+
   const targetAppsToFill = event.body !== null ? JSON.parse(event.body).targetAppsToFill : "";
   const lsoaInfo = event.body !== null ? JSON.stringify(event.body.replace(/ /g, '')) : "";
 
@@ -54,7 +54,6 @@ export const handler = async (event, context) => {
   console.log("participantInLsoa.length = ", numberOfPeople)
 
   // Split incoming person data into quintile blocks
-  // Get Quintile block size
   const quintileBlockSize = Math.floor(numberOfPeople / 5)
   console.log(`quintileBlockSize = ${quintileBlockSize}`)
 
@@ -151,7 +150,7 @@ export const getParticipantsInQuintile = (quintilePopulation, quintileTarget, na
 
     const localQuintilePopulationObjectKeys = Object.keys(quintilePopulationObject)
 
-    const randomPersonIndex = Math.floor(Math.random() * (localQuintilePopulationObjectKeys.length)) // O(1)
+    const randomPersonIndex = Math.floor(Math.random() * (localQuintilePopulationObjectKeys.length))
     const personSelectedId = localQuintilePopulationObjectKeys[randomPersonIndex]
 
     // person has not been previous indexed
