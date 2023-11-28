@@ -354,8 +354,9 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
       "Version" : "2012-10-17"
   })
 }
+
 resource "aws_iam_policy" "iam_policy_for_generate_invites_lambda" {
-  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_generate_invites_lambda_role"
+  name        = "aws_iam_policy_for_terraform_aws_generate_invites_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda generate invites role"
   policy = jsonencode(
@@ -377,7 +378,7 @@ resource "aws_iam_policy" "iam_policy_for_generate_invites_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/PhlebotomySite"
           ]
         },
         {
@@ -387,7 +388,7 @@ resource "aws_iam_policy" "iam_policy_for_generate_invites_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/Population"
           ]
         }
       ],
@@ -438,6 +439,11 @@ resource "aws_iam_role_policy_attachment" "participants_in_lsoa_lambda_policy" {
 resource "aws_iam_role_policy_attachment" "calculate_num_to_invite_lambda_policy" {
   role       = aws_iam_role.galleri_lambda_role.name
   policy_arn = aws_iam_policy.iam_policy_for_calculate_num_to_invite_lambda.arn
+}
+
+resource "aws_iam_role_policy_attachment" "generate_invites_policy" {
+  role       = aws_iam_role.galleri_lambda_role.name
+  policy_arn = aws_iam_policy.iam_policy_for_generate_invites_lambda.arn
 }
 
 resource "aws_iam_role" "api_gateway_logging_role" {
