@@ -3,7 +3,7 @@ import os
 import boto3
 from random import randrange
 
-environment = os.getenv("environment")
+ENVIRONMENT = os.getenv("environment")
 
 
 def generate_nonprod_lsoa_json(file_path, table_name):
@@ -111,5 +111,7 @@ if __name__ == "__main__":
     # read in data and generate the json output
     file_input_path = "/nonprod-unique-lsoa-data/unique_lsoa_data.csv"
 
+    print(f"{ENVIRONMENT}-UniqueLsoa")
+
     path_to_file = os.getcwd() + file_input_path
-    generate_nonprod_lsoa_json(path_to_file, f"{environment}-UniqueLsoa")
+    generate_nonprod_lsoa_json(path_to_file, f"{ENVIRONMENT}-UniqueLsoa")

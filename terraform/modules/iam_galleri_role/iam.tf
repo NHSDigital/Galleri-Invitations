@@ -200,7 +200,6 @@ resource "aws_iam_policy" "invitation_parameters_lambda" {
       "Version" : "2012-10-17"
   })
 }
-
 resource "aws_iam_policy" "iam_policy_for_calculate_num_to_invite_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_calculate_num_to_invite_lambda_role"
   path        = "/"

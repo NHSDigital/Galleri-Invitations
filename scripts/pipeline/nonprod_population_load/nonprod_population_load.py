@@ -167,7 +167,8 @@ def batch_write_to_dynamodb(lsoa_data):
         upper_bound_slice = i + 100
         test_data = lsoa_data[i:upper_bound_slice]
         dynamodb_client.transact_write_items(TransactItems=test_data)
-        print(f"{i} records uploaded")
+        if i%10000 == 0:
+            print(f"{i} records uploaded")
     return "Finished"
 
 
