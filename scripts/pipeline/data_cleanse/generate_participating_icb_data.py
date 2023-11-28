@@ -2,12 +2,13 @@ import csv
 import json
 import os
 
+
 def generate_participating_icb_json(file_path, table_name):
-    with open(file_path, 'r', encoding='utf-8-sig') as file:
+    with open(file_path, "r", encoding="utf-8-sig") as file:
         csvreader = csv.reader(file)
         dynamodb_json_object = format_dynamodb_json(csvreader)
 
-    json_file = { table_name : dynamodb_json_object}
+    json_file = {table_name: dynamodb_json_object}
     json_object = json.dumps(json_file, indent=4)
 
     # create output json file
@@ -30,24 +31,20 @@ def format_dynamodb_json(csvreader):
             {
                 "PutRequest": {
                     "Item": {
-                        "Id": {
-                            "N": f"{Id}"
-                        },
-                        "IcbCode": {
-                            "S": f"{IcbCode}"
-                        },
-                        "Board": {
-                            "S": f"{Board}"
-                        }
+                        "Id": {"N": f"{Id}"},
+                        "IcbCode": {"S": f"{IcbCode}"},
+                        "Board": {"S": f"{Board}"},
                     }
                 }
             }
         )
     return output
 
+
+ENVIRONMENT = os.getenv("environment")
+
 if __name__ == "__main__":
     # read in data and generate the json output
     file_input_path = "/test-data/Participating_ICBs.csv"
     path_to_file = os.getcwd() + file_input_path
-    generate_participating_icb_json(path_to_file, "ParticipatingIcb")
-
+    generate_participating_icb_json(path_to_file, ENVIRONMENT + "-ParticipatingIcb")
