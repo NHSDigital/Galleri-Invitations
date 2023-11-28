@@ -181,5 +181,5 @@ export const getParticipantsInQuintile = (quintilePopulation, quintileTarget, na
 
 export const generateQuintileBlocks = (participantList, lowerBound, upperBound, quintile) => {
   console.log(`${quintile} Lower bound = ${lowerBound}. ${quintile} Upper bound = ${upperBound}`)
-  return participantList.slice(lowerBound, upperBound)
+  return participantList.slice(lowerBound, upperBound);
 }
