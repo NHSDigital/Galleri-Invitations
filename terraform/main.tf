@@ -465,7 +465,7 @@ module "participants_in_lsoa_cloudwatch" {
   retention_days       = 14
 }
 
-# Calculate number of participatnts to invite
+# Calculate number of participants to invite
 module "calculate_number_to_invite_lambda" {
   source               = "./modules/lambda"
   bucket_id            = module.s3_bucket.bucket_id
@@ -475,7 +475,7 @@ module "calculate_number_to_invite_lambda" {
   lambda_timeout       = 100
   environment          = var.environment
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -550,15 +550,15 @@ module "generate_invites_lambda" {
   environment          = var.environment
   lambda_timeout       = 100
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
 module "generate_invites_cloudwatch" {
   source               = "./modules/cloudwatch"
   lambda_function_name = module.generate_invites_lambda.lambda_function_name
-  environment          = var.environment
   retention_days       = 14
+  environment          = var.environment
 }
 
 module "generate_invites_api_gateway" {
