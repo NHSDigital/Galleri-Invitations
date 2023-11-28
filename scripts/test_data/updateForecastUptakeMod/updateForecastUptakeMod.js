@@ -1,7 +1,7 @@
 import { Readable } from "stream";
 import csv from "csv-parser";
 import fs from "fs";
-import { fixDecimal, match } from "./utils/helper.js";
+import { match } from "./utils/helper.js";
 
 const lsoaData = fs.readFileSync(
   "./input/unique_lsoa_data.csv"
@@ -12,14 +12,14 @@ const LsoaModerators = fs.readFileSync(
 );
 
 //Read in csv
-export const processData = async (csvString) => {
+export const processData = async (csvString, processFunction) => {
   const dataArray = [];
 
   return new Promise((resolve, reject) => {
     Readable.from(csvString)
       .pipe(csv())
       .on("data", (row) => {
-        dataArray.push(row);
+        dataArray.push(processFunction(row));
       })
       .on("end", () => {
         resolve(dataArray);
@@ -29,6 +29,22 @@ export const processData = async (csvString) => {
       });
   });
 };
+
+//moderator to be 3dp e.g. 0.831
+function fixDecimal(row) {
+  for (const element in row) {
+    delete row['ICB'];
+    if (element === 'MODERATOR') {
+      let roundedElement = Math.round(row[element] * 1000) / 1000;
+      row[element] = roundedElement;
+    }
+  }
+  return row;
+}
+
+function processShortCircuit(row) {
+  return row
+}
 
 //Convert string to csv
 export const generateCsvString = (header, dataArray) => {
@@ -49,14 +65,11 @@ export const writeFile = (filename, obj) => {
 };
 
 // read in both csvs
-const lsoaUniqueArray = await processData(lsoaData);
-const arrWithMod = await processData(LsoaModerators);
-
-//cut moderator to 3dp
-const newModArr = fixDecimal(arrWithMod);
+const lsoaUniqueArray = await processData(lsoaData, processShortCircuit);
+const arrWithMod = await processData(LsoaModerators, fixDecimal);
 
 //match and append moderator to unique lsoa
-const matched = match(lsoaUniqueArray, newModArr);
+const matched = match(lsoaUniqueArray, arrWithMod);
 
 const uniqueDataHeader =
   "LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,LSOA_2011," +

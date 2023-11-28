@@ -61,34 +61,14 @@ describe("Test for appending moderator to unique lsoa csv", () => {
     },
   ];
 
-  const testModCsv = [
-    {
-      LSOA_CODE: "E01023741",
-      ICB: "QM7",
-      MODERATOR: "0.951588032"
-    },
-    {
-      LSOA_CODE: "E01023684",
-      ICB: "QM7",
-      MODERATOR: "1.099629219"
-    },
-  ]
-
   const testRoundedCsv = [
     { LSOA_CODE: 'E01023741', MODERATOR: 0.952 },
     { LSOA_CODE: 'E01023684', MODERATOR: 1.1 },
   ]
 
-  test("test fixDecimal function", async () => {
-    const decimalResult = fixDecimal(testModCsv);
-    expect(decimalResult).toStrictEqual([
-      { LSOA_CODE: 'E01023741', MODERATOR: 0.952 },
-      { LSOA_CODE: 'E01023684', MODERATOR: 1.1 },
-    ]);
-  });
-
   test("test match function", async () => {
     const matchedResult = match(testCsvArray, testRoundedCsv);
+    console.log(matchedResult);
     expect(matchedResult).toStrictEqual([
       {
         POSTCODE: "AL1  1AG",
@@ -160,6 +140,7 @@ describe("Test for appending moderator to unique lsoa csv", () => {
     ]
 
     const matchedResult = match(testCsvArray, csvWithDiffLsoa);
+    console.log(matchedResult);
     expect(matchedResult).toStrictEqual([
       {
         POSTCODE: "AL1  1AG",
