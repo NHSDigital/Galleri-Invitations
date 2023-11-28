@@ -225,7 +225,7 @@ resource "aws_iam_policy" "iam_policy_for_calculate_num_to_invite_lambda" {
           ],
           "Resource" : [
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-InvitationParameters"
-            ]
+          ]
         },
         {
           "Sid" : "AllowLambdaInvoke",
