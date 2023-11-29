@@ -503,7 +503,7 @@ module "calculate_number_to_invite_api_gateway" {
 }
 
 
-# Calculate number of participants to invite
+# Generate participant invites
 module "generate_invites_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
