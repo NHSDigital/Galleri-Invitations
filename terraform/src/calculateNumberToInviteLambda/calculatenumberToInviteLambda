@@ -4,7 +4,7 @@ import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 const client = new DynamoDBClient({ region: "eu-west-2" });
 const lambdaClient = new LambdaClient({ region: "eu-west-2" });
 
-const ENVIRONMENT = process.env.ENVIRONMENT;
+const ENVIRONMENT = process.env.environment;
 
 export const handler = async (event, context) => {
   const targetAppsToFill =
