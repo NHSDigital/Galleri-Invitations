@@ -32,7 +32,6 @@ runs:
             if [[ $name == dev-* ]]; then
                 env_name=$(echo "$name" | sed 's/^dev-//' | tr '[:lower:]-' '[:upper:]_')
                 export "NEXT_PUBLIC_$env_name=$id"
-                # echo "NEXT_PUBLIC_$env_name=$id" >> /home/runner/work/Galleri-Invitations/Galleri-Invitations/Galleri-Frontend/.env.local
                 echo "API ID: NEXT_PUBLIC_$env_name=\"$id\""
             fi
         done < <(echo "$apis" | jq -r '.items[] | "\(.id) \(.name)"')
