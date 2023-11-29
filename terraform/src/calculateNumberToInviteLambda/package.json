@@ -1,0 +1,11 @@
+{
+  "name": "calculateNumberToInviteLambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "calculateNumberToInviteLambda.js",
+  "author": "",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.398.0",
+    "@aws-sdk/client-lambda": "^3.441.0"
+  }
+}

@@ -3,7 +3,7 @@ import os
 import boto3
 from random import randrange
 
-environment = os.getenv("environment")
+ENVIRONMENT = os.getenv("environment")
 
 
 def generate_nonprod_lsoa_json(file_path, table_name):
@@ -38,25 +38,59 @@ def format_dynamodb_json(csvreader, table_name):
         MODERATOR = str(row[15])
         output.append(
             {
-                "Put": {
-                    "Item": {
-                        "LOCAL_AUT_ORG": {"S": f"{LOCAL_AUT_ORG}"},
-                        "NHS_ENG_REGION": {"S": f"{NHS_ENG_REGION}"},
-                        "SUB_ICB": {"S": f"{SUB_ICB}"},
-                        "CANCER_REGISTRY": {"S": f"{CANCER_REGISTRY}"},
-                        "LSOA_2011": {"S": f"{LSOA_2011}"},
-                        "MSOA_2011": {"S": f"{MSOA_2011}"},
-                        "CANCER_ALLIANCE": {"S": f"{CANCER_ALLIANCE}"},
-                        "ICB": {"S": f"{ICB}"},
-                        "OA_2021": {"S": f"{OA_2021}"},
-                        "LSOA_2021": {"S": f"{LSOA_2021}"},
-                        "MSOA_2021": {"S": f"{MSOA_2021}"},
-                        "IMD_RANK": {"N": f"{IMD_RANK}"},
-                        "IMD_DECILE": {"N": f"{IMD_DECILE}"},
-                        "FORECAST_UPTAKE": {"N": f"{FORECAST_UPTAKE}"},
-                        "AVG_EASTING": {"S": f"{AVG_EASTING}"},
-                        "AVG_NORTHING": {"S": f"{AVG_NORTHING}"},
-                        "MODERATOR": {"S": f"{MODERATOR}"},
+                'Put': {
+                    'Item': {
+                        'LOCAL_AUT_ORG': {
+                            'S': f'{LOCAL_AUT_ORG}'
+                        },
+                        'NHS_ENG_REGION': {
+                            'S': f'{NHS_ENG_REGION}'
+                        },
+                        'SUB_ICB': {
+                            'S': f'{SUB_ICB}'
+                        },
+                        'CANCER_REGISTRY': {
+                            'S': f'{CANCER_REGISTRY}'
+                        },
+                        'LSOA_2011': {
+                            'S': f'{LSOA_2011}'
+                        },
+                        'MSOA_2011': {
+                            'S': f'{MSOA_2011}'
+                        },
+                        'CANCER_ALLIANCE': {
+                            'S': f'{CANCER_ALLIANCE}'
+                        },
+                        'ICB': {
+                            'S': f'{ICB}'
+                        },
+                        'OA_2021': {
+                            'S': f'{OA_2021}'
+                        },
+                        'LSOA_2021': {
+                            'S': f'{LSOA_2021}'
+                        },
+                        'MSOA_2021': {
+                            'S': f'{MSOA_2021}'
+                        },
+                        'IMD_RANK': {
+                            'N': f'{IMD_RANK}'
+                        },
+                        'IMD_DECILE': {
+                            'N': f'{IMD_DECILE}'
+                        },
+                        'FORECAST_UPTAKE': {
+                            'N': f'{FORECAST_UPTAKE}'
+                        },
+                        'AVG_EASTING': {
+                            'S': f'{AVG_EASTING}'
+                        },
+                        'AVG_NORTHING': {
+                            'S': f'{AVG_NORTHING}'
+                        },
+                        'MODERATOR': {
+                            'S': f'{MODERATOR}'
+                        },
                     },
                     "TableName": table_name,
                 },
@@ -81,5 +115,7 @@ if __name__ == "__main__":
     # read in data and generate the json output
     file_input_path = "/nonprod-unique-lsoa-data/unique_lsoa_data.csv"
 
+    print(f"{ENVIRONMENT}-UniqueLsoa")
+
     path_to_file = os.getcwd() + file_input_path
-    generate_nonprod_lsoa_json(path_to_file, f"{environment}-UniqueLsoa")
+    generate_nonprod_lsoa_json(path_to_file, f"{ENVIRONMENT}-UniqueLsoa")

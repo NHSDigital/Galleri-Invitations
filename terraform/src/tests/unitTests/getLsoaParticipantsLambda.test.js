@@ -1,6 +1,7 @@
-import { populateEligibleArray, queryEligiblePopulation, getPopulation } from '../../getLsoaParticipants/getLsoaParticipantsLambda.js';
+import { queryEligiblePopulation, getPopulation } from '../../getLsoaParticipantsLambda/getLsoaParticipantsLambda';
 import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { getEligiblePopulation } from '../../getLsoaParticipantsLambda/getLsoaParticipantsLambda.js';
 
 describe('queryEligiblePopulation', () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
@@ -59,4 +60,23 @@ describe('getPopulation', () => {
   });
 });
 
+describe('getEligiblePopulation', () => {
+  const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
+  const lsoaObj = {
+    "E01000005": { "IMD_DECILE": "3", "FORECAST_UPTAKE": "23" }
+  };
 
+  test('If eligible return pushed popArr', async () => {
+    const logSpy = jest.spyOn(global.console, 'log');
+
+    mockDynamoDbClient.resolves({
+      $metadata: { httpStatusCode: 200 },
+      body: [{ personId: '9000149009', imdDecile: '5', forecastUptake: '25' },
+      { personId: '9000221463', imdDecile: '5', forecastUptake: '25' }]
+    });
+    await getEligiblePopulation(lsoaObj, mockDynamoDbClient);
+
+    expect(logSpy).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith(`lsoa being queried number 1. Population object has 0`);
+  });
+});

@@ -46,12 +46,16 @@ export const handler = async (event, context) => {
   // FIND THE PARTICIPANTS IN THOSE LSOAs AND COMBINE THE RESPECTIVE ARRAYS
   const lambdaClient = new LambdaClient({ region: "eu-west-2" });
 
+  const triggerLambda = Date.now();
+  console.log("Invoking getLsoaParticipantsLambda to get eligible and invited participants")
   const input = {
     FunctionName: `${ENVIRONMENT}-getLsoaParticipantsLambda`,
     Payload: JSON.stringify(lsoaCodePayload),
   };
   const command = new InvokeCommand(input);
   const response = await lambdaClient.send(command);
+  console.log("Lambda invoke completed. Took: ", (Date.now() - triggerLambda)/1000)
+
 
   const participantInLsoa = JSON.parse(
     Buffer.from(response.Payload).toString()
@@ -136,7 +140,7 @@ export async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
       "#FU": "FORECAST_UPTAKE",
     },
     ProjectionExpression: "#LC, #ET, #NT, #ID, #FU",
-    TableName: "UniqueLsoa",
+    TableName: `${ENVIRONMENT}-UniqueLsoa`,
   };
   if (Object.keys(lastEvaluatedItem).length != 0) {
     input.ExclusiveStartKey = lastEvaluatedItem;
