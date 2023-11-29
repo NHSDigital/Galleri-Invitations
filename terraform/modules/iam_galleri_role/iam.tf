@@ -315,7 +315,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
 }
 
 resource "aws_iam_policy" "iam_policy_for_generate_invites_lambda" {
-  name        = "aws_iam_policy_for_terraform_aws_generate_invites_lambda_role"
+  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_generate_invites_lambda_role"
   path        = "/"
   description = "AWS IAM Policy for managing aws lambda generate invites role"
   policy = jsonencode(
