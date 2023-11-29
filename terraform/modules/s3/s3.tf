@@ -13,11 +13,7 @@ resource "aws_s3_bucket_public_access_block" "block_public_access" {
 }
 
 resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
-<<<<<<< HEAD
-  bucket = aws_s3_bucket.bucket.bucket
-=======
-  bucket = aws_s3_bucket.bucket.id
->>>>>>> c13662c (AC - updated main file to prevent loops with db updates)
+  bucket = aws_s3_bucket.bucket.arn
   policy = data.aws_iam_policy_document.allow_access_to_lambda.json
 }
 
