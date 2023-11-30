@@ -465,6 +465,7 @@ module "participants_in_lsoa_cloudwatch" {
   retention_days       = 14
 }
 
+
 # Calculate number of participants to invite
 module "calculate_number_to_invite_lambda" {
   source               = "./modules/lambda"
