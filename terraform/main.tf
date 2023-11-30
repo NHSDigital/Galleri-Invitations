@@ -410,6 +410,7 @@ module "target_fill_to_percentage_get_api_gateway" {
   lambda_function_name   = module.target_fill_to_percentage_get_lambda.lambda_function_name
 }
 
+
 # LSOA in range
 module "lsoa_in_range_lambda" {
   source               = "./modules/lambda"
@@ -443,6 +444,7 @@ module "lsoa_in_range_api_gateway" {
   environment          = var.environment
 }
 
+
 # Population in LSOA
 module "participants_in_lsoa_lambda" {
   source               = "./modules/lambda"
@@ -462,6 +464,7 @@ module "participants_in_lsoa_cloudwatch" {
   lambda_function_name = module.participants_in_lsoa_lambda.lambda_function_name
   retention_days       = 14
 }
+
 
 # Calculate number of participants to invite
 module "calculate_number_to_invite_lambda" {
