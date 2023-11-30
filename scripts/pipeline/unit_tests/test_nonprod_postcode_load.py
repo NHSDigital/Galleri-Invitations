@@ -62,7 +62,7 @@ expected_output_data = [
                 },
                 'LSOA_NAME': {
                     'S':'18'
-                }
+                },
                 'AVG_LSOA_EASTING': {
                     'N':'19'
                 },
