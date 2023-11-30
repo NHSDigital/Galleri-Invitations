@@ -2,7 +2,7 @@ from scripts.pipeline.nonprod_postcode_load.nonprod_postcode_load import format_
 
 test_csv_data = [
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-    16, 17, 18, 19]
+    16, 17, 18, 19, 20]
 ]
 
 expected_output_data = [
@@ -60,11 +60,14 @@ expected_output_data = [
                 'IMD_DECILE': {
                     'N':'17'
                 },
+                'LSOA_NAME': {
+                    'S':'18'
+                }
                 'AVG_LSOA_EASTING': {
-                    'N':'18'
+                    'N':'19'
                 },
                 'AVG_LSOA_NORTHING': {
-                    'N':'19'
+                    'N':'20'
                 }
             },
             'TableName': 'Table',
