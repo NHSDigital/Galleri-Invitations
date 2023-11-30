@@ -1,6 +1,6 @@
 import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
 
-const ENVIRONMENT = process.env.environment;
+const ENVIRONMENT = process.env.ENVIRONMENT;
 
 const client = new DynamoDBClient({ region: "eu-west-2" });
 

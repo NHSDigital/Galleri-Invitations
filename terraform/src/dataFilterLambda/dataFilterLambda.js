@@ -6,7 +6,7 @@ import {
 import { Readable } from "stream";
 import csv from "csv-parser";
 
-const GALLERI_ONS_BUCKET_NAME = `${process.env.environment}-${process.env.BUCKET_NAME}`;
+const GALLERI_ONS_BUCKET_NAME = `${process.env.ENVIRONMENT}-${process.env.BUCKET_NAME}`;
 const GRIDALL_CHUNK_1 = process.env.GRIDALL_CHUNK_1;
 const GRIDALL_CHUNK_2 = process.env.GRIDALL_CHUNK_2;
 const GRIDALL_CHUNK_3 = process.env.GRIDALL_CHUNK_3;
