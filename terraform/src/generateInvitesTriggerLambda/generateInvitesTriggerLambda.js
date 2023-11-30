@@ -6,7 +6,7 @@ import {
 
 const client = new DynamoDBClient({ region: "eu-west-2" });
 
-const ENVIRONMENT = process.env.environment;
+const ENVIRONMENT = process.env.ENVIRONMENT;
 
 export const handler = async (event, context) => {
   const eventJson = JSON.parse(event.body);
