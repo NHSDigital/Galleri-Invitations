@@ -59,8 +59,10 @@ export const handler = async (event, context) => {
   };
   const command = new InvokeCommand(input);
   const response = await lambdaClient.send(command);
-  console.log("Lambda invoke completed. Took: ", (Date.now() - triggerLambda) / 1000)
-
+  console.log(
+    "Lambda invoke completed. Took: ",
+    (Date.now() - triggerLambda) / 1000
+  );
 
   const participantInLsoa = JSON.parse(
     Buffer.from(response.Payload).toString()
@@ -93,8 +95,8 @@ export const handler = async (event, context) => {
         "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,GET",
-    },
-      (responseObject.body = "error"));
+    }),
+      (responseObject.body = "error");
   }
 
   const complete = Date.now() - start;
@@ -178,7 +180,7 @@ export async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
     const response = await client.send(command);
 
     if (response.$metadata.httpStatusCode == 200) {
-      tableItems.push(response.Items)
+      tableItems.push(response.Items);
       return `UniqueLsoa table scanned. Returning ${tableItems.length} records`;
     } else {
       console.error("Something went wrong with last request");
@@ -206,7 +208,7 @@ export const calculateDistance = (lsoa, clinicGridReference) => {
   const distanceMiles =
     Math.sqrt(
       Math.pow(Math.abs(clinicEasting - lsoaEasting), 2) +
-      Math.pow(Math.abs(clinicNorthing - lsoaNorthing), 2)
+        Math.pow(Math.abs(clinicNorthing - lsoaNorthing), 2)
     ) /
     (MTOKM * KMTOMILES);
 
@@ -215,7 +217,11 @@ export const calculateDistance = (lsoa, clinicGridReference) => {
 
 export function generateLsoaTableData(lsoaData, populationData) {
   const tableInfo = [];
-  console.log(`lsoaData.length = ${lsoaData.length}| populationData.length = ${Object.keys(populationData).length}`);
+  console.log(
+    `lsoaData.length = ${lsoaData.length}| populationData.length = ${
+      Object.keys(populationData).length
+    }`
+  );
 
   lsoaData.forEach((lsoaItem) => {
     const matchingLsoa = populationData[lsoaItem.LSOA_2011.S];
