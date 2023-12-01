@@ -503,43 +503,6 @@ module "calculate_number_to_invite_api_gateway" {
 }
 
 
-# Calculate number of participants to invite
-module "calculate_number_to_invite_lambda" {
-  source               = "./modules/lambda"
-  bucket_id            = module.s3_bucket.bucket_id
-  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "calculateNumberToInviteLambda"
-  lambda_s3_object_key = "calculate_number_to_invite.zip"
-  lambda_timeout       = 100
-  environment          = var.environment
-  environment_vars = {
-    ENVIRONMENT = "${var.environment}"
-  }
-}
-
-module "calculate_number_to_invite_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.calculate_number_to_invite_lambda.lambda_function_name
-  retention_days       = 14
-}
-
-module "calculate_number_to_invite_api_gateway" {
-  source                    = "./modules/api-gateway"
-  lambda_invoke_arn         = module.calculate_number_to_invite_lambda.lambda_invoke_arn
-  path_part                 = "calculate-num-to-invite"
-  method_http_parameters    = {}
-  lambda_api_gateway_method = "POST"
-  integration_response_http_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'POST,GET'",
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-  lambda_function_name = module.calculate_number_to_invite_lambda.lambda_function_name
-  method               = "/*/POST/*"
-  environment          = var.environment
-}
-
 
 # Generate participant invites
 module "generate_invites_lambda" {
