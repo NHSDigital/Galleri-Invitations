@@ -43,7 +43,7 @@ on:
         description: "Terraform action to be performed against target environment"
         default: apply
         type: string
-        required: true
+        required: false
 
 env:
   role-to-assume: ${{ vars.AWS_ROLE_ARN }}
