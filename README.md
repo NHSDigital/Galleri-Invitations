@@ -86,6 +86,8 @@ when using tfvars they are similar to other var references but passed in from th
 
 you can also pass in variables as environment variables. to do this you create the variable with the prefix of `TF_VAR_` so for environment you would use `TF_VAR_environment`. This is useful when you need to pass in a secret value.
 
+One required variable is `TF_VAR_frontend_repo_location` which is required to tell terraform where the repo is located on your system, the default is the location it is found in the gitlab runner.
+
 ### outputs
 
 There are times when a resource inside a module will require some information from a different resource in another module. We can supply this using outputs. Each module has an `output.tf` file, inside that it will supply an output based on a value from a resource within that modules. For example in the `api-gateway` module we have an output called `rest_api_galleri_execution_arn` we can call that output to get that value from the main file by calling the module and output.
