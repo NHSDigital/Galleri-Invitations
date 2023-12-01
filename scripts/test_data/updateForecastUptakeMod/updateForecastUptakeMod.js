@@ -74,7 +74,7 @@ const matched = match(lsoaUniqueArray, arrWithMod);
 const uniqueDataHeader =
   "LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,LSOA_2011," +
   "MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021,IMD_RANK," +
-  "IMD_DECILE,AVG_EASTING,AVG_NORTHING,MODERATOR";
+  "IMD_DECILE,LSOA_NAME,AVG_EASTING,AVG_NORTHING,MODERATOR";
 
 const uniqueLsoaCsv = generateCsvString(uniqueDataHeader, matched);
 
