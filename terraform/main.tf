@@ -452,7 +452,79 @@ module "participants_in_lsoa_cloudwatch" {
   retention_days       = 14
 }
 
+# Calculate number of participatnts to invite
+module "calculate_number_to_invite_lambda" {
+  source               = "./modules/lambda"
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "calculateNumberToInviteLambda"
+  lambda_s3_object_key = "calculate_number_to_invite.zip"
+  environment          = var.environment
+  lambda_timeout       = 100
+  environment_vars = {
+    environment = "${var.environment}"
+  }
+}
 
+module "calculate_number_to_invite_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  lambda_function_name = module.calculate_number_to_invite_lambda.lambda_function_name
+  environment          = var.environment
+  retention_days       = 14
+}
+
+module "calculate_number_to_invite_api_gateway" {
+  source                    = "./modules/api-gateway"
+  lambda_invoke_arn         = module.calculate_number_to_invite_lambda.lambda_invoke_arn
+  path_part                 = "calculate-num-to-invite"
+  method_http_parameters    = {}
+  lambda_api_gateway_method = "POST"
+  integration_response_http_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'POST,GET'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+  lambda_function_name = module.calculate_number_to_invite_lambda.lambda_function_name
+  method               = "/*/POST/*"
+  environment          = var.environment
+}
+
+# Calculate number of participatnts to invite
+module "generate_invites_lambda" {
+  source               = "./modules/lambda"
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "generateInvitesTriggerLambda"
+  lambda_s3_object_key = "generate_invites.zip"
+  environment          = var.environment
+  lambda_timeout       = 100
+  environment_vars = {
+    environment = "${var.environment}"
+  }
+}
+
+module "generate_invites_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  lambda_function_name = module.generate_invites_lambda.lambda_function_name
+  environment          = var.environment
+  retention_days       = 14
+}
+
+module "generate_invites_api_gateway" {
+  source                    = "./modules/api-gateway"
+  lambda_invoke_arn         = module.generate_invites_lambda.lambda_invoke_arn
+  path_part                 = "generate-invites"
+  method_http_parameters    = {}
+  lambda_api_gateway_method = "POST"
+  integration_response_http_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'POST,GET'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+  lambda_function_name = module.generate_invites_lambda.lambda_function_name
+  method               = "/*/POST/*"
+  environment          = var.environment
+}
 
 # Dynamodb tables
 module "sdrs_table" {
@@ -735,7 +807,7 @@ module "invitation_parameters_table" {
 resource "aws_dynamodb_table_item" "quintileTargets" {
   table_name = module.invitation_parameters_table.dynamodb_table_name
   hash_key   = module.invitation_parameters_table.dynamodb_hash_key
-
+  //LAST_UPDATE will be used in a future story, meantime will act as placeholder
   item = <<ITEM
 {
   "CONFIG_ID": {"N": "1"},
@@ -745,7 +817,8 @@ resource "aws_dynamodb_table_item" "quintileTargets" {
   "QUINTILE_4": {"N": "20"},
   "QUINTILE_5": {"N": "20"},
   "FORECAST_UPTAKE": {"N": "50"},
-  "TARGET_PERCENTAGE": {"N": "50"}
+  "TARGET_PERCENTAGE": {"N": "50"},
+  "LAST_UPDATE": {"S": "2023-11-18 15:55:44.432942"}
 }
 ITEM
 }

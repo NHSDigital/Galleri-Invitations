@@ -46,12 +46,16 @@ export const handler = async (event, context) => {
   // FIND THE PARTICIPANTS IN THOSE LSOAs AND COMBINE THE RESPECTIVE ARRAYS
   const lambdaClient = new LambdaClient({ region: "eu-west-2" });
 
+  const triggerLambda = Date.now();
+  console.log("Invoking getLsoaParticipantsLambda to get eligible and invited participants")
   const input = {
     FunctionName: `${ENVIRONMENT}-getLsoaParticipantsLambda`,
     Payload: JSON.stringify(lsoaCodePayload),
   };
   const command = new InvokeCommand(input);
   const response = await lambdaClient.send(command);
+  console.log("Lambda invoke completed. Took: ", (Date.now() - triggerLambda) / 1000)
+
 
   const participantInLsoa = JSON.parse(
     Buffer.from(response.Payload).toString()
@@ -82,7 +86,7 @@ export const handler = async (event, context) => {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,GET",
     },
-    (responseObject.body = "error");
+      (responseObject.body = "error");
   }
 
   const complete = Date.now() - start;
@@ -134,9 +138,10 @@ export async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
       "#NT": "AVG_NORTHING",
       "#ID": "IMD_DECILE",
       "#FU": "FORECAST_UPTAKE",
+      "#LN": "LSOA_NAME",
     },
-    ProjectionExpression: "#LC, #ET, #NT, #ID, #FU",
-    TableName: "UniqueLsoa",
+    ProjectionExpression: "#LC, #ET, #NT, #ID, #FU, #LN",
+    TableName: `${ENVIRONMENT}-UniqueLsoa`,
   };
   if (Object.keys(lastEvaluatedItem).length != 0) {
     input.ExclusiveStartKey = lastEvaluatedItem;
@@ -145,7 +150,7 @@ export async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
   const command = new ScanCommand(input);
   const response = await client.send(command);
 
-  if (response.LastEvaluatedKey){
+  if (response.LastEvaluatedKey) {
     if (response.$metadata.httpStatusCode == 200) {
       console.log("Table is larger than 1Mb hence recursively routing through to obtain all data"
       );
@@ -163,7 +168,7 @@ export async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
     const command = new ScanCommand(input);
     const response = await client.send(command);
 
-    if (response.$metadata.httpStatusCode == 200){
+    if (response.$metadata.httpStatusCode == 200) {
       tableItems.push(response.Items)
       return `UniqueLsoa table scanned. Returning ${tableItems.length} records`;
     } else {
@@ -193,7 +198,7 @@ export const calculateDistance = (lsoa, clinicGridReference) => {
     Math.sqrt(
       Math.pow(Math.abs(clinicEasting - lsoaEasting), 2) +
       Math.pow(Math.abs(clinicNorthing - lsoaNorthing), 2)
-    )/
+    ) /
     (MTOKM * KMTOMILES);
 
   return distanceMiles;
@@ -201,8 +206,7 @@ export const calculateDistance = (lsoa, clinicGridReference) => {
 
 export function generateLsoaTableData(lsoaData, populationData) {
   const tableInfo = [];
-  console.log(`lsoaData.length = ${lsoaData.length}| populationData.length = ${
-      Object.keys(populationData).length}`);
+  console.log(`lsoaData.length = ${lsoaData.length}| populationData.length = ${Object.keys(populationData).length}`);
 
   lsoaData.forEach((lsoaItem) => {
     const matchingLsoa = populationData[lsoaItem.LSOA_2011.S];

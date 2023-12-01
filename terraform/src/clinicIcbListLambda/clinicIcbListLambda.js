@@ -15,6 +15,7 @@ export const handler = async (event, context) => {
     ExpressionAttributeNames: {
       "#CI": "ClinicId",
       "#CN": "ClinicName",
+      "#UD": "UpdatedDate"
     },
     ExpressionAttributeValues: {
       ":a": {
@@ -22,7 +23,7 @@ export const handler = async (event, context) => {
       },
     },
     FilterExpression: "ICBCode = :a",
-    ProjectionExpression: "#CN, #CI",
+    ProjectionExpression: "#CN, #CI, #UD",
     TableName: `${ENVIRONMENT}-PhlebotomySite`,
   };
 
