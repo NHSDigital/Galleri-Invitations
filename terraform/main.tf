@@ -519,8 +519,8 @@ module "calculate_number_to_invite_lambda" {
 
 module "calculate_number_to_invite_cloudwatch" {
   source               = "./modules/cloudwatch"
-  lambda_function_name = module.calculate_number_to_invite_lambda.lambda_function_name
   environment          = var.environment
+  lambda_function_name = module.calculate_number_to_invite_lambda.lambda_function_name
   retention_days       = 14
 }
 
@@ -540,14 +540,15 @@ module "calculate_number_to_invite_api_gateway" {
   environment          = var.environment
 }
 
-# Calculate number of participatnts to invite
+
+# Generate participant invites
 module "generate_invites_lambda" {
   source               = "./modules/lambda"
+  environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "generateInvitesTriggerLambda"
   lambda_s3_object_key = "generate_invites.zip"
-  environment          = var.environment
   lambda_timeout       = 100
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
@@ -576,6 +577,7 @@ module "generate_invites_api_gateway" {
   method               = "/*/POST/*"
   environment          = var.environment
 }
+
 
 # Dynamodb tables
 module "sdrs_table" {
