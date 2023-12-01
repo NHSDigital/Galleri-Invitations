@@ -93,4 +93,4 @@ runs:
         npm install --prefix src/getLsoaParticipantsLambda
         npm install --prefix src/calculateNumberToInviteLambda
         npm install --prefix src/generateInvitesTriggerLambda
-        terraform apply -auto-approve -input=false -var-file=environment/${{ env.environment }}/${{ env.environment }}.tfvars
+        terraform ${{ env.tf-action }} -auto-approve -input=false -var-file=environment/${{ env.environment }}/${{ env.environment }}.tfvars
