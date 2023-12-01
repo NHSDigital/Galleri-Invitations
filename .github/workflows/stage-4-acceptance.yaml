@@ -39,6 +39,11 @@ on:
         description: "Branch of invitations repository to checkout"
         required: false
         type: string
+      tf_action:
+        description: "Terraform action to be performed against target environment"
+        default: apply
+        type: string
+        required: true
 
 env:
   role-to-assume: ${{ vars.AWS_ROLE_ARN }}
@@ -47,6 +52,7 @@ env:
   aws-bucket-key-name: ${{ vars.aws_bucket_key_name }}
   environment: ${{ inputs.environment }}
   branch: ${{ inputs.branch }}
+  tf-action: ${{ inputs.tf_action }}
 
 jobs:
   environment-set-up:
@@ -75,6 +81,7 @@ jobs:
           aws-bucket-key-name: ${{ env.aws-bucket-key-name }}
           environment: ${{ env.environment }}
           branch: ${{ env.branch }}
+          tf-action: ${{ env.tf-action }}
         timeout-minutes: 15
       - name: "Seed databases"
         uses: ./.github/actions/seeding
