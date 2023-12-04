@@ -95,8 +95,8 @@ export const handler = async (event, context) => {
         "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,GET",
-    },
-      (responseObject.body = "error"));
+    }),
+      (responseObject.body = "error");
   }
 
   const complete = Date.now() - start;
