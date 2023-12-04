@@ -540,6 +540,7 @@ module "generate_invites_api_gateway" {
   environment          = var.environment
 }
 
+
 # Dynamodb tables
 module "sdrs_table" {
   source      = "./modules/dynamodb"
