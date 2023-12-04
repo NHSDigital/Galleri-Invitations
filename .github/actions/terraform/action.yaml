@@ -24,6 +24,12 @@ runs:
         aws-region: ${{ env.aws-region }}
         role-session-name: GitHub-OIDC-TERRAFORM
 
+    - name: Derive environment-type
+      id: environment-type
+      shell: bash
+      run: |
+        echo "environment-type=$(echo '${{ env.environment }}' | cut -f1 -d'-')" >> $GITHUB_OUTPUT
+
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
       with:
@@ -71,7 +77,7 @@ runs:
       shell: bash
       run: |
         cd ./terraform
-        terraform plan -no-color -var-file=environment/${{ env.environment }}/${{ env.environment }}.tfvars
+        terraform plan -no-color -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars
 
     - name: Terraform Plan Status
       if: steps.plan.outcome == 'failure'
@@ -99,4 +105,4 @@ runs:
         npm install --prefix src/getLsoaParticipantsLambda
         npm install --prefix src/calculateNumberToInviteLambda
         npm install --prefix src/generateInvitesTriggerLambda
-        terraform ${{ env.tf-action }} -auto-approve -input=false -var-file=environment/${{ env.environment }}/${{ env.environment }}.tfvars
+        terraform ${{ env.tf-action }} -auto-approve -input=false -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars
