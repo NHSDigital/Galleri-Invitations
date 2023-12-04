@@ -31,7 +31,7 @@ on:
         description: "Version of the software, set by the CI/CD pipeline workflow"
         required: true
         type: string
-      branch:
+      invitations_branch:
         description: "Branch of invitations repository to checkout"
         required: false
         type: string
@@ -45,7 +45,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          ref: "${{ inputs.branch }}"
+          ref: "${{ inputs.invitations_branch }}"
           fetch-depth: 0 # Full history is needed to scan all commits
       - name: "Scan secrets"
         uses: ./.github/actions/scan-secrets
@@ -57,7 +57,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          ref: "${{ inputs.branch }}"
+          ref: "${{ inputs.invitations_branch }}"
           fetch-depth: 0 # Full history is needed to scan all commits
       - name: "Check file format"
         uses: ./.github/actions/check-file-format
@@ -69,7 +69,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          ref: "${{ inputs.branch }}"
+          ref: "${{ inputs.invitations_branch }}"
           fetch-depth: 0 # Full history is needed to scan all commits
       - name: "Check markdown format"
         uses: ./.github/actions/check-markdown-format
@@ -81,7 +81,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          ref: "${{ inputs.branch }}"
+          ref: "${{ inputs.invitations_branch }}"
       - name: "Check Terraform format"
         uses: ./.github/actions/check-terraform-format
   cloc-repository:
@@ -95,7 +95,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          ref: "${{ inputs.branch }}"
+          ref: "${{ inputs.invitations_branch }}"
       - name: "Count lines of code"
         uses: ./.github/actions/cloc-repository
         with:
@@ -116,7 +116,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          ref: "${{ inputs.branch }}"
+          ref: "${{ inputs.invitations_branch }}"
       - name: "Scan dependencies"
         uses: ./.github/actions/scan-dependencies
         with:

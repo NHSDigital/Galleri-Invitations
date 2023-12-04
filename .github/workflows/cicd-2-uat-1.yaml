@@ -5,8 +5,11 @@ name: "CI/CD UAT 1"
 on:
   workflow_dispatch:
     inputs:
-      branch:
-        description: "This is the branch to be deployed to the UAT environment"
+      invitations_branch:
+        description: "This is the branch/tag of Galleri-Invitations be deployed to the UAT environment"
+        required: true
+      frontend_branch:
+        description: "This is the branch/tag of the Galleri frontend to be deployed to the UAT environment"
         required: true
       tf_action:
         type: choice
@@ -34,7 +37,8 @@ jobs:
       version: ${{ steps.variables.outputs.version }}
       does_pull_request_exist: ${{ steps.pr_exists.outputs.does_pull_request_exist }}
       environment: ${{ env.environment }}
-      branch: ${{ github.event.inputs.branch }}
+      invitations_branch: ${{ github.event.inputs.invitations_branch }}
+      frontend_branch: ${{ github.event.inputs.invitations_branch }}
       tf_action: ${{ github.event.inputs.tf-action }}
     steps:
       - name: "print environment name"
@@ -57,7 +61,7 @@ jobs:
           echo "python_version=$(grep python .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
-          echo "environment=test" >> $GITHUB_OUTPUT
+          echo "environment=uat-1" >> $GITHUB_OUTPUT
       - name: "Check if pull request exists for this branch"
         id: pr_exists
         env:
@@ -95,7 +99,7 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
-      branch: "${{ github.event.inputs.branch }}"
+      invitations_branch: "${{ github.event.inputs.invitations_branch }}"
     secrets: inherit
   test-stage: # Recommended maximum execution time is 5 minutes
     needs: [metadata, commit-stage]
@@ -108,7 +112,7 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
-      branch: "${{ github.event.inputs.branch }}"
+      invitations_branch: "${{ github.event.inputs.invitations_branch }}"
     secrets: inherit
   # build-stage: # Recommended maximum execution time is 3 minutes
   #   needs: [metadata, test-stage]
@@ -141,6 +145,7 @@ jobs:
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
-      branch: "${{ github.event.inputs.branch }}"
+      invitations_branch: "${{ github.event.inputs.invitations_branch }}"
+      frontend_branch: "${{ github.event.inputs.frontend_branch }}"
       tf_action: "${{ github.event.inputs.tf_action }}"
     secrets: inherit

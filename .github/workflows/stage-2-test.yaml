@@ -31,8 +31,8 @@ on:
         description: "Version of the software, set by the CI/CD pipeline workflow"
         required: true
         type: string
-      branch:
-        description: "Branch of repository to checkout"
+      invitations_branch:
+        description: "Branch of invitations repository to checkout"
         required: false
         type: string
 
@@ -44,7 +44,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          ref: "${{ inputs.branch }}"
+          ref: "${{ inputs.invitations_branch }}"
       - name: "Run unit test suite"
         run: |
           make test-unit
@@ -67,7 +67,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          branch: "${{ inputs.branch }}"
+          branch: "${{ inputs.invitations_branch }}"
       - name: "Run linting"
         run: |
           make test-lint
@@ -82,7 +82,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          ref: "${{ inputs.branch }}"
+          ref: "${{ inputs.invitations_branch }}"
       - name: "Run test coverage check"
         run: |
           make test-coverage

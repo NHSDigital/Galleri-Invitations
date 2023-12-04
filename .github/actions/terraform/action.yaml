@@ -7,7 +7,7 @@ runs:
     - name: Git checkout
       uses: actions/checkout@v4
       with:
-        ref: ${{ env.branch }}
+        ref: ${{ env.invitations-branch }}
         path: "Galleri-Invitations"
 
     - name: Checkout frontend
@@ -15,7 +15,7 @@ runs:
       with:
         path: "Galleri-Frontend"
         repository: NHSDigital/Galleri-Frontend
-        ref: main
+        ref: ${{ env.frontend-branch }}
 
     - name: Configure AWS credentials from AWS account
       uses: aws-actions/configure-aws-credentials@v2
@@ -48,9 +48,15 @@ runs:
       id: workspace
       shell: bash
       run: |
+        # Prevent step failing on exit code != 0
+        set +e
         cd ./terraform
         if [ "${{ env.environment }}" != "dev" ]; then
         terraform workspace select ${{ env.environment }}
+        if [ $? != 0 ]; then
+        terraform workspace new ${{ env.environment }}
+        terraform workspace select ${{ env.environment }}
+        fi
         fi
 
     - name: Terraform Validate
@@ -74,7 +80,7 @@ runs:
         echo Terraform Plan Status has failed
         exit 1
 
-    - name: Terraform Apply
+    - name: Terraform ${{ env.tf-action }}
       shell: bash
       run: |
         cd ./terraform
