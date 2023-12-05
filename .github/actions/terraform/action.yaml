@@ -30,6 +30,18 @@ runs:
       run: |
         echo "environment-type=$(echo '${{ env.environment }}' | cut -f1 -d'-')" >> $GITHUB_OUTPUT
 
+    - name: setup variables for nextjs
+      shell: bash
+      run: |
+        apis=$(aws apigateway get-rest-apis)
+        while read -r id name; do
+            if [[ $name == dev-* ]]; then
+                env_name=$(echo "$name" | sed 's/^dev-//' | tr '[:lower:]-' '[:upper:]_')
+                export "NEXT_PUBLIC_$env_name=$id"
+                echo "API ID: NEXT_PUBLIC_$env_name=\"$id\""
+            fi
+        done < <(echo "$apis" | jq -r '.items[] | "\(.id) \(.name)"')
+
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
       with:
@@ -58,11 +70,11 @@ runs:
         set +e
         cd ./terraform
         if [ "${{ env.environment }}" != "dev" ]; then
-        terraform workspace select ${{ env.environment }}
-        if [ $? != 0 ]; then
-        terraform workspace new ${{ env.environment }}
-        terraform workspace select ${{ env.environment }}
-        fi
+          terraform workspace select ${{ env.environment }}
+          if [ $? != 0 ]; then
+            terraform workspace new ${{ env.environment }}
+            terraform workspace select ${{ env.environment }}
+          fi
         fi
 
     - name: Terraform Validate
