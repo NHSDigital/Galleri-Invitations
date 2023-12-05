@@ -31,6 +31,10 @@ on:
         description: "Version of the software, set by the CI/CD pipeline workflow"
         required: true
         type: string
+      branch:
+        description: "Branch of repository to checkout"
+        required: false
+        type: string
 
 jobs:
   test-unit:
@@ -39,18 +43,20 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
+        with:
+          ref: "${{ inputs.branch }}"
       - name: "Run unit test suite"
         run: |
           make test-unit
       - name: Set up the python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10.12'
+          python-version: "3.10.12"
       - name: Run python unit test
         run: |
-            pip install boto3
-            pip install pytest
-            python -m pytest ./scripts/pipeline/unit_tests/
+          pip install boto3
+          pip install pytest
+          python -m pytest ./scripts/pipeline/unit_tests/
       - name: "Save the result of fast test suite"
         run: |
           echo "Nothing to save"
@@ -60,6 +66,8 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
+        with:
+          branch: "${{ inputs.branch }}"
       - name: "Run linting"
         run: |
           make test-lint
@@ -73,6 +81,8 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
+        with:
+          ref: "${{ inputs.branch }}"
       - name: "Run test coverage check"
         run: |
           make test-coverage

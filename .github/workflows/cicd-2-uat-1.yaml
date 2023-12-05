@@ -1,19 +1,28 @@
-name: "CI/CD Commit"
+name: "CI/CD UAT 1"
 
 # The total recommended execution time for the "CI/CD Pull Request" workflow is around 20 minutes.
 
 on:
-  push:
-    branches:
-      - "feature/**"
-      - "dependabot/**"
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "This is the branch to be deployed to the UAT environment"
+        required: true
+      tf_action:
+        type: choice
+        description: Terraform action to be carried out against UAT environment
+        required: true
+        default: apply
+        options:
+          - apply
+          - destroy
 
 jobs:
   metadata:
     runs-on: ubuntu-latest
     timeout-minutes: 1
     env:
-      environment: "dev"
+      environment: "uat-1"
     outputs:
       build_datetime_london: ${{ steps.variables.outputs.build_datetime_london }}
       build_datetime: ${{ steps.variables.outputs.build_datetime }}
@@ -25,6 +34,8 @@ jobs:
       version: ${{ steps.variables.outputs.version }}
       does_pull_request_exist: ${{ steps.pr_exists.outputs.does_pull_request_exist }}
       environment: ${{ env.environment }}
+      branch: ${{ github.event.inputs.branch }}
+      tf_action: ${{ github.event.inputs.tf-action }}
     steps:
       - name: "print environment name"
         run: |
@@ -32,6 +43,8 @@ jobs:
           echo environment is: $environment
       - name: "Checkout code"
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
       - name: "Set CI/CD variables"
         id: variables
         run: |
@@ -82,6 +95,7 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
+      branch: "${{ github.event.inputs.branch }}"
     secrets: inherit
   test-stage: # Recommended maximum execution time is 5 minutes
     needs: [metadata, commit-stage]
@@ -94,6 +108,7 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
+      branch: "${{ github.event.inputs.branch }}"
     secrets: inherit
   # build-stage: # Recommended maximum execution time is 3 minutes
   #   needs: [metadata, test-stage]
@@ -126,4 +141,6 @@ jobs:
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
+      branch: "${{ github.event.inputs.branch }}"
+      tf_action: "${{ github.event.inputs.tf_action }}"
     secrets: inherit

@@ -1,6 +1,6 @@
 import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 
-const ENVIRONMENT = process.env.environment;
+const ENVIRONMENT = process.env.ENVIRONMENT;
 
 /*
   Lambda to load clinic information and pass on to GPS client.
@@ -15,7 +15,7 @@ export const handler = async (event, context) => {
     ExpressionAttributeNames: {
       "#CI": "ClinicId",
       "#CN": "ClinicName",
-      "#UD": "UpdatedDate"
+      "#UD": "UpdatedDate",
     },
     ExpressionAttributeValues: {
       ":a": {

@@ -2,6 +2,7 @@ import csv
 import os
 import boto3
 
+ENVIRONMENT = os.getenv("ENVIRONMENT")
 
 def generate_nonprod_lsoa_json(file_path, table_name):
     with open(file_path, "r", encoding="utf-8-sig") as file:
@@ -33,8 +34,9 @@ def format_dynamodb_json(csvreader, table_name):
         MSOA_2021 = str(row[14])
         IMD_RANK = str(row[15])
         IMD_DECILE = str(row[16])
-        AVG_EASTING = str(row[17])
-        AVG_NORTHING = str(row[18])
+        LSOA_NAME = str(row[17])
+        AVG_EASTING = str(row[18])
+        AVG_NORTHING = str(row[19])
         output.append(
             {
                 "Put": {
@@ -56,6 +58,7 @@ def format_dynamodb_json(csvreader, table_name):
                         "MSOA_2021": {"S": f"{MSOA_2021}"},
                         "IMD_RANK": {"N": f"{IMD_RANK}"},
                         "IMD_DECILE": {"N": f"{IMD_DECILE}"},
+                        "LSOA_NAME": {"S": f"{LSOA_NAME}"},
                         "AVG_LSOA_EASTING": {"N": f"{AVG_EASTING}"},
                         "AVG_LSOA_NORTHING": {"N": f"{AVG_NORTHING}"},
                     },
@@ -77,8 +80,6 @@ def batch_write_to_dynamodb(lsoa_data):
         dynamodb_client.transact_write_items(TransactItems=test_data)
     return "Finished"
 
-
-ENVIRONMENT = os.getenv("environment")
 
 if __name__ == "__main__":
     # read in data and generate the json output

@@ -7,7 +7,7 @@ import {
 import { Readable } from "stream";
 import csv from "csv-parser";
 
-const ENVIRONMENT = process.env.environment;
+const ENVIRONMENT = process.env.ENVIRONMENT;
 
 const GALLERI_ONS_BUCKET_NAME = process.env.BUCKET_NAME;
 const LSOA_FILE_KEY = process.env.KEY;

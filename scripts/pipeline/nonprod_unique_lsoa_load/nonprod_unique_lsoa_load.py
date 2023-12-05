@@ -3,7 +3,7 @@ import os
 import boto3
 from random import randrange
 
-ENVIRONMENT = os.getenv("environment")
+ENVIRONMENT = os.getenv("ENVIRONMENT")
 
 
 def generate_nonprod_lsoa_json(file_path, table_name):
@@ -33,9 +33,10 @@ def format_dynamodb_json(csvreader, table_name):
         IMD_RANK = str(row[11])
         IMD_DECILE = str(row[12])
         FORECAST_UPTAKE = str(randrange(10, 30))
-        AVG_EASTING = str(row[13])
-        AVG_NORTHING = str(row[14])
-        MODERATOR = str(row[15])
+        LSOA_NAME = str(row[13])
+        AVG_EASTING = str(row[14])
+        AVG_NORTHING = str(row[15])
+        MODERATOR = str(row[16])
         output.append(
             {
                 'Put': {
@@ -81,6 +82,9 @@ def format_dynamodb_json(csvreader, table_name):
                         },
                         'FORECAST_UPTAKE': {
                             'N': f'{FORECAST_UPTAKE}'
+                        },
+                        'LSOA_NAME': {
+                            'S': f'{LSOA_NAME}'
                         },
                         'AVG_EASTING': {
                             'S': f'{AVG_EASTING}'
