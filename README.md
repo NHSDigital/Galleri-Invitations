@@ -82,6 +82,8 @@ once the variables have been defined in the module we then call that module from
 
 We also have some variables which will be consistent for everything within an environment but change between them, for example we may want to prefix all resource names in the dev environment with `dev-` and in the test environment `test-`. This can be defined in the `tfvars` files in the `environment` directory.
 
+One required variable is `TF_VAR_frontend_repo_location` which is required to tell terraform where the repo is located on your system, the default is the location it is found in the gitlab runner.
+
 when using tfvars they are similar to other var references but passed in from the main file. so you may end up with a chain of vars which start in the module as something like `var.name_prefix` then in the `main.tf` file it passes in `var.environment` and the `environment` variable is defined in the tfvar file.
 
 you can also pass in variables as environment variables. to do this you create the variable with the prefix of `TF_VAR_` so for environment you would use `TF_VAR_environment`. This is useful when you need to pass in a secret value.

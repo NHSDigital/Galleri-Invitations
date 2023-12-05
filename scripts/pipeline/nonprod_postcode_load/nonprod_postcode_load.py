@@ -2,6 +2,7 @@ import csv
 import os
 import boto3
 
+ENVIRONMENT = os.getenv("ENVIRONMENT")
 
 def generate_nonprod_lsoa_json(file_path, table_name):
     with open(file_path, "r", encoding="utf-8-sig") as file:
@@ -79,8 +80,6 @@ def batch_write_to_dynamodb(lsoa_data):
         dynamodb_client.transact_write_items(TransactItems=test_data)
     return "Finished"
 
-
-ENVIRONMENT = os.getenv("environment")
 
 if __name__ == "__main__":
     # read in data and generate the json output
