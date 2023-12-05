@@ -144,6 +144,17 @@ export async function updateClinicFields(clinicInfo, invitesSent, client) {
 
   const newAvailability = appRemaining - targetNoAppsToFill;
 
+  const date = new Date(Date.now());
+  const options = {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
+  const formattedDate = date
+    .toLocaleDateString("en-GB", options)
+    .replace(/,/g, "");
+
   const input = {
     ExpressionAttributeNames: {
       "#TARGET_FILL": "TargetFillToPercentage",
@@ -160,7 +171,7 @@ export async function updateClinicFields(clinicInfo, invitesSent, client) {
         N: `${rangeSelected}`,
       },
       ":inviteDate": {
-        S: `${Date.now()}`,
+        S: `${formattedDate}`,
       },
       ":inviteSent": {
         N: `${invitesSent}`,
@@ -172,6 +183,9 @@ export async function updateClinicFields(clinicInfo, invitesSent, client) {
     Key: {
       ClinicId: {
         S: `${clinicId}`,
+      },
+      ClinicName: {
+        S: `${clinicName}`,
       },
     },
     TableName: `${ENVIRONMENT}-PhlebotomySite`,
