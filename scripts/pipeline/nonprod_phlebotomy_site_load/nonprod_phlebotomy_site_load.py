@@ -9,7 +9,7 @@ import random
 import time
 from random_word import RandomWords
 
-ENVIRONMENT = os.getenv("environment")
+ENVIRONMENT = os.getenv("ENVIRONMENT")
 
 def generate_nonprod_data(table_name):
     dynamodb_json_object = create_data_set(table_name)

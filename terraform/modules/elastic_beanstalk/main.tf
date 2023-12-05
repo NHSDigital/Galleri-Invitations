@@ -160,4 +160,76 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     name      = "PORT"
     value     = 8080
   }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_ENVIRONMENT"
+    value     = var.environment
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_QUINTILES"
+    value     = var.NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_QUINTILES
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_CLINIC_ICB_LIST"
+    value     = var.NEXT_PUBLIC_CLINIC_ICB_LIST
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_INVITATION_PARAMETERS"
+    value     = var.NEXT_PUBLIC_INVITATION_PARAMETERS
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_CLINIC_INFORMATION"
+    value     = var.NEXT_PUBLIC_CLINIC_INFORMATION
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_FORECAST_UPTAKE"
+    value     = var.NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_FORECAST_UPTAKE
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_PARTICIPATING_ICB_LIST"
+    value     = var.NEXT_PUBLIC_PARTICIPATING_ICB_LIST
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_CALCULATE_NUM_TO_INVITE"
+    value     = var.NEXT_PUBLIC_CALCULATE_NUM_TO_INVITE
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_GET_LSOA_IN_RANGE"
+    value     = var.NEXT_PUBLIC_GET_LSOA_IN_RANGE
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_PUT_TARGET_PERCENTAGE"
+    value     = var.NEXT_PUBLIC_PUT_TARGET_PERCENTAGE
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_CLINIC_SUMMARY_LIST"
+    value     = var.NEXT_PUBLIC_CLINIC_SUMMARY_LIST
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_TARGET_PERCENTAGE"
+    value     = var.NEXT_PUBLIC_TARGET_PERCENTAGE
+  }
 }
