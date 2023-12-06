@@ -830,7 +830,6 @@ resource "aws_dynamodb_table_item" "quintileTargets" {
   "QUINTILE_4": {"N": "20"},
   "QUINTILE_5": {"N": "20"},
   "FORECAST_UPTAKE": {"N": "50"},
-  "TARGET_PERCENTAGE": {"N": "50"},
   "LAST_UPDATE": {"S": "2023-11-18 15:55:44.432942"}
 }
 ITEM
