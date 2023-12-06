@@ -3,7 +3,7 @@ import os
 import boto3
 from random import randrange
 
-ENVIRONMENT = os.getenv("ENVIRONMENT")
+ENVIRONMENT = os.getenv("environment")
 
 
 def generate_nonprod_lsoa_json(file_path, table_name):
