@@ -31,7 +31,11 @@ export const handler = async (event, context) => {
       personIdentifiedArray,
       client
     );
-    const responsePhlebotomySite = await updateClinicFields(clinicInfo, client);
+    const responsePhlebotomySite = await updateClinicFields(
+      clinicInfo,
+      personIdentifiedArray.length,
+      client
+    );
 
     const SUCCESSFULL_REPSONSE = 200;
 
@@ -128,12 +132,36 @@ export async function updatePersonsToBeInvited(recordArray, client) {
   );
 }
 
-export async function updateClinicFields(clinicInfo, client) {
-  const { clinicId, clinicName, rangeSelected, targetPercentage } = clinicInfo;
+export async function updateClinicFields(clinicInfo, invitesSent, client) {
+  const {
+    clinicId,
+    clinicName,
+    rangeSelected,
+    targetPercentage,
+    targetNoAppsToFill,
+    appRemaining,
+  } = clinicInfo;
+
+  const newAvailability = Number(appRemaining) - Number(targetNoAppsToFill);
+
+  const date = new Date(Date.now());
+  const options = {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
+  const formattedDate = date
+    .toLocaleDateString("en-GB", options)
+    .replace(/,/g, "");
+
   const input = {
     ExpressionAttributeNames: {
-      "#TARGETFILL": "TargetFillToPercentage",
+      "#TARGET_FILL": "TargetFillToPercentage",
       "#RANGE": "LastSelectedRange",
+      "#INVITE_DATE": "PrevInviteDate",
+      "#INVITE_SENT": "InvitesSent",
+      "#AVAILABILITY": "Availability",
     },
     ExpressionAttributeValues: {
       ":targetPercentage": {
@@ -141,6 +169,15 @@ export async function updateClinicFields(clinicInfo, client) {
       },
       ":rangeSelected": {
         N: `${rangeSelected}`,
+      },
+      ":inviteDate": {
+        S: `${formattedDate}`,
+      },
+      ":inviteSent": {
+        N: `${invitesSent}`,
+      },
+      ":availability": {
+        N: `${newAvailability}`,
       },
     },
     Key: {
@@ -152,8 +189,12 @@ export async function updateClinicFields(clinicInfo, client) {
       },
     },
     TableName: `${ENVIRONMENT}-PhlebotomySite`,
-    UpdateExpression:
-      "SET #TARGETFILL = :targetPercentage, #RANGE = :rangeSelected",
+    UpdateExpression: `SET
+        #TARGET_FILL = :targetPercentage,
+        #RANGE = :rangeSelected,
+        #INVITE_DATE = :inviteDate,
+        #INVITE_SENT = :inviteSent,
+        #AVAILABILITY = :availability`,
   };
   const command = new UpdateItemCommand(input);
   const response = await client.send(command);
