@@ -142,7 +142,7 @@ export async function updateClinicFields(clinicInfo, invitesSent, client) {
     appRemaining,
   } = clinicInfo;
 
-  const newAvailability = appRemaining - targetNoAppsToFill;
+  const newAvailability = Number(appRemaining) - Number(targetNoAppsToFill);
 
   const date = new Date(Date.now());
   const options = {
