@@ -8,7 +8,6 @@ import {
 } from "@aws-sdk/client-api-gateway";
 import assert from "assert";
 
-const region = "eu-west-2";
 const environment = process.env.environment;
 
 let logLevel = process.env.LOG_LEVEL || "DEBUG";
@@ -278,7 +277,7 @@ const invitationParameters = {
     QUINTILE_2: { N: "20" },
     QUINTILE_1: { N: "20" },
   },
-  expected_response_count: 8,
+  expected_response_count: 9,
   query_string: null,
 };
 const participatingIcbList = {
@@ -409,9 +408,9 @@ const buildUrl = async ({ apiList, api }) => {
     let invokeUrl;
     // Construct the invoke URL
     if (api.query_string) {
-      invokeUrl = `https://${apiId}.execute-api.${region}.amazonaws.com/${environment}/${resourcePath}${api.query_string}`;
+      invokeUrl = `https://${apiId}.execute-api.eu-west-2.amazonaws.com/${environment}/${resourcePath}${api.query_string}`;
     } else {
-      invokeUrl = `https://${apiId}.execute-api.${region}.amazonaws.com/${environment}/${resourcePath}`;
+      invokeUrl = `https://${apiId}.execute-api.eu-west-2.amazonaws.com/${environment}/${resourcePath}`;
     }
     return invokeUrl;
   } else {
