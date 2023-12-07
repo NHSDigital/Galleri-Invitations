@@ -4,6 +4,8 @@ import {
   QueryCommand,
 } from "@aws-sdk/client-dynamodb";
 
+import { generateBatchID } from "../helper/generateParticipantId"
+
 const client = new DynamoDBClient({ region: "eu-west-2" });
 
 const ENVIRONMENT = process.env.ENVIRONMENT;
@@ -122,6 +124,9 @@ export async function updateRecord(record, client) {
 }
 
 export async function updatePersonsToBeInvited(recordArray, client) {
+  // create a batch id
+  // assign it to records array
+  const batchId = generateBatchID()
   const validParticipants = recordArray.filter((record) => {
     return record !== null;
   });
