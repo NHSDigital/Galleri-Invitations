@@ -95,6 +95,18 @@ jobs:
         if: inputs.tf_action == 'apply'
         run: |
           echo "Deploying application..."
+  test-backend:
+    runs-on: ubuntu-latest
+    needs: environment-set-up
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: "install packages"
+        run: |
+          npm i
+      - name: "run tests"
+        run: |
+          npm run test-api
   # test-contract:
   #   runs-on: ubuntu-latest
   #   needs: environment-set-up
