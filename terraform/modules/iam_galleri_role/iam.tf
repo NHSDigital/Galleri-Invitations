@@ -347,6 +347,57 @@ resource "aws_iam_policy" "iam_policy_for_generate_invites_lambda" {
           "Resource" : [
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population"
           ]
+        },
+        {
+          "Sid" : "AllowEpisodeDynamodbAccess",
+          "Effect" : "Allow",
+          "Action" : [
+            "dynamodb:*"
+          ],
+          "Resource" : [
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Episode"
+          ]
+        }
+      ],
+      "Version" : "2012-10-17"
+  })
+}
+
+resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
+  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_create_episode_record_lambda_role"
+  path        = "/"
+  description = "AWS IAM Policy for managing aws lambda create episode record role"
+  policy = jsonencode(
+    {
+      "Statement" : [
+        {
+          "Action" : [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+          ],
+          "Effect" : "Allow",
+          "Resource" : "arn:aws:logs:*:*:*"
+        },
+        {
+          "Sid" : "AllowPhlebotomySiteDynamodbAccess",
+          "Effect" : "Allow",
+          "Action" : [
+            "dynamodb:*"
+          ],
+          "Resource" : [
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population"
+          ]
+        },
+        {
+          "Sid" : "AllowPopulationDynamodbAccess",
+          "Effect" : "Allow",
+          "Action" : [
+            "dynamodb:*"
+          ],
+          "Resource" : [
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Episode"
+          ]
         }
       ],
       "Version" : "2012-10-17"
@@ -403,6 +454,10 @@ resource "aws_iam_role_policy_attachment" "generate_invites_policy" {
   policy_arn = aws_iam_policy.iam_policy_for_generate_invites_lambda.arn
 }
 
+# resource "aws_iam_role_policy_attachment" "create_episode_record_policy" {
+#   role       = aws_iam_role.galleri_lambda_role.name
+#   policy_arn = aws_iam_policy.iam_policy_for_create_episode_record_lambda.arn
+# }
 
 resource "aws_iam_role" "api_gateway_logging_role" {
   name = "${var.environment}-galleri_logging_role"
