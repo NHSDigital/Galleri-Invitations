@@ -365,31 +365,14 @@ const invitationParametersPutQuintiles = {
   resource_path: "invitation-parameters-put-quintiles",
   method: "PUT",
   expected_status_code: 200,
-  expected_response: {
-    LAST_UPDATE: { S: "2023-11-18 15:55:44.432942" },
-    QUINTILE_4: { N: "20" },
-    CONFIG_ID: { N: "1" },
-    QUINTILE_3: { N: "20" },
-    QUINTILE_5: { N: "20" },
-    FORECAST_UPTAKE: { N: "50" },
-    QUINTILE_2: { N: "20" },
-    QUINTILE_1: { N: "20" },
-  },
+  expected_response: { quintiles: ["20", "20", "20", "20", "20"] },
   query_string: null,
-  payload: {
-    LAST_UPDATE: { S: "2023-11-18 15:55:44.432942" },
-    QUINTILE_4: { N: "20" },
-    CONFIG_ID: { N: "1" },
-    QUINTILE_3: { N: "20" },
-    QUINTILE_5: { N: "20" },
-    FORECAST_UPTAKE: { N: "50" },
-    QUINTILE_2: { N: "20" },
-    QUINTILE_1: { N: "20" },
-  },
+  payload: { quintiles: ["20", "20", "20", "20", "20"] },
 };
-const putTargetPercentage = {
-  name: "invitation-parameters",
-  resource_path: "invitation-parameters",
+
+const invitationParametersPutForecastUptake = {
+  name: "invitation-parameters-put-quintiles",
+  resource_path: "invitation-parameters-put-quintiles",
   method: "PUT",
   expected_status_code: 200,
   expected_response: {
@@ -403,16 +386,7 @@ const putTargetPercentage = {
     QUINTILE_1: { N: "20" },
   },
   query_string: null,
-  payload: {
-    LAST_UPDATE: { S: "2023-11-18 15:55:44.432942" },
-    QUINTILE_4: { N: "20" },
-    CONFIG_ID: { N: "1" },
-    QUINTILE_3: { N: "20" },
-    QUINTILE_5: { N: "20" },
-    FORECAST_UPTAKE: { N: "50" },
-    QUINTILE_2: { N: "20" },
-    QUINTILE_1: { N: "20" },
-  },
+  payload: { forecastUptake: 50 },
 };
 
 const getApiId = async () => {
@@ -500,10 +474,11 @@ await apiCall({ apiList: apiList, api: targetPercentage });
 
 // POST requests
 await apiCall({ apiList: apiList, api: calculateNumberToInvite });
-// await apiCall({ apiList: apiList, api: generateInvites });
+await apiCall({ apiList: apiList, api: generateInvites });
 
 // PUT requests
-// await apiCall({ apiList: apiList, api: invitationParametersPutQuintiles });
-// await apiCall({ apiList: apiList, api: putTargetPercentage });
+await apiCall({ apiList: apiList, api: invitationParametersPutQuintiles });
+// invitationParametersPutForecastUptake is failing with lambda permission error
+// await apiCall({ apiList: apiList, api: invitationParametersPutForecastUptake });
 
 // log.debug(apiList);
