@@ -1,0 +1,30 @@
+name: "Seeding Table Data"
+description: "Populates tables with test data"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Git checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Configure AWS credentials from AWS account
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: ${{ env.AWS_ROLE_ARN }}
+        aws-region: ${{ env.AWS_REGION }}
+        role-session-name: GitHub-OIDC-TERRAFORM
+
+    - name: checkout
+      uses: actions/checkout@v4
+
+    - name: "install packages"
+      shell: bash
+      run: |
+        npm i
+
+    - name: "run tests"
+      shell: bash
+      run: |
+        npm run test-api
