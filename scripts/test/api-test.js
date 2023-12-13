@@ -277,7 +277,7 @@ const invitationParameters = {
     QUINTILE_2: { N: "20" },
     QUINTILE_1: { N: "20" },
   },
-  expected_response_count: 9,
+  expected_response_count: 8,
   query_string: null,
 };
 const participatingIcbList = {
@@ -318,7 +318,7 @@ const targetPercentage = {
   resource_path: "target-percentage",
   method: "GET",
   expected_status_code: 200,
-  expected_response: "test",
+  expected_response: {},
   query_string: null,
 };
 // POST
@@ -328,7 +328,17 @@ const calculateNumberToInvite = {
   method: "POST",
   expected_status_code: 200,
   expected_response: "test",
+  expected_response_count: 2,
   query_string: null,
+  payload: {
+    targetAppsToFill: 10,
+    lsoaCodes: {
+      E01000005: {
+        IMD_DECILE: "3",
+        FORECAST_UPTAKE: "23",
+      },
+    },
+  },
 };
 const generateInvites = {
   name: "generate-invites",
@@ -337,12 +347,23 @@ const generateInvites = {
   expected_status_code: 200,
   expected_response: "test",
   query_string: "?selectedParticipants=9000211252",
+  payload: {
+    selectedParticipants: ["9000211252"],
+    clinicInfo: {
+      clinicId: "CC51F831",
+      clinicName: "Phlebotomy clinic 5",
+      rangeSelected: 1,
+      targetPercentage: "50",
+      targetNoAppsToFill: 160,
+      appRemaining: "321",
+    },
+  },
 };
 // PUT
 const invitationParametersPutQuintiles = {
-  name: "invitation-parameters",
-  resource_path: "invitation-parameters",
-  method: "GET",
+  name: "invitation-parameters-put-quintiles",
+  resource_path: "invitation-parameters-put-quintiles",
+  method: "PUT",
   expected_status_code: 200,
   expected_response: {
     LAST_UPDATE: { S: "2023-11-18 15:55:44.432942" },
@@ -355,11 +376,21 @@ const invitationParametersPutQuintiles = {
     QUINTILE_1: { N: "20" },
   },
   query_string: null,
+  payload: {
+    LAST_UPDATE: { S: "2023-11-18 15:55:44.432942" },
+    QUINTILE_4: { N: "20" },
+    CONFIG_ID: { N: "1" },
+    QUINTILE_3: { N: "20" },
+    QUINTILE_5: { N: "20" },
+    FORECAST_UPTAKE: { N: "50" },
+    QUINTILE_2: { N: "20" },
+    QUINTILE_1: { N: "20" },
+  },
 };
 const putTargetPercentage = {
   name: "invitation-parameters",
   resource_path: "invitation-parameters",
-  method: "GET",
+  method: "PUT",
   expected_status_code: 200,
   expected_response: {
     LAST_UPDATE: { S: "2023-11-18 15:55:44.432942" },
@@ -372,6 +403,16 @@ const putTargetPercentage = {
     QUINTILE_1: { N: "20" },
   },
   query_string: null,
+  payload: {
+    LAST_UPDATE: { S: "2023-11-18 15:55:44.432942" },
+    QUINTILE_4: { N: "20" },
+    CONFIG_ID: { N: "1" },
+    QUINTILE_3: { N: "20" },
+    QUINTILE_5: { N: "20" },
+    FORECAST_UPTAKE: { N: "50" },
+    QUINTILE_2: { N: "20" },
+    QUINTILE_1: { N: "20" },
+  },
 };
 
 const getApiId = async () => {
@@ -419,16 +460,16 @@ const buildUrl = async ({ apiList, api }) => {
   }
 };
 
-async function getApi({ apiList, api }) {
+async function apiCall({ apiList, api }) {
   const fullUrl = await buildUrl({ apiList: apiList, api: api });
   let response;
   try {
     if (api.method === "GET") {
       response = await axios.get(fullUrl);
     } else if (api.method === "POST") {
-      response = await axios.post(fullUrl);
+      response = await axios.post(fullUrl, api.payload);
     } else if (api.method === "PUT") {
-      response = await axios.put(fullUrl);
+      response = await axios.put(fullUrl, api.payload);
     }
 
     // log.debug(response.data);
@@ -448,34 +489,21 @@ async function getApi({ apiList, api }) {
 
 const apiList = await getApiId();
 // GET requests
-const clinicIcbListResponse = await getApi({
-  apiList: apiList,
-  api: clinicIcbList,
-});
-const clinicInformationResponse = await getApi({
-  apiList: apiList,
-  api: clinicInformation,
-});
-const clinicSummeryListResponse = await getApi({
-  apiList: apiList,
-  api: clinicSummeryList,
-});
-const getLsoaInRangeResponse = await getApi({
-  apiList: apiList,
-  api: getLsoaInRange,
-});
-const participatingIcbListResponse = await getApi({
-  apiList: apiList,
-  api: participatingIcbList,
-});
-const invitationParametersResponse = await getApi({
-  apiList: apiList,
-  api: invitationParameters,
-});
+await apiCall({ apiList: apiList, api: clinicIcbList });
+await apiCall({ apiList: apiList, api: clinicInformation });
+await apiCall({ apiList: apiList, api: clinicSummeryList });
+await apiCall({ apiList: apiList, api: getLsoaInRange });
+await apiCall({ apiList: apiList, api: participatingIcbList });
+await apiCall({ apiList: apiList, api: invitationParameters });
 // Target Percentage currently unused
-// await getApi({ apiList: apiList, api: targetPercentage });
+await apiCall({ apiList: apiList, api: targetPercentage });
 
 // POST requests
-// await getApi({ apiList: apiList, api: calculateNumberToInvite });
-// await getApi({ apiList: apiList, api: generateInvites });
+await apiCall({ apiList: apiList, api: calculateNumberToInvite });
+// await apiCall({ apiList: apiList, api: generateInvites });
+
+// PUT requests
+// await apiCall({ apiList: apiList, api: invitationParametersPutQuintiles });
+// await apiCall({ apiList: apiList, api: putTargetPercentage });
+
 // log.debug(apiList);
