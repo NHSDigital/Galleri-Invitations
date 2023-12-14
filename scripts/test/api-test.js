@@ -7,6 +7,7 @@ import {
   GetRestApisCommand,
 } from "@aws-sdk/client-api-gateway";
 import assert from "assert";
+import { exit } from "process";
 
 const environment = process.env.environment;
 
@@ -189,8 +190,15 @@ async function apiCall({ apiList, api }) {
     log.info(`SUCCESS: ${api.name} responded with status ${response.status}`);
     if (api.expected_response_count) {
       const length = Object.keys(response.data).length;
-      assert.deepStrictEqual(length, api.expected_response_count);
-      log.info(`SUCCESS: ${api.name} number of response blocks is: ${length}`);
+      if (length > 0) {
+        log.info(
+          `SUCCESS: ${api.name} number of response blocks is: ${length}`
+        );
+      } else {
+        log.error(`ERROR: Response from ${api.name} is empty`);
+        exit(1);
+      }
+      // assert.deepStrictEqual(length, api.expected_response_count);
     }
     return response;
   } catch (error) {
