@@ -56,6 +56,12 @@ module "s3_bucket" {
   environment             = var.environment
 }
 
+module "gp_practices_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "gp-practices-bucket"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
 
 # Data Filter Gridall IMD
 module "data_filter_gridall_imd_lambda" {
@@ -537,6 +543,28 @@ module "generate_invites_api_gateway" {
   environment          = var.environment
 }
 
+# GP Practices Loader
+module "gp_practices_loader_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gpPracticesLoaderLambda"
+  lambda_timeout       = 900
+  memory_size          = 2048
+  lambda_s3_object_key = "gp_practices_loader.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "gp_practices_loader_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gp_practices_loader_lambda.lambda_function_name
+  retention_days       = 14
+}
+
 # Dynamodb tables
 module "sdrs_table" {
   source      = "./modules/dynamodb"
@@ -593,31 +621,11 @@ module "participating_icb_table" {
 module "gp_practice_table" {
   source      = "./modules/dynamodb"
   table_name  = "GpPractice"
-  hash_key    = "GpPracticeId"
-  range_key   = "GpPracticeName"
+  hash_key    = "gp_practice_code"
   environment = var.environment
   attributes = [{
-    name = "GpPracticeId"
+    name = "last_updated_date_time"
     type = "S"
-    },
-    {
-      name = "GpPracticeName"
-      type = "S"
-    },
-    {
-      name = "AddressLine1"
-      type = "S"
-    },
-    {
-      name = "Postcode"
-      type = "S"
-    }
-  ]
-  global_secondary_index = [
-    {
-      name      = "AddressLine1PostcodeIndex"
-      hash_key  = "AddressLine1"
-      range_key = "Postcode"
     }
   ]
   tags = {
