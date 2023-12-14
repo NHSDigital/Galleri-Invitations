@@ -50,7 +50,7 @@ const invitationParameters = {
   resource_path: "invitation-parameters",
   method: "GET",
   expected_status_code: 200,
-  expected_response_count: 8,
+  expected_response_count: 9,
   query_string: null,
 };
 const participatingIcbList = {
