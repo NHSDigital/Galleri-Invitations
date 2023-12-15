@@ -24,7 +24,7 @@ data "aws_iam_policy_document" "allow_access_to_lambda" {
       type = "AWS"
       identifiers = [
         "arn:aws:iam::136293001324:role/github-oidc-invitations-role",
-        "${var.environment}-${var.galleri_lambda_role_arn}"
+        var.galleri_lambda_role_arn
       ]
     }
 
