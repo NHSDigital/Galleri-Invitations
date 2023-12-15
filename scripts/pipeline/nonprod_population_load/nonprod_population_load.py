@@ -1,6 +1,8 @@
 import csv
 import os
 import boto3
+import uuid
+import rstr
 
 ENVIRONMENT = os.getenv("environment")
 
@@ -44,6 +46,7 @@ def format_dynamodb_json(csvreader, table_name):
             sensitivity_indicator_flag = str(row[23])
             Invited = str(row[24])
             lsoa_2011 = str(row[25])
+            participant_id_rand_exp = rstr.xeger(r'NHS-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]')
 
             if nhs_number and lsoa_2011:
                 output.append(
@@ -148,6 +151,9 @@ def format_dynamodb_json(csvreader, table_name):
                                 },
                                 'identified_to_be_invited': {
                                     'BOOL': False
+                                },
+                                'participantId': {
+                                    'S': f'{str(participant_id_rand_exp)}'
                                 }
 
                             },

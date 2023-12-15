@@ -561,13 +561,15 @@ module "create_episode_record_cloudwatch" {
 }
 
 module "create_episode_record_dynamodb_stream" {
-  source               = "./modules/dynamodb_stream"
-  enabled              = true
-  event_source_arn     = module.population_table.dynamodb_stream_arn
-  function_name        = module.create_episode_record_lambda.lambda_function_name
-  starting_position    = "LATEST"
-  batch_size           = 5
+  source                              = "./modules/dynamodb_stream"
+  enabled                             = true
+  event_source_arn                    = module.population_table.dynamodb_stream_arn
+  function_name                       = module.create_episode_record_lambda.lambda_function_name
+  starting_position                   = "LATEST"
+  batch_size                          = 100
+  maximum_batching_window_in_seconds  = 30
 }
+
 # Dynamodb tables
 module "sdrs_table" {
   source      = "./modules/dynamodb"
@@ -771,7 +773,7 @@ module "population_table" {
   secondary_write_capacity = null
   secondary_read_capacity  = null
   environment              = var.environment
-  non_key_attributes       = ["Invited", "date_of_death", "removal_date"]
+  non_key_attributes       = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited"]
   projection_type          = "INCLUDE"
   attributes = [{
     name = "PersonId"
@@ -780,12 +782,21 @@ module "population_table" {
     {
       name = "LsoaCode"
       type = "S"
+    },
+    {
+      name = "Batch_Id"
+      type = "S"
     }
   ]
   global_secondary_index = [
     {
       name      = "LsoaCode-index"
       hash_key  = "LsoaCode"
+      range_key = null
+    },
+    {
+      name      = "BatchId-index"
+      hash_key  = "Batch_Id"
       range_key = null
     }
   ]
@@ -872,20 +883,29 @@ module "episode_table" {
   source                   = "./modules/dynamodb"
   billing_mode             = "PROVISIONED"
   table_name               = "Episode"
-  hash_key                 = "EpisodeId"
-  range_key                = "BatchId"
+  hash_key                 = "Batch_Id"
+  range_key                = "Participant_Id"
   read_capacity            = 10
   write_capacity           = 10
-  secondary_write_capacity = null
-  secondary_read_capacity  = null
+  secondary_write_capacity = 10
+  secondary_read_capacity  = 10
   environment              = var.environment
-  attributes = [{
-    name = "EpisodeId"
-    type = "S"
+  projection_type          = "KEYS_ONLY"
+  attributes = [
+    {
+      name = "Batch_Id"
+      type = "S"
     },
     {
-      name = "BatchId"
+      name = "Participant_Id"
       type = "S"
+    }
+  ]
+  global_secondary_index = [
+    {
+      name      = "ParticipantId-index"
+      hash_key  = "Participant_Id"
+      range_key = null
     }
   ]
   tags = {

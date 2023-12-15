@@ -357,6 +357,16 @@ resource "aws_iam_policy" "iam_policy_for_generate_invites_lambda" {
           "Resource" : [
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Episode"
           ]
+        },
+        {
+          "Sid" : "AllowEpisodeQueryDynamodbAccess",
+          "Effect" : "Allow",
+          "Action" : [
+            "dynamodb:*"
+          ],
+          "Resource" : [
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Episode/*/*"
+          ]
         }
       ],
       "Version" : "2012-10-17"
@@ -390,13 +400,23 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
           ]
         },
         {
-          "Sid" : "AllowPopulationDynamodbAccess",
+          "Sid" : "AllowEpisodeDynamodbAccess",
           "Effect" : "Allow",
           "Action" : [
             "dynamodb:*"
           ],
           "Resource" : [
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Episode"
+          ]
+        },
+        {
+          "Sid" : "AllowEpisodeQueryDynamodbAccess",
+          "Effect" : "Allow",
+          "Action" : [
+            "dynamodb:*"
+          ],
+          "Resource" : [
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Episode/*/*"
           ]
         }
       ],
