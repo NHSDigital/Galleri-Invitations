@@ -95,7 +95,7 @@ describe("getItemFromTable", () => {
     expect(result).toEqual(item);
   });
 
-  test("Failed response when error occurs getting item for key", async () => {
+  test("return undefined when key not found", async () => {
     const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
     mockDynamoDbClient.resolves({
@@ -105,11 +105,9 @@ describe("getItemFromTable", () => {
     });
 
     const postcode = "postcode";
-    try {
-      await getItemFromTable(postcode, "env", mockDynamoDbClient);
-    } catch(err) {
-      expect(err.message).toEqual(`Error looking up item: ${postcode}`);
-    }
+
+    const result = await getItemFromTable(postcode, "env", mockDynamoDbClient);
+    expect(result).toEqual(undefined);
   });
 });
 

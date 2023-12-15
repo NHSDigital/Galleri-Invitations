@@ -16,7 +16,7 @@ from 'stream';
 import csv from 'csv-parser';
 
 const s3 = new S3Client();
-const dbClient = new DynamoDBClient();
+const dbClient = new DynamoDBClient({ convertEmptyValues: true });
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
 export const readCsvFromS3 = async(bucketName, key, client) => {
@@ -117,7 +117,7 @@ export const saveArrayToTable = async(dataArray, environment, client) => {
                       "S": item["Legal End Date"]
                   },
                   ":lsoa": {
-                      "S": lsoa.LSOA_2011.S
+                      "S": lsoa ? lsoa.LSOA_2011.S : ""
                   },
                   ":updated": {
                       "S": dateTime
@@ -149,11 +149,7 @@ export const getItemFromTable = async(key, environment, client) => {
   };
   const getCommand = new GetItemCommand(getParams);
   const response = await client.send(getCommand);
-  if (!response.Item) {
-    throw new Error(`Error looking up item: ${key}`);
-  } else {
-    return response.Item;
-  }
+  return response.Item;
 };
 
 export const handler = async(event) => {
