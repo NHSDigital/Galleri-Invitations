@@ -624,7 +624,7 @@ module "gp_practice_table" {
   hash_key    = "gp_practice_code"
   environment = var.environment
   attributes = [{
-    name = "last_updated_date_time"
+    name = "gp_practice_code"
     type = "S"
     }
   ]
