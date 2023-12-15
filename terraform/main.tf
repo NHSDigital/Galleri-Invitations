@@ -58,7 +58,7 @@ module "s3_bucket" {
 
 module "gp_practices_bucket" {
   source                  = "./modules/s3"
-  bucket_name             = "${var.environment}-gp-practices-bucket"
+  bucket_name             = "gp-practices-bucket"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
