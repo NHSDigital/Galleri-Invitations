@@ -29,13 +29,13 @@ export const readCsvFromS3 = async(bucketName, key, client) => {
 
       return response.Body.transformToString();
   } catch (err) {
-      console.log(`Reading object ${key} from bucket ${bucketName}: ${err}`);
+      console.error(`Error reading object ${key} from bucket ${bucketName}: ${err}`);
       throw err;
   }
 };
 
 export const parseCsvToArray = async(csvString) => {
-  console.log(`Parsing csv string ${csvString}`);
+  console.log('Parsing csv string');
   const dataArray = [];
   let row_counter = 0;
 
@@ -128,10 +128,8 @@ export const saveArrayToTable = async(dataArray, environment, client) => {
           };
           const command = new UpdateItemCommand(params);
           const response = await client.send(command);
-          if (response.$metadata.httpStatusCode == 200) {
-              console.log(`Updated item: ${JSON.stringify(item)}`);
-          } else {
-              console.log(`Error inserted item: ${JSON.stringify(item)}`);
+          if (response.$metadata.httpStatusCode !== 200) {
+              console.error(`Error inserted item: ${JSON.stringify(item)}`);
           }
       }));
 };

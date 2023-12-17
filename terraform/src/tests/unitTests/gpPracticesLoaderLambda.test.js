@@ -52,7 +52,7 @@ describe("readCsvFromS3", () => {
 
     const logErrorMsg = `Reading object ${key} from bucket ${bucket}`
     expect(logSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledTimes(2);
+    expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith(logErrorMsg);
 
   });
@@ -156,12 +156,12 @@ describe("saveArrayToTable", () => {
     const itemArray = [arrayItem];
     await saveArrayToTable(itemArray, "env", mockDynamoDbClient);
     expect(logSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenCalledWith(`Updated item: ${JSON.stringify(arrayItem)}`);
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledWith('Populating database table');
   });
 
   test("Failed response when error occurs saving array items to table", async () => {
-    const logSpy = jest.spyOn(global.console, 'log');
+    const logSpy = jest.spyOn(global.console, 'error');
     const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
     const postcodeItem = {
@@ -201,7 +201,7 @@ describe("saveArrayToTable", () => {
     const itemArray = [arrayItem];
     await saveArrayToTable(itemArray, "env", mockDynamoDbClient);
     expect(logSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledTimes(2);
+    expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith(`Error inserted item: ${JSON.stringify(arrayItem)}`);
   });
 });
