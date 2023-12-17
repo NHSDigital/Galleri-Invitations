@@ -619,15 +619,15 @@ module "participating_icb_table" {
 }
 
 module "gp_practice_table" {
-  source                    = "./modules/dynamodb"
-  billing_mode              = "PAY_PER_REQUEST"
-  table_name                = "GpPractice"
-  hash_key                  = "gp_practice_code"
-  environment               = var.environment
-  read_capacity             = null
-  write_capacity            = null
-  secondary_write_capacity  = null
-  secondary_read_capacity   = null
+  source                   = "./modules/dynamodb"
+  billing_mode             = "PAY_PER_REQUEST"
+  table_name               = "GpPractice"
+  hash_key                 = "gp_practice_code"
+  environment              = var.environment
+  read_capacity            = null
+  write_capacity           = null
+  secondary_write_capacity = null
+  secondary_read_capacity  = null
   attributes = [{
     name = "gp_practice_code"
     type = "S"
