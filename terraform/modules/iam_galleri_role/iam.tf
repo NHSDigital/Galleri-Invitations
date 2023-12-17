@@ -70,7 +70,8 @@ resource "aws_iam_policy" "clinic_information_lambda" {
           ],
           "Resource" : [
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite",
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GpPractice"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GpPractice",
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Postcode"
           ]
         }
       ],
