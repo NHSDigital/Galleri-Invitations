@@ -69,7 +69,37 @@ resource "aws_iam_policy" "clinic_information_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite",
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite"
+          ]
+        }
+      ],
+      "Version" : "2012-10-17"
+  })
+}
+
+resource "aws_iam_policy" "gp_practice_loader_lambda" {
+  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_gp_practices_loader_lambda_role"
+  path        = "/"
+  description = "AWS IAM Policy for loading gp practices role"
+  policy = jsonencode(
+    {
+      "Statement" : [
+        {
+          "Action" : [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+          ],
+          "Effect" : "Allow",
+          "Resource" : "arn:aws:logs:*:*:*"
+        },
+        {
+          "Sid" : "AllowDynamodbAccess",
+          "Effect" : "Allow",
+          "Action" : [
+            "dynamodb:*"
+          ],
+          "Resource" : [
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GpPractice",
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Postcode"
           ]
