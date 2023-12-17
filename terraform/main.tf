@@ -716,20 +716,15 @@ module "postcode_table" {
     {
       name = "IMD_RANK"
       type = "N"
-    },
-    {
-      name = "IMD_DECILE"
-      type = "N"
-    }
+    }#,
+    #{
+    #  name = "IMD_DECILE"
+    #  type = "N"
+    #}
   ]
   global_secondary_index = [
     {
       name      = "POSTCODE"
-      hash_key  = "IMD_RANK"
-      range_key = "IMD_DECILE"
-    },
-    {
-      name      = "POSTCODEONLY"
       hash_key  = "POSTCODE"
     }
   ]
