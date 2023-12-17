@@ -727,6 +727,10 @@ module "postcode_table" {
       name      = "POSTCODE"
       hash_key  = "IMD_RANK"
       range_key = "IMD_DECILE"
+    },
+    {
+      name      = "POSTCODEONLY"
+      hash_key  = "POSTCODE"
     }
   ]
   tags = {
