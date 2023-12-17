@@ -703,7 +703,6 @@ module "postcode_table" {
   billing_mode             = "PAY_PER_REQUEST"
   table_name               = "Postcode"
   hash_key                 = "POSTCODE"
-  range_key                = "IMD_RANK"
   environment              = var.environment
   read_capacity            = null
   write_capacity           = null
@@ -712,16 +711,6 @@ module "postcode_table" {
   attributes = [{
     name = "POSTCODE"
     type = "S"
-    },
-    {
-      name = "IMD_RANK"
-      type = "N"
-    }
-  ]
-  global_secondary_index = [
-    {
-      name      = "POSTCODE"
-      hash_key  = "POSTCODE"
     }
   ]
   tags = {
