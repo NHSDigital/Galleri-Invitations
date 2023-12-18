@@ -54,11 +54,8 @@ function main() {
   if [[ $? -eq 0 ]] && [[ $PHLEBOTOMY_CLINIC_DATA_COUNT =~ ^[0-9]+$ ]]; then
     if (($PHLEBOTOMY_CLINIC_DATA_COUNT < 100)); then
       # echo Initiating upload of Phlebotomy clinic data to database
-      # mkdir nonprod-phlebotomy-site-load
-      # aws s3 cp s3://galleri-ons-data/lsoa_data/lsoa_with_avg_easting_northing.csv ./nonprod-postcode-load
       echo Uploading items to Phlebotomy clinic database
-      # python $PWD/scripts/pipeline/nonprod_phlebotomy_site_load/nonprod_phlebotomy_site_load.py
-      aws dynamodb batch-write-item --request-items file://$PWD/scripts/pipeline/nonprod_phlebotomy_site_load/PhlebotomySite.json
+      python $PWD/scripts/pipeline/nonprod_phlebotomy_site_load/nonprod_phlebotomy_site_load.py
       echo Succefully uploaded Phlebotomy clinic data to database
     else
       echo PhlebotomySite table already populated
