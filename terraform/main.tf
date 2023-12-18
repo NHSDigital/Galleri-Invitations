@@ -51,14 +51,14 @@ module "iam_galleri_lambda_role" {
 
 module "s3_data_bucket" {
   source                  = "./modules/s3"
-  bucket_name             = "galleri-ons-data"
+  bucket_name             = var.bucket_name
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
 
-module "ons_bucket" {
+module "test_data_bucket" {
   source                  = "./modules/s3"
-  bucket_name             = var.bucket_name
+  bucket_name             = "galleri-test-data"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
