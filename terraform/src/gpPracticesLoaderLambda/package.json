@@ -1,0 +1,10 @@
+{
+  "name": "gpPracticesLoaderLambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "gpPracticesLoaderLambda.js",
+  "author": "",
+  "dependencies": {
+    "csv-parser": "^3.0.0"
+  }
+}
