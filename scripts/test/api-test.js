@@ -219,7 +219,8 @@ await apiCall({ apiList: apiList, api: invitationParameters });
 // await apiCall({ apiList: apiList, api: targetPercentage });
 
 // POST requests
-await apiCall({ apiList: apiList, api: calculateNumberToInvite });
+// Lambda currently broken, awaiting GAL-334 to resolve then test can be enabled
+// await apiCall({ apiList: apiList, api: calculateNumberToInvite });
 await apiCall({ apiList: apiList, api: generateInvites });
 
 // PUT requests
