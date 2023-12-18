@@ -11,7 +11,6 @@ from random_word import RandomWords
 
 ENVIRONMENT = os.getenv("environment")
 
-
 def generate_nonprod_data(table_name):
     dynamodb_json_object = create_data_set(table_name)
     batch_write_to_dynamodb(dynamodb_json_object)

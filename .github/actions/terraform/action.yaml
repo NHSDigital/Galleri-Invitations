@@ -7,7 +7,7 @@ runs:
     - name: Git checkout
       uses: actions/checkout@v4
       with:
-        ref: ${{ env.branch }}
+        ref: ${{ env.invitations-branch }}
         path: "Galleri-Invitations"
 
     - name: Checkout frontend
@@ -15,7 +15,7 @@ runs:
       with:
         path: "Galleri-Frontend"
         repository: NHSDigital/Galleri-Frontend
-        ref: main
+        ref: ${{ env.frontend-branch }}
 
     - name: Configure AWS credentials from AWS account
       uses: aws-actions/configure-aws-credentials@v2
@@ -23,6 +23,12 @@ runs:
         role-to-assume: ${{ env.role-to-assume }}
         aws-region: ${{ env.aws-region }}
         role-session-name: GitHub-OIDC-TERRAFORM
+
+    - name: Derive environment-type
+      id: environment-type
+      shell: bash
+      run: |
+        echo "environment-type=$(echo '${{ env.environment }}' | cut -f1 -d'-')" >> $GITHUB_OUTPUT
 
     - name: setup variables for nextjs
       shell: bash
@@ -60,9 +66,15 @@ runs:
       id: workspace
       shell: bash
       run: |
+        # Prevent step failing on exit code != 0
+        set +e
         cd ./terraform
         if [ "${{ env.environment }}" != "dev" ]; then
-        terraform workspace select ${{ env.environment }}
+          terraform workspace select ${{ env.environment }}
+          if [ $? != 0 ]; then
+            terraform workspace new ${{ env.environment }}
+            terraform workspace select ${{ env.environment }}
+          fi
         fi
 
     - name: Terraform Validate
@@ -77,7 +89,7 @@ runs:
       shell: bash
       run: |
         cd ./terraform
-        terraform plan -no-color -var-file=environment/${{ env.environment }}/${{ env.environment }}.tfvars
+        terraform plan -no-color -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars
 
     - name: Terraform Plan Status
       if: steps.plan.outcome == 'failure'
@@ -86,7 +98,7 @@ runs:
         echo Terraform Plan Status has failed
         exit 1
 
-    - name: Terraform Apply
+    - name: Terraform ${{ env.tf-action }}
       shell: bash
       run: |
         cd ./terraform
@@ -105,4 +117,4 @@ runs:
         npm install --prefix src/getLsoaParticipantsLambda
         npm install --prefix src/calculateNumberToInviteLambda
         npm install --prefix src/generateInvitesTriggerLambda
-        terraform ${{ env.tf-action }} -auto-approve -input=false -var-file=environment/${{ env.environment }}/${{ env.environment }}.tfvars
+        terraform ${{ env.tf-action }} -auto-approve -input=false -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars

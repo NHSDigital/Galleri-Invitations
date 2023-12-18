@@ -4,7 +4,6 @@ import boto3
 
 ENVIRONMENT = os.getenv("environment")
 
-
 def generate_nonprod_lsoa_json(file_path, table_name):
     with open(file_path, "r", encoding="utf-8-sig") as file:
         csvreader = csv.reader(file)
