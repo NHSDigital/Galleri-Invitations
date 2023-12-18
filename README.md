@@ -98,7 +98,7 @@ So if we have a module defined in the main branch which is called `my-api` which
 
 ## Contacts
 
-Maintainers: David Lavender, Zain Malik, Mandeep Sandhu, Andrew Cleveland
+Maintainers: David Lavender, Zain Malik, Mandeep Sandhu, Andrew Cleveland, Cheng Lawson
 
 ## Licence
 
