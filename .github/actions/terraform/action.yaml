@@ -35,7 +35,7 @@ runs:
       run: |
         apis=$(aws apigateway get-rest-apis)
         while read -r id name; do
-            if [[ $name == dev-* ]]; then
+            if [[ $name == ${{ env.environment }}-* ]]; then
                 env_name=$(echo "$name" | sed 's/^dev-//' | tr '[:lower:]-' '[:upper:]_')
                 export "NEXT_PUBLIC_$env_name=$id"
                 echo "API ID: NEXT_PUBLIC_$env_name=\"$id\""
