@@ -147,7 +147,8 @@ def create_data_set(table_name):
         random_word = RandomWords().get_random_word()
 
         icd_code = random.choice(participating_icbs)
-        postcode = random.choice(icb_postcodes[icd_code]) #rstr.xeger(r"([A-Z]){2}([0-20]) [0-9][A-Z]{2}")
+        #postcode = rstr.xeger(r"([A-Z]){2}([0-20]) [0-9][A-Z]{2}")
+        postcode = random.choice(icb_postcodes[icd_code])
         clinic_id = rstr.xeger(r"([A-Z]){2}([0-9]){2}([A-Z])([0-9]){3}")
         clinic_name = f"Phlebotomy clinic {str(i)}"
         address = f"{str(i)} {str(random_word)} {random.choice(street_variation)} , \
