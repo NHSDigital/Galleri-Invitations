@@ -17,7 +17,7 @@ export const handler = async (event, context) => {
   // TODO: when accurate clinic data recieved then remove placeholder
   let clinicPostcode = event.queryStringParameters.clinicPostcode;
   // Placeholder
-  clinicPostcode = "SE1 9RT";
+  //clinicPostcode = "SE1 9RT";
   const lsoasInRangeMiles = event.queryStringParameters.miles;
 
   // make API request to get the easting and northing of postcode
