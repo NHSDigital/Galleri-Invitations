@@ -18,6 +18,7 @@ export const handler = async (event, context) => {
   let clinicPostcode = event.queryStringParameters.clinicPostcode;
   // Placeholder
   //clinicPostcode = "SE1 9RT";
+  console.log("Clinic postcode: ", clinicPostcode);
   const lsoasInRangeMiles = event.queryStringParameters.miles;
 
   // make API request to get the easting and northing of postcode
