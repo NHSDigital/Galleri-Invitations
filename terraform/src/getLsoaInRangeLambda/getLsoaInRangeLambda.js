@@ -31,7 +31,6 @@ export const handler = async (event, context) => {
 
   const lsoaCodePayload = [];
   const within = [];
-  const without = [];
   const filterLsoaRecords = records.filter((lsoaRecord) => {
     const distanceToSiteMiles = calculateDistance(
       lsoaRecord,
@@ -39,20 +38,17 @@ export const handler = async (event, context) => {
     );
 
     if (distanceToSiteMiles <= lsoasInRangeMiles) {
-      within.push({"LSOA_NAME": lsoaRecord.LSOA_NAME.S, "DISTANCE": distanceToSiteMiles});
       // attach to record
       lsoaRecord.DISTANCE_TO_SITE = {
         N: JSON.stringify(Math.round(distanceToSiteMiles * 100) / 100),
       };
       lsoaCodePayload.push(lsoaRecord.LSOA_2011);
+      within.push({"LSOA_NAME": lsoaRecord.LSOA_NAME.S, "DISTANCE": distanceToSiteMiles});
       return lsoaRecord;
-    } else {
-      without.push({"LSOA_NAME": lsoaRecord.LSOA_NAME.S, "DISTANCE": distanceToSiteMiles});
     }
   });
 
-  console.log("Within ", JSON.stringify(within));
-  console.log("Without ", JSON.stringify(without));
+  console.log("In range ", JSON.stringify(within));
   console.log("filterRecords length = ", filterLsoaRecords.length);
 
   // FIND THE PARTICIPANTS IN THOSE LSOAs AND COMBINE THE RESPECTIVE ARRAYS
