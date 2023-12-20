@@ -28,7 +28,6 @@ export const handler = async (event, context) => {
 
   const records = await populateLsoaArray(dynamoDbclient);
   console.log(`Total records from dynamoDB = ${records.length}`);
-  console.log("Records: ", JSON.stringify(records));
 
   const lsoaCodePayload = [];
   const filterLsoaRecords = records.filter((lsoaRecord) => {
@@ -36,17 +35,24 @@ export const handler = async (event, context) => {
       lsoaRecord,
       clinicGridReference
     );
-    console.log("Distance: ", distanceToSiteMiles);
+
+    const within = [];
+    const without = [];
     if (distanceToSiteMiles <= lsoasInRangeMiles) {
+      within.push({"LSOA_NAME": lsoaRecord.LSOA_NAME.S, "DISTANCE": distanceToSiteMiles});
       // attach to record
       lsoaRecord.DISTANCE_TO_SITE = {
         N: JSON.stringify(Math.round(distanceToSiteMiles * 100) / 100),
       };
       lsoaCodePayload.push(lsoaRecord.LSOA_2011);
       return lsoaRecord;
+    } else {
+      without.push({"LSOA_NAME": lsoaRecord.LSOA_NAME.S, "DISTANCE": distanceToSiteMiles});
     }
   });
 
+  console.log("Within ", JSON.stringify(within));
+  console.log("Without ", JSON.stringify(without));
   console.log("filterRecords length = ", filterLsoaRecords.length);
 
   // FIND THE PARTICIPANTS IN THOSE LSOAs AND COMBINE THE RESPECTIVE ARRAYS
