@@ -1,4 +1,4 @@
-name: "CI/CD UAT 2"
+name: "CI/CD UAT 1"
 
 # The total recommended execution time for the "CI/CD Pull Request" workflow is around 20 minutes.
 
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 1
     env:
-      environment: "uat-2"
+      environment: "dev-3"
     outputs:
       build_datetime_london: ${{ steps.variables.outputs.build_datetime_london }}
       build_datetime: ${{ steps.variables.outputs.build_datetime }}
@@ -66,7 +66,7 @@ jobs:
           echo "python_version=$(grep python .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
-          echo "environment=uat-2" >> $GITHUB_OUTPUT
+          echo "environment=dev-3" >> $GITHUB_OUTPUT
       - name: "Check if pull request exists for this branch"
         id: pr_exists
         env:
