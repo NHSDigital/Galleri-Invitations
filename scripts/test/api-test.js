@@ -26,7 +26,7 @@ const clinicInformation = {
   name: "clinic-information",
   resource_path: "clinic-information",
   method: "GET",
-  query_string: "?clinicId=QZ13U367&clinicName=Phlebotomy%20clinic%2057",
+  query_string: "?clinicId=BH68P375&clinicName=Phlebotomy%20clinic%2017",
   expected_status_code: 200,
   expected_response_count: 13,
 };
@@ -185,14 +185,14 @@ async function apiCall({ apiList, api }) {
       response = await axios.put(fullUrl, api.payload);
     }
 
-    log.debug(response.data);
+    // log.debug(response.data);
     assert.deepStrictEqual(response.status, api.expected_status_code);
     log.info(`SUCCESS: ${api.name} responded with status ${response.status}`);
     if (api.expected_response_count) {
       const length = Object.keys(response.data).length;
       if (length > 0) {
         log.info(
-          `SUCCESS: ${api.name} number of response blocks is: ${length}`
+          `SUCCESS: ${api.name} number of response blocks is: ${length}\n`
         );
       } else {
         log.error(`ERROR: Response from ${api.name} is empty`);
