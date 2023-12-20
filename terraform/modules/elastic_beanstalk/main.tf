@@ -232,4 +232,10 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     name      = "NEXT_PUBLIC_TARGET_PERCENTAGE"
     value     = var.NEXT_PUBLIC_TARGET_PERCENTAGE
   }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_GENERATE_INVITES"
+    value     = var.NEXT_PUBLIC_GENERATE_INVITES
+  }
 }
