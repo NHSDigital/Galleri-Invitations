@@ -28,6 +28,7 @@ export const handler = async (event, context) => {
 
   const records = await populateLsoaArray(dynamoDbclient);
   console.log(`Total records from dynamoDB = ${records.length}`);
+  console.log("Records: ", JSON.stringify(records));
 
   const lsoaCodePayload = [];
   const filterLsoaRecords = records.filter((lsoaRecord) => {
@@ -35,6 +36,7 @@ export const handler = async (event, context) => {
       lsoaRecord,
       clinicGridReference
     );
+    console.log("Distance: ", distanceToSiteMiles);
     if (distanceToSiteMiles <= lsoasInRangeMiles) {
       // attach to record
       lsoaRecord.DISTANCE_TO_SITE = {
