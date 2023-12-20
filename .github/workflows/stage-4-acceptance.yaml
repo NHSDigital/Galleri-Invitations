@@ -48,6 +48,11 @@ on:
         default: apply
         type: string
         required: false
+      database_seeding:
+        description: "Determines if the database requires data being added"
+        default: true
+        type: boolean
+        required: false
 
 env:
   role-to-assume: ${{ vars.AWS_ROLE_ARN }}
@@ -90,7 +95,7 @@ jobs:
           tf-action: ${{ env.tf-action }}
         timeout-minutes: 15
       - name: "Seed databases"
-        if: inputs.tf_action == 'apply'
+        if: inputs.tf_action == 'apply' || 
         uses: ./.github/actions/seeding
         with:
           role-to-assume: ${{ env.role-to-assume }}
