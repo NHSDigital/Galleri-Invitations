@@ -821,6 +821,23 @@ module "invitation_parameters_table" {
   }
 }
 
+module "user_accounts_table" {
+  source      = "./modules/dynamodb"
+  table_name  = "UserAccounts"
+  hash_key    = "UUID"
+  environment = var.environment
+  attributes = [
+    {
+      name = "UUID"
+      type = "S"
+    }
+  ]
+  tags = {
+    Name        = "Dynamodb Table User Accounts"
+    Environment = var.environment
+  }
+}
+
 # To be replaced with a script
 resource "aws_dynamodb_table_item" "quintileTargets" {
   table_name = module.invitation_parameters_table.dynamodb_table_name
