@@ -6,7 +6,8 @@ on:
   push:
     branches:
       - "feature/**"
-      - "dependabot/**"
+      - "bug/**"
+      - "hotfix/**"
 
 jobs:
   metadata:
