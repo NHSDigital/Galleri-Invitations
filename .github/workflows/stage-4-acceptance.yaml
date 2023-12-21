@@ -52,6 +52,11 @@ on:
         description: "Determines if the database requires data being added"
         type: string
         required: false
+      test:
+        description: "If the tests should be run or not"
+        default: "false"
+        type: string
+        required: false
 
 env:
   role-to-assume: ${{ vars.AWS_ROLE_ARN }}
@@ -103,15 +108,14 @@ jobs:
           environment: ${{ env.environment }}
         timeout-minutes: 30
 
-      # This can be uncommended once the data has been sorted across all environments
-      # - name: "Test Backend"
-      #   if: inputs.tf_action == 'apply'
-      #   uses: ./.github/actions/api-testing
-      #   with:
-      #     role-to-assume: ${{ env.role-to-assume }}
-      #     aws-region: ${{ env.aws-region }}
-      #     environment: ${{ env.environment }}
-      #   timeout-minutes: 30
+      - name: "Test Backend"
+        if: inputs.test == 'true'
+        uses: ./.github/actions/api-testing
+        with:
+          role-to-assume: ${{ env.role-to-assume }}
+          aws-region: ${{ env.aws-region }}
+          environment: ${{ env.environment }}
+        timeout-minutes: 30
 
       - name: "Deploy application"
         if: inputs.tf_action == 'apply'
