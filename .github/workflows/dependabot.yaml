@@ -1,5 +1,6 @@
 name: "CI/CD Commit"
 
+# This is the run to test depandabot changes with api calls
 # The total recommended execution time for the "CI/CD Pull Request" workflow is around 20 minutes.
 
 on:
