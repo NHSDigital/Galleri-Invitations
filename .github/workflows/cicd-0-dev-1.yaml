@@ -14,8 +14,11 @@ on:
       database_seeding:
         description: "Determines if the seeding scripts are run to populate the database"
         required: true
-        type: boolean
-        default: true
+        type: choice
+        options:
+          - "true"
+          - "false"
+        default: "true"
       tf_action:
         type: choice
         description: Terraform action to be carried out against DEV environment
