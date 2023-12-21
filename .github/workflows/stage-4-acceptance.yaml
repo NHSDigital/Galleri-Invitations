@@ -98,14 +98,15 @@ jobs:
           environment: ${{ env.environment }}
         timeout-minutes: 30
 
-      - name: "Test Backend"
-        if: inputs.tf_action == 'apply'
-        uses: ./.github/actions/api-testing
-        with:
-          role-to-assume: ${{ env.role-to-assume }}
-          aws-region: ${{ env.aws-region }}
-          environment: ${{ env.environment }}
-        timeout-minutes: 30
+      # This can be uncommended once the data has been sorted across all environments
+      # - name: "Test Backend"
+      #   if: inputs.tf_action == 'apply'
+      #   uses: ./.github/actions/api-testing
+      #   with:
+      #     role-to-assume: ${{ env.role-to-assume }}
+      #     aws-region: ${{ env.aws-region }}
+      #     environment: ${{ env.environment }}
+      #   timeout-minutes: 30
 
       - name: "Deploy application"
         if: inputs.tf_action == 'apply'
