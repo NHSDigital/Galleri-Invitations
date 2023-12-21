@@ -5,6 +5,10 @@ name: "CI/CD Pull Request"
 on:
   pull_request:
     types: [opened, reopened, edited, synchronize]
+    branches:
+      - "feature/**"
+      - "bug/**"
+      - "hotfix/**"
 
 jobs:
   metadata:
