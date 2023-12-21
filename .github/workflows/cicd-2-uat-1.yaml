@@ -11,6 +11,10 @@ on:
       frontend_branch:
         description: "This is the branch/tag of the Galleri frontend to be deployed to the UAT environment"
         required: true
+      database_seeding:
+        description: "Determines if the seeding scripts are run to populate the database"
+        required: true
+        type: boolean
       tf_action:
         type: choice
         description: Terraform action to be carried out against UAT environment
@@ -39,6 +43,7 @@ jobs:
       environment: ${{ env.environment }}
       invitations_branch: ${{ github.event.inputs.invitations_branch }}
       frontend_branch: ${{ github.event.inputs.invitations_branch }}
+      database_seeding: ${{ github.event.inputs.database_seeding }}
       tf_action: ${{ github.event.inputs.tf-action }}
     steps:
       - name: "print environment name"
@@ -148,4 +153,5 @@ jobs:
       invitations_branch: "${{ github.event.inputs.invitations_branch }}"
       frontend_branch: "${{ github.event.inputs.frontend_branch }}"
       tf_action: "${{ github.event.inputs.tf_action }}"
+      database_seeding: "${{ github.event.inputs.database_seeding }}"
     secrets: inherit

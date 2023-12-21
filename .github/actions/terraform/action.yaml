@@ -35,8 +35,8 @@ runs:
       run: |
         apis=$(aws apigateway get-rest-apis)
         while read -r id name; do
-            if [[ $name == dev-* ]]; then
-                env_name=$(echo "$name" | sed 's/^dev-//' | tr '[:lower:]-' '[:upper:]_')
+            if [[ $name == ${{ env.environment }}-* ]]; then
+                env_name=$(echo "$name" | sed 's/^${{ env.environment }}-//' | tr '[:lower:]-' '[:upper:]_')
                 export "NEXT_PUBLIC_$env_name=$id"
                 echo "API ID: NEXT_PUBLIC_$env_name=\"$id\""
             fi
@@ -117,4 +117,5 @@ runs:
         npm install --prefix src/getLsoaParticipantsLambda
         npm install --prefix src/calculateNumberToInviteLambda
         npm install --prefix src/generateInvitesTriggerLambda
+        npm install --prefix src/gpPracticesLoaderLambda
         terraform ${{ env.tf-action }} -auto-approve -input=false -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars

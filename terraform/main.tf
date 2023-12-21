@@ -39,6 +39,7 @@ module "galleri_invitations_screen" {
   NEXT_PUBLIC_PARTICIPATING_ICB_LIST                    = module.participating_icb_list_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_PUT_TARGET_PERCENTAGE                     = module.target_fill_to_percentage_put_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_TARGET_PERCENTAGE                         = module.target_fill_to_percentage_get_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_GENERATE_INVITES                          = module.generate_invites_api_gateway.rest_api_galleri_id
 }
 
 # the role that all lambda's are utilising,
@@ -56,6 +57,19 @@ module "s3_bucket" {
   environment             = var.environment
 }
 
+module "test_data_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "galleri-test-data"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
+module "gp_practices_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "gp-practices-bucket"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
 
 # Data Filter Gridall IMD
 module "data_filter_gridall_imd_lambda" {
@@ -537,6 +551,28 @@ module "generate_invites_api_gateway" {
   environment          = var.environment
 }
 
+# GP Practices Loader
+module "gp_practices_loader_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gpPracticesLoaderLambda"
+  lambda_timeout       = 900
+  memory_size          = 2048
+  lambda_s3_object_key = "gp_practices_loader.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "gp_practices_loader_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gp_practices_loader_lambda.lambda_function_name
+  retention_days       = 14
+}
+
 # Dynamodb tables
 module "sdrs_table" {
   source      = "./modules/dynamodb"
@@ -591,33 +627,18 @@ module "participating_icb_table" {
 }
 
 module "gp_practice_table" {
-  source      = "./modules/dynamodb"
-  table_name  = "GpPractice"
-  hash_key    = "GpPracticeId"
-  range_key   = "GpPracticeName"
-  environment = var.environment
+  source                   = "./modules/dynamodb"
+  billing_mode             = "PAY_PER_REQUEST"
+  table_name               = "GpPractice"
+  hash_key                 = "gp_practice_code"
+  environment              = var.environment
+  read_capacity            = null
+  write_capacity           = null
+  secondary_write_capacity = null
+  secondary_read_capacity  = null
   attributes = [{
-    name = "GpPracticeId"
+    name = "gp_practice_code"
     type = "S"
-    },
-    {
-      name = "GpPracticeName"
-      type = "S"
-    },
-    {
-      name = "AddressLine1"
-      type = "S"
-    },
-    {
-      name = "Postcode"
-      type = "S"
-    }
-  ]
-  global_secondary_index = [
-    {
-      name      = "AddressLine1PostcodeIndex"
-      hash_key  = "AddressLine1"
-      range_key = "Postcode"
     }
   ]
   tags = {
@@ -695,7 +716,6 @@ module "postcode_table" {
   billing_mode             = "PAY_PER_REQUEST"
   table_name               = "Postcode"
   hash_key                 = "POSTCODE"
-  range_key                = "IMD_RANK"
   environment              = var.environment
   read_capacity            = null
   write_capacity           = null
@@ -704,21 +724,6 @@ module "postcode_table" {
   attributes = [{
     name = "POSTCODE"
     type = "S"
-    },
-    {
-      name = "IMD_RANK"
-      type = "N"
-    },
-    {
-      name = "IMD_DECILE"
-      type = "N"
-    }
-  ]
-  global_secondary_index = [
-    {
-      name      = "POSTCODE"
-      hash_key  = "IMD_RANK"
-      range_key = "IMD_DECILE"
     }
   ]
   tags = {

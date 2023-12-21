@@ -17,7 +17,8 @@ export const handler = async (event, context) => {
   // TODO: when accurate clinic data recieved then remove placeholder
   let clinicPostcode = event.queryStringParameters.clinicPostcode;
   // Placeholder
-  clinicPostcode = "SE1 9RT";
+  //clinicPostcode = "SE1 9RT";
+  console.log("Clinic postcode: ", clinicPostcode);
   const lsoasInRangeMiles = event.queryStringParameters.miles;
 
   // make API request to get the easting and northing of postcode
@@ -29,21 +30,25 @@ export const handler = async (event, context) => {
   console.log(`Total records from dynamoDB = ${records.length}`);
 
   const lsoaCodePayload = [];
+  const within = [];
   const filterLsoaRecords = records.filter((lsoaRecord) => {
     const distanceToSiteMiles = calculateDistance(
       lsoaRecord,
       clinicGridReference
     );
+
     if (distanceToSiteMiles <= lsoasInRangeMiles) {
       // attach to record
       lsoaRecord.DISTANCE_TO_SITE = {
         N: JSON.stringify(Math.round(distanceToSiteMiles * 100) / 100),
       };
       lsoaCodePayload.push(lsoaRecord.LSOA_2011);
+      within.push({"LSOA_NAME": lsoaRecord.LSOA_NAME.S, "DISTANCE": distanceToSiteMiles});
       return lsoaRecord;
     }
   });
 
+  console.log("In range ", JSON.stringify(within));
   console.log("filterRecords length = ", filterLsoaRecords.length);
 
   // FIND THE PARTICIPANTS IN THOSE LSOAs AND COMBINE THE RESPECTIVE ARRAYS
