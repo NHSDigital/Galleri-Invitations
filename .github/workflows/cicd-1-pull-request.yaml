@@ -125,3 +125,17 @@ jobs:
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
     secrets: inherit
+
+  # cleardown-stage:
+  #   uses: ./.github/workflows/stage-5-cleanup.yaml
+  #   with:
+  #     build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
+  #     build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
+  #     build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
+  #     nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
+  #     python_version: "${{ needs.metadata.outputs.python_version }}"
+  #     terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
+  #     version: "${{ needs.metadata.outputs.version }}"
+  #     environment: ${{ needs.metadata.outputs.environment }}
+  #     tf_action: "destroy"
+  #   secrets: inherit

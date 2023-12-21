@@ -45,7 +45,7 @@ on:
         type: string
       tf_action:
         description: "Terraform action to be performed against target environment"
-        default: apply
+        default: destroy
         type: string
         required: false
       database_seeding:
