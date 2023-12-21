@@ -48,7 +48,7 @@ jobs:
       invitations_branch: ${{ github.event.inputs.invitations_branch }}
       frontend_branch: ${{ github.event.inputs.invitations_branch }}
       database_seeding: ${{ github.event.inputs.database_seeding }}
-      tf_action: ${{ github.event.inputs.tf-action }}
+      tf_action: ${{ github.event.inputs.tf_action }}
     steps:
       - name: "print environment name"
         run: |
