@@ -10,6 +10,7 @@ This is a repo containing the code for the Galleri Invitations Algorithm
     - [Prerequisites](#prerequisites)
   - [Usage](#usage)
     - [Configuration](#configuration)
+  - [Prettifier](#prettifier)
   - [Terraform](#terraform)
     - [variables](#variables)
     - [outputs](#outputs)
@@ -57,6 +58,16 @@ sonar-scanner \
 ### Configuration
 
 Most of the projects are built with customisability and extendability in mind. At a minimum, this can be achieved by implementing service level configuration options and settings. The intention of this section is to show how this can be used. If the system processes data, you could mention here for example how the input is prepared for testing - anonymised, synthetic or live data.
+
+## Prettifier
+
+For linting we have decided to use [prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) Which we have created config files for called `.prettierrc.yaml` This file enforces consistancy between all users.
+
+To set this up you need to install the prettier plugin using the link above.
+
+Once it is installed you can set up the default formatter by opening a file in the repo and using the shortcut `ctrl + p` to open the vscode command interface. Then enter `> Format Document` and select `Format Document` from the dropdown. The first time you do this it will say something like **No default formatter setup for this project** You can click on the `Configure` button and select Prettier from that list.
+
+To make formatting easier you can enable **Format on Save** by going into preferences and searching for `format on save` then check the tickbox to enable it. Now everytime you save your file with `ctrl + s` or `command + s` then it will format the file for you.
 
 ## Terraform
 

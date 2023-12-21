@@ -225,9 +225,8 @@ def create_data_set(table_name):
                         },
                         'LastSelectedRange': {
                             'N': str(1)
-                        },
-                        },
-                    'TableName': table_name
+                    },
+                    "TableName": table_name,
                 }
             }
         )
@@ -245,6 +244,7 @@ def batch_write_to_dynamodb(data):
         dynamodb_client.transact_write_items(TransactItems=test_data)
     print(f"{len(data)} records added to database")
     return "Finished"
+
 
 if __name__ == "__main__":
     generate_nonprod_data(ENVIRONMENT + "-PhlebotomySite")

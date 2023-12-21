@@ -39,62 +39,26 @@ def format_dynamodb_json(csvreader, table_name):
         MODERATOR = str(row[16])
         output.append(
             {
-                'Put': {
-                    'Item': {
-                        'LOCAL_AUT_ORG': {
-                            'S': f'{LOCAL_AUT_ORG}'
-                        },
-                        'NHS_ENG_REGION': {
-                            'S': f'{NHS_ENG_REGION}'
-                        },
-                        'SUB_ICB': {
-                            'S': f'{SUB_ICB}'
-                        },
-                        'CANCER_REGISTRY': {
-                            'S': f'{CANCER_REGISTRY}'
-                        },
-                        'LSOA_2011': {
-                            'S': f'{LSOA_2011}'
-                        },
-                        'MSOA_2011': {
-                            'S': f'{MSOA_2011}'
-                        },
-                        'CANCER_ALLIANCE': {
-                            'S': f'{CANCER_ALLIANCE}'
-                        },
-                        'ICB': {
-                            'S': f'{ICB}'
-                        },
-                        'OA_2021': {
-                            'S': f'{OA_2021}'
-                        },
-                        'LSOA_2021': {
-                            'S': f'{LSOA_2021}'
-                        },
-                        'MSOA_2021': {
-                            'S': f'{MSOA_2021}'
-                        },
-                        'IMD_RANK': {
-                            'N': f'{IMD_RANK}'
-                        },
-                        'IMD_DECILE': {
-                            'N': f'{IMD_DECILE}'
-                        },
-                        'FORECAST_UPTAKE': {
-                            'N': f'{FORECAST_UPTAKE}'
-                        },
-                        'LSOA_NAME': {
-                            'S': f'{LSOA_NAME}'
-                        },
-                        'AVG_EASTING': {
-                            'S': f'{AVG_EASTING}'
-                        },
-                        'AVG_NORTHING': {
-                            'S': f'{AVG_NORTHING}'
-                        },
-                        'MODERATOR': {
-                            'S': f'{MODERATOR}'
-                        },
+                "Put": {
+                    "Item": {
+                        "LOCAL_AUT_ORG": {"S": f"{LOCAL_AUT_ORG}"},
+                        "NHS_ENG_REGION": {"S": f"{NHS_ENG_REGION}"},
+                        "SUB_ICB": {"S": f"{SUB_ICB}"},
+                        "CANCER_REGISTRY": {"S": f"{CANCER_REGISTRY}"},
+                        "LSOA_2011": {"S": f"{LSOA_2011}"},
+                        "MSOA_2011": {"S": f"{MSOA_2011}"},
+                        "CANCER_ALLIANCE": {"S": f"{CANCER_ALLIANCE}"},
+                        "ICB": {"S": f"{ICB}"},
+                        "OA_2021": {"S": f"{OA_2021}"},
+                        "LSOA_2021": {"S": f"{LSOA_2021}"},
+                        "MSOA_2021": {"S": f"{MSOA_2021}"},
+                        "IMD_RANK": {"N": f"{IMD_RANK}"},
+                        "IMD_DECILE": {"N": f"{IMD_DECILE}"},
+                        "FORECAST_UPTAKE": {"N": f"{FORECAST_UPTAKE}"},
+                        "LSOA_NAME": {"S": f"{LSOA_NAME}"},
+                        "AVG_EASTING": {"S": f"{AVG_EASTING}"},
+                        "AVG_NORTHING": {"S": f"{AVG_NORTHING}"},
+                        "MODERATOR": {"S": f"{MODERATOR}"},
                     },
                     "TableName": table_name,
                 },
