@@ -50,8 +50,7 @@ on:
         required: false
       database_seeding:
         description: "Determines if the database requires data being added"
-        default: true
-        type: boolean
+        type: string
         required: false
 
 env:
@@ -95,7 +94,7 @@ jobs:
           tf-action: ${{ env.tf-action }}
         timeout-minutes: 15
       - name: "Seed databases"
-        if: inputs.tf_action == 'apply' || inputs.database_seeding == true
+        if: inputs.tf_action == 'apply' || inputs.database_seeding == "true"
         uses: ./.github/actions/seeding
         with:
           role-to-assume: ${{ env.role-to-assume }}
