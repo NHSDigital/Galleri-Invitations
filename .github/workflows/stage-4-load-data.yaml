@@ -1,0 +1,99 @@
+name: "Acceptance stage"
+
+on:
+  workflow_call:
+    inputs:
+      build_datetime:
+        description: "Build datetime, set by the CI/CD pipeline workflow"
+        required: true
+        type: string
+      build_timestamp:
+        description: "Build timestamp, set by the CI/CD pipeline workflow"
+        required: true
+        type: string
+      build_epoch:
+        description: "Build epoch, set by the CI/CD pipeline workflow"
+        required: true
+        type: string
+      nodejs_version:
+        description: "Node.js version, set by the CI/CD pipeline workflow"
+        required: true
+        type: string
+      python_version:
+        description: "Python version, set by the CI/CD pipeline workflow"
+        required: true
+        type: string
+      terraform_version:
+        description: "Terraform version, set by the CI/CD pipeline workflow"
+        required: true
+        type: string
+      version:
+        description: "Version of the software, set by the CI/CD pipeline workflow"
+        required: true
+        type: string
+      environment:
+        description: "the environment to deploy terraform into"
+        required: true
+        type: string
+      invitations_branch:
+        description: "Branch of invitations repository to checkout"
+        required: false
+        type: string
+      frontend_branch:
+        description: "Branch of frontend repository to checkout"
+        required: false
+        type: string
+      tf_action:
+        description: "Terraform action to be performed against target environment"
+        default: apply
+        type: string
+        required: false
+      database_seeding:
+        description: "Determines if the database requires data being added"
+        type: string
+        required: false
+      test:
+        description: "If the tests should be run or not"
+        default: "false"
+        type: string
+        required: false
+
+env:
+  role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+  aws-region: ${{ vars.aws_region }}
+  aws-bucket-name: ${{ vars.aws_bucket_name }}
+  aws-bucket-key-name: ${{ vars.aws_bucket_key_name }}
+  environment: ${{ inputs.environment }}
+  frontend-branch: ${{ inputs.frontend_branch }}
+  invitations-branch: ${{ inputs.invitations_branch }}
+  tf-action: ${{ inputs.tf_action }}
+
+jobs:
+  environment-set-up:
+    permissions:
+      id-token: write # This is required for aws oidc connection
+      contents: read # This is required for actions/checkout
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          ref: "${{ env.invitations-branch }}"
+          fetch-depth: 0 # Full history is needed to scan all commits
+
+      - name: Install dependency
+        run: |
+          pip install boto3
+          pip install rstr
+          pip install random_word
+
+      - name: "Seed databases"
+        # if: inputs.tf_action == 'apply' || inputs.database_seeding == "true"
+        if: inputs.tf_action == 'apply'
+        uses: ./.github/actions/seeding
+        with:
+          role-to-assume: ${{ env.role-to-assume }}
+          aws-region: ${{ env.aws-region }}
+          environment: ${{ env.environment }}
+        timeout-minutes: 30
