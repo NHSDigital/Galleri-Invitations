@@ -31,7 +31,7 @@ on:
         type: choice
         description: Should tests be run?
         required: true
-        default: "yes"
+        default: "no"
         options:
           - "yes"
           - "no"
