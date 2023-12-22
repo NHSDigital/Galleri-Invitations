@@ -1,22 +1,43 @@
-name: "CI/CD Dev"
+name: "UAT 1 Manual Deploy"
 
 # The total recommended execution time for the "CI/CD Pull Request" workflow is around 20 minutes.
 
 on:
-  push:
-    branches:
-      - "feature/**"
-      - "bug/**"
-      - "hotfix/**"
+  workflow_dispatch:
+    inputs:
+      invitations_branch:
+        description: "This is the branch/tag of Galleri-Invitations be deployed to the UAT environment"
+        required: true
+      frontend_branch:
+        description: "This is the branch/tag of the Galleri frontend to be deployed to the UAT environment"
+        required: true
+      database_seeding:
+        description: "Determines if the seeding scripts are run to populate the database"
+        required: true
+        type: boolean
+      tf_action:
+        type: choice
+        description: Terraform action to be carried out against UAT environment
+        required: true
+        default: apply
+        options:
+          - apply
+          - destroy
+      test:
+        type: choice
+        description: Should tests be run?
+        required: true
+        default: "yes"
+        options:
+          - "yes"
+          - "no"
 
 jobs:
   metadata:
     runs-on: ubuntu-latest
     timeout-minutes: 1
     env:
-      environment: "dev"
-      database_seeding: "yes"
-      test: "yes"
+      environment: "uat-1"
     outputs:
       build_datetime_london: ${{ steps.variables.outputs.build_datetime_london }}
       build_datetime: ${{ steps.variables.outputs.build_datetime }}
@@ -28,17 +49,20 @@ jobs:
       version: ${{ steps.variables.outputs.version }}
       does_pull_request_exist: ${{ steps.pr_exists.outputs.does_pull_request_exist }}
       environment: ${{ env.environment }}
-      database_seeding: ${{ env.environment }}
-      test: ${{ env.test }}
+      invitations_branch: ${{ github.event.inputs.invitations_branch }}
+      frontend_branch: ${{ github.event.inputs.invitations_branch }}
+      database_seeding: ${{ github.event.inputs.database_seeding }}
+      tf_action: ${{ github.event.inputs.tf_action }}
+      test: ${{ github.event.inputs.test }}
     steps:
-      - name: "print environment vars"
+      - name: "print environment name"
         run: |
-          echo job running on branch: ${{ github.base_ref }}
           echo environment is: ${{ env.environment }}
-          echo seed database: ${{ env.database_seeding }}
-          echo run tests: ${{ env.test }}
+          echo environment is: $environment
       - name: "Checkout code"
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.invitations_branch }}
       - name: "Set CI/CD variables"
         id: variables
         run: |
@@ -51,7 +75,7 @@ jobs:
           echo "python_version=$(grep python .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
-          echo "environment=test" >> $GITHUB_OUTPUT
+          echo "environment=uat-1" >> $GITHUB_OUTPUT
       - name: "Check if pull request exists for this branch"
         id: pr_exists
         env:
@@ -78,6 +102,7 @@ jobs:
           export VERSION="${{ steps.variables.outputs.version }}"
           export DOES_PULL_REQUEST_EXIST="${{ steps.pr_exists.outputs.does_pull_request_exist }}"
           make list-variables
+
   commit-stage: # Recommended maximum execution time is 2 minutes
     needs: [metadata]
     uses: ./.github/workflows/stage-1-commit.yaml
@@ -89,8 +114,8 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
+      invitations_branch: "${{ github.event.inputs.invitations_branch }}"
     secrets: inherit
-
   test-stage: # Recommended maximum execution time is 5 minutes
     needs: [metadata, commit-stage]
     uses: ./.github/workflows/stage-2-test.yaml
@@ -102,10 +127,15 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
+      invitations_branch: "${{ github.event.inputs.invitations_branch }}"
     secrets: inherit
 
   build-stage: # Recommended maximum execution time is 10 minutes
-    needs: [metadata, test-stage]
+    needs: [
+        metadata,
+        test-stage,
+        # build-stage
+      ]
     uses: ./.github/workflows/stage-3-build.yaml
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
@@ -116,11 +146,15 @@ jobs:
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
+      invitations_branch: "${{ github.event.inputs.invitations_branch }}"
+      frontend_branch: "${{ github.event.inputs.frontend_branch }}"
+      tf_action: "${{ github.event.inputs.tf_action }}"
     secrets: inherit
 
   data-stage: # Recommended maximum execution time is 10 minutes
     needs: [metadata, test-stage, build-stage]
     uses: ./.github/workflows/stage-4-load-data.yaml
+    if: needs.metadata.outputs.database_seeding == 'yes'
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
@@ -146,3 +180,53 @@ jobs:
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
     secrets: inherit
+
+  # commit-stage: # Recommended maximum execution time is 2 minutes
+  #   needs: [metadata]
+  #   uses: ./.github/workflows/stage-1-commit.yaml
+  #   with:
+  #     build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
+  #     build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
+  #     build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
+  #     nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
+  #     python_version: "${{ needs.metadata.outputs.python_version }}"
+  #     terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
+  #     version: "${{ needs.metadata.outputs.version }}"
+  #     invitations_branch: "${{ github.event.inputs.invitations_branch }}"
+  #   secrets: inherit
+  # test-stage: # Recommended maximum execution time is 5 minutes
+  #   needs: [metadata, commit-stage]
+  #   uses: ./.github/workflows/stage-2-test.yaml
+  #   with:
+  #     build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
+  #     build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
+  #     build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
+  #     nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
+  #     python_version: "${{ needs.metadata.outputs.python_version }}"
+  #     terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
+  #     version: "${{ needs.metadata.outputs.version }}"
+  #     invitations_branch: "${{ github.event.inputs.invitations_branch }}"
+  #   secrets: inherit
+
+  # acceptance-stage: # Recommended maximum execution time is 10 minutes
+  #   needs: [
+  #       metadata,
+  #       test-stage,
+  #       # build-stage
+  #     ]
+  #   uses: ./.github/workflows/stage-4-acceptance.yaml
+  #   # if: needs.metadata.outputs.does_pull_request_exist == 'true' || (github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened'))
+  #   with:
+  #     build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
+  #     build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
+  #     build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
+  #     nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
+  #     python_version: "${{ needs.metadata.outputs.python_version }}"
+  #     terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
+  #     version: "${{ needs.metadata.outputs.version }}"
+  #     environment: ${{ needs.metadata.outputs.environment }}
+  #     invitations_branch: "${{ github.event.inputs.invitations_branch }}"
+  #     frontend_branch: "${{ github.event.inputs.frontend_branch }}"
+  #     tf_action: "${{ github.event.inputs.tf_action }}"
+  #     database_seeding: "${{ github.event.inputs.database_seeding }}"
+  #   secrets: inherit
