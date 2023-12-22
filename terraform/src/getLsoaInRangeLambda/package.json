@@ -6,7 +6,7 @@
   "author": "",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.398.0",
-    "@aws-sdk/client-lambda": "^3.16.0",
+    "@aws-sdk/client-lambda": "^3.478.0",
     "axios": "^1.5.1"
   }
 }
