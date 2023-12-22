@@ -61,8 +61,10 @@ jobs:
     steps:
       - name: "print environment name"
         run: |
+          echo job running on branch: ${{ github.base_ref }}
           echo environment is: ${{ env.environment }}
-          echo environment is: $environment
+          echo seed database: ${{ env.database_seeding }}
+          echo run tests: ${{ env.test }}
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
