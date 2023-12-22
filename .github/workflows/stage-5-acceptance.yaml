@@ -81,32 +81,6 @@ jobs:
         with:
           ref: "${{ env.invitations-branch }}"
           fetch-depth: 0 # Full history is needed to scan all commits
-      - name: Install dependency
-        run: |
-          pip install boto3
-          pip install rstr
-          pip install random_word
-      - name: "Create infrastructure"
-        uses: ./.github/actions/terraform
-        with:
-          role-to-assume: ${{ env.role-to-assume }}
-          aws-region: ${{ env.aws-region }}
-          aws-bucket-name: ${{ env.aws-bucket-name }}
-          aws-bucket-key-name: ${{ env.aws-bucket-key-name }}
-          environment: ${{ env.environment }}
-          invitations-branch: ${{ env.invitations-branch }}
-          frontend-branch: ${{ env.frontend-branch }}
-          tf-action: ${{ env.tf-action }}
-        timeout-minutes: 15
-      - name: "Seed databases"
-        # if: inputs.tf_action == 'apply' || inputs.database_seeding == "true"
-        if: inputs.tf_action == 'apply'
-        uses: ./.github/actions/seeding
-        with:
-          role-to-assume: ${{ env.role-to-assume }}
-          aws-region: ${{ env.aws-region }}
-          environment: ${{ env.environment }}
-        timeout-minutes: 30
 
       - name: "Test Backend"
         if: inputs.test == 'true'
@@ -116,8 +90,3 @@ jobs:
           aws-region: ${{ env.aws-region }}
           environment: ${{ env.environment }}
         timeout-minutes: 30
-
-      - name: "Deploy application"
-        if: inputs.tf_action == 'apply'
-        run: |
-          echo "Deploying application..."
