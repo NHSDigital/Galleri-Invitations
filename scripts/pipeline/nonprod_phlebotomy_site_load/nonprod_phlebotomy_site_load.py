@@ -174,58 +174,26 @@ def create_data_set(table_name):
                     "Item": {
                         "ClinicId": {"S": f"{str(clinic_id)}"},
                         "ClinicName": {"S": f"{str(clinic_name)}"},
-                        'Address': {
-                            'S': f'{str(address)}'
-                        },
-                        'Directions': {
-                            'S': f'{str(directions)}'
-                        },
-                        'ICBCode': {
-                            'S': f'{str(icd_code)}'
-                        },
-                        'ODSCode': {
-                            'S': f'{str(ods_code)}'
-                        },
-                        'PostCode': {
-                            'S': f'{str(postcode)}'
-                        },
-                        'PrevInviteDate': {
-                            'S': f'{str(random.choice(prev_invite_date))}'
-                        },
+                        'Address': {'S': f'{str(address)}'},
+                        'Directions': {'S': f'{str(directions)}'},
+                        'ICBCode': {'S': f'{str(icd_code)}'},
+                        'ODSCode': {'S': f'{str(ods_code)}'},
+                        'PostCode': {'S': f'{str(postcode)}'},
+                        'PrevInviteDate': {'S': f'{str(random.choice(prev_invite_date))}'},
                         'WeekCommencingDate':  {
                             'M':  {
-                                f'{str(week_date[0])}' : {
-                                    'N': str(week_capacity[0])
-                                },
-                                f'{str(week_date[1])}' : {
-                                    'N': str(week_capacity[1])
-                                },
-                                f'{str(week_date[2])}' : {
-                                    'N': str(week_capacity[2])
-                                },
-                                f'{str(week_date[3])}' : {
-                                    'N': str(week_capacity[3])
-                                },
-                                f'{str(week_date[4])}' : {
-                                    'N': str(week_capacity[4])
-                                },
-                                f'{str(week_date[5])}' : {
-                                    'N': str(week_capacity[5])
-                                }
-                                }
+                                f'{str(week_date[0])}' : {'N': str(week_capacity[0])},
+                                f'{str(week_date[1])}' : {'N': str(week_capacity[1])},
+                                f'{str(week_date[2])}' : {'N': str(week_capacity[2])},
+                                f'{str(week_date[3])}' : {'N': str(week_capacity[3])},
+                                f'{str(week_date[4])}' : {'N': str(week_capacity[4])},
+                                f'{str(week_date[5])}' : {'N': str(week_capacity[5])},
+                            },
                         },
-                        'Availability': {
-                            'N': str(availability)
-                        },
-                        'InvitesSent': {
-                            'N': str(invite_sent)
-                        },
-                        'TargetFillToPercentage': {
-                            'N': str(50)
-                        },
-                        'LastSelectedRange': {
-                            'N': str(1)
-                        },
+                        'Availability': {'N': str(availability)},
+                        'InvitesSent': {'N': str(invite_sent)},
+                        'TargetFillToPercentage': {'N': str(50)},
+                        'LastSelectedRange': {'N': str(1)},
                     }
                     "TableName": table_name,
                 }
