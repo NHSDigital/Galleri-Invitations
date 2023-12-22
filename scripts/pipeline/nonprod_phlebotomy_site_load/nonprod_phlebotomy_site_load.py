@@ -225,7 +225,8 @@ def create_data_set(table_name):
                         },
                         'LastSelectedRange': {
                             'N': str(1)
-                    },
+                        },
+                    }
                     "TableName": table_name,
                 }
             }
