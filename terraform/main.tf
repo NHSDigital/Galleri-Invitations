@@ -315,7 +315,7 @@ module "invitation_parameters_put_forecast_uptake_cloudwatch" {
 module "invitation_parameters_put_forecast_uptake_api_gateway" {
   source                    = "./modules/api-gateway"
   environment               = var.environment
-  lambda_invoke_arn         = module.invitation_parameters_lambda.lambda_invoke_arn
+  lambda_invoke_arn         = module.invitation_parameters_put_forecast_uptake_lambda.lambda_invoke_arn
   path_part                 = "invitation-parameters-put-forecast-uptake"
   method_http_parameters    = {}
   lambda_api_gateway_method = "PUT"
