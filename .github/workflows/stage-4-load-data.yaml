@@ -1,4 +1,4 @@
-name: "Acceptance stage"
+name: "Database seeding stage"
 
 on:
   workflow_call:
@@ -69,7 +69,7 @@ env:
   tf-action: ${{ inputs.tf_action }}
 
 jobs:
-  environment-set-up:
+  load-data:
     permissions:
       id-token: write # This is required for aws oidc connection
       contents: read # This is required for actions/checkout

@@ -67,7 +67,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          branch: "${{ inputs.invitations_branch }}"
+          ref: "${{ inputs.invitations_branch }}"
       - name: "Run linting"
         run: |
           make test-lint
