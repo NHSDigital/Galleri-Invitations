@@ -63,8 +63,8 @@ jobs:
         run: |
           echo job running on branch: ${{ github.base_ref }}
           echo environment is: ${{ env.environment }}
-          echo seed database: ${{ env.database_seeding }}
-          echo run tests: ${{ env.test }}
+          echo seed database: ${{ github.event.inputs.database_seeding }}
+          echo run tests: ${{ github.event.inputs.test }}
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
