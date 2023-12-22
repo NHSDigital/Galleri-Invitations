@@ -12,13 +12,11 @@ runs:
     - name: Configure AWS credentials from AWS account
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        role-to-assume: ${{ env.AWS_ROLE_ARN }}
-        aws-region: ${{ env.AWS_REGION }}
+        role-to-assume: ${{ env.role-to-assume }}
+        aws-region: ${{ env.aws-region }}
         role-session-name: GitHub-OIDC-TERRAFORM
 
     - name: Seeding Table Data
       shell: bash
       run: |
         ./scripts/pipeline/seed-data.sh
-
-
