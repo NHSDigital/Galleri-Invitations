@@ -1,6 +1,4 @@
-import { DynamoDBClient, BatchWriteItemCommand, GetItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb";
-import uuid4 from "uuid4";
-import RandExp from "randexp";
+import { DynamoDBClient, BatchWriteItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb";
 
 const client = new DynamoDBClient({ region: "eu-west-2" });
 const ENVIRONMENT = process.env.ENVIRONMENT;
@@ -9,43 +7,37 @@ const ENVIRONMENT = process.env.ENVIRONMENT;
   Lambda to get create episode records for modified population records
 */
 export const handler = async (event) => {
-  // for a modify we are just going to get a single record.
-  const changedRecords = event.Records
-  const chunkSize = 3
-  console.log("Amount of modified records", changedRecords.length)
+  const changedRecords = event.Records;
+  const chunkSize = 25;
+  console.log("Amount of modified records", changedRecords.length);
 
-  const episodeRecordsUpload = await Promise.allSettled(
-    changedRecords.map(async (record, index) => {
-      if (record.dynamodb.OldImage.identified_to_be_invited.BOOL === false && record.dynamodb.NewImage.identified_to_be_invited.BOOL) {
-        if (await isNewRecord(record.dynamodb.NewImage)){ // just needs to check if participantId is unique here
-          return createEpisodeRecord(record.dynamodb.NewImage);
-        }
-        return Promise.reject("Not new record");
-      }
-    })
-  )
-  console.log("episodeRecordsUpload = ", JSON.stringify(episodeRecordsUpload, null, 2))
+  const episodeRecordsUpload = await processIncomingRecords(changedRecords, client);
+
   const filteredRecords = episodeRecordsUpload.filter(record => record.status !== "rejected")
-  console.log(`Number of records that can not be created an episode against = ${episodeRecordsUpload.length - filteredRecords.length}`)
-  const sendRequest = await loopThroughRecords(filteredRecords, chunkSize)
-
-  const responseArray = await Promise.allSettled(sendRequest)
-
-  console.log("Completed. responseArray ->", responseArray)
-  console.log("Completed. responseArray length ->", responseArray.length)
+  if (filteredRecords.every( element => element.value !== 400)){
+    const sendRequest = await loopThroughRecords(filteredRecords, chunkSize, client)
+    const responseArray = await Promise.allSettled(sendRequest)
+  }
 };
 
 // METHODS
-// check if record is in episode table using participantId
-async function isNewRecord(record){
-  console.log(`Participant_Id = ${JSON.stringify(record.participantId.S)}, Batch_Id = ${JSON.stringify(record.Batch_Id.S)}, identified_to_be_invited = ${JSON.stringify(record.identified_to_be_invited.BOOL)}`)
-
-  const queryResult = await lookupParticipantId(record.participantId.S, "Episode");
-  console.log("queryResult = ", queryResult)
-  if (queryResult === 200){ // record does not exists in episode table.
-    return true;
-  }
-  return false;
+export async function processIncomingRecords(incomingRecordsArr, dbClient){
+  const episodeRecordsUpload = await Promise.allSettled(
+    incomingRecordsArr.map(async (record) => {
+      if (record.dynamodb.OldImage.identified_to_be_invited.BOOL === false && record.dynamodb.NewImage.identified_to_be_invited.BOOL) {
+        console.log("here 1")
+        if (await lookupParticipantId(record.dynamodb.NewImage.participantId.S, "Episode", dbClient)){
+          console.log("here 2")
+          return createEpisodeRecord(record.dynamodb.NewImage);
+        } else {
+          console.log("RECORD ALREADY EXISTS")
+          return Promise.reject("Not new record");
+        }
+      }
+      return Promise.reject("Record has not been modified");
+    })
+  )
+  return episodeRecordsUpload
 }
 
 function createEpisodeRecord(record){
@@ -62,11 +54,11 @@ function createEpisodeRecord(record){
     }
   }
 
-  return item
+  return Promise.resolve(item)
 }
 
 // look into episode table and see if there exists a participant
-const lookupParticipantId = async (participantId, table) => {
+export const lookupParticipantId = async (participantId, table, dbClient) => {
   const input = {
     ExpressionAttributeValues: {
       ":participant": {
@@ -80,84 +72,48 @@ const lookupParticipantId = async (participantId, table) => {
   };
 
   const command = new QueryCommand(input);
-  const response = await client.send(command);
+  const response = await dbClient.send(command);
   if (!response.Items.length){ // if response is empty, no matching participantId
-    return 200
+    return true
   }
   console.log("Duplicate exists")
-  return 400;
+  return false;
 };
 
-async function loopThroughRecords(episodeRecordsUpload, chunkSize) {
-  const sendRequest = []
-  if (episodeRecordsUpload.length === 0) return sendRequest // handle edge case
+export async function loopThroughRecords(episodeRecordsUpload, chunkSize, dbClient) {
+  const sendRequest = [];
+  if (episodeRecordsUpload.length === 0) return sendRequest; // handle edge case
 
   for (let i = 0; i < episodeRecordsUpload.length; chunkSize) {
-    console.log("Batching records " + (i-chunkSize) + " to " + i + " to upload" )
     if ((episodeRecordsUpload.length - i) < chunkSize){ // remaining chunk
-      const batch = episodeRecordsUpload.splice(i, episodeRecordsUpload.length - i)
-      sendRequest.push(batchWriteToDynamo(client, `Episode`, batch))
-      return sendRequest
+      const batch = episodeRecordsUpload.splice(i, episodeRecordsUpload.length - i);
+      console.log("Writing remainder")
+      sendRequest.push(batchWriteToDynamo(dbClient, `Episode`, batch));
+      return sendRequest;
     }
-    const batch = episodeRecordsUpload.splice(i, chunkSize)
-    sendRequest.push(batchWriteToDynamo(client, `Episode`, batch))
+    const batch = episodeRecordsUpload.splice(i, chunkSize);
+    console.log("Writing to dynamo")
+    sendRequest.push(batchWriteToDynamo(dbClient, `Episode`, batch));
   }
 }
 
-async function batchWriteToDynamo(client, table, uploadBatch){
+export async function batchWriteToDynamo(dbClient, table, uploadBatch){
   // split out array
-  console.log("Sliced array size = " + uploadBatch.length)
+  // const filterBatch = uploadBatch.filter(record => record.value !== undefined);
+  const filterUploadBatch = uploadBatch.map(record => record.value);
 
-  const filterUploadBatch = uploadBatch.map(record => record.value)
+  if (filterUploadBatch.length !== 0) {
+    let requestItemsObject = {};
+    requestItemsObject[`${ENVIRONMENT}-${table}`] = filterUploadBatch;
 
-  let requestItemsObject = {}
-  requestItemsObject[`${ENVIRONMENT}-${table}`] = filterUploadBatch
+    const command = new BatchWriteItemCommand({
+      RequestItems: requestItemsObject
+    });
 
-  const command = new BatchWriteItemCommand({
-    RequestItems: requestItemsObject
-  });
+    const response = await dbClient.send(command);
+    return response.$metadata.httpStatusCode;
+  }
 
-  const response = await client.send(command);
-  return response.$metadata.httpStatusCode;
+  return 400;
 
 }
-
-
-/* Participant_Id must be a unique value in the Episode table
-  thus we  can not use the in built dynamodb validation for uniqueness
-  We must instead use the query operation
-*/
-// export const generateParticipantID = async () => {
-//   try {
-//     let participantId;
-//     let found = 400;
-//     do {
-//       found = await lookupParticipantId(participantId, "Episode");
-//       participantId = participantIdRandExp.gen();
-//     } while (found == 400);
-//     return participantId;
-//   } catch (err) {
-//     console.error("Error generating participant id.");
-//     console.error(err);
-//     return err;
-//   }
-// };
-
-// ensure one episode record per person
-// const lookUpRecord = async (Batch_ID, personId, table, partitionKey, sortKey) => {
-//   let keyObj = {}
-//   keyObj[partitionKey] = {
-//     S: Batch_ID
-//   }
-//   keyObj[sortKey] = {
-//     S: personId
-//   }
-//   const getParams = {
-//     TableName: `${ENVIRONMENT}-${table}`,
-//     Key: keyObj,
-//     ConsistentRead: true,
-//   };
-//   const getCommand = new GetItemCommand(getParams);
-//   const response = await client.send(getCommand);
-//   return response.Item;
-// };

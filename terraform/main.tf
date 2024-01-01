@@ -566,8 +566,8 @@ module "create_episode_record_dynamodb_stream" {
   event_source_arn                    = module.population_table.dynamodb_stream_arn
   function_name                       = module.create_episode_record_lambda.lambda_function_name
   starting_position                   = "LATEST"
-  batch_size                          = 100
-  maximum_batching_window_in_seconds  = 30
+  batch_size                          = 200
+  maximum_batching_window_in_seconds  = 300
 }
 
 # Dynamodb tables
