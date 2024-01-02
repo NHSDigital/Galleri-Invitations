@@ -42,6 +42,7 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient){
 }
 
 function createEpisodeRecord(record){
+  console.log(`record = ${JSON.stringify(record, null, 2)}`)
   const item = {
     PutRequest: {
       Item: {
