@@ -18,13 +18,6 @@ export const handler = async (event) => {
   if (filteredRecords.every( element => element.value !== 400)){
     const sendRequest = await loopThroughRecords(filteredRecords, chunkSize, client)
     const responseArray = await Promise.allSettled(sendRequest)
-    console.log(`Number of records that were settled = ${responseArray.length}`)
-    const responseArraySuccessMessage = sendRequest.filter(record => record.status !== "rejected")
-    const responseArraySuccessValue = sendRequest.filter(record => record.value === 200)
-    console.log(`
-    Number of records that were settled with success message = ${responseArraySuccessMessage.length}`)
-    console.log(`
-    Number of records that were settled with success value = ${responseArraySuccessValue.length}`)
   }
 };
 

@@ -96,7 +96,6 @@ export async function updatePersonsToBeInvited(recordArray, client) {
 }
 
 // Takes single record and update that individual to have a identifiedToBeInvited field = true
-// export async function updateRecord(record, client) {
 export async function updateRecord(record, batchId, client) {
   const lsoaCodeReturn = await getLsoaCode(record, client);
   const items = lsoaCodeReturn.Items;
@@ -132,7 +131,7 @@ export async function updateRecord(record, batchId, client) {
   const command = new UpdateItemCommand(input);
   const response = await client.send(command);
   if ((response.$metadata.httpStatusCode) != 200){
-    console.log(`updateRecord RESPONSE = ${response}`)
+    console.log(`record update failed for person ${record}`)
   }
   return response.$metadata.httpStatusCode;
 }
@@ -233,7 +232,7 @@ export const generateBatchID = async () => {
       batchUuid = uuid4()
       batchId = `IB-${batchUuid}`
       console.log("Checking if batchId exists in Episode table")
-      found = await lookupBatchId(batchId, `Population`);
+      found = await lookupBatchId(batchId, `Population`, dbClient);
     } while (found == 400);
     console.log(`batchId = ${batchId}`)
     return batchId;
@@ -245,7 +244,7 @@ export const generateBatchID = async () => {
 };
 
 // ensure no duplicate participantIds
-const lookupBatchId = async (batchId, table) => {
+export async function lookupBatchId(batchId, table, dbClient) {
   const input = {
     ExpressionAttributeValues: {
       ":batch": {
@@ -259,7 +258,7 @@ const lookupBatchId = async (batchId, table) => {
   };
 
   const command = new QueryCommand(input);
-  const response = await client.send(command);
+  const response = await dbClient.send(command);
   if (!response.Items.length){ // if response is empty, no matching participantId
     return 200
   }

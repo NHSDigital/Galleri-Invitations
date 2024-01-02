@@ -84,6 +84,7 @@ export async function getPopulation(lsoaList, client) {
           }
         }
       });
+
       if (eligiblePopulation - invitedPopulation > 0){
         populationObject[lsoaCode] = {
           ELIGIBLE_POPULATION: { S: eligiblePopulation },

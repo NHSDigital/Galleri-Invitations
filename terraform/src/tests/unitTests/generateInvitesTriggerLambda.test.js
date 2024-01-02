@@ -1,4 +1,9 @@
-import { getLsoaCode, updateRecord, updatePersonsToBeInvited, updateClinicFields } from '../../generateInvitesTriggerLambda'
+import {
+  getLsoaCode,
+  updateRecord,
+  updatePersonsToBeInvited,
+  updateClinicFields,
+  lookupBatchId } from '../../generateInvitesTriggerLambda'
 import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
@@ -37,7 +42,9 @@ describe('updateRecord', () => {
       ]
     });
 
-    const result = await updateRecord('record', mockDynamoDbClient);
+    const batchId = "baa"
+
+    const result = await updateRecord('record', batchId, mockDynamoDbClient);
 
     expect(result).toEqual(200);
 
@@ -90,7 +97,32 @@ describe('updateClinicFields', () => {
       }
     });
 
-    const result = await updateClinicFields(clinicInfo, mockDynamoDbClient);
+    const invitesSent = 10
+
+    const result = await updateClinicFields(clinicInfo, invitesSent, mockDynamoDbClient);
+
+    expect(result).toEqual(200);
+
+  });
+});
+
+describe('lookupBatchId', () => {
+  const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
+
+  const batchId = "baa"
+
+  test('Return response 200 when unique batchId is found', async () => {
+
+    mockDynamoDbClient.resolves({
+      $metadata: {
+        httpStatusCode: 200
+      },
+      Items: []
+    });
+
+    const table = "table"
+
+    const result = await lookupBatchId(batchId, table, mockDynamoDbClient);
 
     expect(result).toEqual(200);
 
