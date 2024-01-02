@@ -80,7 +80,6 @@ export async function getPopulation(lsoaList, client) {
         ) {
           ++eligiblePopulation;
           if (person?.Invited?.S == "true" || person?.identified_to_be_invited.BOOL) {
-          // if (person?.Invited?.S == "true") {
             ++invitedPopulation;
           }
         }

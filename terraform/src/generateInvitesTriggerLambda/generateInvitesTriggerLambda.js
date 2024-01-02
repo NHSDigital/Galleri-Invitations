@@ -80,12 +80,10 @@ export const handler = async (event, context) => {
 };
 
 //METHODS
-
+// create a batch id
+// assign it to records array
 export async function updatePersonsToBeInvited(recordArray, client) {
-  // create a batch id
-  // assign it to records array
   const batchId = await generateBatchID();
-  console.log(`batchId = ${batchId}`)
 
   const validParticipants = recordArray.filter((record) => {
     return record !== null;
@@ -156,9 +154,6 @@ export async function getLsoaCode(record, client) {
 
   return response;
 }
-
-
-
 
 export async function updateClinicFields(clinicInfo, invitesSent, client) {
   const {
