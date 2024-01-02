@@ -6,7 +6,6 @@ import rstr
 import random
 
 ENVIRONMENT = os.getenv("environment")
-regex = rstr.xeger(r'NHS-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]')
 
 def generate_nonprod_population_json(file_path, table_name):
     with open(file_path, "r", encoding="utf-8-sig") as file:
@@ -48,8 +47,8 @@ def format_dynamodb_json(csvreader, table_name):
             sensitivity_indicator_flag = str(row[23])
             Invited = str(row[24])
             lsoa_2011 = str(row[25])
-            participant_id_rand_exp = regex
-            gp_practice_code = "GP-CODE" + str(random.randint(1, 7))
+            participant_id_rand_exp = rstr.xeger(r'NHS-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]')
+            gp_practice_code = "GP-CODE-" + str(random.randint(1, 5000))
 
             if nhs_number and lsoa_2011:
                 output.append(

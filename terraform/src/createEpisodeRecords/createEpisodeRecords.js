@@ -2,7 +2,7 @@ import { DynamoDBClient, BatchWriteItemCommand, QueryCommand } from "@aws-sdk/cl
 
 const client = new DynamoDBClient({ region: "eu-west-2" });
 const ENVIRONMENT = process.env.ENVIRONMENT;
-
+const UNSUCCESSFUL_RESPONSE = 400;
 /*
   Lambda to get create episode records for modified population records
 */
@@ -16,12 +16,10 @@ export const handler = async (event) => {
   const filteredRecords = episodeRecordsUpload.filter(record => record.status !== "rejected")
   let responseArray;
   console.log(`Number of records that were not rejected = ${filteredRecords.length}`)
-  if (filteredRecords.every( element => element.value !== 400)){
+  if (filteredRecords.every( element => element.value !== UNSUCCESSFUL_RESPONSE)){
     const sendRequest = await loopThroughRecords(filteredRecords, chunkSize, client)
-    console.log(`sendRequest = ${JSON.stringify(sendRequest, null, 2)}`)
     responseArray = await Promise.allSettled(sendRequest)
   }
-  console.log(`responseArray = ${JSON.stringify(responseArray, null, 2)}`)
   if (responseArray.status == "rejected"){
     return new Error(`The episode records have not been successfully created.`)
   }
@@ -120,12 +118,12 @@ export async function loopThroughRecords(episodeRecordsUpload, chunkSize, dbClie
     if ((episodeRecordsUpload.length - i) < chunkSize){ // remaining chunk
       const batch = episodeRecordsUpload.splice(i, episodeRecordsUpload.length - i);
       console.log("Writing remainder")
-      sendRequest.push(batchWriteToDynamo(dbClient, `Episode`, batch));
+      sendRequest.push(await batchWriteToDynamo(dbClient, `Episode`, batch));
       return sendRequest;
     }
     const batch = episodeRecordsUpload.splice(i, chunkSize);
     console.log("Writing to dynamo")
-    sendRequest.push(batchWriteToDynamo(dbClient, `Episode`, batch));
+    sendRequest.push(await batchWriteToDynamo(dbClient, `Episode`, batch));
   }
   return sendRequest
 }
@@ -138,8 +136,6 @@ export async function batchWriteToDynamo(dbClient, table, uploadBatch){
     let requestItemsObject = {};
     requestItemsObject[`${ENVIRONMENT}-${table}`] = filterUploadBatch;
 
-    console.log(`requestItemsObject = ${JSON.stringify(requestItemsObject, null, 2)}`)
-
     const command = new BatchWriteItemCommand({
       RequestItems: requestItemsObject
     });
@@ -147,7 +143,5 @@ export async function batchWriteToDynamo(dbClient, table, uploadBatch){
     const response = await dbClient.send(command);
     return response.$metadata.httpStatusCode;
   }
-
-  return 400;
-
+  return UNSUCCESSFUL_RESPONSE;
 }
