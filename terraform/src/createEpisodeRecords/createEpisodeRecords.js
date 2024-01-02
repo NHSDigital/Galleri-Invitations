@@ -14,9 +14,17 @@ export const handler = async (event) => {
   const episodeRecordsUpload = await processIncomingRecords(changedRecords, client);
 
   const filteredRecords = episodeRecordsUpload.filter(record => record.status !== "rejected")
+  console.log(`Number of records that were not rejected = ${filteredRecords.length}`)
   if (filteredRecords.every( element => element.value !== 400)){
     const sendRequest = await loopThroughRecords(filteredRecords, chunkSize, client)
     const responseArray = await Promise.allSettled(sendRequest)
+    console.log(`Number of records that were settled = ${responseArray.length}`)
+    const responseArraySuccessMessage = sendRequest.filter(record => record.status !== "rejected")
+    const responseArraySuccessValue = sendRequest.filter(record => record.value === 200)
+    console.log(`
+    Number of records that were settled with success message = ${responseArraySuccessMessage.length}`)
+    console.log(`
+    Number of records that were settled with success value = ${responseArraySuccessValue.length}`)
   }
 };
 
@@ -79,6 +87,7 @@ export const lookupParticipantId = async (participantId, table, dbClient) => {
 };
 
 export async function loopThroughRecords(episodeRecordsUpload, chunkSize, dbClient) {
+  console.log(`Number of records to push to db = ${episodeRecordsUpload.length}`)
   const sendRequest = [];
   if (episodeRecordsUpload.length === 0) return sendRequest; // handle edge case
 
