@@ -538,37 +538,6 @@ module "generate_invites_api_gateway" {
   environment          = var.environment
 }
 
-# Create Episode Records
-module "create_episode_record_lambda" {
-  source               = "./modules/lambda"
-  environment          = var.environment
-  bucket_id            = module.s3_bucket.bucket_id
-  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "createEpisodeRecords"
-  lambda_timeout       = 900
-  memory_size          = 1024
-  lambda_s3_object_key = "create_episode_record.zip"
-  environment_vars = {
-    ENVIRONMENT = "${var.environment}"
-  }
-}
-
-module "create_episode_record_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.create_episode_record_lambda.lambda_function_name
-  retention_days       = 14
-}
-
-module "create_episode_record_dynamodb_stream" {
-  source                              = "./modules/dynamodb_stream"
-  enabled                             = true
-  event_source_arn                    = module.population_table.dynamodb_stream_arn
-  function_name                       = module.create_episode_record_lambda.lambda_function_name
-  starting_position                   = "LATEST"
-  batch_size                          = 200
-  maximum_batching_window_in_seconds  = 300
-}
 
 # Dynamodb tables
 module "sdrs_table" {
@@ -912,4 +881,36 @@ module "episode_table" {
     Name        = "Dynamodb Table Episode"
     Environment = var.environment
   }
+}
+
+# Create Episode Records
+module "create_episode_record_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "createEpisodeRecords"
+  lambda_timeout       = 900
+  memory_size          = 1024
+  lambda_s3_object_key = "create_episode_record.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "create_episode_record_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.create_episode_record_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "create_episode_record_dynamodb_stream" {
+  source                              = "./modules/dynamodb_stream"
+  enabled                             = true
+  event_source_arn                    = module.population_table.dynamodb_stream_arn
+  function_name                       = module.create_episode_record_lambda.lambda_function_name
+  starting_position                   = "LATEST"
+  batch_size                          = 200
+  maximum_batching_window_in_seconds  = 300
 }
