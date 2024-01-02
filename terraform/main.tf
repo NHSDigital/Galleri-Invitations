@@ -365,7 +365,6 @@ module "target_fill_to_percentage_put_lambda" {
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "targetFillToPercentagePutLambda"
-
   lambda_s3_object_key = "target_fill_to_percentage_put_lambda.zip"
   environment_vars = {
     ENVIRONMENT = "${var.environment}"

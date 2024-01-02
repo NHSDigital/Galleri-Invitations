@@ -25,9 +25,7 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient){
   const episodeRecordsUpload = await Promise.allSettled(
     incomingRecordsArr.map(async (record) => {
       if (record.dynamodb.OldImage.identified_to_be_invited.BOOL === false && record.dynamodb.NewImage.identified_to_be_invited.BOOL) {
-        console.log("here 1")
         if (await lookupParticipantId(record.dynamodb.NewImage.participantId.S, "Episode", dbClient)){
-          console.log("here 2")
           return createEpisodeRecord(record.dynamodb.NewImage);
         } else {
           console.log("RECORD ALREADY EXISTS")

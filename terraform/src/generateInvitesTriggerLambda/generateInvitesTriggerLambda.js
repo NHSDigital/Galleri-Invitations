@@ -9,6 +9,7 @@ import uuid4 from "uuid4";
 const client = new DynamoDBClient({ region: "eu-west-2" });
 
 const ENVIRONMENT = process.env.ENVIRONMENT;
+const SUCCESSFULL_REPSONSE = 200;
 
 export const handler = async (event, context) => {
   const eventJson = JSON.parse(event.body);
@@ -33,13 +34,12 @@ export const handler = async (event, context) => {
       personIdentifiedArray,
       client
     );
+    console.log(`responsePopulation = ${responsePopulation.length}`)
     const responsePhlebotomySite = await updateClinicFields(
       clinicInfo,
       personIdentifiedArray.length,
       client
     );
-
-    const SUCCESSFULL_REPSONSE = 200;
 
     if (
       responsePopulation.every(
@@ -48,6 +48,13 @@ export const handler = async (event, context) => {
     ) {
       console.log(`All ${responsePopulation.length} persons successfully updated`);
       personUpdated = true;
+    }
+    else {
+      const successfulRecords = responsePopulation.reduce(
+        (curr, acc) => {if (curr.value === SUCCESSFULL_REPSONSE) return acc + 1}
+        ,0
+      )
+      console.log(`Only ${successfulRecords}/${responsePopulation.length} persons were successfully updated. Contact third line support to investigate`);
     }
 
     if (responsePhlebotomySite == SUCCESSFULL_REPSONSE) {
@@ -228,9 +235,8 @@ export const generateBatchID = async () => {
     const batchId = `IB-${batchUuid}`
     let found = 400;
     do {
-      console.log("In generateBatchID. Checking if batchId exists in Episode table")
+      console.log("Checking if batchId exists in Episode table")
       found = await lookupBatchId(batchId, `Population`);
-      console.log("found: ", found)
     } while (found == 400);
     return batchId;
   } catch (err) {
@@ -242,7 +248,6 @@ export const generateBatchID = async () => {
 
 // ensure no duplicate participantIds
 const lookupBatchId = async (batchId, table) => {
-  console.log("in lookupBatchId")
   const input = {
     ExpressionAttributeValues: {
       ":batch": {
@@ -257,7 +262,6 @@ const lookupBatchId = async (batchId, table) => {
 
   const command = new QueryCommand(input);
   const response = await client.send(command);
-  console.log("lookupBatchId Response = ", JSON.stringify(response))
   if (!response.Items.length){ // if response is empty, no matching participantId
     return 200
   }
