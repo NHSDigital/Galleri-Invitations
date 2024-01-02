@@ -1,4 +1,4 @@
-name: "CI/CD UAT 3"
+name: "DEV 1 Manual Deploy"
 
 # The total recommended execution time for the "CI/CD Pull Request" workflow is around 20 minutes.
 
@@ -6,26 +6,42 @@ on:
   workflow_dispatch:
     inputs:
       invitations_branch:
-        description: "This is the branch/tag of Galleri-Invitations be deployed to the UAT environment"
+        description: "This is the branch/tag of Galleri-Invitations be deployed to the DEV environment"
         required: true
       frontend_branch:
-        description: "This is the branch/tag of the Galleri frontend to be deployed to the UAT environment"
+        description: "This is the branch/tag of the Galleri frontend to be deployed to the DEV environment"
         required: true
+      database_seeding:
+        description: "Determines if the seeding scripts are run to populate the database"
+        required: true
+        type: choice
+        default: "yes"
+        options:
+          - "yes"
+          - "no"
       tf_action:
         type: choice
-        description: Terraform action to be carried out against UAT environment
+        description: Terraform action to be carried out against DEV environment
         required: true
         default: apply
         options:
           - apply
           - destroy
+      test:
+        type: choice
+        description: Should tests be run?
+        required: true
+        default: "yes"
+        options:
+          - "yes"
+          - "no"
 
 jobs:
   metadata:
     runs-on: ubuntu-latest
     timeout-minutes: 1
     env:
-      environment: "uat-3"
+      environment: "dev-1"
     outputs:
       build_datetime_london: ${{ steps.variables.outputs.build_datetime_london }}
       build_datetime: ${{ steps.variables.outputs.build_datetime }}
@@ -39,12 +55,16 @@ jobs:
       environment: ${{ env.environment }}
       invitations_branch: ${{ github.event.inputs.invitations_branch }}
       frontend_branch: ${{ github.event.inputs.invitations_branch }}
-      tf_action: ${{ github.event.inputs.tf-action }}
+      database_seeding: ${{ github.event.inputs.database_seeding }}
+      tf_action: ${{ github.event.inputs.tf_action }}
+      test: ${{ github.event.inputs.test }}
     steps:
       - name: "print environment name"
         run: |
+          echo job running on branch: ${{ github.base_ref }}
           echo environment is: ${{ env.environment }}
-          echo environment is: $environment
+          echo seed database: ${{ github.event.inputs.database_seeding }}
+          echo run tests: ${{ github.event.inputs.test }}
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
@@ -61,7 +81,7 @@ jobs:
           echo "python_version=$(grep python .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
-          echo "environment=uat-3" >> $GITHUB_OUTPUT
+          echo "environment=dev-1" >> $GITHUB_OUTPUT
       - name: "Check if pull request exists for this branch"
         id: pr_exists
         env:
@@ -114,28 +134,14 @@ jobs:
       version: "${{ needs.metadata.outputs.version }}"
       invitations_branch: "${{ github.event.inputs.invitations_branch }}"
     secrets: inherit
-  # build-stage: # Recommended maximum execution time is 3 minutes
-  #   needs: [metadata, test-stage]
-  #   uses: ./.github/workflows/stage-3-build.yaml
-  #   if: needs.metadata.outputs.does_pull_request_exist == 'true' || (github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened'))
-  #   with:
-  #     build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
-  #     build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
-  #     build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
-  #     nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
-  #     python_version: "${{ needs.metadata.outputs.python_version }}"
-  #     terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
-  #     version: "${{ needs.metadata.outputs.version }}"
-  #     environment: "test"
-  #   secrets: inherit
-  acceptance-stage: # Recommended maximum execution time is 10 minutes
+
+  build-stage: # Recommended maximum execution time is 10 minutes
     needs: [
         metadata,
         test-stage,
         # build-stage
       ]
-    uses: ./.github/workflows/stage-4-acceptance.yaml
-    # if: needs.metadata.outputs.does_pull_request_exist == 'true' || (github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened'))
+    uses: ./.github/workflows/stage-3-build.yaml
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
@@ -148,4 +154,34 @@ jobs:
       invitations_branch: "${{ github.event.inputs.invitations_branch }}"
       frontend_branch: "${{ github.event.inputs.frontend_branch }}"
       tf_action: "${{ github.event.inputs.tf_action }}"
+    secrets: inherit
+
+  data-stage: # Recommended maximum execution time is 10 minutes
+    needs: [metadata, test-stage, build-stage]
+    uses: ./.github/workflows/stage-4-load-data.yaml
+    if: needs.metadata.outputs.database_seeding == 'yes'
+    with:
+      build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
+      build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
+      build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
+      nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
+      python_version: "${{ needs.metadata.outputs.python_version }}"
+      terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
+      version: "${{ needs.metadata.outputs.version }}"
+      environment: ${{ needs.metadata.outputs.environment }}
+    secrets: inherit
+
+  acceptance-stage: # Recommended maximum execution time is 10 minutes
+    needs: [metadata, test-stage, build-stage, data-stage]
+    uses: ./.github/workflows/stage-5-acceptance.yaml
+    if: needs.metadata.outputs.test == 'yes' && (needs.data-stage.result == 'success' || needs.data-stage.result == 'skipped')
+    with:
+      build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
+      build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
+      build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
+      nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
+      python_version: "${{ needs.metadata.outputs.python_version }}"
+      terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
+      version: "${{ needs.metadata.outputs.version }}"
+      environment: ${{ needs.metadata.outputs.environment }}
     secrets: inherit

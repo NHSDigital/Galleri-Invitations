@@ -1,4 +1,4 @@
-name: "Acceptance stage"
+name: "Clean up stage"
 
 on:
   workflow_call:
@@ -45,7 +45,11 @@ on:
         type: string
       tf_action:
         description: "Terraform action to be performed against target environment"
-        default: apply
+        default: destroy
+        type: string
+        required: false
+      database_seeding:
+        description: "Determines if the database requires data being added"
         type: string
         required: false
 
@@ -90,6 +94,7 @@ jobs:
           tf-action: ${{ env.tf-action }}
         timeout-minutes: 15
       - name: "Seed databases"
+        # if: inputs.tf_action == 'apply' || inputs.database_seeding == "true"
         if: inputs.tf_action == 'apply'
         uses: ./.github/actions/seeding
         with:

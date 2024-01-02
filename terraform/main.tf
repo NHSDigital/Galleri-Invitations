@@ -39,6 +39,7 @@ module "galleri_invitations_screen" {
   NEXT_PUBLIC_PARTICIPATING_ICB_LIST                    = module.participating_icb_list_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_PUT_TARGET_PERCENTAGE                     = module.target_fill_to_percentage_put_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_TARGET_PERCENTAGE                         = module.target_fill_to_percentage_get_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_GENERATE_INVITES                          = module.generate_invites_api_gateway.rest_api_galleri_id
 }
 
 # the role that all lambda's are utilising,
@@ -56,6 +57,19 @@ module "s3_bucket" {
   environment             = var.environment
 }
 
+module "test_data_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "galleri-test-data"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
+module "gp_practices_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "gp-practices-bucket"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
 
 # Data Filter Gridall IMD
 module "data_filter_gridall_imd_lambda" {
@@ -301,7 +315,7 @@ module "invitation_parameters_put_forecast_uptake_cloudwatch" {
 module "invitation_parameters_put_forecast_uptake_api_gateway" {
   source                    = "./modules/api-gateway"
   environment               = var.environment
-  lambda_invoke_arn         = module.invitation_parameters_lambda.lambda_invoke_arn
+  lambda_invoke_arn         = module.invitation_parameters_put_forecast_uptake_lambda.lambda_invoke_arn
   path_part                 = "invitation-parameters-put-forecast-uptake"
   method_http_parameters    = {}
   lambda_api_gateway_method = "PUT"
@@ -538,6 +552,60 @@ module "generate_invites_api_gateway" {
   environment          = var.environment
 }
 
+# GP Practices Loader
+module "gp_practices_loader_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gpPracticesLoaderLambda"
+  lambda_timeout       = 900
+  memory_size          = 2048
+  lambda_s3_object_key = "gp_practices_loader.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "gp_practices_loader_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gp_practices_loader_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+
+# Create Episode Records
+module "create_episode_record_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "createEpisodeRecords"
+  lambda_timeout       = 900
+  memory_size          = 1024
+  lambda_s3_object_key = "create_episode_record.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "create_episode_record_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.create_episode_record_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "create_episode_record_dynamodb_stream" {
+  source                              = "./modules/dynamodb_stream"
+  enabled                             = true
+  event_source_arn                    = module.population_table.dynamodb_stream_arn
+  function_name                       = module.create_episode_record_lambda.lambda_function_name
+  starting_position                   = "LATEST"
+  batch_size                          = 200
+  maximum_batching_window_in_seconds  = 300
+}
 
 # Dynamodb tables
 module "sdrs_table" {
@@ -593,33 +661,18 @@ module "participating_icb_table" {
 }
 
 module "gp_practice_table" {
-  source      = "./modules/dynamodb"
-  table_name  = "GpPractice"
-  hash_key    = "GpPracticeId"
-  range_key   = "GpPracticeName"
-  environment = var.environment
+  source                   = "./modules/dynamodb"
+  billing_mode             = "PAY_PER_REQUEST"
+  table_name               = "GpPractice"
+  hash_key                 = "gp_practice_code"
+  environment              = var.environment
+  read_capacity            = null
+  write_capacity           = null
+  secondary_write_capacity = null
+  secondary_read_capacity  = null
   attributes = [{
-    name = "GpPracticeId"
+    name = "gp_practice_code"
     type = "S"
-    },
-    {
-      name = "GpPracticeName"
-      type = "S"
-    },
-    {
-      name = "AddressLine1"
-      type = "S"
-    },
-    {
-      name = "Postcode"
-      type = "S"
-    }
-  ]
-  global_secondary_index = [
-    {
-      name      = "AddressLine1PostcodeIndex"
-      hash_key  = "AddressLine1"
-      range_key = "Postcode"
     }
   ]
   tags = {
@@ -697,7 +750,6 @@ module "postcode_table" {
   billing_mode             = "PAY_PER_REQUEST"
   table_name               = "Postcode"
   hash_key                 = "POSTCODE"
-  range_key                = "IMD_RANK"
   environment              = var.environment
   read_capacity            = null
   write_capacity           = null
@@ -706,21 +758,6 @@ module "postcode_table" {
   attributes = [{
     name = "POSTCODE"
     type = "S"
-    },
-    {
-      name = "IMD_RANK"
-      type = "N"
-    },
-    {
-      name = "IMD_DECILE"
-      type = "N"
-    }
-  ]
-  global_secondary_index = [
-    {
-      name      = "POSTCODE"
-      hash_key  = "IMD_RANK"
-      range_key = "IMD_DECILE"
     }
   ]
   tags = {
@@ -829,6 +866,23 @@ module "invitation_parameters_table" {
   }
 }
 
+module "user_accounts_table" {
+  source      = "./modules/dynamodb"
+  table_name  = "UserAccounts"
+  hash_key    = "UUID"
+  environment = var.environment
+  attributes = [
+    {
+      name = "UUID"
+      type = "S"
+    }
+  ]
+  tags = {
+    Name        = "Dynamodb Table User Accounts"
+    Environment = var.environment
+  }
+}
+
 # To be replaced with a script
 resource "aws_dynamodb_table_item" "quintileTargets" {
   table_name = module.invitation_parameters_table.dynamodb_table_name
@@ -883,34 +937,3 @@ module "episode_table" {
   }
 }
 
-# Create Episode Records
-module "create_episode_record_lambda" {
-  source               = "./modules/lambda"
-  environment          = var.environment
-  bucket_id            = module.s3_bucket.bucket_id
-  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "createEpisodeRecords"
-  lambda_timeout       = 900
-  memory_size          = 1024
-  lambda_s3_object_key = "create_episode_record.zip"
-  environment_vars = {
-    ENVIRONMENT = "${var.environment}"
-  }
-}
-
-module "create_episode_record_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.create_episode_record_lambda.lambda_function_name
-  retention_days       = 14
-}
-
-module "create_episode_record_dynamodb_stream" {
-  source                              = "./modules/dynamodb_stream"
-  enabled                             = true
-  event_source_arn                    = module.population_table.dynamodb_stream_arn
-  function_name                       = module.create_episode_record_lambda.lambda_function_name
-  starting_position                   = "LATEST"
-  batch_size                          = 200
-  maximum_batching_window_in_seconds  = 300
-}
