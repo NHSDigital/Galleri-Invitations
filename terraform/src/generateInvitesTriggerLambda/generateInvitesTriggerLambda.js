@@ -83,7 +83,7 @@ export const handler = async (event, context) => {
 // create a batch id
 // assign it to records array
 export async function updatePersonsToBeInvited(recordArray, client) {
-  const batchId = await generateBatchID();
+  const batchId = await generateBatchID(client);
 
   const validParticipants = recordArray.filter((record) => {
     return record !== null;

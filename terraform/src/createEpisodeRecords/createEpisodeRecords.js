@@ -73,8 +73,6 @@ function createEpisodeRecord(record){
         'Episode_Event_Updated': {
           N: Date.now()
         }
-
-
       }
     }
   }
