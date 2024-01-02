@@ -14,13 +14,18 @@ export const handler = async (event) => {
   const episodeRecordsUpload = await processIncomingRecords(changedRecords, client);
 
   const filteredRecords = episodeRecordsUpload.filter(record => record.status !== "rejected")
-  let recordArray;
+  let responseArray;
   console.log(`Number of records that were not rejected = ${filteredRecords.length}`)
   if (filteredRecords.every( element => element.value !== 400)){
     const sendRequest = await loopThroughRecords(filteredRecords, chunkSize, client)
+    console.log(`sendRequest = ${JSON.stringify(sendRequest, null, 2)}`)
     responseArray = await Promise.allSettled(sendRequest)
   }
-  return recordArray
+  console.log(`responseArray = ${JSON.stringify(responseArray, null, 2)}`)
+  if (responseArray.status == "rejected"){
+    return new Error(`The episode records have not been successfully created.`)
+  }
+  return `The episode records have been successfully created.`
 };
 
 // METHODS
@@ -42,7 +47,7 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient){
 }
 
 function createEpisodeRecord(record){
-  console.log(`record = ${JSON.stringify(record, null, 2)}`)
+  const createTime = String(Date.now())
   const item = {
     PutRequest: {
       Item: {
@@ -62,10 +67,10 @@ function createEpisodeRecord(record){
           S: `UserName` // need to pull in username when able to access
         },
         'Episode_Creation': {
-          N: Date.now()
+          S: createTime
         },
         'Episode_Status_Updated': {
-          N: Date.now()
+          S: createTime
         },
         'Episode_Status': {
           S: `Open`
@@ -74,7 +79,7 @@ function createEpisodeRecord(record){
           S: `Invited`
         },
         'Episode_Event_Updated': {
-          N: Date.now()
+          S: createTime
         }
       }
     }
@@ -122,6 +127,7 @@ export async function loopThroughRecords(episodeRecordsUpload, chunkSize, dbClie
     console.log("Writing to dynamo")
     sendRequest.push(batchWriteToDynamo(dbClient, `Episode`, batch));
   }
+  return sendRequest
 }
 
 export async function batchWriteToDynamo(dbClient, table, uploadBatch){
@@ -131,6 +137,8 @@ export async function batchWriteToDynamo(dbClient, table, uploadBatch){
   if (filterUploadBatch.length !== 0) {
     let requestItemsObject = {};
     requestItemsObject[`${ENVIRONMENT}-${table}`] = filterUploadBatch;
+
+    console.log(`requestItemsObject = ${JSON.stringify(requestItemsObject, null, 2)}`)
 
     const command = new BatchWriteItemCommand({
       RequestItems: requestItemsObject
