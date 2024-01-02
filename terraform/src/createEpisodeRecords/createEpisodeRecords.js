@@ -99,7 +99,6 @@ export async function loopThroughRecords(episodeRecordsUpload, chunkSize, dbClie
 
 export async function batchWriteToDynamo(dbClient, table, uploadBatch){
   // split out array
-  // const filterBatch = uploadBatch.filter(record => record.value !== undefined);
   const filterUploadBatch = uploadBatch.map(record => record.value);
 
   if (filterUploadBatch.length !== 0) {
