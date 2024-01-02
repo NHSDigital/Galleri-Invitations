@@ -597,13 +597,13 @@ module "create_episode_record_cloudwatch" {
 }
 
 module "create_episode_record_dynamodb_stream" {
-  source                              = "./modules/dynamodb_stream"
-  enabled                             = true
-  event_source_arn                    = module.population_table.dynamodb_stream_arn
-  function_name                       = module.create_episode_record_lambda.lambda_function_name
-  starting_position                   = "LATEST"
-  batch_size                          = 200
-  maximum_batching_window_in_seconds  = 300
+  source                             = "./modules/dynamodb_stream"
+  enabled                            = true
+  event_source_arn                   = module.population_table.dynamodb_stream_arn
+  function_name                      = module.create_episode_record_lambda.lambda_function_name
+  starting_position                  = "LATEST"
+  batch_size                         = 200
+  maximum_batching_window_in_seconds = 300
 }
 
 # Dynamodb tables

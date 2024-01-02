@@ -18,6 +18,6 @@ variable "batch_size" {
   default = 1
 }
 
-variable "maximum_batching_window_in_seconds"{
+variable "maximum_batching_window_in_seconds" {
   default = 10
 }

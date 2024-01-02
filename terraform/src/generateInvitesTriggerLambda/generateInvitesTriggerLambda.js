@@ -79,7 +79,7 @@ export const handler = async (event, context) => {
   }
 };
 
-//METHODS
+// METHODS
 // create a batch id
 // assign it to records array
 export async function updatePersonsToBeInvited(recordArray, client) {
