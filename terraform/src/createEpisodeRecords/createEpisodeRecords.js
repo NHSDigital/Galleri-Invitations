@@ -48,7 +48,33 @@ function createEpisodeRecord(record){
         },
         'Participant_Id': {
           S: `${record.participantId.S}`
+        },
+        'LSOA': {
+          S: `${record.LsoaCode.S}`
+        },
+        'Gp_Practice_Code': {
+          S: `${record.gpPracticeCode.S}`
+        },
+        'Episode_Created_By': {
+          S: `UserName` // need to pull in username when able to access
+        },
+        'Episode_Creation': {
+          N: Date.now()
+        },
+        'Episode_Status_Updated': {
+          N: Date.now()
+        },
+        'Episode_Status': {
+          S: `Open`
+        },
+        'Episode_Event': {
+          S: `Invited`
+        },
+        'Episode_Event_Updated': {
+          N: Date.now()
         }
+
+
       }
     }
   }

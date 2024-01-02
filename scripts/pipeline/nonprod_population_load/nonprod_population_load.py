@@ -3,6 +3,7 @@ import os
 import boto3
 import uuid
 import rstr
+import random
 
 ENVIRONMENT = os.getenv("environment")
 regex = rstr.xeger(r'NHS-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]')
@@ -48,6 +49,7 @@ def format_dynamodb_json(csvreader, table_name):
             Invited = str(row[24])
             lsoa_2011 = str(row[25])
             participant_id_rand_exp = regex
+            gp_practice_code = "GP-CODE" + str(random.randint(1, 7))
 
             if nhs_number and lsoa_2011:
                 output.append(
@@ -155,8 +157,10 @@ def format_dynamodb_json(csvreader, table_name):
                                 },
                                 'participantId': {
                                     'S': f'{str(participant_id_rand_exp)}'
+                                },
+                                'gpPracticeCode': {
+                                    'S': f'{gp_practice_code}'
                                 }
-
                             },
                             "TableName": table_name,
                         },
