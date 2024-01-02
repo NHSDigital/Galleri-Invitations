@@ -223,7 +223,7 @@ export async function updateClinicFields(clinicInfo, invitesSent, client) {
   return response.$metadata.httpStatusCode;
 }
 
-export const generateBatchID = async () => {
+export const generateBatchID = async (client) => {
   try {
     let batchUuid;
     let batchId;
@@ -232,7 +232,7 @@ export const generateBatchID = async () => {
       batchUuid = uuid4()
       batchId = `IB-${batchUuid}`
       console.log("Checking if batchId exists in Episode table")
-      found = await lookupBatchId(batchId, `Population`, dbClient);
+      found = await lookupBatchId(batchId, `Population`, client);
     } while (found == 400);
     console.log(`batchId = ${batchId}`)
     return batchId;
