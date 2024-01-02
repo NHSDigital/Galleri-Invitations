@@ -14,11 +14,13 @@ export const handler = async (event) => {
   const episodeRecordsUpload = await processIncomingRecords(changedRecords, client);
 
   const filteredRecords = episodeRecordsUpload.filter(record => record.status !== "rejected")
+  let recordArray;
   console.log(`Number of records that were not rejected = ${filteredRecords.length}`)
   if (filteredRecords.every( element => element.value !== 400)){
     const sendRequest = await loopThroughRecords(filteredRecords, chunkSize, client)
-    const responseArray = await Promise.allSettled(sendRequest)
+    responseArray = await Promise.allSettled(sendRequest)
   }
+  return recordArray
 };
 
 // METHODS
