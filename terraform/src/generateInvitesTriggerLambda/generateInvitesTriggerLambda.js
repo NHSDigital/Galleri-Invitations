@@ -226,13 +226,16 @@ export async function updateClinicFields(clinicInfo, invitesSent, client) {
 
 export const generateBatchID = async () => {
   try {
-    const batchUuid = uuid4()
-    const batchId = `IB-${batchUuid}`
-    let found = 400;
+    let batchUuid;
+    let batchId;
+    let found;
     do {
+      batchUuid = uuid4()
+      batchId = `IB-${batchUuid}`
       console.log("Checking if batchId exists in Episode table")
       found = await lookupBatchId(batchId, `Population`);
     } while (found == 400);
+    console.log(`batchId = ${batchId}`)
     return batchId;
   } catch (err) {
     console.error("Error generating batch id.");
