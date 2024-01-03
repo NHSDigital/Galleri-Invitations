@@ -73,11 +73,3 @@ variable "tags" {
 }
 
 variable "environment" {}
-
-variable "stream_enabled" {
-  default = false
-}
-
-variable "stream_view_type" {
-  default = ""
-}
