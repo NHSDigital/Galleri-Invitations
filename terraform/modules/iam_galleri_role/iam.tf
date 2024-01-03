@@ -399,6 +399,12 @@ resource "aws_iam_role_policy_attachment" "clinic_information_lambda" {
   policy_arn = aws_iam_policy.clinic_information_lambda.arn
 }
 
+# Role exceeded quota for PoliciesPerRole: 10
+#resource "aws_iam_role_policy_attachment" "gp_practice_loader_lambda" {
+#  role       = aws_iam_role.galleri_lambda_role.name
+#  policy_arn = aws_iam_policy.gp_practice_loader_lambda.arn
+#}
+
 resource "aws_iam_role_policy_attachment" "participating_icb_list_lambda" {
   role       = aws_iam_role.galleri_lambda_role.name
   policy_arn = aws_iam_policy.participating_icb_list_lambda.arn
