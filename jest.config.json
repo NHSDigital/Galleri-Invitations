@@ -1,5 +1,13 @@
 {
   "transformIgnorePatterns": [
-      "node_modules/(?!(string-width|strip-ansi|ansi-regex|test-json-import)/)"
+    "node_modules/(?!(string-width|strip-ansi|ansi-regex|test-json-import)/)"
+  ],
+  "collectCoverage": true,
+  "collectCoverageFrom": [
+    "terraform/src/**/*.{js,jsx,ts,tsx}",
+    "!terraform/src/tests/**",
+    "!**/*.test.{js,jsx,ts,tsx}",
+    "!**/*.config.js",
+    "!**/node_modules/**"
   ]
 }
