@@ -6,9 +6,14 @@ This is a repo containing the code for the Galleri Invitations Algorithm
 
 - [Repository Template](#repository-template)
   - [Table of Contents](#table-of-contents)
-  - [Installation](#installation)
-    - [Prerequisites](#prerequisites)
   - [Usage](#usage)
+    - [Github Actions](#github-actions)
+      - [workflow select](#workflow-select)
+      - [Galleri Invitations branch/tag](#galleri-invitations-branchtag)
+      - [Galleri Frontend branch/tag](#galleri-frontend-branchtag)
+      - [Seeding scripts](#seeding-scripts)
+      - [terraform action](#terraform-action)
+      - [tests](#tests)
     - [Configuration](#configuration)
   - [Prettifier](#prettifier)
   - [Terraform](#terraform)
@@ -18,42 +23,45 @@ This is a repo containing the code for the Galleri Invitations Algorithm
   - [Contacts](#contacts)
   - [Licence](#licence)
 
-## Installation
-
-By including preferably a one-liner or if necessary a set of clear CLI instructions we improve user experience. This should be a frictionless installation process that works on various operating systems (macOS, Linux, Windows WSL) and handles all the dependencies.
-
-Clone the repository
-
-```shell (HTTPS)
-git clone https://github.com/NHSDigital/Galleri-Invitations.git
-```
-
-Install and configure toolchain dependencies
-
-```shell
-make config
-```
-
-If this repository is
-
-### Prerequisites
-
-The following software packages or their equivalents are expected to be installed
-
-- [GNU make](https://www.gnu.org/software/make/)
-- [Docker](https://www.docker.com/)
-- asdf may need to be installed separately
-
 ## Usage
 
-After a successful installation, provide an informative example of how this project can be used. Additional code snippets, screenshots and demos work well in this space. You may also link to the other documentation resources, e.g. the [User Guide](./docs/user-guide.md) to demonstrate more use cases and to show more features.
+The configuration for the Galleri Invitations sytem is managed by Terraform. We have a series of pipelines which work across multiple environments from development, testing, UAT, performance and production. If you want to run terraform to deploy this code directly from the branch you can do so by running the following command from the terraform directory `tf apply -var-file=environment/dev/terraform.tfvars`
 
-Before pushing to the repo, the developer must run the following commands to run sonarcloud locally;
-sonar-scanner \
- -Dsonar.organization=nhsdigital \
- -Dsonar.projectKey=galleri-invitations \
- -Dsonar.sources=. \
- -Dsonar.host.url=<https://sonarcloud.io>
+However the better way to do this would be to login to the github repository and run the associated action to deploy the environment.
+
+### Github Actions
+
+To manually deploy the changes into an environment you first want to go to [github actions](https://github.com/NHSDigital/Galleri-Invitations/actions)
+
+Next you want to select the workflow that you want to run, there are three for DEV and three for UAT. Select one which is not being used (Check with colleagues to verify)
+
+Select `Run workflow` from the top right hand corner and then a dropdown menu will appear. There are a few options you can choose:
+
+#### workflow select
+
+This is the pipeline configuration that should be used, unless you are testing changes to a github action then leave this as `main`
+
+#### Galleri Invitations branch/tag
+
+This is the branch or tag of the invitations repo you want to deploy, if you just want a working environment then just put `main` and it will pull the latest from the main branch. Otherwise put in the full branch name, such as `feature/GAL-175`
+
+#### Galleri Frontend branch/tag
+
+This is the branch or tag of the frontend repo you want to deploy, if you just want a working environment then just put `main` and it will pull the latest from the main branch. Otherwise put in the full branch name, such as `feature/GAL-175`
+
+#### Seeding scripts
+
+This determines if the database seeding scripts will be run, if you want an empty database then you can delete the existing database for that environment (if it already exists) and then run a fresh apply with this set to `no`
+
+#### terraform action
+
+This can be either `apply` to apply the terraform from that branch, or `destroy` to tear down the environment
+
+#### tests
+
+This will run a series of tests to check that the backend lambda services exposed by API Gateways are working.
+
+> **Note** currently these only work in the dev environment but in the future will be expanded to work in all environments
 
 ### Configuration
 
