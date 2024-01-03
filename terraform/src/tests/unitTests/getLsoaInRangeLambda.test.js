@@ -1,4 +1,4 @@
-import { getClinicEastingNorthing, scanLsoaTable, populateLsoaArray, calculateDistance, generateLsoaTableData } from '../../getLsoaInRange/getLsoaInRangeLambda.js';
+import { getClinicEastingNorthing, scanLsoaTable, populateLsoaArray, calculateDistance, generateLsoaTableData } from '../../getLsoaInRangeLambda/getLsoaInRangeLambda.js';
 import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
