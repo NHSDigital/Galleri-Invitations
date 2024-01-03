@@ -4,9 +4,12 @@ import {
   QueryCommand,
 } from "@aws-sdk/client-dynamodb";
 
+import uuid4 from "uuid4";
+
 const client = new DynamoDBClient({ region: "eu-west-2" });
 
 const ENVIRONMENT = process.env.ENVIRONMENT;
+const SUCCESSFULL_REPSONSE = 200;
 
 export const handler = async (event, context) => {
   const eventJson = JSON.parse(event.body);
@@ -31,21 +34,27 @@ export const handler = async (event, context) => {
       personIdentifiedArray,
       client
     );
+    console.log(`responsePopulation = ${responsePopulation.length}`)
     const responsePhlebotomySite = await updateClinicFields(
       clinicInfo,
       personIdentifiedArray.length,
       client
     );
 
-    const SUCCESSFULL_REPSONSE = 200;
-
     if (
       responsePopulation.every(
         (element) => element.value === SUCCESSFULL_REPSONSE
       )
     ) {
-      console.log("All persons successfully updated");
+      console.log(`All ${responsePopulation.length} persons successfully updated`);
       personUpdated = true;
+    }
+    else {
+      const successfulRecords = responsePopulation.reduce(
+        (curr, acc) => {if (curr.value === SUCCESSFULL_REPSONSE) return acc + 1}
+        ,0
+      )
+      console.log(`Only ${successfulRecords}/${responsePopulation.length} persons were successfully updated. Contact third line support to investigate`);
     }
 
     if (responsePhlebotomySite == SUCCESSFULL_REPSONSE) {
@@ -70,7 +79,63 @@ export const handler = async (event, context) => {
   }
 };
 
-//METHODS
+// METHODS
+// create a batch id
+// assign it to records array
+export async function updatePersonsToBeInvited(recordArray, client) {
+  const batchId = await generateBatchID(client);
+
+  const validParticipants = recordArray.filter((record) => {
+    return record !== null;
+  });
+  return Promise.allSettled(
+    validParticipants.map(async (record) => {
+      return updateRecord(record, batchId, client);
+    })
+  );
+}
+
+// Takes single record and update that individual to have a identifiedToBeInvited field = true
+export async function updateRecord(record, batchId, client) {
+  const lsoaCodeReturn = await getLsoaCode(record, client);
+  const items = lsoaCodeReturn.Items;
+  const lsoaCode = items[0].LsoaCode.S;
+
+  const input = {
+    ExpressionAttributeNames: {
+      "#IDENTIFIED_TO_BE_UPDATED": "identified_to_be_invited",
+      "#BATCH_ID": "Batch_Id"
+    },
+    ExpressionAttributeValues: {
+      ":to_be_invited": {
+        BOOL: true,
+      },
+      ":batch": {
+        S: `${batchId}`,
+      },
+    },
+    Key: {
+      PersonId: {
+        S: `${record}`,
+      },
+      LsoaCode: {
+        S: `${lsoaCode}`,
+      },
+    },
+    TableName: `${ENVIRONMENT}-Population`,
+    UpdateExpression: `SET
+      #IDENTIFIED_TO_BE_UPDATED = :to_be_invited,
+      #BATCH_ID = :batch`,
+  };
+
+  const command = new UpdateItemCommand(input);
+  const response = await client.send(command);
+  if ((response.$metadata.httpStatusCode) != 200){
+    console.log(`record update failed for person ${record}`)
+  }
+  return response.$metadata.httpStatusCode;
+}
+
 export async function getLsoaCode(record, client) {
   const input = {
     ExpressionAttributeValues: {
@@ -87,49 +152,6 @@ export async function getLsoaCode(record, client) {
   const response = await client.send(command);
 
   return response;
-}
-
-// Takes single record and update that individual to have a identifiedToBeInvited field = true
-export async function updateRecord(record, client) {
-  const lsoaCodeReturn = await getLsoaCode(record, client);
-  const items = lsoaCodeReturn.Items;
-  const lsoaCode = items[0].LsoaCode.S;
-
-  const input = {
-    ExpressionAttributeNames: {
-      "#IDENTIFIED_TO_BE_UPDATED": "identified_to_be_invited",
-    },
-    ExpressionAttributeValues: {
-      ":to_be_invited": {
-        BOOL: true,
-      },
-    },
-    Key: {
-      PersonId: {
-        S: `${record}`,
-      },
-      LsoaCode: {
-        S: `${lsoaCode}`,
-      },
-    },
-    TableName: `${ENVIRONMENT}-Population`,
-    UpdateExpression: "SET #IDENTIFIED_TO_BE_UPDATED = :to_be_invited",
-  };
-
-  const command = new UpdateItemCommand(input);
-  const response = await client.send(command);
-  return response.$metadata.httpStatusCode;
-}
-
-export async function updatePersonsToBeInvited(recordArray, client) {
-  const validParticipants = recordArray.filter((record) => {
-    return record !== null;
-  });
-  return Promise.allSettled(
-    validParticipants.map(async (record) => {
-      return updateRecord(record, client);
-    })
-  );
 }
 
 export async function updateClinicFields(clinicInfo, invitesSent, client) {
@@ -200,3 +222,45 @@ export async function updateClinicFields(clinicInfo, invitesSent, client) {
   const response = await client.send(command);
   return response.$metadata.httpStatusCode;
 }
+
+export const generateBatchID = async (client) => {
+  try {
+    let batchUuid;
+    let batchId;
+    let found;
+    do {
+      batchUuid = uuid4()
+      batchId = `IB-${batchUuid}`
+      console.log("Checking if batchId exists in Episode table")
+      found = await lookupBatchId(batchId, `Population`, client);
+    } while (found == 400);
+    console.log(`batchId = ${batchId}`)
+    return batchId;
+  } catch (err) {
+    console.error("Error generating batch id.");
+    console.error(err);
+    return err;
+  }
+};
+
+// ensure no duplicate participantIds
+export async function lookupBatchId(batchId, table, dbClient) {
+  const input = {
+    ExpressionAttributeValues: {
+      ":batch": {
+        S: `${batchId}`,
+      },
+    },
+    KeyConditionExpression: "Batch_Id = :batch",
+    ProjectionExpression: "Batch_Id",
+    TableName: `${ENVIRONMENT}-${table}`,
+    IndexName: "BatchId-index",
+  };
+
+  const command = new QueryCommand(input);
+  const response = await dbClient.send(command);
+  if (!response.Items.length){ // if response is empty, no matching participantId
+    return 200
+  }
+  return 400;
+};

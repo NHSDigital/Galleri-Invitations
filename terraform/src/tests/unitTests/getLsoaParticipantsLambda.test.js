@@ -55,7 +55,7 @@ describe('getPopulation', () => {
     await getPopulation(lsoaList, mockDynamoDbClient);
 
     expect(logSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledWith(`lsoa being queried number 2. Population object has 1`);
+    expect(logSpy).toHaveBeenCalledWith(`lsoa being queried number 2. Population object has 0`);
 
   });
 });

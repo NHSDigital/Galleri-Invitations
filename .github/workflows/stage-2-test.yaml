@@ -56,6 +56,7 @@ jobs:
         run: |
           pip install boto3
           pip install pytest
+          pip install rstr
           python -m pytest ./scripts/pipeline/unit_tests/
       - name: "Save the result of fast test suite"
         run: |

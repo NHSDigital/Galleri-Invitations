@@ -47,7 +47,7 @@ export async function queryEligiblePopulation(client, lsoaCode, tableItems) {
       },
     },
     KeyConditionExpression: "LsoaCode = :code",
-    ProjectionExpression: "PersonId, Invited, date_of_death, removal_date",
+    ProjectionExpression: "PersonId, Invited, date_of_death, removal_date, identified_to_be_invited",
     TableName: `${ENVIRONMENT}-Population`,
     IndexName: "LsoaCode-index",
   };
@@ -79,16 +79,18 @@ export async function getPopulation(lsoaList, client) {
           person?.removal_date?.S == "NULL"
         ) {
           ++eligiblePopulation;
-          if (person?.Invited?.S == "true") {
+          if (person?.Invited?.S == "true" || person?.identified_to_be_invited.BOOL) {
             ++invitedPopulation;
           }
         }
       });
 
-      populationObject[lsoaCode] = {
-        ELIGIBLE_POPULATION: { S: eligiblePopulation },
-        INVITED_POPULATION: { S: invitedPopulation },
-      };
+      if (eligiblePopulation - invitedPopulation > 0){
+        populationObject[lsoaCode] = {
+          ELIGIBLE_POPULATION: { S: eligiblePopulation },
+          INVITED_POPULATION: { S: invitedPopulation },
+        };
+      }
     })
   );
 
@@ -112,6 +114,7 @@ export async function getEligiblePopulation(lsoaList, client) {
       response.forEach((person) => {
         if (
           person?.Invited?.S == "false" &&
+          person?.identified_to_be_invited.BOOL == false &&
           person?.date_of_death?.S == "NULL" &&
           person?.removal_date?.S == "NULL"
         ) {
