@@ -4,7 +4,7 @@ import fs from "fs";
 
 //Variables
 const csvLsoa = fs.readFileSync(
-  "./../../../scripts/test_data/output/AvgLsoaMidpoint.csv"
+  "./../generateLsoaMidpoint/output/AvgLsoaMidpoint.csv"
 );
 
 // Functions
@@ -97,7 +97,7 @@ const lsoaRecords = returnUniqueLsoaRecords(lsoaCodes, lsoaPostcodeDataArr);
 console.log(`lsoaRecords = ${lsoaRecords[1]}`);
 
 const testDataHeader =
-  "LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021,IMD_RANK,IMD_DECILE,AVG_EASTING,AVG_NORTHING";
+  "LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021,IMD_RANK,IMD_DECILE,LSOA_NAME,AVG_EASTING,AVG_NORTHING";
 const uniqueLsoaCsv = generateCsvString(testDataHeader, lsoaRecords);
 
-writeFile("lsoa_data_unique.csv", uniqueLsoaCsv);
+writeFile("./output/lsoa_data_unique.csv", uniqueLsoaCsv);

@@ -37,7 +37,9 @@ function create-report() {
       -Dsonar.branch.name="${BRANCH_NAME:-$(git rev-parse --abbrev-ref HEAD)}" \
       -Dsonar.organization="$(echo $SONAR_ORGANISATION_KEY)" \
       -Dsonar.projectKey="$(echo $SONAR_PROJECT_KEY)" \
-      -Dsonar.token="$(echo $SONAR_TOKEN)"
+      -Dsonar.token="$(echo $SONAR_TOKEN)" \
+      -Dsonar.javascript.lcov.reportPaths="coverage/lcov.info" \
+      -Dsonar.coverage.exclusions="**/*test.js,**/*spec.js"
 }
 
 function is_arg_true() {

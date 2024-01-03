@@ -1,6 +1,6 @@
 import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 
-const ENVIRONMENT = process.env.environment;
+const ENVIRONMENT = process.env.ENVIRONMENT;
 
 /*
   Lambda to load clinics from and ICB and pass on to GPS client.
@@ -20,6 +20,7 @@ export const handler = async (event, context) => {
       "#AV": "Availability",
       "#IS": "InvitesSent",
       "#IC": "ICBCode",
+      "#UD": "UpdatedDate",
     },
     ExpressionAttributeValues: {
       ":a": {
@@ -27,7 +28,7 @@ export const handler = async (event, context) => {
       },
     },
     FilterExpression: "ICBCode = :a",
-    ProjectionExpression: "#CI, #CN, #PID, #AV, #IS, #IC",
+    ProjectionExpression: "#CI, #CN, #PID, #AV, #IS, #IC, #UD",
     TableName: `${ENVIRONMENT}-PhlebotomySite`,
   };
 

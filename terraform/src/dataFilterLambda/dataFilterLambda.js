@@ -6,7 +6,7 @@ import {
 import { Readable } from "stream";
 import csv from "csv-parser";
 
-const GALLERI_ONS_BUCKET_NAME = `${process.env.environment}-${process.env.BUCKET_NAME}`;
+const GALLERI_ONS_BUCKET_NAME = `${process.env.ENVIRONMENT}-${process.env.BUCKET_NAME}`;
 const GRIDALL_CHUNK_1 = process.env.GRIDALL_CHUNK_1;
 const GRIDALL_CHUNK_2 = process.env.GRIDALL_CHUNK_2;
 const GRIDALL_CHUNK_3 = process.env.GRIDALL_CHUNK_3;
@@ -182,6 +182,7 @@ export const mergeImdGridallData = (gridallData, imdData, startTime) => {
       count++;
       gridallRecord.IMD_RANK = matchingElement.IMD_RANK;
       gridallRecord.IMD_DECILE = matchingElement.IMD_DECILE;
+      gridallRecord.LSOA_NAME = matchingElement.LSOA_NAME;
       return gridallRecord;
     }
   });
@@ -276,7 +277,7 @@ export const handler = async () => {
     );
     // Format into a csv string to allow reading into bucket
     const combinedImdGridallFileString = generateCsvString(
-      `POSTCODE,POSTCODE_2,LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,EASTING_1M,NORTHING_1M,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021,IMD_RANK,IMD_DECILE`,
+      `POSTCODE,POSTCODE_2,LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,EASTING_1M,NORTHING_1M,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021,IMD_RANK,IMD_DECILE,LSOA_NAME`,
       lsoaArray
     );
     const dateTime = new Date(Date.now()).toISOString();

@@ -51,22 +51,27 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
-      - name: "Get the artefacts"
+      - name: "create tagged versions of lambdas"
         run: |
-          echo "Getting the artefacts created by the build stage ..."
-          # TODO: Use either action/cache or action/upload-artifact
-      - name: "Create release"
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ needs.metadata.outputs.version }}
-          release_name: Release ${{ needs.metadata.outputs.version }}
-          body: |
-            Release of ${{ needs.metadata.outputs.version }}
-          draft: false
-          prerelease: false
+          echo "TODO: create release versions of lambdas"
+      - name: "create tagged versions of frontend"
+        run: |
+          echo "TODO: create release versions of lambdas"
+      - name: "create tagged versions of frontend"
+        run: |
+          echo "TODO: tag main branch"
+      # - name: "tag main branch"
+      #   id: create_release
+      #   uses: actions/create-release@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     tag_name: ${{ needs.metadata.outputs.version }}
+      #     release_name: Release ${{ needs.metadata.outputs.version }}
+      #     body: |
+      #       Release of ${{ needs.metadata.outputs.version }}
+      #     draft: false
+      #     prerelease: false
       # - name: "Upload release asset"
       #   uses: actions/upload-release-asset@v1
       #   env:

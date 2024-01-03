@@ -1,0 +1,10 @@
+{
+  "name": "generateInvitesTriggerLambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "generateInvitesTriggerLambda.js",
+  "author": "",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.398.0"
+  }
+}

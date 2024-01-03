@@ -2,6 +2,7 @@ import csv
 import os
 import boto3
 
+ENVIRONMENT = os.getenv("environment")
 
 def generate_nonprod_population_json(file_path, table_name):
     with open(file_path, "r", encoding="utf-8-sig") as file:
@@ -85,8 +86,70 @@ def format_dynamodb_json(csvreader, table_name):
                                 "sensitivity_indicator_flag": {
                                     "S": f"{sensitivity_indicator_flag}"
                                 },
-                                "Invited": {"S": f"{Invited}"},
-                                "LsoaCode": {"S": f"{lsoa_2011}"},
+                                'family_name': {
+                                    'S': f'{family_name}'
+                                },
+                                'date_of_birth': {
+                                    'S': f'{date_of_birth}'
+                                },
+                                'gender_code': {
+                                    'S': f'{gender_code}'
+                                },
+                                'address_line_1': {
+                                    'S': f'{address_line_1}'
+                                },
+                                'address_line_2': {
+                                    'S': f'{address_line_2}'
+                                },
+                                'address_line_3': {
+                                    'S': f'{address_line_3}'
+                                },
+                                'address_line_4': {
+                                    'S': f'{address_line_4}'
+                                },
+                                'address_line_5': {
+                                    'S': f'{address_line_5}'
+                                },
+                                'postcode': {
+                                    'S': f'{postcode}'
+                                },
+                                'removal_reason': {
+                                    'S': f'{removal_reason}'
+                                },
+                                'removal_date': {
+                                    'S': f'{removal_date}'
+                                },
+                                'date_of_death': {
+                                    'S': f'{date_of_death}'
+                                },
+                                'telephone_number_home': {
+                                    'S': f'{telephone_number_home}'
+                                },
+                                'telephone_number_mobile': {
+                                    'S': f'{telephone_number_mobile}'
+                                },
+                                'email_address_home': {
+                                    'S': f'{email_address_home}'
+                                },
+                                'preferred_language': {
+                                    'S': f'{preferred_language}'
+                                },
+                                'interpreter_required': {
+                                    'S': f'{interpreter_required}'
+                                },
+                                'sensitivity_indicator_flag': {
+                                    'S': f'{sensitivity_indicator_flag}'
+                                },
+                                'Invited': {
+                                    'S': f'{Invited}'
+                                },
+                                'LsoaCode': {
+                                    'S': f'{lsoa_2011}'
+                                },
+                                'identified_to_be_invited': {
+                                    'BOOL': False
+                                }
+
                             },
                             "TableName": table_name,
                         },
@@ -104,7 +167,8 @@ def batch_write_to_dynamodb(lsoa_data):
         upper_bound_slice = i + 100
         test_data = lsoa_data[i:upper_bound_slice]
         dynamodb_client.transact_write_items(TransactItems=test_data)
-        print(f"{i} records uploaded")
+        if i%10000 == 0:
+            print(f"{i} records uploaded")
     return "Finished"
 
 
@@ -121,8 +185,6 @@ if __name__ == "__main__":
 
     male_file = os.getcwd() + file_input_path_1
     female_file = os.getcwd() + file_input_path_2
-
-    ENVIRONMENT = os.getenv("environment")
 
     print("Initiation male upload")
     generate_nonprod_population_json(male_file, ENVIRONMENT + "-Population")

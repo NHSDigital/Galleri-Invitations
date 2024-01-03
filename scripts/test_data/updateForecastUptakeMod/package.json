@@ -1,0 +1,11 @@
+{
+  "name": "updateForecastUptakeMod",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "updateForecastUptakeMod.js",
+  "author": "",
+  "dependencies": {
+    "csv": "^6.3.1",
+    "csv-parser": "^3.0.0"
+  }
+}

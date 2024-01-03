@@ -20,14 +20,26 @@ module "vpc" {
 
 # Deploy frontend in elastic beanstalk
 module "galleri_invitations_screen" {
-  source                 = "./modules/elastic_beanstalk"
-  name                   = "gallery-invitations"
-  description            = "The frontend for interacting with the invitations system"
-  frontend_repo_location = var.frontend_repo_location
-  environment            = var.environment
-  vpc_id                 = module.vpc.vpc_id
-  subnet_1               = module.vpc.subnet_ids[0]
-  subnet_2               = module.vpc.subnet_ids[1]
+  source                                                = "./modules/elastic_beanstalk"
+  name                                                  = "gallery-invitations"
+  description                                           = "The frontend for interacting with the invitations system"
+  frontend_repo_location                                = var.frontend_repo_location
+  environment                                           = var.environment
+  vpc_id                                                = module.vpc.vpc_id
+  subnet_1                                              = module.vpc.subnet_ids[0]
+  subnet_2                                              = module.vpc.subnet_ids[1]
+  NEXT_PUBLIC_CALCULATE_NUM_TO_INVITE                   = module.calculate_number_to_invite_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_CLINIC_ICB_LIST                           = module.clinic_icb_list_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_CLINIC_INFORMATION                        = module.clinic_information_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_CLINIC_SUMMARY_LIST                       = module.clinic_summary_list_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_GET_LSOA_IN_RANGE                         = module.lsoa_in_range_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_INVITATION_PARAMETERS                     = module.invitation_parameters_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_FORECAST_UPTAKE = module.invitation_parameters_put_forecast_uptake_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_QUINTILES       = module.invitation_parameters_put_quintiles_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_PARTICIPATING_ICB_LIST                    = module.participating_icb_list_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_PUT_TARGET_PERCENTAGE                     = module.target_fill_to_percentage_put_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_TARGET_PERCENTAGE                         = module.target_fill_to_percentage_get_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_GENERATE_INVITES                          = module.generate_invites_api_gateway.rest_api_galleri_id
 }
 
 # the role that all lambda's are utilising,
@@ -45,6 +57,19 @@ module "s3_bucket" {
   environment             = var.environment
 }
 
+module "test_data_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "galleri-test-data"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
+module "gp_practices_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "gp-practices-bucket"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
 
 # Data Filter Gridall IMD
 module "data_filter_gridall_imd_lambda" {
@@ -61,7 +86,7 @@ module "data_filter_gridall_imd_lambda" {
     GRIDALL_CHUNK_1 = "gridall/chunk_data/chunk_1.csv",
     GRIDALL_CHUNK_2 = "gridall/chunk_data/chunk_2.csv",
     GRIDALL_CHUNK_3 = "gridall/chunk_data/chunk_3.csv",
-    environment     = "${var.environment}"
+    ENVIRONMENT     = "${var.environment}"
   }
 }
 
@@ -86,7 +111,7 @@ module "lsoa_loader_lambda" {
   environment_vars = {
     BUCKET_NAME = "galleri-ons-data",
     KEY         = "lsoa_data/lsoa_data_2023-08-15T15:42:13.301Z.csv",
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -109,7 +134,7 @@ module "clinic_information_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "clinic_information_lambda.zip"
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -144,7 +169,7 @@ module "clinic_icb_list_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "clinic_icb_list_lambda.zip"
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -178,7 +203,7 @@ module "participating_icb_list_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "participating_icb_list_lambda.zip"
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -210,7 +235,7 @@ module "clinic_summary_list_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "clinic_summary_list_lambda.zip"
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -244,7 +269,7 @@ module "invitation_parameters_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "invitation_parameters_lambda.zip"
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -276,7 +301,7 @@ module "invitation_parameters_put_forecast_uptake_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "invitation_parameters_put_forecast_uptake_lambda.zip"
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -290,7 +315,7 @@ module "invitation_parameters_put_forecast_uptake_cloudwatch" {
 module "invitation_parameters_put_forecast_uptake_api_gateway" {
   source                    = "./modules/api-gateway"
   environment               = var.environment
-  lambda_invoke_arn         = module.invitation_parameters_lambda.lambda_invoke_arn
+  lambda_invoke_arn         = module.invitation_parameters_put_forecast_uptake_lambda.lambda_invoke_arn
   path_part                 = "invitation-parameters-put-forecast-uptake"
   method_http_parameters    = {}
   lambda_api_gateway_method = "PUT"
@@ -310,7 +335,7 @@ module "invitation_parameters_put_quintiles_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "invitation_parameters_put_quintiles_lambda.zip"
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -342,7 +367,7 @@ module "target_fill_to_percentage_put_lambda" {
   lambda_function_name = "targetFillToPercentagePutLambda"
   lambda_s3_object_key = "target_fill_to_percentage_put_lambda.zip"
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -379,7 +404,7 @@ module "target_fill_to_percentage_get_lambda" {
   lambda_function_name = "targetFillToPercentageLambda"
   lambda_s3_object_key = "target_fill_to_percentage_lambda.zip"
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -408,7 +433,7 @@ module "lsoa_in_range_lambda" {
   lambda_s3_object_key = "get_lsoa_in_range_lambda.zip"
   environment          = var.environment
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -441,7 +466,7 @@ module "participants_in_lsoa_lambda" {
   lambda_s3_object_key = "get_participants_in_lsoa_lambda.zip"
   environment          = var.environment
   environment_vars = {
-    environment = "${var.environment}"
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
@@ -452,7 +477,101 @@ module "participants_in_lsoa_cloudwatch" {
   retention_days       = 14
 }
 
+# Calculate number of participatnts to invite
+module "calculate_number_to_invite_lambda" {
+  source               = "./modules/lambda"
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "calculateNumberToInviteLambda"
+  lambda_s3_object_key = "calculate_number_to_invite.zip"
+  environment          = var.environment
+  lambda_timeout       = 100
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
 
+module "calculate_number_to_invite_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  lambda_function_name = module.calculate_number_to_invite_lambda.lambda_function_name
+  environment          = var.environment
+  retention_days       = 14
+}
+
+module "calculate_number_to_invite_api_gateway" {
+  source                    = "./modules/api-gateway"
+  lambda_invoke_arn         = module.calculate_number_to_invite_lambda.lambda_invoke_arn
+  path_part                 = "calculate-num-to-invite"
+  method_http_parameters    = {}
+  lambda_api_gateway_method = "POST"
+  integration_response_http_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'POST,GET'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+  lambda_function_name = module.calculate_number_to_invite_lambda.lambda_function_name
+  method               = "/*/POST/*"
+  environment          = var.environment
+}
+
+# Calculate number of participatnts to invite
+module "generate_invites_lambda" {
+  source               = "./modules/lambda"
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "generateInvitesTriggerLambda"
+  lambda_s3_object_key = "generate_invites.zip"
+  environment          = var.environment
+  lambda_timeout       = 100
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "generate_invites_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  lambda_function_name = module.generate_invites_lambda.lambda_function_name
+  environment          = var.environment
+  retention_days       = 14
+}
+
+module "generate_invites_api_gateway" {
+  source                    = "./modules/api-gateway"
+  lambda_invoke_arn         = module.generate_invites_lambda.lambda_invoke_arn
+  path_part                 = "generate-invites"
+  method_http_parameters    = {}
+  lambda_api_gateway_method = "POST"
+  integration_response_http_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'POST,GET'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+  lambda_function_name = module.generate_invites_lambda.lambda_function_name
+  method               = "/*/POST/*"
+  environment          = var.environment
+}
+
+# GP Practices Loader
+module "gp_practices_loader_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gpPracticesLoaderLambda"
+  lambda_timeout       = 900
+  memory_size          = 2048
+  lambda_s3_object_key = "gp_practices_loader.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "gp_practices_loader_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gp_practices_loader_lambda.lambda_function_name
+  retention_days       = 14
+}
 
 # Dynamodb tables
 module "sdrs_table" {
@@ -508,33 +627,18 @@ module "participating_icb_table" {
 }
 
 module "gp_practice_table" {
-  source      = "./modules/dynamodb"
-  table_name  = "GpPractice"
-  hash_key    = "GpPracticeId"
-  range_key   = "GpPracticeName"
-  environment = var.environment
+  source                   = "./modules/dynamodb"
+  billing_mode             = "PAY_PER_REQUEST"
+  table_name               = "GpPractice"
+  hash_key                 = "gp_practice_code"
+  environment              = var.environment
+  read_capacity            = null
+  write_capacity           = null
+  secondary_write_capacity = null
+  secondary_read_capacity  = null
   attributes = [{
-    name = "GpPracticeId"
+    name = "gp_practice_code"
     type = "S"
-    },
-    {
-      name = "GpPracticeName"
-      type = "S"
-    },
-    {
-      name = "AddressLine1"
-      type = "S"
-    },
-    {
-      name = "Postcode"
-      type = "S"
-    }
-  ]
-  global_secondary_index = [
-    {
-      name      = "AddressLine1PostcodeIndex"
-      hash_key  = "AddressLine1"
-      range_key = "Postcode"
     }
   ]
   tags = {
@@ -608,32 +712,18 @@ module "imd_table" {
 }
 
 module "postcode_table" {
-  source         = "./modules/dynamodb"
-  billing_mode   = "PAY_PER_REQUEST"
-  table_name     = "Postcode"
-  hash_key       = "POSTCODE"
-  range_key      = "IMD_RANK"
-  environment    = var.environment
-  read_capacity  = null
-  write_capacity = null
+  source                   = "./modules/dynamodb"
+  billing_mode             = "PAY_PER_REQUEST"
+  table_name               = "Postcode"
+  hash_key                 = "POSTCODE"
+  environment              = var.environment
+  read_capacity            = null
+  write_capacity           = null
+  secondary_write_capacity = null
+  secondary_read_capacity  = null
   attributes = [{
     name = "POSTCODE"
     type = "S"
-    },
-    {
-      name = "IMD_RANK"
-      type = "N"
-    },
-    {
-      name = "IMD_DECILE"
-      type = "N"
-    }
-  ]
-  global_secondary_index = [
-    {
-      name      = "POSTCODE"
-      hash_key  = "IMD_RANK"
-      range_key = "IMD_DECILE"
     }
   ]
   tags = {
@@ -643,11 +733,18 @@ module "postcode_table" {
 }
 
 module "population_table" {
-  source      = "./modules/dynamodb"
-  table_name  = "Population"
-  hash_key    = "PersonId"
-  range_key   = "LsoaCode"
-  environment = var.environment
+  source                   = "./modules/dynamodb"
+  billing_mode             = "PAY_PER_REQUEST"
+  table_name               = "Population"
+  hash_key                 = "PersonId"
+  range_key                = "LsoaCode"
+  read_capacity            = null
+  write_capacity           = null
+  secondary_write_capacity = null
+  secondary_read_capacity  = null
+  environment              = var.environment
+  non_key_attributes       = ["Invited", "date_of_death", "removal_date"]
+  projection_type          = "INCLUDE"
   attributes = [{
     name = "PersonId"
     type = "S"
@@ -671,14 +768,16 @@ module "population_table" {
 }
 
 module "LSOA_table" {
-  source         = "./modules/dynamodb"
-  billing_mode   = "PAY_PER_REQUEST"
-  table_name     = "UniqueLsoa"
-  hash_key       = "LSOA_2011"
-  range_key      = "IMD_RANK"
-  environment    = var.environment
-  read_capacity  = null
-  write_capacity = null
+  source                   = "./modules/dynamodb"
+  billing_mode             = "PAY_PER_REQUEST"
+  table_name               = "UniqueLsoa"
+  hash_key                 = "LSOA_2011"
+  range_key                = "IMD_RANK"
+  environment              = var.environment
+  read_capacity            = null
+  write_capacity           = null
+  secondary_write_capacity = null
+  secondary_read_capacity  = null
   attributes = [{
     name = "LSOA_2011"
     type = "S"
@@ -722,11 +821,28 @@ module "invitation_parameters_table" {
   }
 }
 
+module "user_accounts_table" {
+  source      = "./modules/dynamodb"
+  table_name  = "UserAccounts"
+  hash_key    = "UUID"
+  environment = var.environment
+  attributes = [
+    {
+      name = "UUID"
+      type = "S"
+    }
+  ]
+  tags = {
+    Name        = "Dynamodb Table User Accounts"
+    Environment = var.environment
+  }
+}
+
 # To be replaced with a script
 resource "aws_dynamodb_table_item" "quintileTargets" {
   table_name = module.invitation_parameters_table.dynamodb_table_name
   hash_key   = module.invitation_parameters_table.dynamodb_hash_key
-
+  //LAST_UPDATE will be used in a future story, meantime will act as placeholder
   item = <<ITEM
 {
   "CONFIG_ID": {"N": "1"},
@@ -736,7 +852,7 @@ resource "aws_dynamodb_table_item" "quintileTargets" {
   "QUINTILE_4": {"N": "20"},
   "QUINTILE_5": {"N": "20"},
   "FORECAST_UPTAKE": {"N": "50"},
-  "TARGET_PERCENTAGE": {"N": "50"}
+  "LAST_UPDATE": {"S": "2023-11-18 15:55:44.432942"}
 }
 ITEM
 }

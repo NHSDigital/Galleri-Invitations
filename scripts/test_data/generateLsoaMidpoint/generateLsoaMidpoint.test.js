@@ -20,6 +20,7 @@ describe("Test Happy path of midpoint generation", () => {
       MSOA_2021: "E02004940",
       IMD_RANK: "30070",
       IMD_DECILE: "10",
+      LSOA_NAME: "St Albans 017E",
     },
     {
       POSTCODE: "AL1  1AJ",
@@ -39,6 +40,7 @@ describe("Test Happy path of midpoint generation", () => {
       MSOA_2021: "E02004940",
       IMD_RANK: "30070",
       IMD_DECILE: "10",
+      LSOA_NAME: "St Albans 017E",
     },
     {
       POSTCODE: "AL1  1AR",
@@ -58,6 +60,7 @@ describe("Test Happy path of midpoint generation", () => {
       MSOA_2021: "E02004939",
       IMD_RANK: "28935",
       IMD_DECILE: "9",
+      LSOA_NAME: "St Albans 016D",
     },
     {
       POSTCODE: "AL1  1AS",
@@ -77,6 +80,7 @@ describe("Test Happy path of midpoint generation", () => {
       MSOA_2021: "E02004935",
       IMD_RANK: "29172",
       IMD_DECILE: "9",
+      LSOA_NAME: "St Albans 012A",
     },
     {
       POSTCODE: "AL1  1AT",
@@ -96,6 +100,7 @@ describe("Test Happy path of midpoint generation", () => {
       MSOA_2021: "E02004939",
       IMD_RANK: "20975",
       IMD_DECILE: "7",
+      LSOA_NAME: "St Albans 016B",
     },
   ];
 
@@ -120,6 +125,7 @@ describe("Test Happy path of midpoint generation", () => {
         MSOA_2021: "E02004940",
         IMD_RANK: "30070",
         IMD_DECILE: "10",
+        LSOA_NAME: "St Albans 017E",
         AVG_EASTING: "515488",
         AVG_NORTHING: "0206454",
       },
@@ -141,6 +147,7 @@ describe("Test Happy path of midpoint generation", () => {
         MSOA_2021: "E02004940",
         IMD_RANK: "30070",
         IMD_DECILE: "10",
+        LSOA_NAME: "St Albans 017E",
         AVG_EASTING: "515488",
         AVG_NORTHING: "0206454",
       },
@@ -162,6 +169,7 @@ describe("Test Happy path of midpoint generation", () => {
         MSOA_2021: "E02004939",
         IMD_RANK: "28935",
         IMD_DECILE: "9",
+        LSOA_NAME: "St Albans 016D",
         AVG_EASTING: "516270",
         AVG_NORTHING: "0205897",
       },
@@ -183,6 +191,7 @@ describe("Test Happy path of midpoint generation", () => {
         MSOA_2021: "E02004935",
         IMD_RANK: "29172",
         IMD_DECILE: "9",
+        LSOA_NAME: "St Albans 012A",
         AVG_EASTING: "515005",
         AVG_NORTHING: "0206908",
       },
@@ -204,6 +213,7 @@ describe("Test Happy path of midpoint generation", () => {
         MSOA_2021: "E02004939",
         IMD_RANK: "20975",
         IMD_DECILE: "7",
+        LSOA_NAME: "St Albans 016B",
         AVG_EASTING: "516131",
         AVG_NORTHING: "0206148",
       },
@@ -229,6 +239,7 @@ describe("Test fail path of midpoint generation", () => {
       MSOA_2021: "E02004940",
       IMD_RANK: "30070",
       IMD_DECILE: "10",
+      LSOA_NAME: "St Albans 017E",
     },
     {
       POSTCODE: "AL1  1AJ",
@@ -246,6 +257,7 @@ describe("Test fail path of midpoint generation", () => {
       MSOA_2021: "E02004940",
       IMD_RANK: "30070",
       IMD_DECILE: "10",
+      LSOA_NAME: "St Albans 017E",
     },
     {
       POSTCODE: "AL1  1AR",
@@ -263,6 +275,7 @@ describe("Test fail path of midpoint generation", () => {
       MSOA_2021: "E02004939",
       IMD_RANK: "28935",
       IMD_DECILE: "9",
+      LSOA_NAME: "St Albans 016D",
     },
     {
       POSTCODE: "AL1  1AS",
@@ -280,6 +293,7 @@ describe("Test fail path of midpoint generation", () => {
       MSOA_2021: "E02004935",
       IMD_RANK: "29172",
       IMD_DECILE: "9",
+      LSOA_NAME: "St Albans 012A",
     },
     {
       POSTCODE: "AL1  1AT",
@@ -297,6 +311,7 @@ describe("Test fail path of midpoint generation", () => {
       MSOA_2021: "E02004939",
       IMD_RANK: "20975",
       IMD_DECILE: "7",
+      LSOA_NAME: "St Albans 016B",
     },
   ];
 

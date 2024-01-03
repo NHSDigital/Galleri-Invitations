@@ -6,11 +6,17 @@ This is a repo containing the code for the Galleri Invitations Algorithm
 
 - [Repository Template](#repository-template)
   - [Table of Contents](#table-of-contents)
-  - [Installation](#installation)
-    - [Prerequisites](#prerequisites)
   - [Usage](#usage)
     - [Sonar](#sonar)
+    - [Github Actions](#github-actions)
+      - [workflow select](#workflow-select)
+      - [Galleri Invitations branch/tag](#galleri-invitations-branchtag)
+      - [Galleri Frontend branch/tag](#galleri-frontend-branchtag)
+      - [Seeding scripts](#seeding-scripts)
+      - [terraform action](#terraform-action)
+      - [tests](#tests)
     - [Configuration](#configuration)
+  - [Prettifier](#prettifier)
   - [Terraform](#terraform)
     - [variables](#variables)
     - [outputs](#outputs)
@@ -18,35 +24,42 @@ This is a repo containing the code for the Galleri Invitations Algorithm
   - [Contacts](#contacts)
   - [Licence](#licence)
 
-## Installation
-
-By including preferably a one-liner or if necessary a set of clear CLI instructions we improve user experience. This should be a frictionless installation process that works on various operating systems (macOS, Linux, Windows WSL) and handles all the dependencies.
-
-Clone the repository
-
-```shell (HTTPS)
-git clone https://github.com/NHSDigital/Galleri-Invitations.git
-```
-
-Install and configure toolchain dependencies
-
-```shell
-make config
-```
-
-If this repository is
-
-### Prerequisites
-
-The following software packages or their equivalents are expected to be installed
-
-- [GNU make](https://www.gnu.org/software/make/)
-- [Docker](https://www.docker.com/)
-- asdf may need to be installed separately
-
 ## Usage
 
-After a successful installation, provide an informative example of how this project can be used. Additional code snippets, screenshots and demos work well in this space. You may also link to the other documentation resources, e.g. the [User Guide](./docs/user-guide.md) to demonstrate more use cases and to show more features.
+The configuration for the Galleri Invitations sytem is managed by Terraform. We have a series of pipelines which work across multiple environments from development, testing, UAT, performance and production. If you want to run terraform to deploy this code directly from the branch you can do so by running the following command from the terraform directory `tf apply -var-file=environment/dev/terraform.tfvars`
+
+However the better way to do this would be to login to the github repository and run the associated action to deploy the environment.
+
+### Github Actions
+
+To manually deploy the changes into an environment you first want to go to [github actions](https://github.com/NHSDigital/Galleri-Invitations/actions)
+
+Next you want to select the workflow that you want to run, there are three for DEV and three for UAT. Select one which is not being used (Check with colleagues to verify)
+
+Select `Run workflow` from the top right hand corner and then a dropdown menu will appear. There are a few options you can choose:
+
+#### workflow select
+
+This is the pipeline configuration that should be used, unless you are testing changes to a github action then leave this as `main`
+
+#### Galleri Invitations branch/tag
+
+This is the branch or tag of the invitations repo you want to deploy, if you just want a working environment then just put `main` and it will pull the latest from the main branch. Otherwise put in the full branch name, such as `feature/GAL-175`
+
+#### Galleri Frontend branch/tag
+
+This is the branch or tag of the frontend repo you want to deploy, if you just want a working environment then just put `main` and it will pull the latest from the main branch. Otherwise put in the full branch name, such as `feature/GAL-175`
+
+#### Seeding scripts
+
+This determines if the database seeding scripts will be run, if you want an empty database then you can delete the existing database for that environment (if it already exists) and then run a fresh apply with this set to `no`
+
+#### terraform action
+
+This can be either `apply` to apply the terraform from that branch, or `destroy` to tear down the environment
+
+#### tests
+
 
 ### Sonar
 
@@ -62,9 +75,24 @@ SonarCloud:
 SonarScanner also gets run as part of GitHub pipeline.
 Tip: when looking at feature branches in SonarCloud, they will ONLY show bad code smells for NEW code: don't expect to see any code in the report if nothing has changed from main.
 
+This will run a series of tests to check that the backend lambda services exposed by API Gateways are working.
+
+> **Note** currently these only work in the dev environment but in the future will be expanded to work in all environments
+
+
 ### Configuration
 
 Most of the projects are built with customisability and extendability in mind. At a minimum, this can be achieved by implementing service level configuration options and settings. The intention of this section is to show how this can be used. If the system processes data, you could mention here for example how the input is prepared for testing - anonymised, synthetic or live data.
+
+## Prettifier
+
+For linting we have decided to use [prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) Which we have created config files for called `.prettierrc.yaml` This file enforces consistancy between all users.
+
+To set this up you need to install the prettier plugin using the link above.
+
+Once it is installed you can set up the default formatter by opening a file in the repo and using the shortcut `ctrl + p` to open the vscode command interface. Then enter `> Format Document` and select `Format Document` from the dropdown. The first time you do this it will say something like **No default formatter setup for this project** You can click on the `Configure` button and select Prettier from that list.
+
+To make formatting easier you can enable **Format on Save** by going into preferences and searching for `format on save` then check the tickbox to enable it. Now everytime you save your file with `ctrl + s` or `command + s` then it will format the file for you.
 
 ## Terraform
 
@@ -90,6 +118,8 @@ once the variables have been defined in the module we then call that module from
 
 We also have some variables which will be consistent for everything within an environment but change between them, for example we may want to prefix all resource names in the dev environment with `dev-` and in the test environment `test-`. This can be defined in the `tfvars` files in the `environment` directory.
 
+One required variable is `TF_VAR_frontend_repo_location` which is required to tell terraform where the repo is located on your system, the default is the location it is found in the gitlab runner.
+
 when using tfvars they are similar to other var references but passed in from the main file. so you may end up with a chain of vars which start in the module as something like `var.name_prefix` then in the `main.tf` file it passes in `var.environment` and the `environment` variable is defined in the tfvar file.
 
 you can also pass in variables as environment variables. to do this you create the variable with the prefix of `TF_VAR_` so for environment you would use `TF_VAR_environment`. This is useful when you need to pass in a secret value.
@@ -104,7 +134,7 @@ So if we have a module defined in the main branch which is called `my-api` which
 
 ## Contacts
 
-Maintainers: David Lavender, Zain Malik, Mandeep Sandhu, Andrew Cleveland
+Maintainers: David Lavender, Zain Malik, Mandeep Sandhu, Andrew Cleveland, Cheng Lawson
 
 ## Licence
 
