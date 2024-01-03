@@ -54,7 +54,11 @@ participating_icb.json
 Participating_ICBs.csv
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 coverage
 =======
 coverage
 >>>>>>> 0573547 (updated jest config)
+=======
+coverage
+>>>>>>> ae940f6 (fixed formatting)
