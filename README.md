@@ -13,7 +13,7 @@ This is a repo containing the code for the Galleri Invitations Algorithm
       - [Galleri Frontend branch/tag](#galleri-frontend-branchtag)
       - [Seeding scripts](#seeding-scripts)
       - [terraform action](#terraform-action)
-      - [tests](#tests)
+    - [Sonar](#sonar)
     - [Configuration](#configuration)
   - [Prettifier](#prettifier)
   - [Terraform](#terraform)
@@ -57,7 +57,19 @@ This determines if the database seeding scripts will be run, if you want an empt
 
 This can be either `apply` to apply the terraform from that branch, or `destroy` to tear down the environment
 
-#### tests
+### Sonar
+
+SonarCloud provides static code analysis across terraform, js, configs, etc.
+Local:
+Before pushing to the repo, the developer must run the following commands to run sonarcloud locally;
+
+```bash
+sonar-scanner -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=nhsdigital -Dsonar.projectKey=galleri-invitations -Dsonar.sources=.
+```
+
+SonarCloud:
+SonarScanner also gets run as part of GitHub pipeline.
+Tip: when looking at feature branches in SonarCloud, they will ONLY show bad code smells for NEW code: don't expect to see any code in the report if nothing has changed from main.
 
 This will run a series of tests to check that the backend lambda services exposed by API Gateways are working.
 
