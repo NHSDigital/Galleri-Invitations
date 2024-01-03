@@ -149,6 +149,7 @@ def format_dynamodb_json(csvreader, table_name):
                                 'identified_to_be_invited': {
                                     'BOOL': False
                                 }
+
                             },
                             "TableName": table_name,
                         },
