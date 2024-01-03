@@ -573,7 +573,6 @@ module "gp_practices_loader_cloudwatch" {
   retention_days       = 14
 }
 
-
 # Dynamodb tables
 module "sdrs_table" {
   source      = "./modules/dynamodb"
