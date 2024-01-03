@@ -58,9 +58,10 @@ jobs:
           pip install pytest
           pip install rstr
           python -m pytest ./scripts/pipeline/unit_tests/
-      - name: "Save the result of fast test suite"
+      - name: "Run node unit tests"
         run: |
-          echo "Nothing to save"
+          npm i
+          npm test
   test-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 5
