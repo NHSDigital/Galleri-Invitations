@@ -152,10 +152,10 @@ export async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
       "#ET": "AVG_EASTING",
       "#NT": "AVG_NORTHING",
       "#ID": "IMD_DECILE",
-      "#FU": "FORECAST_UPTAKE",
+      "#MO": "MODERATOR",
       "#LN": "LSOA_NAME",
     },
-    ProjectionExpression: "#LC, #ET, #NT, #ID, #FU, #LN",
+    ProjectionExpression: "#LC, #ET, #NT, #ID, #MO, #LN",
     TableName: `${ENVIRONMENT}-UniqueLsoa`,
   };
   if (Object.keys(lastEvaluatedItem).length != 0) {
