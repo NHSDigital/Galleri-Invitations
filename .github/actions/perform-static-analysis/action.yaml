@@ -13,6 +13,9 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: "Perform unit tests"
+      shell: bash
+      run: npm test
     - name: "Check prerequisites for performing static analysis"
       shell: bash
       id: check

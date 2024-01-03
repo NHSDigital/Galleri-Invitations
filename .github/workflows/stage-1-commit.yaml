@@ -138,8 +138,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Full history is needed to improving relevancy of reporting
-      # - name: run unit tests
-      #   uses: ./.github/actions/perform-unit-tests
       - name: "Perform static analysis"
         uses: ./.github/actions/perform-static-analysis
         with:
