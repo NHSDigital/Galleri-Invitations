@@ -21,7 +21,7 @@
     "@babel/plugin-syntax-import-assertions": "^7.23.3",
     "@babel/preset-env": "^7.22.20",
     "axios": "^1.6.2",
-    "csv": "^6.3.3",
+    "csv": "^6.3.6",
     "csv-parser": "^3.0.0",
     "csv-stringify": "^6.4.4",
     "loglevel": "^1.8.1"
