@@ -15,6 +15,9 @@ runs:
   steps:
     - name: "Perform unit tests"
       shell: bash
+      run: npm i
+    - name: "Perform unit tests"
+      shell: bash
       run: npm test
     - name: "Check prerequisites for performing static analysis"
       shell: bash
