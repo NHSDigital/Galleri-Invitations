@@ -606,33 +606,33 @@ module "create_episode_record_dynamodb_stream" {
   maximum_batching_window_in_seconds = 300
 }
 
-# GET daily demographic mesh lambda
-module "get_daily_demographic_mesh_lambda" {
+# process Caas Feed Lambda
+module "process_caas_feed_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "get_daily_demographic_mesh_lambda"
-  lambda_s3_object_key = "get_daily_demographic_mesh_lambda.zip"
+  lambda_function_name = "process_caas_feed_lambda"
+  lambda_s3_object_key = "process_caas_feed_lambda.zip"
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
 }
 
-module "get_daily_demographic_mesh_lambda_cloudwatch" {
+module "process_caas_feed_lambda_cloudwatch" {
   source               = "./modules/cloudwatch"
   environment          = var.environment
-  lambda_function_name = module.get_daily_demographic_mesh_lambda.lambda_function_name
+  lambda_function_name = module.process_caas_feed_lambda.lambda_function_name
   retention_days       = 14
 }
 
-module "get_daily_demographic_mesh_lambda_api_gateway" {
+module "process_caas_feed_lambda_api_gateway" {
   source                 = "./modules/api-gateway"
   environment            = var.environment
-  lambda_invoke_arn      = module.get_daily_demographic_mesh_lambda.lambda_invoke_arn
+  lambda_invoke_arn      = module.process_caas_feed_lambda.lambda_invoke_arn
   path_part              = "daily-demographic-mesh"
   method_http_parameters = {}
-  lambda_function_name   = module.get_daily_demographic_mesh_lambda.lambda_function_name
+  lambda_function_name   = module.process_caas_feed_lambda.lambda_function_name
 }
 
 # Dynamodb tables
