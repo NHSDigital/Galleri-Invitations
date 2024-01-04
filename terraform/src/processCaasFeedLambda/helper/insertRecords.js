@@ -57,7 +57,7 @@ export const generateParticipantID = async (dbClient) => {
   }
 };
 
-const checkDynamoTable = async (dbClient, attribute, table, attributeName, useIndex) => {
+export const checkDynamoTable = async (dbClient, attribute, table, attributeName, useIndex) => {
   try {
     const checkTable = lookUp(dbClient, attribute, table, attributeName, useIndex);
     if (checkTable = UNSUCCESSFULL_REPSONSE) return false;
@@ -69,7 +69,7 @@ const checkDynamoTable = async (dbClient, attribute, table, attributeName, useIn
   }
 }
 
-const lookUp = async (dbClient, ...params) => {
+export const lookUp = async (dbClient, ...params) => {
   const {
     id,
     table,
