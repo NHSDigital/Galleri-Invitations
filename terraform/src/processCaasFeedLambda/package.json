@@ -1,8 +1,8 @@
 {
-  "name": "processcaasfeedlambda",
+  "name": "processCaasFeedlambda",
   "version": "1.0.0",
   "type": "module",
-  "main": "processcaasfeedlambda.js",
+  "main": "processCaasFeedlambda.js",
   "author": "",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.398.0"
