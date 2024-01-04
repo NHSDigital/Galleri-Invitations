@@ -17,7 +17,6 @@ describe("processIncomingRecords", () => {
   //     },
   //     Items: [],
   //   });
-
   //   const episodeToProcessArray = [
   //     {
   //       dynamodb: {
@@ -40,12 +39,10 @@ describe("processIncomingRecords", () => {
   //       },
   //     },
   //   ];
-
   //   const result = await processIncomingRecords(
   //     episodeToProcessArray,
   //     mockDynamoDbClient
   //   );
-
   //   expect(result[0].status).toEqual("fulfilled");
   // });
 
