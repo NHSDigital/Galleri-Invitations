@@ -121,7 +121,7 @@ export async function getEligiblePopulation(lsoaList, client) {
           populationArray.push({
             personId: person?.PersonId.S,
             imdDecile: lsoaList[lsoa].IMD_DECILE,
-            forecastUptake: lsoaList[lsoa].FORECAST_UPTAKE,
+            moderator: lsoaList[lsoa].MODERATOR,
           });
         }
       });
