@@ -832,6 +832,21 @@ module "population_table" {
       name      = "BatchId-index"
       hash_key  = "Batch_Id"
       range_key = null
+    },
+    {
+      name      = "participantId-index"
+      hash_key  = "participantId"
+      range_key = null
+    },
+    {
+      name      = "nhsNo-index"
+      hash_key  = "nhsNo"
+      range_key = null
+    },
+    {
+      name      = "supersededByNhsNo-index"
+      hash_key  = "supersededByNhsNo"
+      range_key = null
     }
   ]
   tags = {
