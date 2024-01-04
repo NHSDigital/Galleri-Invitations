@@ -1,3 +1,6 @@
+import {
+  checkDynamoTable
+} from './helper/insertRecords'
 const client = new DynamoDBClient({ region: "eu-west-2" });
 
 const ENVIRONMENT = process.env.ENVIRONMENT;
@@ -17,3 +20,8 @@ export const handler = async (event, context) => {
     return responseObject;
   }
 };
+
+
+const checkIcbCode = checkDynamoTable(dbClient, primarCareProviderCode, "GpPractice", "primarCareProviderCode", false)
+const checkSupersededByNhsNo = checkDynamoTable(dbClient, supersededByNhsNo, "Population", "supersededByNhsNo", true)
+const checkNhsNo = checkDynamoTable(dbClient, nhsNo, "Population", "nhsNo", true)
