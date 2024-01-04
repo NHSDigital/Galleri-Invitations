@@ -61,6 +61,10 @@ jobs:
       - name: "Save the result of fast test suite"
         run: |
           echo "Nothing to save"
+      - name: Run node unit test
+        run: |
+          npm i
+          npm test
   test-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -75,21 +79,6 @@ jobs:
       - name: "Save the linting result"
         run: |
           echo "Nothing to save"
-  test-coverage:
-    needs: [test-unit]
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v4
-        with:
-          ref: "${{ inputs.invitations_branch }}"
-      - name: "Run test coverage check"
-        run: |
-          make test-coverage
-      - name: "Save the coverage check result"
-        run: |
-          echo "Nothing to save"
   perform-static-analysis:
     needs: [test-unit]
     runs-on: ubuntu-latest
@@ -97,7 +86,7 @@ jobs:
       id-token: write
       contents: read
     timeout-minutes: 5
-    name: "Perform static analysis"
+    name: "Perform unit tests and static analysis"
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4

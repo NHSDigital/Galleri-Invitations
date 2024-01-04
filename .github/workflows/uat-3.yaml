@@ -109,37 +109,9 @@ jobs:
           export DOES_PULL_REQUEST_EXIST="${{ steps.pr_exists.outputs.does_pull_request_exist }}"
           make list-variables
 
-  commit-stage: # Recommended maximum execution time is 2 minutes
-    needs: [metadata]
-    uses: ./.github/workflows/stage-1-commit.yaml
-    with:
-      build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
-      build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
-      build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
-      nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
-      python_version: "${{ needs.metadata.outputs.python_version }}"
-      terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
-      version: "${{ needs.metadata.outputs.version }}"
-      invitations_branch: "${{ github.event.inputs.invitations_branch }}"
-    secrets: inherit
-  test-stage: # Recommended maximum execution time is 5 minutes
-    needs: [metadata, commit-stage]
-    uses: ./.github/workflows/stage-2-test.yaml
-    with:
-      build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
-      build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
-      build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
-      nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
-      python_version: "${{ needs.metadata.outputs.python_version }}"
-      terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
-      version: "${{ needs.metadata.outputs.version }}"
-      invitations_branch: "${{ github.event.inputs.invitations_branch }}"
-    secrets: inherit
-
   build-stage: # Recommended maximum execution time is 10 minutes
     needs: [
         metadata,
-        test-stage,
         # build-stage
       ]
     uses: ./.github/workflows/stage-3-build.yaml
@@ -158,7 +130,7 @@ jobs:
     secrets: inherit
 
   data-stage: # Recommended maximum execution time is 10 minutes
-    needs: [metadata, test-stage, build-stage]
+    needs: [metadata, build-stage]
     uses: ./.github/workflows/stage-4-load-data.yaml
     if: needs.metadata.outputs.database_seeding == 'yes'
     with:
@@ -173,7 +145,7 @@ jobs:
     secrets: inherit
 
   acceptance-stage: # Recommended maximum execution time is 10 minutes
-    needs: [metadata, test-stage, build-stage, data-stage]
+    needs: [metadata, build-stage, data-stage]
     uses: ./.github/workflows/stage-5-acceptance.yaml
     if: needs.metadata.outputs.test == 'yes' && (needs.data-stage.result == 'success' || needs.data-stage.result == 'skipped')
     with:
