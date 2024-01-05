@@ -1,7 +1,6 @@
 variable "role_name" {
   type        = string
   description = "The name for the role"
-  default     = "galleri-lambda-role"
 }
 
 variable "name" {}
