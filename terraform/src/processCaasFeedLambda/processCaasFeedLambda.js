@@ -22,6 +22,6 @@ export const handler = async (event, context) => {
 };
 
 
-const checkIcbCode = checkDynamoTable(dbClient, primarCareProviderCode, "GpPractice", "primarCareProviderCode", false)
+const checkIcbCode = checkDynamoTable(dbClient, primaryCareProviderCode, "GpPractice", "primaryCareProviderCode", false)
 const checkSupersededByNhsNo = checkDynamoTable(dbClient, supersededByNhsNo, "Population", "supersededByNhsNo", true)
 const checkNhsNo = checkDynamoTable(dbClient, nhsNo, "Population", "nhsNo", true)
