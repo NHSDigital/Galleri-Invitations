@@ -144,4 +144,5 @@ jobs:
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
+      test: ${{ needs.metadata.outputs.test }}
     secrets: inherit
