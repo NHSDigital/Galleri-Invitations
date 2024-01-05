@@ -76,7 +76,7 @@ module "data_filter_gridall_imd_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
-  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_iam_role      = module.data_filter_gridall_iam.lambda_role_arn
   lambda_function_name = "dataFilterLambda"
   lambda_timeout       = 900
   memory_size          = 4096
