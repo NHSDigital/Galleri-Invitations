@@ -67,6 +67,7 @@ env:
   frontend-branch: ${{ inputs.frontend_branch }}
   invitations-branch: ${{ inputs.invitations_branch }}
   tf-action: ${{ inputs.tf_action }}
+  test: ${{ inputs.test }}
 
 jobs:
   run-tests:
@@ -83,10 +84,11 @@ jobs:
           fetch-depth: 0 # Full history is needed to scan all commits
 
       - name: "Test Backend"
-        if: inputs.test == 'true'
+        if: env.test == 'true'
         uses: ./.github/actions/api-testing
         with:
           role-to-assume: ${{ env.role-to-assume }}
           aws-region: ${{ env.aws-region }}
           environment: ${{ env.environment }}
+          test: ${{ env.test }}
         timeout-minutes: 30
