@@ -126,7 +126,7 @@ module "data_filter_gridall_iam" {
       ],
       "Version" : "2012-10-17"
   })
-  role_name = "data-filter-gridall"
+  role_name   = "data-filter-gridall"
   environment = var.environment
 }
 
