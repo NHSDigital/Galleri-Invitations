@@ -207,7 +207,7 @@ export const getParticipantsInQuintile = (
   );
   let quintilePopulationObject = quintilePopulation.reduce(
     (obj, person) =>
-      Object.assign(obj, { [person.personId]: person.forecastUptake }),
+      Object.assign(obj, { [person.personId]: (person.moderator * nationalForecastUptake) }),
     {}
   ); // O(n)
   const quintilePopulationObjectKeys = Object.keys(quintilePopulationObject); // O(n)
