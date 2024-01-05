@@ -97,6 +97,38 @@ module "data_filter_gridall_imd_cloudwatch" {
   retention_days       = 14
 }
 
+module "data_filter_gridall_iam" {
+  source      = "./modules/iam"
+  name        = "data-filter-gridall-permissions"
+  description = "Allows access to galleri-test-data for that environment"
+  policy = jsonencode(
+    {
+      "Statement" : [
+        {
+          "Action" : [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+          ],
+          "Effect" : "Allow",
+          "Resource" : "arn:aws:logs:*:*:*"
+        },
+        {
+          "Sid" : "AllowS3Access",
+          "Effect" : "Allow",
+          "Action" : [
+            "s3:*"
+          ],
+          "Resource" : [
+            "arn:aws:s3:::${var.environment}-galleri-test-data"
+          ]
+        }
+      ],
+      "Version" : "2012-10-17"
+  })
+  environment = var.environment
+}
+
 
 # LSOA loader
 module "lsoa_loader_lambda" {
