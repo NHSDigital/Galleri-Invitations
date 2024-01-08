@@ -33,27 +33,6 @@ export const readCsvFromS3 = async(bucketName, key, client) => {
   }
 };
 
-export const parseCsvToArray = async(csvString) => {
-  console.log('Parsing csv string');
-  const dataArray = [];
-  let row_counter = 0;
-
-  return new Promise((resolve, reject) => {
-      Readable.from(csvString)
-      .pipe(csv())
-      .on("data", (row) => {
-          row_counter++;
-          dataArray.push(row)
-      })
-      .on("end", () => {
-          resolve(dataArray);
-      })
-      .on("error", (err) => {
-          reject(err);
-      });
-  });
-};
-
 export const saveArrayToTable = async(dataArray, environment, client) => {
   console.log(`Populating database table`);
   const dateTime = (new Date(Date.now())).toISOString();
@@ -102,6 +81,27 @@ export const saveArrayToTable = async(dataArray, environment, client) => {
               console.error(`Error updating item: ${JSON.stringify(item)}`);
           }
       }));
+};
+
+export const parseCsvToArray = async(csvString) => {
+  console.log('Parsing csv string');
+  const dataArray = [];
+  let row_counter = 0;
+
+  return new Promise((resolve, reject) => {
+      Readable.from(csvString)
+      .pipe(csv())
+      .on("data", (row) => {
+          row_counter++;
+          dataArray.push(row)
+      })
+      .on("end", () => {
+          resolve(dataArray);
+      })
+      .on("error", (err) => {
+          reject(err);
+      });
+  });
 };
 
 export const handler = async(event) => {
