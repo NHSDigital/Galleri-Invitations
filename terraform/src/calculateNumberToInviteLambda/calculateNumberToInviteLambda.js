@@ -210,7 +210,6 @@ export const getParticipantsInQuintile = (
       Object.assign(obj, { [person.personId]: (person.moderator * nationalForecastUptake) }),
     {}
   ); // O(n)
-  console.log("quintilePopulationObject", quintilePopulationObject);
   const quintilePopulationObjectKeys = Object.keys(quintilePopulationObject); // O(n)
 
   let count = 0;
