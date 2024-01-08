@@ -580,12 +580,40 @@ module "gp_practices_loader_cloudwatch" {
   retention_days       = 14
 }
 
-# User Accounts Lambda
-module "user_accounts_lambda" {
+# Create Episode Records
+module "create_episode_record_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "createEpisodeRecords"
+  lambda_timeout       = 900
+  memory_size          = 1024
+  lambda_s3_object_key = "create_episode_record.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "create_episode_record_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.create_episode_record_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "create_episode_record_dynamodb_stream" {
+  source                             = "./modules/dynamodb_stream"
+  enabled                            = true
+  event_source_arn                   = module.population_table.dynamodb_stream_arn
+  function_name                      = module.create_episode_record_lambda.lambda_function_name
+  starting_position                  = "LATEST"
+  batch_size                         = 200
+  maximum_batching_window_in_seconds = 300
+}
+
+# User Accounts Lambda
+module "user_accounts_lambda" {
   lambda_function_name = "userAccountsLambda"
   lambda_timeout       = 100
   memory_size          = 1024
@@ -771,6 +799,8 @@ module "postcode_table" {
 module "population_table" {
   source                   = "./modules/dynamodb"
   billing_mode             = "PAY_PER_REQUEST"
+  stream_enabled           = true
+  stream_view_type         = "NEW_AND_OLD_IMAGES"
   table_name               = "Population"
   hash_key                 = "PersonId"
   range_key                = "LsoaCode"
@@ -779,7 +809,7 @@ module "population_table" {
   secondary_write_capacity = null
   secondary_read_capacity  = null
   environment              = var.environment
-  non_key_attributes       = ["Invited", "date_of_death", "removal_date"]
+  non_key_attributes       = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited"]
   projection_type          = "INCLUDE"
   attributes = [{
     name = "PersonId"
@@ -788,12 +818,21 @@ module "population_table" {
     {
       name = "LsoaCode"
       type = "S"
+    },
+    {
+      name = "Batch_Id"
+      type = "S"
     }
   ]
   global_secondary_index = [
     {
       name      = "LsoaCode-index"
       hash_key  = "LsoaCode"
+      range_key = null
+    },
+    {
+      name      = "BatchId-index"
+      hash_key  = "Batch_Id"
       range_key = null
     }
   ]
@@ -892,3 +931,39 @@ resource "aws_dynamodb_table_item" "quintileTargets" {
 }
 ITEM
 }
+
+module "episode_table" {
+  source                   = "./modules/dynamodb"
+  billing_mode             = "PROVISIONED"
+  table_name               = "Episode"
+  hash_key                 = "Batch_Id"
+  range_key                = "Participant_Id"
+  read_capacity            = 10
+  write_capacity           = 10
+  secondary_write_capacity = 10
+  secondary_read_capacity  = 10
+  environment              = var.environment
+  projection_type          = "KEYS_ONLY"
+  attributes = [
+    {
+      name = "Batch_Id"
+      type = "S"
+    },
+    {
+      name = "Participant_Id"
+      type = "S"
+    }
+  ]
+  global_secondary_index = [
+    {
+      name      = "ParticipantId-index"
+      hash_key  = "Participant_Id"
+      range_key = null
+    }
+  ]
+  tags = {
+    Name        = "Dynamodb Table Episode"
+    Environment = var.environment
+  }
+}
+

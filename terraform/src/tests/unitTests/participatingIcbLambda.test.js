@@ -1,9 +1,7 @@
 import { mockClient } from "aws-sdk-client-mock";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 
-import {
-  getItemsFromTable,
-} from "../../participatingIcbList/lambdaHandler/participatingIcbListLambda.js";
+import { getItemsFromTable } from "../../participatingIcbListLambda/participatingIcbListLambda.js";
 
 describe("getItemsFromTable", () => {
   afterEach(() => {
