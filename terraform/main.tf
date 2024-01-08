@@ -614,6 +614,10 @@ module "create_episode_record_dynamodb_stream" {
 
 # User Accounts Lambda
 module "user_accounts_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "userAccountsLambda"
   lambda_timeout       = 100
   memory_size          = 1024
