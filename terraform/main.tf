@@ -99,7 +99,7 @@ module "data_filter_gridall_imd_cloudwatch" {
 
 module "data_filter_gridall_iam" {
   source      = "./modules/iam"
-  name        = "data-filter-gridall-permissions"
+  name        = "data-filter-gridall"
   description = "Allows access to galleri-test-data for that environment"
   policy = jsonencode(
     {
