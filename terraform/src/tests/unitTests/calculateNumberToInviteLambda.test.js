@@ -56,11 +56,11 @@ describe('getParticipantsInQuintile', () => {
     const quintilePopulationArray = randomStringKey.map(el => {
       let obj = {}
       obj["personId"] = el[0]
-      obj["forecastUptake"] = 100
+      obj["moderator"] = 1
       return obj;
     })
     const quintileTarget = 5
-    const nationalForecastUptake = 0
+    const nationalForecastUptake = 100
     const Q = "test"
     const result =  getParticipantsInQuintile(quintilePopulationArray, quintileTarget, nationalForecastUptake, Q);
 
