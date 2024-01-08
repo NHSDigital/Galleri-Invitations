@@ -1,6 +1,7 @@
 import records from "./caasFeedArray.json" assert { type: "json" };
 import {
-  QueryCommand
+  QueryCommand,
+  GetItemCommand
 } from "@aws-sdk/client-dynamodb";
 
 const SUCCESSFULL_REPSONSE = 200
@@ -99,3 +100,52 @@ export const lookUp = async (dbClient, ...params) => {
   }
   return SUCCESSFULL_REPSONSE;
 };
+
+export const getItemFromTable = async (dbClient, table, ...keys) => {
+  const {
+    partitionKeyName,
+    partitionKeyType,
+    partitionKeyValue,
+    sortKeyName,
+    sortKeyType,
+    sortKeyValue,
+  } = keys
+
+  ketObject = {
+    key: {
+      partitionKeyName: {
+        partitionKeyType: partitionKeyValue
+      }
+    }
+  }
+
+  if (sortKeyName != "") {
+    ketObject.key.sortKeyName = {
+      sortKeyType: sortKeyValue
+    }
+  }
+
+  const params = {
+    Key: keyObject,
+    TableName: table,
+  };
+  const command = new GetItemCommand(params);
+  const response = await dbClient.send(command);
+
+  return response;
+}
+
+export const setLsoa = async (record) => {
+  // use postcode to find LSOA
+  // add to record
+  // if undefined get postcode and LSOA from GP practice table using the primary_care_provider
+  const {
+    postcode,
+    primary_care_provider
+  } = record
+  if (postcode !== undefined) {
+    const checkLsoa = getItemFromTable(dbClient, "Postcode", "POSTCODE", "S", postcode)
+
+  }
+
+}
