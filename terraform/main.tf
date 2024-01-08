@@ -53,7 +53,7 @@ module "iam_galleri_lambda_role" {
 module "s3_bucket" {
   source                  = "./modules/s3"
   bucket_name             = var.bucket_name
-  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  galleri_lambda_role_arn = [module.iam_galleri_lambda_role.galleri_lambda_role_arn]
   environment             = var.environment
 }
 
@@ -67,7 +67,7 @@ module "test_data_bucket" {
 module "gp_practices_bucket" {
   source                  = "./modules/s3"
   bucket_name             = "gp-practices-bucket"
-  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  galleri_lambda_role_arn = [module.iam_galleri_lambda_role.galleri_lambda_role_arn]
   environment             = var.environment
 }
 
