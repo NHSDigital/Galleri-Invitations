@@ -1,0 +1,10 @@
+{
+  "name": "userAccountsLambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "userAccountsLambda.js",
+  "author": "",
+  "dependencies": {
+    "csv-parser": "^3.0.0"
+  }
+}
