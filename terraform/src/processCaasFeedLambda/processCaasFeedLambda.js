@@ -10,6 +10,7 @@ const client = new DynamoDBClient({ region: "eu-west-2" });
 
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
+//can remove, for testing purposes only
 const inputData = "/Users/abduls/repos/newProj/input/galleri_cohort_test_data_small.csv"
 
 const result = dotenv.config();
@@ -117,6 +118,7 @@ async function runMessage() {
   }
 }
 
+//Can remove, for testing purposes only
 async function sendMsg(msg) {
   const config = await loadConfig();
   try {
