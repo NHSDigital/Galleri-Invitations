@@ -603,10 +603,10 @@ module "user_accounts_cloudwatch" {
 }
 
 module "user_accounts_lambda_trigger" {
-  source               = "./modules/lambda_trigger"
-  bucket_id            = module.user_accounts_bucket.bucket_id
-  bucket_arn           = module.user_accounts_bucket.bucket_arn
-  lambda_arn    = module.user_accounts_lambda.lambda_arn
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.user_accounts_bucket.bucket_id
+  bucket_arn = module.user_accounts_bucket.bucket_arn
+  lambda_arn = module.user_accounts_lambda.lambda_arn
 }
 
 # Dynamodb tables
