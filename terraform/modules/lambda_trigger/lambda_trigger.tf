@@ -12,8 +12,8 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   lambda_function {
     lambda_function_arn = var.lambda_arn
     events              = ["${var.bucket_events}"]
-    filter_prefix       = var.filter_prefix
-    filter_suffix       = var.filter_suffix
+    filter_prefix       = "${var.filter_prefix}"
+    filter_suffix       = "${var.filter_suffix}"
   }
 
   depends_on = [aws_lambda_permission.allow_bucket]
