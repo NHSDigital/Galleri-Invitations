@@ -18,4 +18,5 @@ variable "frontend_repo_location" {
 
 variable "AWS_ACCOUNT_NUMBER" {
   description = "aws account number"
+  default     = ""
 }
