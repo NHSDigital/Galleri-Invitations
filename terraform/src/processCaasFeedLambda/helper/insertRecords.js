@@ -144,8 +144,11 @@ export const setLsoa = async (record) => {
     primary_care_provider
   } = record
   if (postcode !== undefined) {
-    const checkLsoa = getItemFromTable(dbClient, "Postcode", "POSTCODE", "S", postcode)
-
+    const checkLsoa = getItemFromTable(dbClient, "Postcode", "POSTCODE", "S", postcode);
+    if (checkLsoa.Item === undefined) { // set using gp practice
+      const lsoaFromGp = getItemFromTable(dbClient, "gp_practice_code", "GpPractice", "S", primary_care_provider);
+      return record.LSOA_2011 = lsoaFromGp.Item.LSOA_2011.S
+    }
+    return record.LSOA_2011 = checkLso.Item.LSOA_2011.S
   }
-
 }
