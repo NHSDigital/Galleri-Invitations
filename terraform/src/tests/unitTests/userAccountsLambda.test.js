@@ -16,22 +16,6 @@ describe("readCsvFromS3", () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
-  test("return string built from csv file", async () => {
-    const mockS3Client = mockClient(new S3Client({}));
-    const stream = sdkStreamMixin(fs.createReadStream(path.resolve(__dirname,'./testData/chunk_1.csv')))
-
-    mockS3Client.resolves({
-      Body: stream,
-    });
-
-    const result = await readCsvFromS3('aaaaaaa', 'aaaaaaa', mockS3Client)
-
-    const expected_result = '"PCD2","PCDS","DOINTR","DOTERM"\n'
-
-    expect(result).toEqual(
-      expected_result
-    )
-  });
 
   test("Failed response when error occurs getting file from bucket", async () => {
     const logSpy = jest.spyOn(global.console, 'log');
@@ -54,6 +38,22 @@ describe("readCsvFromS3", () => {
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith(logErrorMsg);
 
+  });
+  test("return string built from csv file", async () => {
+    const mockS3Client = mockClient(new S3Client({}));
+    const stream = sdkStreamMixin(fs.createReadStream(path.resolve(__dirname,'./testData/chunk_1.csv')))
+
+    mockS3Client.resolves({
+      Body: stream,
+    });
+
+    const result = await readCsvFromS3('aaaaaaa', 'aaaaaaa', mockS3Client)
+
+    const expected_result = '"PCD2","PCDS","DOINTR","DOTERM"\n'
+
+    expect(result).toEqual(
+      expected_result
+    )
   });
 });
 

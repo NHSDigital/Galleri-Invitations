@@ -18,21 +18,6 @@ const s3 = new S3Client();
 const dbClient = new DynamoDBClient({ convertEmptyValues: true });
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
-export const readCsvFromS3 = async(bucketName, key, client) => {
-  console.log(`Reading object ${key} from bucket ${bucketName}`);
-  try {
-      const response = await client.send(new GetObjectCommand({
-                  Bucket: bucketName,
-                  Key: key
-              }));
-
-      return response.Body.transformToString();
-  } catch (err) {
-      console.error(`Error reading object ${key} from bucket ${bucketName}: ${err}`);
-      throw err;
-  }
-};
-
 export const saveArrayToTable = async(dataArray, environment, client) => {
   console.log(`Populating database table`);
   const dateTime = (new Date(Date.now())).toISOString();
@@ -102,6 +87,21 @@ export const parseCsvToArray = async(csvString) => {
           reject(err);
       });
   });
+};
+
+export const readCsvFromS3 = async(bucketName, key, client) => {
+  console.log(`Reading object ${key} from bucket ${bucketName}`);
+  try {
+      const response = await client.send(new GetObjectCommand({
+                  Bucket: bucketName,
+                  Key: key
+              }));
+
+      return response.Body.transformToString();
+  } catch (err) {
+      console.error(`Error reading object ${key} from bucket ${bucketName}: ${err}`);
+      throw err;
+  }
 };
 
 export const handler = async(event) => {
