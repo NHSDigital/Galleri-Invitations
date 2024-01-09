@@ -69,6 +69,9 @@ jobs:
           echo environment is: ${{ env.environment }}
           echo seed database: ${{ github.event.inputs.database_seeding }}
           echo run tests: ${{ github.event.inputs.test }}
+          echo terraform action: ${{ github.event.inputs.tf_action }}
+          echo frontend branch: ${{ github.event.inputs.frontend_branch }}
+          echo invitations_branch: ${{ github.event.inputs.invitations_branch }}
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
