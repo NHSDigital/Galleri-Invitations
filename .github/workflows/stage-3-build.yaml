@@ -88,4 +88,5 @@ jobs:
           invitations-branch: ${{ env.invitations-branch }}
           frontend-branch: ${{ env.frontend-branch }}
           tf-action: ${{ env.tf-action }}
+          TF_VAR_aws-account-number: ${{ secrets.AWS_ACCOUNT_NUMBER}}
         timeout-minutes: 15

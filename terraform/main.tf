@@ -60,7 +60,7 @@ module "s3_bucket" {
 module "test_data_bucket" {
   source                  = "./modules/s3"
   bucket_name             = "galleri-test-data"
-  galleri_lambda_role_arn = [module.iam_galleri_lambda_role.galleri_lambda_role_arn, "arn:aws:iam::${var.AWS_ACCOUNT_NUMBER}:role/github-oidc-invitations-role", module.data_filter_gridall_iam.lambda_role_arn]
+  galleri_lambda_role_arn = [module.iam_galleri_lambda_role.galleri_lambda_role_arn, "arn:aws:iam::${var.aws_account_number}:role/github-oidc-invitations-role", module.data_filter_gridall_iam.lambda_role_arn]
   environment             = var.environment
 }
 

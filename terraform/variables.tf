@@ -16,7 +16,7 @@ variable "frontend_repo_location" {
   default     = "/home/runner/work/Galleri-Invitations/Galleri-Invitations/Galleri-Frontend"
 }
 
-variable "AWS_ACCOUNT_NUMBER" {
+variable "aws_account_number" {
   description = "aws account number"
   default     = ""
 }
