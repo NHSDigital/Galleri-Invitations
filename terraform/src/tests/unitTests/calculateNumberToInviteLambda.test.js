@@ -49,25 +49,29 @@ describe("invokeParticipantListLambda", () => {
   });
 });
 
-// describe('getParticipantsInQuintile', () => {
-//   test('should loop through and add property of LSOA with population info', async () => {
-//     const forecastUptakeObj = {
-//       forecastUptake: 100
-//     }
-//     const randomStringKey = [...Array(10)].map(() => {
-//       const randomStr = "abcdefghij".split('').sort(() => 0.5 - Math.random()).join('');
-//       return [randomStr.slice(0, Math.random()*10 + 2)]
-//     })
-//     const quintilePopulationArray = randomStringKey.map(el => {
-//       let obj = {}
-//       obj["personId"] = el[0]
-//       obj["forecastUptake"] = 100
-//       return obj;
-//     })
-//     const quintileTarget = 5
-//     const nationalForecastUptake = 0
-//     const Q = "test"
-//     const result =  getParticipantsInQuintile(quintilePopulationArray, quintileTarget, nationalForecastUptake, Q);
-//     expect(result.size).toEqual(5);
-//   });
-// });
+describe('getParticipantsInQuintile', () => {
+
+  test('should loop through and add property of LSOA with population info', async () => {
+    const forecastUptakeObj = {
+      forecastUptake: 100
+    }
+
+    const randomStringKey = [...Array(10)].map(() => {
+      const randomStr = "abcdefghij".split('').sort(() => 0.5 - Math.random()).join('');
+      return [randomStr.slice(0, Math.random()*10 + 2)]
+    })
+    const quintilePopulationArray = randomStringKey.map(el => {
+      let obj = {}
+      obj["personId"] = el[0]
+      obj["moderator"] = 1
+      return obj;
+    })
+    const quintileTarget = 5
+    const nationalForecastUptake = 100
+    const Q = "test"
+    const result =  getParticipantsInQuintile(quintilePopulationArray, quintileTarget, nationalForecastUptake, Q);
+
+    expect(result.size).toEqual(5);
+
+  });
+});
