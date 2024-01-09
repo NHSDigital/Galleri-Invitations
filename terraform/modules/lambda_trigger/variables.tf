@@ -5,11 +5,11 @@ variable "bucket_arn" {}
 variable "lambda_arn" {}
 
 variable "filter_prefix" {
-  default = "*"
+  default = ""
 }
 
 variable "filter_suffix" {
-  default = "*"
+  default = ""
 }
 
 variable "bucket_events" {
