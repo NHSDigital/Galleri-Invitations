@@ -42,6 +42,11 @@ runs:
             fi
         done < <(echo "$apis" | jq -r '.items[] | "\(.id) \(.name)"')
 
+    - name: setup variables for terraform
+      shell: bash
+      run: |
+        export TF_VAR_AWS_ACCOUNT_NUMBER = ${{ env.aws-account-number }}
+
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
       with:
