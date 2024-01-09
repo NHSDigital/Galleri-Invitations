@@ -26,7 +26,7 @@ const clinicInformation = {
   name: "clinic-information",
   resource_path: "clinic-information",
   method: "GET",
-  query_string: "?clinicId=WE89I939&clinicName=Phlebotomy%20clinic%208",
+  query_string: "?clinicId=AQ16C317&clinicName=Phlebotomy%20clinic%215",
   expected_status_code: 200,
   expected_response_count: 13,
 };
