@@ -85,7 +85,7 @@ jobs:
           echo "python_version=$(grep python .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
-          echo "environment=uat-1" >> $GITHUB_OUTPUT
+          echo "environment=performance" >> $GITHUB_OUTPUT
       - name: "Check if pull request exists for this branch"
         id: pr_exists
         env:
@@ -141,11 +141,7 @@ jobs:
     secrets: inherit
 
   build-stage: # Recommended maximum execution time is 10 minutes
-    needs: [
-        metadata,
-        test-stage,
-        # build-stage
-      ]
+    needs: [metadata, test-stage]
     uses: ./.github/workflows/stage-3-build.yaml
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
