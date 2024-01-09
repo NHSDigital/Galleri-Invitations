@@ -18,6 +18,23 @@ const s3 = new S3Client();
 const dbClient = new DynamoDBClient({ convertEmptyValues: true });
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
+export const handler = async(event) => {
+  const bucket = event.Records[0].s3.bucket.name;
+  const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
+  console.log(`Triggered by object ${key} in bucket ${bucket}`);
+  try {
+      const csvString = await readCsvFromS3(bucket, key, s3);
+      const dataArray = await parseCsvToArray(csvString);
+      await saveArrayToTable(dataArray, ENVIRONMENT, dbClient);
+      console.log(`Finished processing object ${key} in bucket ${bucket}`);
+      return `Finished processing object ${key} in bucket ${bucket}`;
+  } catch (err) {
+      const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
+      console.error(message);
+      throw new Error(message);
+  }
+};
+
 export const saveArrayToTable = async(dataArray, environment, client) => {
   console.log(`Populating database table`);
   const dateTime = (new Date(Date.now())).toISOString();
@@ -104,21 +121,6 @@ export const readCsvFromS3 = async(bucketName, key, client) => {
   }
 };
 
-export const handler = async(event) => {
-  const bucket = event.Records[0].s3.bucket.name;
-  const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
-  console.log(`Triggered by object ${key} in bucket ${bucket}`);
-  try {
-      const csvString = await readCsvFromS3(bucket, key, s3);
-      const dataArray = await parseCsvToArray(csvString);
-      await saveArrayToTable(dataArray, ENVIRONMENT, dbClient);
-      console.log(`Finished processing object ${key} in bucket ${bucket}`);
-      return `Finished processing object ${key} in bucket ${bucket}`;
-  } catch (err) {
-      const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
-      console.error(message);
-      throw new Error(message);
-  }
-};
+
 
 
