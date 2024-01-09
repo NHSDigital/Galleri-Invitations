@@ -29,7 +29,6 @@ jobs:
       environment: ${{ env.environment }}
       database_seeding: ${{ env.environment }}
       test: ${{ env.test }}
-      aws_account_number: ${{ secrets.AWS_ACCOUNT_NUMBER}}
     steps:
       - name: "print environment vars"
         run: |
@@ -116,7 +115,6 @@ jobs:
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: "${{ needs.metadata.outputs.environment }}"
-      aws_account_number: "${{ needs.metadata.outputs.aws_account_number}}"
     secrets: inherit
 
   data-stage: # Recommended maximum execution time is 10 minutes
