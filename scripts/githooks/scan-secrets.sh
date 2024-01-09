@@ -40,13 +40,6 @@ function main() {
   # Include base line file if it exists
   if [ -f $PWD/scripts/config/.gitleaks-baseline.json ]; then
     cmd="$cmd --baseline-path /scan/scripts/config/.gitleaks-baseline.json"
-  else
-  # Generate the baseline if it doesn't exist
-    docker run --rm --platform linux/amd64 \
-      --volume $PWD:/scan \
-      --workdir /scan \
-      ghcr.io/gitleaks/gitleaks:$image_version \
-      detect --source /scan --config /scan/scripts/config/.gitleaks.toml --report-format json > /scan/scripts/config/.gitleaks-baseline.json
   fi
 
   docker run --rm --platform linux/amd64 \
