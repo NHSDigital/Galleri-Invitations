@@ -71,6 +71,13 @@ module "gp_practices_bucket" {
   environment             = var.environment
 }
 
+module "user_accounts_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "user-accounts-bucket"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
 # Data Filter Gridall IMD
 module "data_filter_gridall_imd_lambda" {
   source               = "./modules/lambda"
@@ -573,7 +580,6 @@ module "gp_practices_loader_cloudwatch" {
   retention_days       = 14
 }
 
-
 # Create Episode Records
 module "create_episode_record_lambda" {
   source               = "./modules/lambda"
@@ -604,6 +610,35 @@ module "create_episode_record_dynamodb_stream" {
   starting_position                  = "LATEST"
   batch_size                         = 200
   maximum_batching_window_in_seconds = 300
+}
+
+# User Accounts Lambda
+module "user_accounts_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "userAccountsLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "user_accounts_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "user_accounts_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.user_accounts_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "user_accounts_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.user_accounts_bucket.bucket_id
+  bucket_arn = module.user_accounts_bucket.bucket_arn
+  lambda_arn = module.user_accounts_lambda.lambda_arn
 }
 
 # Dynamodb tables
