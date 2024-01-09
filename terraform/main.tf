@@ -856,6 +856,18 @@ module "population_table" {
     {
       name = "Batch_Id"
       type = "S"
+    },
+    {
+      name = "participantId"
+      type = "S"
+    },
+    {
+      name = "nhs_number"
+      type = "N"
+    },
+    {
+      name = "superseded_by_nhs_number"
+      type = "N"
     }
   ]
   global_secondary_index = [
@@ -876,12 +888,12 @@ module "population_table" {
     },
     {
       name      = "nhsNo-index"
-      hash_key  = "nhsNo"
+      hash_key  = "nhs_number"
       range_key = null
     },
     {
       name      = "supersededByNhsNo-index"
-      hash_key  = "supersededByNhsNo"
+      hash_key  = "superseded_by_nhs_number"
       range_key = null
     }
   ]
