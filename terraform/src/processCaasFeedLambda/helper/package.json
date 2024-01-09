@@ -5,6 +5,7 @@
   "main": "insertRecords.js",
   "author": "",
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.398.0"
+    "@aws-sdk/client-dynamodb": "^3.398.0",
+    "randexp": "^0.5.3"
   }
 }

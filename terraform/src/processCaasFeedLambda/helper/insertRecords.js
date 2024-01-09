@@ -1,4 +1,5 @@
 import records from "./caasFeedArray.json" assert { type: "json" };
+import RandExp from 'randexp'
 import {
   DynamoDBClient,
   QueryCommand,
@@ -10,34 +11,9 @@ const SUCCESSFULL_REPSONSE = 200
 const UNSUCCESSFULL_REPSONSE = 200
 
 const client = new DynamoDBClient({ region: "eu-west-2" });
-const recordsToUpload = [];
-
-records.forEach(async (record) => {
-  if (await checkDynamoTable(dbClient, nhsNo, "Population", "nhsNo", true)){ // Supplied NHS No. exists
-    if (superseded_by_nhs_number === 'null'){ // Superseded by NHS No. == Null ---> C)
-      // ---- C ---- AC5
-    } else { // Superseded by NHS No. !== Null
-      if (await !checkDynamoTable(dbClient, supersededByNhsNo, "Population", "supersededByNhsNo", true)) { // Superseded by NHS No. does not exist in the MPI ---> D)
-        // ---- D ---- AC6
-      }
-    }
-  } else { // Supplied NHS No/ does not exist
-    if (superseded_by_nhs_number === 'null'){ // Superseded by NHS No. == Null --> A)
-      // ---- A ---- AC1
-      const formattedRecord = generateRecord(record, client)
-      recordsToUpload.push(formatDynamoDbRecord(formattedRecord));
-    } else { // Superseded by NHS No. !== Null
-      if (await !checkDynamoTable(dbClient, supersededByNhsNo, "Population", "supersededByNhsNo", true)) { // Superseded by NHS No. does not exist in the MPI ---> B)
-        // ---- B ---- AC2
-        record.nhs_number = record.superseded_by_nhs_number
-        const formattedRecord = generateRecord(record, client)
-        recordsToUpload.push(formatDynamoDbRecord(formattedRecord))
-      }
-    }
-  }
-})
-
-const uploadRecords = batchWriteRecords(recordsToUpload, 25, client);
+// const recordsToUpload = [];
+let ENVIRONMENT = process.env.ENVIRONMENT // change to const
+ENVIRONMENT = "dev-2"
 
 // METHODS
 export const generateParticipantID = async (dbClient) => {
@@ -50,12 +26,12 @@ export const generateParticipantID = async (dbClient) => {
   );
   try {
     let participantId;
-    let found;
+    let found = UNSUCCESSFULL_REPSONSE;
     do {
       participantId = participantIdRandExp.gen();
       console.log("Checking if participantId exists in Population table")
-      found = await lookUp(dbClient, participantId, "Population", "participatingId", true);
-    } while (found);
+      found = await lookUp(dbClient, participantId, "Population", "participantId", "S", true);
+    } while (found !== SUCCESSFULL_REPSONSE);
     console.log(`participantId = ${participantId}`)
     return participantId;
   } catch (err) {
@@ -65,9 +41,9 @@ export const generateParticipantID = async (dbClient) => {
   }
 };
 
-export const checkDynamoTable = async (dbClient, attribute, table, attributeName, useIndex) => {
+export const checkDynamoTable = async (dbClient, attribute, table, attributeName, attributeType, useIndex) => {
   try {
-    const checkTable = await lookUp(dbClient, attribute, table, attributeName, useIndex);
+    const checkTable = await lookUp(dbClient, attribute, table, attributeName, attributeType, useIndex);
     if (checkTable === UNSUCCESSFULL_REPSONSE) return false;
     return true;
   } catch (err) {
@@ -78,21 +54,26 @@ export const checkDynamoTable = async (dbClient, attribute, table, attributeName
 }
 
 export const lookUp = async (dbClient, ...params) => {
-  const {
+  const [
     id,
     table,
     attribute,
+    attributeType,
     useIndex
-  } = params
+   ] = params
+  // console.log("lookup params: ")
+  // console.log(...params)
 
   const ExpressionAttributeValuesKey = `:${attribute}`
+  let expressionAttributeValuesObj = {}
+  let expressionAttributeValuesNestObj = {}
+
+  expressionAttributeValuesNestObj[attributeType] = id
+  expressionAttributeValuesObj[ExpressionAttributeValuesKey] = expressionAttributeValuesNestObj
+
 
   const input = {
-    ExpressionAttributeValues: {
-      ExpressionAttributeValuesKey: {
-        S: `${id}`,
-      },
-    },
+    ExpressionAttributeValues: expressionAttributeValuesObj,
     KeyConditionExpression: `${attribute} = :${attribute}`,
     ProjectionExpression: `${attribute}`,
     TableName: `${ENVIRONMENT}-${table}`,
@@ -100,8 +81,11 @@ export const lookUp = async (dbClient, ...params) => {
 
   if (useIndex) input.IndexName = `${attribute}-index`
 
+  // console.log(JSON.stringify(input, null, 2))
+
   const getCommand = new QueryCommand(input);
   const response = await dbClient.send(getCommand);
+
   if (!response.Items.length === 0){
     return UNSUCCESSFULL_REPSONSE; // participatingId already exists
   }
@@ -109,36 +93,39 @@ export const lookUp = async (dbClient, ...params) => {
 };
 
 export const getItemFromTable = async (dbClient, table, ...keys) => {
-  const {
+  const [
     partitionKeyName,
     partitionKeyType,
     partitionKeyValue,
     sortKeyName,
     sortKeyType,
     sortKeyValue,
-  } = keys
+   ] = keys
 
-  ketObject = {
-    key: {
-      partitionKeyName: {
-        partitionKeyType: partitionKeyValue
-      }
-    }
+
+  let partitionKeyNameObject = {}
+  let partitionKeyNameNestedObject = {}
+  partitionKeyNameNestedObject[partitionKeyType] = partitionKeyValue
+  partitionKeyNameObject[partitionKeyName] = partitionKeyNameNestedObject
+
+  const keyObject = {
+    key: partitionKeyNameObject
   }
 
-  if (sortKeyName != "") {
-    ketObject.key.sortKeyName = {
+  if (sortKeyName !== undefined) {
+    keyObject.key.sortKeyName = {
       sortKeyType: sortKeyValue
     }
   }
 
   const params = {
-    Key: keyObject,
-    TableName: table,
+    Key: partitionKeyNameObject,
+    TableName: `${ENVIRONMENT}-${table}`,
   };
+
+  // console.log(`Get ${partitionKeyName} from ${table} table using`)
   const command = new GetItemCommand(params);
   const response = await dbClient.send(command);
-
   return response;
 }
 
@@ -146,12 +133,14 @@ export const getLsoa = async (record) => {
   // use postcode to find LSOA
   // if postcode unavailable use primary_care_provider to find LSOA from Gp practice table
   const { postcode, primary_care_provider } = record
+  // console.log(postcode, primary_care_provider)
 
   try {
     if (postcode !== undefined) {
-      const checkLsoa = await getItemFromTable(dbClient, "Postcode", "POSTCODE", "S", postcode);
+      const checkLsoa = await getItemFromTable(client, "Postcode", "POSTCODE", "S", postcode);
       if (checkLsoa.Item === undefined) { // set using gp practice
-        const lsoaFromGp = await getItemFromTable(dbClient, "gp_practice_code", "GpPractice", "S", primary_care_provider);
+        const lsoaFromGp = await getItemFromTable(client, "GpPractice", "gp_practice_code", "S", record.primary_care_provider);
+        if (lsoaFromGp.Item === undefined) return Error("Postcode is invalid or does not exist in our record")
         return lsoaFromGp.Item.LSOA_2011.S
       }
       return checkLsoa.Item.LSOA_2011.S
@@ -163,13 +152,13 @@ export const getLsoa = async (record) => {
   }
 }
 
-export const formatDynamoDbRecord = (record) => {
+export const formatDynamoDbRecord = async (record) => {
   return {
     PutRequest: {
       Item: {
-        PersonId: {S: record.participantId},
+        PersonId: {S: record.participant_id},
         LsoaCode: {S: record.lsoa_2011},
-        participantId: {S: record.participantId}, // may need to change
+        participantId: {S: record.participant_id}, // may need to change
         nhs_number: {N: Number(record.nhs_number)},
         superseded_by_nhs_number: {N: Number(record.superseded_by_nhs_number)},
         primary_care_provider: {S: record.primary_care_provider},
@@ -179,7 +168,7 @@ export const formatDynamoDbRecord = (record) => {
         other_given_names: {S: record.other_given_names},
         family_name: {S: record.family_name},
         date_of_birth: {S: record.date_of_birth},
-        gender: {S: record.gender},
+        gender: {N: Number(record.gender)},
         address_line_1: {S: record.address_line_1},
         address_line_2: {S: record.address_line_2},
         address_line_3: {S: record.address_line_3},
@@ -213,6 +202,7 @@ const uploadToDynamoDb = async (dbClient, table, batch) => {
 }
 
 export async function batchWriteRecords(records, chunkSize, dbClient) {
+  console.log("Writing:", JSON.stringify(records, null, 2))
   console.log(`Number of records to push to db = ${records.length}`)
   const sendRequest = [];
   if (records.length === 0) return sendRequest; // handle edge case
@@ -231,13 +221,49 @@ export async function batchWriteRecords(records, chunkSize, dbClient) {
   return sendRequest
 }
 
-export const generateRecord = (record, client) => {
-  record.participant_id = generateParticipantID(client); // AC3
-  const responsibleIcb = getItemFromTable(client, "GpPractice", "gp_practice_code", "S", record.primary_care_provider) // AC4
-  record.responsible_icb = responsibleIcb.icb_id.S;
-  record.lsoa_2011 = getLsoa(record);
-  return formatDynamoDbRecord(record)
+export const generateRecord = async (record, client) => {
+  record.participant_id = await generateParticipantID(client); // AC3
+  const responsibleIcb = await getItemFromTable(client, "GpPractice", "gp_practice_code", "S", record.primary_care_provider) // AC4
+  record.responsible_icb = responsibleIcb.Item.icb_id.S;
+  record.lsoa_2011 = await getLsoa(record);
+  return await formatDynamoDbRecord(record)
 }
+
+// ENTRY POINT
+console.log("records.length", records.length)
+
+const recordsToUpload = records.splice(0,1).map(async (record) => {
+  if (await checkDynamoTable(client, record.nhs_number, "Population", "nhs_number", "N", true)){ // Supplied NHS No. exists in Population table
+    if (record.superseded_by_nhs_number === 'null'){ // Superseded by NHS No. == Null ---> C)
+      // ---- C ---- AC5
+    } else { // Superseded by NHS No. !== Null
+      if (await !checkDynamoTable(client, record.superseded_by_nhs_number, "Population", "N", "superseded_by_nhs_no", true)) { // Superseded by NHS No. does not exist in the MPI ---> D)
+        // ---- D ---- AC6
+      }
+    }
+  } else { // Supplied NHS No/ does not exist in Population table
+    if (record.superseded_by_nhs_number === 'null'){ // Superseded by NHS No. == Null --> A)
+      // ---- A ---- AC1
+      console.log("AC1")
+      const formattedRecord = await generateRecord(record, client);
+      return formattedRecord;
+    } else { // Superseded by NHS No. !== Null
+      if (await !checkDynamoTable(client, record.superseded_by_nhs_number, "Population", "N", "superseded_by_nhs_no", true)) { // Superseded by NHS No. does not exist in the MPI ---> B)
+        // ---- B ---- AC2
+        console.log("AC2")
+        record.nhs_number = record.superseded_by_nhs_number;
+        const formattedRecord = await generateRecord(record, client);
+        return formattedRecord;
+      }
+    }
+  }
+})
+
+const recordsToUploadSettled = await Promise.all(recordsToUpload)
+
+console.log("Printing records to upload", recordsToUploadSettled)
+
+const uploadRecords = await batchWriteRecords(recordsToUploadSettled, 25, client);
 
 // Not in 440
 // Supplied NHS No. exists in MPI AND superseded by NHS No. == Null C)
