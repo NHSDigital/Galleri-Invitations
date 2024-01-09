@@ -3,10 +3,14 @@ import { handShake, loadConfig, getMessageCount, sendMessageChunks, readMessage,
 import { Readable } from "stream"
 import csv from "csv-parser";
 import dotenv from "dotenv";
-import fs from "fs";
+import {
+  SecretsManagerClient,
+  GetSecretValueCommand,
+} from "@aws-sdk/client-secrets-manager";
 
 //VARIABLES
 const client = new DynamoDBClient({ region: "eu-west-2" });
+const smClient = new SecretsManagerClient({ region: "eu-west-2" });
 
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
@@ -17,6 +21,30 @@ const result = dotenv.config();
 if (result.error) {
   throw result.error;
 }
+
+const SECRET_MESH_CA_LOCATION = "MESH_CA_LOCATION";
+const SECRET_MESH_URL = "MESH_URL";
+const SECRET_MESH_SHARED_KEY = "MESH_SHARED_KEY_1";
+const SECRET_MESH_SENDER_MAILBOX_ID = "MESH_SENDER_MAILBOX_ID";
+const SECRET_MESH_SENDER_MAILBOX_PASSWORD = "MESH_SENDER_MAILBOX_PASSWORD";
+const SECRET_MESH_RECEIVER_MAILBOX_ID = "MESH_RECEIVER_MAILBOX_ID";
+const SECRET_MESH_RECEIVER_MAILBOX_PASSWORD = "MESH_RECEIVER_MAILBOX_PASSWORD";
+const SECRET_MESH_RECEIVER_KEY_LOCATION = "MESH_RECEIVER_KEY_LOCATION";
+const SECRET_MESH_RECEIVER_CERT_LOCATION = "MESH_RECEIVER_CERT_LOCATION";
+const SECRET_MESH_SENDER_KEY_LOCATION = "MESH_SENDER_KEY_LOCATION";
+const SECRET_MESH_SENDER_CERT_LOCATION = "MESH_SENDER_CERT_LOCATION";
+
+const MESH_CA_LOCATION = await getSecret(SECRET_MESH_CA_LOCATION);
+const MESH_URL = await getSecret(SECRET_MESH_URL);
+const MESH_SHARED_KEY = await getSecret(SECRET_MESH_SHARED_KEY);
+const MESH_SENDER_MAILBOX_ID = await getSecret(SECRET_MESH_SENDER_MAILBOX_ID);
+const MESH_SENDER_MAILBOX_PASSWORD = await getSecret(SECRET_MESH_SENDER_MAILBOX_PASSWORD);
+const MESH_RECEIVER_MAILBOX_ID = await getSecret(SECRET_MESH_RECEIVER_MAILBOX_ID);
+const MESH_RECEIVER_MAILBOX_PASSWORD = await getSecret(SECRET_MESH_RECEIVER_MAILBOX_PASSWORD);
+const MESH_RECEIVER_KEY_LOCATION = await getSecret(SECRET_MESH_RECEIVER_KEY_LOCATION);
+const MESH_RECEIVER_CERT_LOCATION = await getSecret(SECRET_MESH_RECEIVER_CERT_LOCATION);
+const MESH_SENDER_KEY_LOCATION = await getSecret(SECRET_MESH_SENDER_KEY_LOCATION);
+const MESH_SENDER_CERT_LOCATION = await getSecret(SECRET_MESH_SENDER_CERT_LOCATION);
 
 //FUNCTIONS
 //Read in MESH data
@@ -38,6 +66,19 @@ export const processData = async (csvString, callback) => {
   });
 };
 
+async function getSecret(secretName) {
+  try {
+    response = await smClient.send(
+      new GetSecretValueCommand({
+        SecretId: secretName
+      })
+    );
+  } catch (error) {
+    throw error;
+  }
+  const secret = response.SecretString;
+  return secret;
+}
 
 export const callback = (arr) => {
   return arr;
@@ -83,10 +124,10 @@ async function run() {
   const config = await loadConfig();
   try {
     let healthCheck = await handShake({
-      url: config.url,
-      mailboxID: config.senderMailboxID,
-      mailboxPassword: config.senderMailboxPassword,
-      sharedKey: config.sharedKey,
+      url: MESH_URL,
+      mailboxID: MESH_SENDER_MAILBOX_ID,
+      mailboxPassword: MESH_SENDER_MAILBOX_PASSWORD,
+      sharedKey: MESH_SHARED_KEY,
       agent: config.senderAgent,
     });
 
@@ -101,10 +142,10 @@ async function runMessage() {
   const config = await loadConfig();
   try {
     let messageCount = await getMessageCount({
-      url: config.url,
-      mailboxID: config.senderMailboxID,
-      mailboxPassword: config.senderMailboxPassword,
-      sharedKey: config.sharedKey,
+      url: MESH_URL,
+      mailboxID: MESH_SENDER_MAILBOX_ID,
+      mailboxPassword: MESH_SENDER_MAILBOX_PASSWORD,
+      sharedKey: MESH_SHARED_KEY,
       agent: config.senderAgent,
     });
     let messageList = messageCount.data.messages
@@ -123,12 +164,12 @@ async function sendMsg(msg) {
   const config = await loadConfig();
   try {
     let messageChunk = await sendMessageChunks({
-      url: config.url,
-      mailboxID: config.senderMailboxID,
-      mailboxPassword: config.senderMailboxPassword,
-      sharedKey: config.sharedKey,
+      url: MESH_URL,
+      mailboxID: MESH_SENDER_MAILBOX_ID,
+      mailboxPassword: MESH_SENDER_MAILBOX_PASSWORD,
+      sharedKey: MESH_SHARED_KEY,
       messageFile: inputData,
-      mailboxTarget: config.senderMailboxID,
+      mailboxTarget: MESH_SENDER_MAILBOX_ID,
       agent: config.senderAgent,
     });
 
@@ -142,10 +183,10 @@ async function markRead(msgID) {
   const config = await loadConfig();
   try {
     let markMsg = await markAsRead({
-      url: config.url,
-      mailboxID: config.senderMailboxID,
-      mailboxPassword: config.senderMailboxPassword,
-      sharedKey: config.sharedKey,
+      url: MESH_URL,
+      mailboxID: MESH_SENDER_MAILBOX_ID,
+      mailboxPassword: MESH_SENDER_MAILBOX_PASSWORD,
+      sharedKey: MESH_SHARED_KEY,
       message: msgID,
       agent: config.senderAgent,
     });
@@ -160,10 +201,10 @@ async function readMsg(msgID) {
   const config = await loadConfig();
   try {
     let messages = await readMessage({
-      url: config.url,
-      mailboxID: config.senderMailboxID,
-      mailboxPassword: config.senderMailboxPassword,
-      sharedKey: config.sharedKey,
+      url: MESH_URL,
+      mailboxID: MESH_SENDER_MAILBOX_ID,
+      mailboxPassword: MESH_SENDER_MAILBOX_PASSWORD,
+      sharedKey: MESH_SHARED_KEY,
       messageID: msgID,
       agent: config.senderAgent,
     });
