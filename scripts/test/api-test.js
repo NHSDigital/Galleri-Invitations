@@ -87,7 +87,6 @@ const calculateNumberToInvite = {
       },
     },
   },
-  expected_response_count: 2,
 };
 const generateInvites = {
   name: "generate-invites",
