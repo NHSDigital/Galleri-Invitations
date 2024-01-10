@@ -131,7 +131,7 @@ async function run() {
       console.log('\nProcess succeeded.');
       if (validate()) {
         console.log('\nValidation succeeded.');
-        if (write()) {
+        if (await write()) {
           console.log('\nWriting done.');
         } else {
           console.error('Error: Failed to write files.');
