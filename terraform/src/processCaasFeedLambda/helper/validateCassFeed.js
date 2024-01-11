@@ -41,6 +41,14 @@ function validateRecord(record) {
     return validationResults;
   }
 
+
+  // AC?? - postcode is not a valid format (n10)
+  if (!isValidPostcode(record.postcode)) {
+    validationResults.success = false;
+    validationResults.message = 'Technical error - Postcode was not supplied in a valid format';
+    return validationResults;
+  }
+
   // AC2 - The Superseded by NHS number is not a valid format (n10)
   if (record.superseded_by_nhs_number !== 'null' && !isValidNHSNumberFormat(record.superseded_by_nhs_number)) {
     validationResults.success = false;
@@ -120,6 +128,12 @@ function validateRecord(record) {
 
 function isValidNHSNumberFormat(nhsNumber) {
   // AC1 - NHS Number is not a valid format (n10),
+  // check if it's a numeric string with a length of 10
+  return /^\d{10}$/.test(nhsNumber);
+}
+
+function isValidPostcode(postcode) {
+  // AC1 - NHS Number is not a valid format (n10), -> TODO:
   // check if it's a numeric string with a length of 10
   return /^\d{10}$/.test(nhsNumber);
 }
