@@ -1,4 +1,4 @@
-import records from "./caasFeedArray.json" assert { type: "json" };
+import records from "./successfullyValidatedCassFeedArray.json" assert { type: "json" };
 import RandExp from 'randexp'
 import {
   DynamoDBClient,
@@ -278,7 +278,7 @@ export const generateRecord = async (record, client) => {
 }
 
 // ENTRY POINT
-// console.log("records.length", records.length)
+console.log("records.length", records.length)
 
 const recordsToUpload = records.map(async (record) => {
   const checkingNHSNumber = await checkDynamoTable(client, record.nhs_number, "Population", "nhs_number", "N", true)
