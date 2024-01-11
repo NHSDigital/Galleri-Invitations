@@ -646,10 +646,10 @@ module "process_caas_feed_lambda" {
   environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "userAccountsLambda"
+  lambda_function_name = "processCaasFeedLambda"
   lambda_timeout       = 100
   memory_size          = 1024
-  lambda_s3_object_key = "user_accounts_lambda.zip"
+  lambda_s3_object_key = "process_caas_feed_lambda.zip"
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
@@ -887,12 +887,12 @@ module "population_table" {
       range_key = null
     },
     {
-      name      = "nhsNo-index"
+      name      = "nhs_number-index"
       hash_key  = "nhs_number"
       range_key = null
     },
     {
-      name      = "supersededByNhsNo-index"
+      name      = "superseded_by_nhs_number-index"
       hash_key  = "superseded_by_nhs_number"
       range_key = null
     }
