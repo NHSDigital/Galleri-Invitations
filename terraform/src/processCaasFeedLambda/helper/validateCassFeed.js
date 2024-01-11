@@ -1,4 +1,5 @@
 import records from "./caasFeedArray.json" assert { type: "json" };
+import fs from 'fs'
 
 // For now, The function iterates through the records .
 // The iteration will be removed later as this will be a Helper method
@@ -22,6 +23,7 @@ export default function validateRecords(records) {
       });
     }
   });
+
 
   return [outputSuccess, outputUnsuccess];
 }
@@ -135,7 +137,7 @@ function isValidNHSNumberFormat(nhsNumber) {
 function isValidPostcode(postcode) {
   // AC1 - NHS Number is not a valid format (n10), -> TODO:
   // check if it's a numeric string with a length of 10
-  return /^\d{10}$/.test(nhsNumber);
+  return !postcode;
 }
 
 function isValidRemovalReasonCode(reasonCode) {
@@ -196,6 +198,25 @@ function isValidDateFormatOrInTheFuture(dateString) {
 
 const [outputSuccess, outputUnsuccess] = validateRecords(records);
 
-console.log('Successful Records:', outputSuccess.slice(0, 10)) // check first 10 items in array
-console.log('Unsuccessful Records:', outputUnsuccess.slice(0, 10)) // check first 10 items in array
+const stringifySuccessArray = JSON.stringify(outputSuccess, null, 2);
+const stringifyUnsuccessArray = JSON.stringify(outputUnsuccess, null, 2);
+
+const writeSuccessfullToFile = fs.writeFile('./successfullyValidatedCassFeedArray.json', stringifySuccessArray, err => {
+  if (err) {
+      console.log('Error writing file', err)
+  } else {
+      console.log('Successfully wrote file')
+  }
+})
+
+const writeUnsuccessfullToFile = fs.writeFile('./unsuccessfullyValidatedCassFeedArray.json', stringifyUnsuccessArray, err => {
+  if (err) {
+      console.log('Error writing file', err)
+  } else {
+      console.log('Successfully wrote file')
+  }
+})
+
+// console.log('Successful Records:', outputSuccess.slice(0, 10)) // check first 10 items in array
+// console.log('Unsuccessful Records:', outputUnsuccess.slice(0, 10)) // check first 10 items in array
 
