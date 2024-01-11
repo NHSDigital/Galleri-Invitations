@@ -137,7 +137,8 @@ function isValidNHSNumberFormat(nhsNumber) {
 function isValidPostcode(postcode) {
   // AC1 - NHS Number is not a valid format (n10), -> TODO:
   // check if it's a numeric string with a length of 10
-  return !postcode;
+  // postcode is not empty | null | undefined
+  return postcode;
 }
 
 function isValidRemovalReasonCode(reasonCode) {
