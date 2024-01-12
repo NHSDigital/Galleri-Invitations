@@ -1,5 +1,5 @@
 import records from "./caasFeedArray.json" assert { type: "json" };
-import fs from "fs";
+// import fs from "fs";
 
 // For now, The function iterates through the records .
 // The iteration will be removed later as this will be a Helper method
@@ -68,14 +68,14 @@ export function validateRecord(record) {
   }
 
   // AC9 - Given Name not provided
-  if (!record.given_name || record.given_name.trim() === "") {
+  if (!record.given_name || record.given_name === "null" || record.given_name.trim() === "") {
     validationResults.success = false;
     validationResults.message = "Technical error - Given Name is missing";
     return validationResults;
   }
 
   // AC8 - Family Name not provided
-  if (!record.family_name || record.family_name.trim() === "") {
+  if (!record.family_name || record.family_name === "null" || record.family_name.trim() === "") {
     validationResults.success = false;
     validationResults.message = "Technical error - Family Name is missing";
     return validationResults;
@@ -134,7 +134,7 @@ export function validateRecord(record) {
   //   return validationResults;
   // }
 
-  // Potential AC?? - Reason for Removal Business Effective From Date is an invalid format or is in the future
+  // Potential AC?? - Reason for Removal Business Effective From Date is an invalid format
   if (
     record.reason_for_removal_effective_from_date !== "null" &&
     !isValidDateFormat(record.reason_for_removal_effective_from_date)
@@ -231,34 +231,32 @@ export function isValidDateFormatOrInTheFuture(dateString) {
 
 const [outputSuccess, outputUnsuccess] = validateRecords(records);
 
-const stringifySuccessArray = JSON.stringify(outputSuccess, null, 2);
-const stringifyUnsuccessArray = JSON.stringify(outputUnsuccess, null, 2);
+// const stringifySuccessArray = JSON.stringify(outputSuccess, null, 2);
+// const stringifyUnsuccessArray = JSON.stringify(outputUnsuccess, null, 2);
 
-const writeSuccessfullToFile = fs.writeFile(
-  "./successfullyValidatedCassFeedArray.json",
-  stringifySuccessArray,
-  (err) => {
-    if (err) {
-      console.log("Error writing file", err);
-    } else {
-      console.log("Successfully wrote file");
-    }
-  }
-);
+// const writeSuccessfullToFile = fs.writeFile(
+//   "./successfullyValidatedCassFeedArray.json",
+//   stringifySuccessArray,
+//   (err) => {
+//     if (err) {
+//       console.log("Error writing file", err);
+//     } else {
+//       console.log("Successfully wrote file");
+//     }
+//   }
+// );
 
-const writeUnsuccessfullToFile = fs.writeFile(
-  "./unsuccessfullyValidatedCassFeedArray.json",
-  stringifyUnsuccessArray,
-  (err) => {
-    if (err) {
-      console.log("Error writing file", err);
-    } else {
-      console.log("Successfully wrote file");
-    }
-  }
-);
-
-
+// const writeUnsuccessfullToFile = fs.writeFile(
+//   "./unsuccessfullyValidatedCassFeedArray.json",
+//   stringifyUnsuccessArray,
+//   (err) => {
+//     if (err) {
+//       console.log("Error writing file", err);
+//     } else {
+//       console.log("Successfully wrote file");
+//     }
+//   }
+// );
 
 console.log('Successful Records:', outputSuccess.length) // check first 10 items in array
 console.log('Unsuccessful Records:', outputUnsuccess.length) // check first 10 items in array
