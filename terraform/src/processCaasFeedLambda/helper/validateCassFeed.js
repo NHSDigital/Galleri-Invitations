@@ -27,7 +27,7 @@ export default function validateRecords(records) {
   return [outputSuccess, outputUnsuccess];
 }
 
-function validateRecord(record) {
+export function validateRecord(record) {
   const validationResults = {
     success: true,
     message: "success",
@@ -40,13 +40,6 @@ function validateRecord(record) {
     validationResults.success = false;
     validationResults.message =
       "Technical error - NHS number was not supplied in a valid format";
-    return validationResults;
-  }
-
-  // AC?? - postcode is not supplied
-  if (!record.postcode || record.postcode === "null") {
-    validationResults.success = false;
-    validationResults.message = "Technical error - Postcode was not supplied";
     return validationResults;
   }
 
@@ -106,6 +99,13 @@ function validateRecord(record) {
     return validationResults;
   }
 
+  // AC?? - postcode is not supplied
+  if (!record.postcode || record.postcode === "null") {
+    validationResults.success = false;
+    validationResults.message = "Technical error - Postcode was not supplied";
+    return validationResults;
+  }
+
   // AC4 - Incorrect Reason for Removal code provided (if supplied)
   if (
     record.reason_for_removal !== "null" &&
@@ -148,13 +148,13 @@ function validateRecord(record) {
   return validationResults;
 }
 
-function isValidNHSNumberFormat(nhsNumber) {
+export function isValidNHSNumberFormat(nhsNumber) {
   // AC1 - NHS Number is not a valid format (n10),
   // check if it's a numeric string with a length of 10
   return /^\d{10}$/.test(nhsNumber);
 }
 
-function isValidRemovalReasonCode(reasonCode) {
+export function isValidRemovalReasonCode(reasonCode) {
   // AC4 - Incorrect Reason for Removal code provided (if supplied)
   // check if it's one of the specified valid codes
   const validCodes = [
@@ -180,13 +180,13 @@ function isValidRemovalReasonCode(reasonCode) {
   return validCodes.includes(reasonCode);
 }
 
-function isValidGender(gender) {
+export function isValidGender(gender) {
   // AC3 - Missing or Invalid Gender provided
   // check if it's one of the specified valid values
   return ["0", "1", "2", "9"].includes(gender);
 }
 
-function isValidDateFormat(dateString) {
+export function isValidDateFormat(dateString) {
   // AC7 - Date of Birth is an invalid format or is in the future
   // AC10 - Date of Death (if supplied is invalid format or is in the future
 
@@ -200,7 +200,7 @@ function isValidDateFormat(dateString) {
   return true;
 }
 
-function isValidDateFormatOrInTheFuture(dateString) {
+export function isValidDateFormatOrInTheFuture(dateString) {
   // AC7 - Date of Birth is an invalid format or is in the future
   // AC10 - Date of Death (if supplied is invalid format or is in the future
 
