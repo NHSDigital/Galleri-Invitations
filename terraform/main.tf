@@ -130,6 +130,65 @@ module "data_filter_gridall_iam" {
   environment = var.environment
 }
 
+# Data Filter Gridall IMD
+module "generate_lsoa_midpoint_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.generate_lsoa_midpoint_iam.lambda_role_arn
+  lambda_function_name = "generateLsoaMidpoint"
+  lambda_timeout       = 900
+  memory_size          = 4096
+  lambda_s3_object_key = "generate_lsoa_midpoint_lambda.zip"
+  environment_vars = {
+    BUCKET_NAME     = "galleri-test-data",
+    GRIDALL_CHUNK_1 = "gridall/chunk_data/chunk_1.csv",
+    GRIDALL_CHUNK_2 = "gridall/chunk_data/chunk_2.csv",
+    GRIDALL_CHUNK_3 = "gridall/chunk_data/chunk_3.csv",
+    ENVIRONMENT     = "${var.environment}"
+  }
+}
+
+module "generate_lsoa_midpoint_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.data_filter_gridall_imd_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "generate_lsoa_midpoint_iam" {
+  source      = "./modules/iam"
+  name        = "data-filter-gridall"
+  description = "Allows access to galleri-test-data for that environment"
+  policy = jsonencode(
+    {
+      "Statement" : [
+        {
+          "Action" : [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+          ],
+          "Effect" : "Allow",
+          "Resource" : "arn:aws:logs:*:*:*"
+        },
+        {
+          "Sid" : "AllowS3Access",
+          "Effect" : "Allow",
+          "Action" : [
+            "s3:*"
+          ],
+          "Resource" : [
+            "arn:aws:s3:::${var.environment}-galleri-test-data"
+          ]
+        }
+      ],
+      "Version" : "2012-10-17"
+  })
+  role_name   = "data-filter-gridall"
+  environment = var.environment
+}
+
 
 # LSOA loader
 module "lsoa_loader_lambda" {

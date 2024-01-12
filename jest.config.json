@@ -9,5 +9,9 @@
     "!**/*.test.{js,jsx,ts,tsx}",
     "!**/*.config.js",
     "!**/node_modules/**"
-  ]
+  ],
+  "transform": {
+    "^.+\\.[t|j]sx?$": "babel-jest"
+  },
+  "testEnvironment": "node"
 }

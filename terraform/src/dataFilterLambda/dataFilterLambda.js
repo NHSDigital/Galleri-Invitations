@@ -5,6 +5,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { Readable } from "stream";
 import csv from "csv-parser";
+import fs from "fs";
 
 const GALLERI_ONS_BUCKET_NAME = `${process.env.ENVIRONMENT}-${process.env.BUCKET_NAME}`;
 const GRIDALL_CHUNK_1 = process.env.GRIDALL_CHUNK_1;
@@ -294,4 +295,6 @@ export const handler = async () => {
   } catch (e) {
     console.log("Error with uploading records: ", e);
   }
+
+  
 };
