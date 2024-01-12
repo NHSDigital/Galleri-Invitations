@@ -130,7 +130,7 @@ module "data_filter_gridall_iam" {
   environment = var.environment
 }
 
-# Data Filter Gridall IMD
+# Generate LSOA Midpoint
 module "generate_lsoa_midpoint_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
@@ -141,24 +141,21 @@ module "generate_lsoa_midpoint_lambda" {
   memory_size          = 4096
   lambda_s3_object_key = "generate_lsoa_midpoint_lambda.zip"
   environment_vars = {
-    BUCKET_NAME     = "galleri-test-data",
-    GRIDALL_CHUNK_1 = "gridall/chunk_data/chunk_1.csv",
-    GRIDALL_CHUNK_2 = "gridall/chunk_data/chunk_2.csv",
-    GRIDALL_CHUNK_3 = "gridall/chunk_data/chunk_3.csv",
-    ENVIRONMENT     = "${var.environment}"
+    BUCKET_NAME = "galleri-test-data",
+    ENVIRONMENT = "${var.environment}"
   }
 }
 
 module "generate_lsoa_midpoint_cloudwatch" {
   source               = "./modules/cloudwatch"
   environment          = var.environment
-  lambda_function_name = module.data_filter_gridall_imd_lambda.lambda_function_name
+  lambda_function_name = module.generate_lsoa_midpoint_lambda.lambda_function_name
   retention_days       = 14
 }
 
 module "generate_lsoa_midpoint_iam" {
   source      = "./modules/iam"
-  name        = "data-filter-gridall"
+  name        = "generate-lsoa-midpoint"
   description = "Allows access to galleri-test-data for that environment"
   policy = jsonencode(
     {
@@ -185,7 +182,7 @@ module "generate_lsoa_midpoint_iam" {
       ],
       "Version" : "2012-10-17"
   })
-  role_name   = "data-filter-gridall"
+  role_name   = "generate-lsoa-midpoint"
   environment = var.environment
 }
 

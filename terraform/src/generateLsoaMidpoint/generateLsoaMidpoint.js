@@ -5,7 +5,7 @@ const lsoaHeader =
   "POSTCODE,POSTCODE_2,LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,EASTING_1M,NORTHING_1M,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021,IMD_RANK,IMD_DECILE,LSOA_NAME,AVG_EASTING,AVG_NORTHING";
 
 exports.handler = async (event) => {
-  const bucketName = `${process.env.environment}-${process.env.bucket_name}`;
+  const bucketName = `${process.env.ENVIRONMENT}-${process.env.BUCKET_NAME}`;
   const fileName = event.fileName;
 
   try {
