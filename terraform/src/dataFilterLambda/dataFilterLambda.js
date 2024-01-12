@@ -295,6 +295,4 @@ export const handler = async () => {
   } catch (e) {
     console.log("Error with uploading records: ", e);
   }
-
-  
 };
