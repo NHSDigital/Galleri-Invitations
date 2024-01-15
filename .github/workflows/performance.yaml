@@ -10,10 +10,10 @@ on:
   workflow_dispatch:
     inputs:
       invitations_branch:
-        description: "This is the branch/tag of Galleri-Invitations be deployed to the UAT environment"
+        description: "This is the branch/tag of Galleri-Invitations be deployed to the Performance environment"
         required: true
       frontend_branch:
-        description: "This is the branch/tag of the Galleri frontend to be deployed to the UAT environment"
+        description: "This is the branch/tag of the Galleri frontend to be deployed to the Performance environment"
         required: true
       database_seeding:
         description: "Determines if the seeding scripts are run to populate the database"
