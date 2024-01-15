@@ -116,6 +116,32 @@ jobs:
           export DOES_PULL_REQUEST_EXIST="${{ steps.pr_exists.outputs.does_pull_request_exist }}"
           make list-variables
 
+  performance-stage:
+    runs-on: ubuntu-latest
+    needs: [metadata, test-stage, build-stage, data-stage, acceptance-stage]
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+      - name: "git tag with next release version"
+        shell: bash
+        run: |
+          ./scripts/pipeline/version.sh MINOR
+      # - name: "create tagged versions of lambdas"
+      #   run: |
+      #     echo "TODO: create release versions of lambdas"
+      # - name: "create tagged versions of frontend"
+      #   run: |
+      #     echo "TODO: create release versions of lambdas"
+      # - name: "create tagged versions of frontend"
+      #   run: |
+      #     echo "TODO: tag main branch"
+      - name: "run performance check against latest versions"
+        run: |
+          which java
+          curl https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.6.3.tgz -o apache-jmeter.tgz
+          tar -xvzf apache-jmeter-5.6.3.tgz
+          ./apache-jmeter/bin/jmeter --version
+
   commit-stage: # Recommended maximum execution time is 2 minutes
     needs: [metadata]
     uses: ./.github/workflows/stage-1-commit.yaml
@@ -189,28 +215,3 @@ jobs:
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
     secrets: inherit
-
-  performance-stage:
-    runs-on: ubuntu-latest
-    needs: [metadata, test-stage, build-stage, data-stage, acceptance-stage]
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v4
-      - name: "git tag with next release version"
-        shell: bash
-        run: |
-          ./scripts/pipeline/version.sh MINOR
-      # - name: "create tagged versions of lambdas"
-      #   run: |
-      #     echo "TODO: create release versions of lambdas"
-      # - name: "create tagged versions of frontend"
-      #   run: |
-      #     echo "TODO: create release versions of lambdas"
-      # - name: "create tagged versions of frontend"
-      #   run: |
-      #     echo "TODO: tag main branch"
-      - name: "run performance check against latest versions"
-        run: |
-          curl https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.6.3.tgz -o apache-jmeter.tgz
-          tar -xvzf apache-jmeter-5.6.3.tgz
-          ./apache-jmeter/bin/jmeter --version
