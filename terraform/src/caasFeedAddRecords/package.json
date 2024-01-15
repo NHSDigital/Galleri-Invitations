@@ -1,0 +1,14 @@
+{
+  "name": "lambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "caasFeedAddRecords.js",
+  "author": "",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.490.0",
+    "@aws-sdk/client-s3": "^3.388.0",
+    "csv": "^6.3.1",
+    "csv-parser": "^3.0.0",
+    "randexp": "^0.5.3"
+  }
+}
