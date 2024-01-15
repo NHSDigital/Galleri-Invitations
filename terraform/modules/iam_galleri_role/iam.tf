@@ -315,7 +315,42 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
   })
 }
 
+# Policy required by gpPracticesLoaderLambda
+#resource "aws_iam_policy" "gp_practice_loader_lambda" {
+#  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_gp_practices_loader_lambda_role"
+#  path        = "/"
+#  description = "AWS IAM Policy for pushing into S3 Bucket"
+#  policy = jsonencode(
+#    {
+#      "Statement" : [
+#        {
+#          "Action" : [
+#            "logs:CreateLogGroup",
+#            "logs:CreateLogStream",
+#            "logs:PutLogEvents"
+#          ],
+#          "Effect" : "Allow",
+#          "Resource" : "arn:aws:logs:*:*:*"
+#        },
+#        {
+#          "Sid" : "AllowDynamodbAccess",
+#          "Effect" : "Allow",
+#          "Action" : [
+#            "dynamodb:*"
+#          ],
+#          "Resource" : [
+#            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GpPractice",
+#            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Postcode"
+#          ]
+#        }
+#      ],
+#      "Version" : "2012-10-17"
+#  })
+#}
+
+
 # Added GpPractice and Postcode to this policy as lambda role exceeded policy limit
+# Added validate Caas Feed to this policy as lambda role exceeded policy limit
 # Added UserAccounts to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
