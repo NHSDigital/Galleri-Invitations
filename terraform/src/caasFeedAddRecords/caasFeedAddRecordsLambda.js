@@ -300,7 +300,7 @@ export const filterUniqueEntries = (cassFeed) => {
 export const processingData = async (record) => {
   const checkingNHSNumber = await checkDynamoTable(client, record.nhs_number, "Population", "nhs_number", "N", true)
   if (!checkingNHSNumber){
-     // Supplied NHS No/ does not exist in Population table
+    // Supplied NHS No/ does not exist in Population table
     if (record.superseded_by_nhs_number === 'null'){
       ++countAC1
       return await generateRecord(record, client);
@@ -430,7 +430,7 @@ export const getItemFromTable = async (dbClient, table, ...keys) => {
     sortKeyName,
     sortKeyType,
     sortKeyValue,
-   ] = keys
+  ] = keys
 
 
   let partitionKeyNameObject = {}
@@ -466,7 +466,7 @@ export const lookUp = async (dbClient, ...params) => {
     attribute,
     attributeType,
     useIndex
-   ] = params
+  ] = params
 
 
   const ExpressionAttributeValuesKey = `:${attribute}`
