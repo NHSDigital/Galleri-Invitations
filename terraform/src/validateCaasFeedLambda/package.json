@@ -1,0 +1,11 @@
+{
+  "name": "validateCaasFeedLambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "validateCaasFeedLambda.js",
+  "author": "",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.398.0",
+    "randexp": "^0.5.3"
+  }
+}
