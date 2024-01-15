@@ -1,5 +1,5 @@
-import { checkDynamoTable } from './helper/insertRecords'
 import { handShake, loadConfig, getMessageCount, sendMessageChunks, readMessage, markAsRead } from "nhs-mesh-client";
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from "stream"
 import csv from "csv-parser";
 import dotenv from "dotenv";
@@ -12,7 +12,7 @@ import {
 const client = new DynamoDBClient({ region: "eu-west-2" });
 const smClient = new SecretsManagerClient({ region: "eu-west-2" });
 
-const ENVIRONMENT = process.env.ENVIRONMENT;
+// const ENVIRONMENT = process.env.ENVIRONMENT;
 
 //can remove, for testing purposes only
 const inputData = "/Users/abduls/repos/newProj/input/galleri_cohort_test_data_small.csv"
@@ -220,6 +220,19 @@ async function readMsg(msgID) {
     console.error("Error occurred:", error);
   }
 }
+
+function putObjectToS3(bucket, key, data) {
+  var s3 = new AWS.S3();
+  var params = {
+    Bucket: bucket,
+    Key: key,
+    Body: data
+  }
+  s3.putObject(params, function (err, data) {
+    if (err) console.log(err, err.stack);
+    else console.log(data);           // successful response
+  });
+}
 //END OF FUNCTIONS
 
 //HANDLER
@@ -247,7 +260,3 @@ export const handler = async (event, context) => {
 };
 
 
-
-const checkIcbCode = checkDynamoTable(dbClient, primarCareProviderCode, "GpPractice", "primarCareProviderCode", false)
-const checkSupersededByNhsNo = checkDynamoTable(dbClient, supersededByNhsNo, "Population", "supersededByNhsNo", true)
-const checkNhsNo = checkDynamoTable(dbClient, nhsNo, "Population", "nhsNo", true)
