@@ -1,0 +1,12 @@
+{
+  "name": "lambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "cassFeedAddRecords.js",
+  "author": "",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.388.0",
+    "csv": "^6.3.1",
+    "csv-parser": "^3.0.0"
+  }
+}
