@@ -138,7 +138,7 @@ jobs:
       - name: "run performance check against latest versions"
         run: |
           sudo apt install openjdk-8-jre
-          # sudo apt update-alternatives --config java 
+          sudo update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
           java --version
           # curl https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.6.3.tgz -o apache-jmeter.tgz
           curl https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-4.0.tgz -o apache-jmeter.tgz
