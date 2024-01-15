@@ -139,7 +139,7 @@ jobs:
         run: |
           which java
           curl https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.6.3.tgz -o apache-jmeter.tgz
-          tar -xvzf apache-jmeter-5.6.3.tgz
+          tar -xvzf apache-jmeter.tgz
           ./apache-jmeter/bin/jmeter --version
 
   commit-stage: # Recommended maximum execution time is 2 minutes
