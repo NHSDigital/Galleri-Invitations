@@ -1,11 +1,11 @@
 {
-  "name": "insertRecords",
+  "name": "pollMeshMailboxLambda",
   "version": "1.0.0",
   "type": "module",
-  "main": "insertRecords.js",
+  "main": "pollMeshMailboxLambda.js",
   "author": "",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.398.0",
-    "randexp": "^0.5.3"
+    "nhs-mesh-client": "^1.0.3"
   }
 }
