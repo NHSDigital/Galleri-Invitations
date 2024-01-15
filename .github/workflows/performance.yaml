@@ -211,6 +211,6 @@ jobs:
       #     echo "TODO: tag main branch"
       - name: "run performance check against latest versions"
         run: |
-          npx cypress run --env api_id=mbz93pl6qf,clinic_id=YK18Z380,clinic_name='Phlebotomy clinic 34' --spec "cypress/e2e/api/CLI/clinic-information.cy.js"
-          npx cypress run --env api_id=yuvf0jcaql,participatingIcb=QJK --spec "cypress/e2e/api/CLI/clinic-summary-list.cy.js"
-          npx cypress run --env api_id=ez9vey9gqh --spec "cypress/e2e/api/CLI/target-percentage.cy.js"
+          curl https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.6.3.tgz -o apache-jmeter.tgz
+          tar -xvzf apache-jmeter-5.6.3.tgz
+          ./apache-jmeter/bin/jmeter --version
