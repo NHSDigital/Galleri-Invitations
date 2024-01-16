@@ -118,4 +118,5 @@ runs:
         npm install --prefix src/calculateNumberToInviteLambda
         npm install --prefix src/generateInvitesTriggerLambda
         npm install --prefix src/gpPracticesLoaderLambda
+        npm install --prefix src/userAccountsLambda
         terraform ${{ env.tf-action }} -auto-approve -input=false -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars
