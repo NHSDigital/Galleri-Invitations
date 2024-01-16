@@ -232,7 +232,7 @@ const generateRecord = async (record, client) => {
   return await formatDynamoDbRecord(record)
 }
 
-// TODO: unit
+// TESTED
 export const generateParticipantID = async (dbClient) => {
   /* Participant_Id must be a unique value in the Population table
   thus we can not use the in built dynamodb validation for uniqueness
@@ -383,7 +383,7 @@ export const uploadToDynamoDb = async (dbClient, table, batch) => {
   return response.$metadata.httpStatusCode;
 }
 
-// TODO: unit
+// TESTED
 export async function batchWriteRecords(records, chunkSize, dbClient) {
   console.log(`Number of records to push to db = ${records.length}`)
   const sendRequest = [];

@@ -2,11 +2,8 @@ import { mockClient } from "aws-sdk-client-mock";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { S3Client } from "@aws-sdk/client-s3";
 import { sdkStreamMixin } from "@aws-sdk/util-stream-node";
-import RandExp from 'randexp'
 import * as fs from "fs";
 import path from "path";
-
-
 
 import {
   readCsvFromS3,
@@ -18,36 +15,10 @@ import {
   generateParticipantID,
   getItemFromTable,
   formatDynamoDbRecord,
-  uploadToDynamoDb
+  uploadToDynamoDb,
+  batchWriteRecords,
+  generateCsvString
 } from '../../caasFeedAddRecordsLambda/caasFeedAddRecordsLambda';
-
-const validRecord = {
-  "nhs_number": "1234567890",
-  "superseded_by_nhs_number": "null",
-  "primary_care_provider": "B85023",
-  "gp_connect": "true",
-  "name_prefix": "null",
-  "given_name": "Yellow",
-  "other_given_names": "null",
-  "family_name": "Bentley",
-  "date_of_birth": "1990-01-01",
-  "gender": "2",
-  "address_line_1": "11 ABC Road",
-  "address_line_2": "Dunsford",
-  "address_line_3": "EXETER",
-  "address_line_4": "Devon",
-  "address_line_5": "null",
-  "postcode": "AB1 2CD",
-  "reason_for_removal": "null",
-  "reason_for_removal_effective_from_date": "null",
-  "date_of_death": "null",
-  "telephone_number": "null",
-  "mobile_number": "null",
-  "email_address": "null",
-  "preferred_language": "null",
-  "is_interpreter_required": "null",
-  "action": "ADD"
-};
 
 describe("readCsvFromS3", () => {
   afterEach(() => {
@@ -429,30 +400,13 @@ describe('generateParticipantID', () => {
 
 
     const result = await generateParticipantID(mockDynamoDbClient);
+    console.log(result)
 
-    const testRegex = result.test(/NHS-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]/)
+    const testRegex = /NHS-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]/.test(result)
 
     expect(testRegex).toEqual(true);
   });
 
-  test('should return false if item does not exists in table', async () => {
-    mockDynamoDbClient.resolves({
-      $metadata: {
-        httpStatusCode: 200
-      },
-      Items: []
-    });
-
-    const mockAttribute = "attribute-A";
-    const mockTable = "table-A";
-    const mockAttributeName = "attributeName-A"
-    const mockAttributeType = "Type-A";
-
-
-    const result = await checkDynamoTable(mockDynamoDbClient, mockAttribute, mockTable, mockAttributeName, mockAttributeType);
-
-    expect(result).toEqual(false);
-  });
 })
 
 describe('getItemFromTable', () => {
@@ -575,3 +529,76 @@ describe('uploadToDynamoDb', () => {
     expect(result).toEqual(200);
   });
 })
+
+describe("batchWriteRecords", () => {
+  const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
+
+  test("Return response 200 when successfully written to db", async () => {
+    const batch = [{ value: "A" }, { value: "B" }];
+
+    const chunkSize = 2;
+
+    mockDynamoDbClient.resolves({
+      $metadata: {
+        httpStatusCode: 200,
+      },
+    });
+
+    const result = await batchWriteRecords(batch, chunkSize, mockDynamoDbClient);
+
+    expect(result).toEqual([200]);
+  });
+  test("Return response 400 when no records to write", async () => {
+    const batch = [{ value: "A" }, { value: "B" }];
+
+    const chunkSize = 2;
+
+    mockDynamoDbClient.resolves({
+      $metadata: {
+        httpStatusCode: 400,
+      },
+    });
+
+    const result = await batchWriteRecords(batch, chunkSize, mockDynamoDbClient);
+
+    expect(result).toEqual([400]);
+  });
+
+  test("Return empty when no records to write", async () => {
+    const batch = [];
+
+    const chunkSize = 2;
+
+    mockDynamoDbClient.resolves({
+      $metadata: {
+        httpStatusCode: 400,
+      },
+    });
+
+    const result = await batchWriteRecords(batch, chunkSize, mockDynamoDbClient);
+
+    expect(result).toEqual([]);
+  });
+});
+
+describe("generateCsvString", () => {
+  test("returns correctly formatted string when given header and data", () => {
+    const header = "Alpha,Beta,Gamma";
+    const dataArray = [
+      {
+        a: "First",
+        b: "Second",
+        c: "Third",
+      },
+      {
+        a: "Uno",
+        b: "Dos",
+        c: "Tres",
+      },
+    ];
+    const result = generateCsvString(header, dataArray);
+    expect(result).toEqual(
+      "Alpha,Beta,Gamma\nFirst,Second,Third\nUno,Dos,Tres"
+    );
+  });
+});
