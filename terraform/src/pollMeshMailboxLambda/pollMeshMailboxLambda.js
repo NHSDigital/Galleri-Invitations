@@ -2,26 +2,19 @@ import { handShake, loadConfig, getMessageCount, sendMessageChunks, readMessage,
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from "stream"
 import csv from "csv-parser";
-// import dotenv from "dotenv";
 import {
   SecretsManagerClient,
   GetSecretValueCommand,
 } from "@aws-sdk/client-secrets-manager";
 
 //VARIABLES
-// const client = new DynamoDBClient({ region: "eu-west-2" });
 const smClient = new SecretsManagerClient({ region: "eu-west-2" });
 const s3 = new S3Client({});
 
-// const ENVIRONMENT = process.env.ENVIRONMENT;
+const ENVIRONMENT = process.env.ENVIRONMENT;
 
 //can remove, for testing purposes only
 const inputData = "/Users/abduls/repos/newProj/input/galleri_cohort_test_data_small.csv"
-
-// const result = dotenv.config();
-// if (result.error) {
-//   throw result.error;
-// }
 
 const SECRET_MESH_CA_LOCATION = "MESH_CA_LOCATION";
 const SECRET_MESH_URL = "MESH_URL";
@@ -68,6 +61,7 @@ export const processData = async (csvString, callback) => {
 };
 
 async function getSecret(secretName) {
+  let response = "";
   try {
     response = await smClient.send(
       new GetSecretValueCommand({
@@ -259,7 +253,7 @@ export const handler = async (event, context) => {
       } else {
         console.log('No Messages');
       }
-    } else {
+    } else { //TODO: check connection to mesh, certs may be incorrect
       console.log('Failed to establish connection');
     }
     console.log(finalMsgArr);
