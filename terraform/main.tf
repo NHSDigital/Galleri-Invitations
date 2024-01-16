@@ -86,14 +86,6 @@ module "caas_data_bucket" {
   environment             = var.environment
 }
 
-# Validated CaaS MESH output data bucket
-module "validate_caas_data_bucket" {
-  source                  = "./modules/s3"
-  bucket_name             = "galleri-validated-caas-data"
-  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  environment             = var.environment
-}
-
 # Data Filter Gridall IMD
 module "data_filter_gridall_imd_lambda" {
   source               = "./modules/lambda"
@@ -688,6 +680,7 @@ module "caas_feed_add_records_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "caas_feed_add_records_lambda.zip"
   environment_vars = {
+    BUCKET_NAME = "galleri-caas-data",
     ENVIRONMENT = "${var.environment}"
   }
 }
@@ -700,11 +693,11 @@ module "caas_feed_add_records_lambda_cloudwatch" {
 }
 
 module "caas_feed_add_records_lambda_trigger" {
-  source     = "./modules/lambda_trigger"
-  bucket_id  = module.validate_caas_data_bucket.bucket_id
-  bucket_arn = module.validate_caas_data_bucket.bucket_arn
-  lambda_arn = module.caas_feed_add_records_lambda.lambda_arn
-  filter_suffix = "_add.csv"
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.caas_data_bucket.bucket_id
+  bucket_arn    = module.caas_data_bucket.bucket_arn
+  lambda_arn    = module.caas_feed_add_records_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_add-"
 }
 
 module "validate_caas_feed_lambda" {
@@ -731,10 +724,10 @@ module "validate_caas_feed_lambda_cloudwatch" {
 
 
 module "validate_caas_feed_lambda_trigger" {
-  source        = "./modules/lambda_trigger"
-  bucket_id     = module.caas_data_bucket.bucket_id
-  bucket_arn    = module.caas_data_bucket.bucket_arn
-  lambda_arn    = module.validate_caas_feed_lambda.lambda_arn
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.caas_data_bucket.bucket_id
+  bucket_arn = module.caas_data_bucket.bucket_arn
+  lambda_arn = module.validate_caas_feed_lambda.lambda_arn
 }
 
 # Dynamodb tables

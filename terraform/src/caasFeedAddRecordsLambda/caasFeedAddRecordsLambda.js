@@ -15,7 +15,10 @@ import csv from "csv-parser";
 
 const s3 = new S3Client();
 const client = new DynamoDBClient({ region: "eu-west-2", convertEmptyValues: true });
-let ENVIRONMENT = process.env.ENVIRONMENT
+
+const ENVIRONMENT = process.env.ENVIRONMENT
+const BUCKET = process.env.BUCKET_NAME
+
 const SUCCESSFULL_REPSONSE = 200
 const UNSUCCESSFULL_REPSONSE = 400
 
@@ -36,9 +39,6 @@ export const handler = async (event) => {
       duplicateRecordsToIndividuallyProcess
     ] = filterUniqueEntries(records);
 
-    console.log(`Unique record count = ${uniqueRecordsToBatchProcess.length}, duplicate record count = ${duplicateRecordsToIndividuallyProcess.length}
-    Total records = ${uniqueRecordsToBatchProcess.length + duplicateRecordsToIndividuallyProcess.length}.`);
-
     if (uniqueRecordsToBatchProcess.length > 0){
 
       const recordsToBatchUpload = uniqueRecordsToBatchProcess.map(async (record) => {
@@ -46,16 +46,13 @@ export const handler = async (event) => {
       });
       const recordsToUploadSettled = await Promise.all(recordsToBatchUpload);
 
-
       const filteredRecordsToUploadSettled = [];
       const filteredRejectedRecords = [];
-
 
       recordsToUploadSettled.forEach(record => {
         if (record?.rejected){
           filteredRejectedRecords.push(record);
         } else {
-          console.log("processed record = ", JSON.stringify(record, null, 2));
           filteredRecordsToUploadSettled.push(record);
         }
       });
@@ -69,8 +66,9 @@ export const handler = async (event) => {
       console.log('----------------------------------------------------------------');
 
       if (filteredRejectedRecords) {
+        const fileName = `validRecords/rejectedRecords/rejectedRecords-${timeNow}.csv`
         const timeNow = Date.now();
-        console.log(`${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-galleri-validated-caas-data/rejectedRecords/rejectedRecords-${timeNow}.csv`);
+        console.log(`${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-${BUCKET}/${fileName}`);
         // Generate the CSV format
         const rejectedRecordsString = generateCsvString(
           `nhs_number,rejected,reason`,
@@ -79,8 +77,8 @@ export const handler = async (event) => {
 
         // Deposit to S3 bucket
         await pushCsvToS3(
-          `${ENVIRONMENT}-galleri-validated-caas-data`,
-          `rejectedRecords/rejectedRecords-${timeNow}.csv`,
+          `${ENVIRONMENT}-${BUCKET}`,
+          `${fileName}`,
           rejectedRecordsString,
           s3
         );
