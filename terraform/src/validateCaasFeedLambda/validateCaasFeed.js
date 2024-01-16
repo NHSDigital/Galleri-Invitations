@@ -1,17 +1,15 @@
-import records from "./helper/caasFeedArray.json" assert { type: "json" };
 import {
-  ListObjectsCommand,
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
 import { Readable } from "stream";
 import csv from "csv-parser";
-// import fs from "fs";
+
 
 const s3 = new S3Client();
-const ENVIRONMENT = process.env.ENVIRONMENT;
-const BUCKET_NAME = process.env.BUCKET_NAME;
+// const ENVIRONMENT = process.env.ENVIRONMENT;
+// const BUCKET_NAME = process.env.BUCKET_NAME;
 
 
 export const readCsvFromS3 = async (bucketName, key, client) => {
@@ -70,46 +68,82 @@ export const parseCsvToArray = async (csvString) => {
   });
 };
 
-// export const handler = async () => {
-//   // const records = event.records;
-//   const bucket = event.Records[0].s3.bucket.name;
-//   const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
-//   console.log(`Triggered by object ${key} in bucket ${bucket}`);
-//   try {
-//     const csvString = await readCsvFromS3(bucket, key, s3);
-//     const dataArray = await parseCsvToArray(csvString);
-//     await saveArrayToTable(dataArray, ENVIRONMENT, dbClient);
-//     console.log(`Finished processing object ${key} in bucket ${bucket}`);
-//     return `Finished processing object ${key} in bucket ${bucket}`;
-//   } catch (err) {
-//     const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
-//     console.error(message);
-//     throw new Error(message);
-//   };
+export const convertArrayOfObjectsToCSV = (data) => {
+  const csvContent = [];
 
-//   if (!records) {
-//     return {
-//       statusCode: 400,
-//       body: JSON.stringify({}),
-//     };
-//   }
+  if (!Array.isArray(data) || data.length === 0) {
+    console.error('Data is empty or not an array.');
+    return '';
+  }
 
-//   const [outputSuccess, outputUnsuccess] = validateRecords(records);
+  // Extracting headers
+  const headers = Object.keys(data[0]);
+  csvContent.push(headers.join(','));
 
-//   return {
-//     statusCode: 200,
-//     body: JSON.stringify({
-//       success: outputSuccess,
-//       unsuccessful: outputUnsuccess,
-//     }),
-//   };
-// };
+  // Extracting values
+  data.forEach((item) => {
+    const values = headers.map((header) => {
+      const escapedValue = item[header].includes(',')
+        ? `"${item[header]}"`
+        : item[header];
+      return escapedValue;
+    });
+    csvContent.push(values.join(','));
+  });
+
+  return csvContent.join('\n');
+}
+
+export const handler = async (event) => {
+  const bucket = event.Records[0].s3.bucket.name;
+  const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
+  console.log(key);
+  console.log(`Triggered by object ${key} in bucket ${bucket}`);
+  try {
+    const csvString = await readCsvFromS3(bucket, key, s3);
+    const records = await parseCsvToArray(csvString);
+
+    const [outputSuccess, outputUnsuccess] = validateRecords(records);
+    console.log(`Finished validating object ${key} in bucket ${bucket}`);
+    console.log('----------------------------------------------------------------');
+
+    console.log('Start Filtering the successful Validated records and split into 3 arrays. ADD, UPDATE and DELETE array ');
+
+    //Timestamp
+    const timeNow = Date.now();
+
+    // Valid Records Arrangement
+    const [recordsAdd, recordsUpdate, recordsDelete] = filterRecordStatus(outputSuccess);
+    const recordsAddCsvData = convertArrayOfObjectsToCSV(recordsAdd);
+    const recordsUpdateCsvData = convertArrayOfObjectsToCSV(recordsUpdate);
+    const recordsDeleteCsvData = convertArrayOfObjectsToCSV(recordsDelete);
+
+    // InValid Records Arrangement
+    const invalidRecordsCsvData = convertArrayOfObjectsToCSV(outputUnsuccess);
+
+    // Deposit to S3 bucket
+    await pushCsvToS3(bucket, `validRecords/valid_records_add-${timeNow}.csv`, recordsAddCsvData, s3);
+    await pushCsvToS3(bucket, `validRecords/valid_records_update-${timeNow}.csv`, recordsUpdateCsvData, s3);
+    await pushCsvToS3(bucket, `validRecords/valid_records_delete-${timeNow}.csv`, recordsDeleteCsvData, s3);
+
+    await pushCsvToS3(bucket, `invalidRecords/invalid_records-${timeNow}.csv`, invalidRecordsCsvData, s3);
+
+    // Logging the invalid records
+    console.warn("PLEASE FIND THE INVALID CAAS RECORDS FROM THE PROCESSED CAAS FEED BELOW:\n" + JSON.stringify(outputUnsuccess, null, 2))
+
+    return `Finished validating object ${key} in bucket ${bucket}`;
+
+  } catch (err) {
+    const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
+    console.error(message);
+    throw new Error(message);
+  };
+};
 
 
 
-// For now, The function iterates through the records .
-// The iteration will be removed later as this will be a Helper method
-// for a Lambda function which will iterate through the records
+
+// Main Validation function which will iterate through the records
 export default function validateRecords(records) {
   const outputSuccess = [];
   const outputUnsuccess = [];
@@ -240,7 +274,7 @@ export function validateRecord(record) {
   //   return validationResults;
   // }
 
-  // Potential AC?? - Reason for Removal Business Effective From Date is an invalid format
+  // Potential AC - Reason for Removal Business Effective From Date is an invalid format
   if (
     record.reason_for_removal_effective_from_date !== "null" &&
     !isValidDateFormat(record.reason_for_removal_effective_from_date)
@@ -248,6 +282,13 @@ export function validateRecord(record) {
     validationResults.success = false;
     validationResults.message =
       "Technical error - Reason for Removal Business Effective From Date is invalid";
+    return validationResults;
+  }
+
+  // AC12 – Action output not provided (ADD/DEL/UPDATE)
+  if (!isValidAction(record.action)) {
+    validationResults.success = false;
+    validationResults.message = "Technical error - Action is invalid";
     return validationResults;
   }
 
@@ -335,6 +376,12 @@ export function isValidDateFormatOrInTheFuture(dateString) {
   return true;
 }
 
+export function isValidAction(action) {
+  // AC3 - Missing or Invalid Gender provided
+  // check if it's one of the specified valid values
+  return ["ADD", "DEL", "UPDATE"].includes(action);
+}
+
 export const filterRecordStatus = (records) => {
   /*
     Spread records into 3 arrays. ADD, UPDATE and DELETE array
@@ -355,77 +402,3 @@ export const filterRecordStatus = (records) => {
 
   return [recordsAdd, recordsUpdate, recordsDelete]
 };
-
-function convertArrayOfObjectsToCSV(data) {
-  const csvContent = [];
-
-  // Extracting headers
-  const headers = Object.keys(data[0]);
-  csvContent.push(headers.join(','));
-
-  // Extracting values
-  data.forEach((item) => {
-    const values = headers.map((header) => {
-      // If the value contains a comma, enclose it in double quotes
-      const escapedValue = item[header].includes(',')
-        ? `"${item[header]}"`
-        : item[header];
-      return escapedValue;
-    });
-    csvContent.push(values.join(','));
-  });
-
-  // Combine rows into a single string with line breaks
-  return csvContent.join('\n');
-}
-
-
-const [outputSuccess, outputUnsuccess] = validateRecords(records);
-const [recordsAdd, recordsUpdate, recordsDelete] = filterRecordStatus(outputSuccess);
-const recordsAddCsvData = convertArrayOfObjectsToCSV(recordsAdd);
-const recordsUpdateCsvData = convertArrayOfObjectsToCSV(recordsUpdate);
-const recordsDeleteCsvData = convertArrayOfObjectsToCSV(recordsDelete);
-console.log('Successful Add Records:', recordsAdd)
-
-fs.writeFileSync('./valid_records_add.csv', recordsAddCsvData);
-fs.writeFileSync('./valid_records_update.csv', recordsUpdateCsvData);
-fs.writeFileSync('./valid_records_delete.csv', recordsDeleteCsvData);
-
-// console.log('Successful Add Records:', recordsAdd, recordsAdd.length)
-// console.log('Successful Update Records:', recordsUpdate, recordsUpdate.length)
-// console.log('Successful Delete Records:', recordsDelete, recordsDelete.length)
-
-console.log('Successful Add Records:', recordsAdd.length)
-console.log('Successful Update Records:', recordsUpdate.length)
-console.log('Successful Delete Records:', recordsDelete.length)
-
-
-// const stringifySuccessArray = JSON.stringify(outputSuccess, null, 2);
-// const stringifyUnsuccessArray = JSON.stringify(outputUnsuccess, null, 2);
-
-// const writeSuccessfullToFile = fs.writeFile(
-//   "./successfullyValidatedCassFeedArray.json",
-//   stringifySuccessArray,
-//   (err) => {
-//     if (err) {
-//       console.log("Error writing file", err);
-//     } else {
-//       console.log("Successfully wrote file");
-//     }
-//   }
-// );
-
-// const writeUnsuccessfullToFile = fs.writeFile(
-//   "./unsuccessfullyValidatedCassFeedArray.json",
-//   stringifyUnsuccessArray,
-//   (err) => {
-//     if (err) {
-//       console.log("Error writing file", err);
-//     } else {
-//       console.log("Successfully wrote file");
-//     }
-//   }
-// );
-
-// console.log('Successful Records:', outputSuccess.length) // check first 10 items in array
-// console.log('Unsuccessful Records:', outputUnsuccess.length) // check first 10 items in array

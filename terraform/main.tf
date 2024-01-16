@@ -701,7 +701,6 @@ module "validate_caas_feed_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "validate_caas_feed_lambda.zip"
   environment_vars = {
-    BUCKET_NAME = "galleri-caas-data",
     ENVIRONMENT = "${var.environment}"
   }
 }
@@ -719,6 +718,7 @@ module "validate_caas_feed_lambda_trigger" {
   bucket_id  = module.caas_data_bucket.bucket_id
   bucket_arn = module.caas_data_bucket.bucket_arn
   lambda_arn = module.validate_caas_feed_lambda.lambda_arn
+  filter_prefix = "mesh_chunk_data_"
 }
 
 # Dynamodb tables
