@@ -142,7 +142,7 @@ jobs:
           curl https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.6.3.tgz -o apache-jmeter.tgz
           tar -xvzf apache-jmeter.tgz
           ./apache-jmeter-5.6.3/bin/jmeter --version
-          curl http://search.maven.org/remotecontent?filepath=kg/apc/cmdrunner/2.0/cmdrunner-2.0.jar -o apache-jmeter-5.6.3/lib/cmdrunner-2.0.jar
+          curl http://search.maven.org/remotecontent?filepath=kg/apc/cmdrunner/2.3/cmdrunner-2.3.jar -o apache-jmeter-5.6.3/lib/cmdrunner-2.3.jar
           curl https://repo1.maven.org/maven2/kg/apc/jmeter-plugins-manager/1.10/jmeter-plugins-manager-1.10.jar -o apache-jmeter-5.6.3/lib/ext/jmeter-plugins-manager-1.10.jar
           ls -l apache-jmeter-5.6.3/lib/cmdrunner-2.0.jar
           ls -l apache-jmeter-5.6.3/lib/ext/jmeter-plugins-manager-1.10.jar
