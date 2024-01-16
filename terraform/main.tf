@@ -704,6 +704,7 @@ module "caas_feed_add_records_lambda_trigger" {
   bucket_id  = module.validate_caas_data_bucket.bucket_id
   bucket_arn = module.validate_caas_data_bucket.bucket_arn
   lambda_arn = module.caas_feed_add_records_lambda.lambda_arn
+  filter_suffix = "_add.csv"
 }
 
 module "validate_caas_feed_lambda" {
@@ -730,10 +731,10 @@ module "validate_caas_feed_lambda_cloudwatch" {
 
 
 module "validate_caas_feed_lambda_trigger" {
-  source     = "./modules/lambda_trigger"
-  bucket_id  = module.caas_data_bucket.bucket_id
-  bucket_arn = module.caas_data_bucket.bucket_arn
-  lambda_arn = module.validate_caas_feed_lambda.lambda_arn
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.caas_data_bucket.bucket_id
+  bucket_arn    = module.caas_data_bucket.bucket_arn
+  lambda_arn    = module.validate_caas_feed_lambda.lambda_arn
 }
 
 # Dynamodb tables

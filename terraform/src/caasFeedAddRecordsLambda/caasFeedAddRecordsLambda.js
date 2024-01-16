@@ -22,37 +22,29 @@ const UNSUCCESSFULL_REPSONSE = 400
 // Lambda Entry Point
 export const handler = async (event) => {
 
-  // const bucket = event.Records[0].s3.bucket.name;
-  // const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
-  // console.log(`Triggered by object ${key} in bucket ${bucket}`);
+  const bucket = event.Records[0].s3.bucket.name;
+  const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
+  console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
   try {
     const start = Date.now();
-    // const csvString = await readCsvFromS3(bucket, key, s3);
-    // const records = await parseCsvToArray(csvString);
-    // console.log("Raw event")
-    // console.log(event)
-    // console.log("Stringifying event")
-    console.log("--------------------")
-    const records = event
+    const csvString = await readCsvFromS3(bucket, key, s3);
+    const records = await parseCsvToArray(csvString);
 
-    console.log(`type of event is ${typeof records}`)
-
-    console.log("Split records array into unique and duplicates")
     const [
       uniqueRecordsToBatchProcess,
       duplicateRecordsToIndividuallyProcess
-    ] = filterUniqueEntries(records)
+    ] = filterUniqueEntries(records);
 
     console.log(`Unique record count = ${uniqueRecordsToBatchProcess.length}, duplicate record count = ${duplicateRecordsToIndividuallyProcess.length}
-    Total records = ${uniqueRecordsToBatchProcess.length + duplicateRecordsToIndividuallyProcess.length}.`)
+    Total records = ${uniqueRecordsToBatchProcess.length + duplicateRecordsToIndividuallyProcess.length}.`);
 
     if (uniqueRecordsToBatchProcess.length > 0){
 
       const recordsToBatchUpload = uniqueRecordsToBatchProcess.map(async (record) => {
         return processingData(record);
-      })
-      const recordsToUploadSettled = await Promise.all(recordsToBatchUpload)
+      });
+      const recordsToUploadSettled = await Promise.all(recordsToBatchUpload);
 
 
       const filteredRecordsToUploadSettled = [];
@@ -60,23 +52,25 @@ export const handler = async (event) => {
 
 
       recordsToUploadSettled.forEach(record => {
-        console.log("processed record = ", JSON.stringify(record, null, 2))
         if (record?.rejected){
-          filteredRejectedRecords.push(record)
+          filteredRejectedRecords.push(record);
         } else {
-          filteredRecordsToUploadSettled.push(record)
+          console.log("processed record = ", JSON.stringify(record, null, 2));
+          filteredRecordsToUploadSettled.push(record);
         }
-      })
-      console.log("Rejected records", filteredRejectedRecords.length)
-      console.log("Successfully formatted records", filteredRecordsToUploadSettled.length)
+      });
 
-      const uploadRecords = await batchWriteRecords(filteredRecordsToUploadSettled, 25, client);
+      if (filteredRecordsToUploadSettled){
+        console.log(`${filteredRecordsToUploadSettled.length} records successfully formatted`);
+        const uploadRecords = await batchWriteRecords(filteredRecordsToUploadSettled, 25, client);
+        console.log(`uploadRecords = ${JSON.stringify(uploadRecords, null, 2)}`);
+      }
 
-      console.log('----------------------------------------------------------------')
+      console.log('----------------------------------------------------------------');
 
       if (filteredRejectedRecords) {
         const timeNow = Date.now();
-        console.log(`Some records failed. A failure report will be uploaded to ${ENVIRONMENT}-galleri-validated-caas-data/rejectedRecords/rejectedRecords-${timeNow}.csv`)
+        console.log(`${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-galleri-validated-caas-data/rejectedRecords/rejectedRecords-${timeNow}.csv`);
         // Generate the CSV format
         const rejectedRecordsString = generateCsvString(
           `nhs_number,rejected,reason`,
@@ -91,49 +85,7 @@ export const handler = async (event) => {
           s3
         );
       }
-  //   console.log("GRIDALL extracted: ", Date.now() - start);
     }
-// {
-//   PutRequest: {
-//     Item: {
-//       PersonId: {S: record.participant_id},
-//       LsoaCode: {S: record.lsoa_2011},
-//       participantId: {S: record.participant_id}, // may need to change
-//       nhs_number: {N: record.nhs_number},
-//       superseded_by_nhs_number: {N: record.superseded_by_nhs_number},
-//       primary_care_provider: {S: record.primary_care_provider},
-//       gp_connect: {S: record.gp_connect},
-//       name_prefix: {S: record.name_prefix},
-//       given_name: {S: record.given_name},
-//       other_given_names: {S: record.other_given_names},
-//       family_name: {S: record.family_name},
-//       date_of_birth: {S: record.date_of_birth},
-//       gender: {N: record.gender},
-//       address_line_1: {S: record.address_line_1},
-//       address_line_2: {S: record.address_line_2},
-//       address_line_3: {S: record.address_line_3},
-//       address_line_4: {S: record.address_line_4},
-//       address_line_5: {S: record.address_line_5},
-//       postcode: {S: record.postcode},
-//       reason_for_removal: {S: record.reason_for_removal},
-//       reason_for_removal_effective_from_date: {S: record.reason_for_removal_effective_from_date},
-//       date_of_death: {S: record.date_of_death},
-//       telephone_number: {N: record.telephone_number},
-//       mobile_number: {N: record.mobile_number},
-//       email_address: {S: record.email_address},
-//       preferred_language: {S: record.preferred_language},
-//       is_interpreter_required: {BOOL: Boolean(record.is_interpreter_required)},
-//       action: {S: record.action},
-//     }
-//   }
-// }
-
-// {
-//   rejectedRecordNhsNumber: record.nhs_number,
-//   rejected: true,
-//   reason: lsoaCheck.reason
-// }
-
   } catch (error) {
     console.error(
       "Error with CaaS Feed extraction, procession or uploading",
@@ -141,6 +93,7 @@ export const handler = async (event) => {
     );
   }
 
+  return "Exiting Lambda";
 };
 
 // METHODS
@@ -218,50 +171,6 @@ export const filterUniqueEntries = (cassFeed) => {
   return [unique, duplicate]
 }
 
-// takes a single data item and process it
-// returns records in dynamodb format with
-// export const processingData = async (record) => {
-//   const checkingNHSNumber = await checkDynamoTable(client, record.nhs_number, "Population", "nhs_number", "N", true)
-//   // Supplied NHS No. exists in Population table
-//   if (checkingNHSNumber){
-//     if (record.superseded_by_nhs_number === 'null'){
-//       ++countAC5
-//       // TODO: UPDATE A RECORD
-//       // return await formatDynamoDbRecord("", true)
-//       return null
-//     } else {
-//       const checkingSupersedNumber = await checkDynamoTable(client, record.superseded_by_nhs_number, "Population", "superseded_by_nhs_number", "N", true);
-//        // Superseded by NHS No. does not exist in the MPI
-//       if (checkingSupersedNumber) {
-//         ++countAC7
-//         // TODO: THEN merge two MPI record
-//         // return await formatDynamoDbRecord("", true)
-//         return null
-//       } else {
-//         ++countAC6
-//         // TODO: THEN replace NHS no. with the Superseded by NHS no
-//         // return await formatDynamoDbRecord("", true)
-//         return null
-//       }
-//     }
-//   } else { // Supplied NHS No/ does not exist in Population table
-//     if (record.superseded_by_nhs_number === 'null'){
-//       ++countAC1
-//       // const formattedRecord = await generateRecord(record, client);
-//       return await generateRecord(record, client);
-//     } else { // Superseded by NHS No. !== Null
-//       const checkingSupersedNumber = await checkDynamoTable(client, record.superseded_by_nhs_number, "Population", "superseded_by_nhs_number", "N", true);
-//       // Superseded by NHS No. does not exist in the MPI
-//       if (!checkingSupersedNumber) {
-//         ++countAC2
-//         record.nhs_number = record.superseded_by_nhs_number;
-//         // const formattedRecord = await generateRecord(record, client);
-//         return await generateRecord(record, client);
-//       }
-//     }
-//   }
-// }
-
 
 // takes a single data item and process it
 // returns records in dynamodb format with
@@ -290,6 +199,10 @@ export const processingData = async (record) => {
 
 // Not unit testing
 export const checkDynamoTable = async (dbClient, attribute, table, attributeName, attributeType, useIndex) => {
+  // exits and produce error
+  // if (!attribute){
+  //   return true;
+  // }
   try {
     const checkTable = await lookUp(dbClient, attribute, table, attributeName, attributeType, useIndex);
     // console.log(`what is the response from checking the ${table} for attribute ${attributeName} with value ${attribute} -> ${checkTable}`)
@@ -298,6 +211,7 @@ export const checkDynamoTable = async (dbClient, attribute, table, attributeName
     };
     return false;
   } catch (err) {
+    console.log("args: ", ...args);
     console.error(`Error checking the ${attribute} in ${table} table.`);
     console.error(err);
     return err;
@@ -316,8 +230,7 @@ export const generateRecord = async (record, client) => {
       reason: lsoaCheck.reason
     };
   }
-
-  record.lsoa_2011 = lsoaCheck.lsoaCode;
+  record.lsoa_2011 = lsoaCheck;
   const responsibleIcb = await getItemFromTable(client, "GpPractice", "gp_practice_code", "S", record.primary_care_provider); // AC4
   record.responsible_icb = responsibleIcb.Item?.icb_id.S;
   return await formatDynamoDbRecord(record)
@@ -476,7 +389,6 @@ const uploadToDynamoDb = async (dbClient, table, batch) => {
 
 // TODO: unit
 export async function batchWriteRecords(records, chunkSize, dbClient) {
-  // console.log("Writing:", JSON.stringify(records, null, 2))
   console.log(`Number of records to push to db = ${records.length}`)
   const sendRequest = [];
   if (records.length === 0) return sendRequest; // handle edge case
@@ -485,7 +397,6 @@ export async function batchWriteRecords(records, chunkSize, dbClient) {
     if ((records.length - i) < chunkSize){ // remaining chunk
       const batch = records.splice(i, records.length - i);
       console.log("Writing remainder")
-      // , JSON.stringify(batch, null, 2))
       sendRequest.push(await uploadToDynamoDb(dbClient, `Population`, batch));
       return sendRequest;
     }
