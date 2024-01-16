@@ -20,14 +20,20 @@ let ENVIRONMENT = process.env.ENVIRONMENT
 // Lambda Entry Point
 export const handler = async (event) => {
 
-  const bucket = event.Records[0].s3.bucket.name;
-  const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
-  console.log(`Triggered by object ${key} in bucket ${bucket}`);
+  // const bucket = event.Records[0].s3.bucket.name;
+  // const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
+  // console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
   try {
     const start = Date.now();
-    const csvString = await readCsvFromS3(bucket, key, s3);
-    const records = await parseCsvToArray(csvString);
+    // const csvString = await readCsvFromS3(bucket, key, s3);
+    // const records = await parseCsvToArray(csvString);
+    console.log("Raw event")
+    console.log(event)
+    console.log("Stringifying event")
+    console.log("--------------------")
+    console.log(JSON.stringify(event))
+    const records = JSON.parse(event.body)
 
     console.log("Split records array into unique and duplicates")
     const [
@@ -89,11 +95,6 @@ export const handler = async (event) => {
 
       console.log('----------------------------------------------------------------')
     }
-
-    if (duplicateRecordsToIndividuallyProcess > 0){
-      // upload single record
-    }
-
 // {
 //   PutRequest: {
 //     Item: {
@@ -139,33 +140,33 @@ export const handler = async (event) => {
     // For each data chunk, read in the CSV stored in AWS S3.
     // Discard rows and columns that are not needed
     // Return an array of objects that contain the filtered data
-    const gridallPromises = gridallKeys.map(async (gridallKey) => {
-      const gridallCsvString = await readCsvFromS3(
-        bucketName,
-        gridallKey,
-        client
-      );
-      return parseCsvToArray(gridallCsvString, processGridallRow);
-    });
+  //   const gridallPromises = gridallKeys.map(async (gridallKey) => {
+  //     const gridallCsvString = await readCsvFromS3(
+  //       bucketName,
+  //       gridallKey,
+  //       client
+  //     );
+  //     return parseCsvToArray(gridallCsvString, processGridallRow);
+  //   });
 
-    // Settle all promised in array before concatenating them into single array
-    const gridallDataArrayChunks = await Promise.all(gridallPromises);
-    gridallCombinedData = gridallDataArrayChunks.flat();
+  //   // Settle all promised in array before concatenating them into single array
+  //   const gridallDataArrayChunks = await Promise.all(gridallPromises);
+  //   gridallCombinedData = gridallDataArrayChunks.flat();
 
-    // Generate the CSV format
-    const filteredGridallFileString = generateCsvString(
-      `POSTCODE,POSTCODE_2,LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,EASTING_1M,NORTHING_1M,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021`,
-      gridallCombinedData
-    );
+  //   // Generate the CSV format
+  //   const filteredGridallFileString = generateCsvString(
+  //     `POSTCODE,POSTCODE_2,LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,EASTING_1M,NORTHING_1M,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021`,
+  //     gridallCombinedData
+  //   );
 
-    // Deposit to S3 bucket
-    await pushCsvToS3(
-      bucketName,
-      "filtered_data/filteredGridallFile.csv",
-      filteredGridallFileString,
-      client
-    );
-    console.log("GRIDALL extracted: ", Date.now() - start);
+  //   // Deposit to S3 bucket
+  //   await pushCsvToS3(
+  //     bucketName,
+  //     "filtered_data/filteredGridallFile.csv",
+  //     filteredGridallFileString,
+  //     client
+  //   );
+  //   console.log("GRIDALL extracted: ", Date.now() - start);
   } catch (error) {
     console.error(
       "Error with Gridall extraction, procession or uploading",
@@ -343,6 +344,7 @@ export const generateRecord = async (record, client) => {
   const lsoaCheck = await getLsoa(record, client);
 
   if (!record.participant_id || lsoaCheck.rejected){
+    // Records keys failed
     return {
       rejectedRecordNhsNumber: record.nhs_number,
       rejected: true,
@@ -353,7 +355,6 @@ export const generateRecord = async (record, client) => {
   record.lsoa_2011 = lsoaCheck.lsoaCode;
   const responsibleIcb = await getItemFromTable(client, "GpPractice", "gp_practice_code", "S", record.primary_care_provider); // AC4
   record.responsible_icb = responsibleIcb.Item?.icb_id.S;
-  // Records keys failed
   return await formatDynamoDbRecord(record)
 }
 
