@@ -1,6 +1,12 @@
 import {
-  validateRecord,
-} from '../../validateCaasFeedLambda/validateCaasFeed';
+  validateRecord, handler, readCsvFromS3, pushCsvToS3, parseCsvToArray, filterRecordStatus, convertArrayOfObjectsToCSV
+} from '../../validateCaasFeedLambda/validateCaasFeedLambda';
+import AWS from 'aws-sdk-mock';
+import { mockClient } from "aws-sdk-client-mock";
+import { S3Client } from "@aws-sdk/client-s3";
+import { sdkStreamMixin } from "@aws-sdk/util-stream-node";
+import * as fs from "fs";
+import path from "path";
 
 const validRecord = {
   "nhs_number": "1234567890",
@@ -30,7 +36,8 @@ const validRecord = {
   "action": "ADD"
 };
 
-describe('validateRecord function', () => {
+
+describe('validateCaasFeed function', () => {
 
   test('should return success for a valid record', () => {
 
@@ -155,5 +162,157 @@ describe('validateRecord function', () => {
     expect(validationResult.message).toBe(
       "Technical error - Reason for Removal Business Effective From Date is invalid"
     );
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("return string built from csv file", async () => {
+    const mockS3Client = mockClient(new S3Client({}));
+    const stream = sdkStreamMixin(
+      fs.createReadStream(path.resolve(__dirname, "./testData/chunk_1.csv"))
+    );
+    mockS3Client.resolves({
+      Body: stream,
+    });
+
+    const result = await readCsvFromS3("aaaaaaa", "aaaaaaa", mockS3Client);
+    const expected_result = '"PCD2","PCDS","DOINTR","DOTERM"\n';
+    expect(result).toEqual(expected_result);
+  });
+
+  test("Failed response when error occurs getting file to bucket", async () => {
+    const logSpy = jest.spyOn(global.console, "log");
+    const errorMsg = new Error("Mocked error");
+    const mockClient = {
+      send: jest.fn().mockRejectedValue(errorMsg),
+    };
+
+    try {
+      await readCsvFromS3("aaaaaaa", "aaaaaaa", mockClient);
+    } catch (err) {
+      expect(err.message).toBe("Mocked error");
+    }
+    expect(logSpy).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledWith("Failed: ", errorMsg);
+  });
+
+  test("Successful response from sending file to bucket", async () => {
+    const logSpy = jest.spyOn(global.console, "log");
+    const mockS3Client = mockClient(new S3Client({}));
+    mockS3Client.resolves({
+      $metadata: { httpStatusCode: 200 },
+    });
+    const result = await pushCsvToS3(
+      "galleri-ons-data",
+      "test.txt",
+      "dfsdfd",
+      mockS3Client
+    );
+
+    expect(logSpy).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledWith(`Succeeded`);
+    expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
+  });
+  test("Failed response when error occurs sending file to bucket", async () => {
+    const logSpy = jest.spyOn(global.console, "log");
+    const errorMsg = new Error("Mocked error");
+    const mockClient = {
+      send: jest.fn().mockRejectedValue(errorMsg),
+    };
+    try {
+      await pushCsvToS3("galleri-ons-data", "test.txt", "dfsdfd", mockClient);
+    } catch (err) {
+      expect(err.message).toBe("Mocked error");
+    }
+    expect(logSpy).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledWith("Failed: ", errorMsg);
+  });
+
+  const testCsvString = `"nhs_number","dob","dod"\n"000","10/01/1991","11/01/1991"\n"111","01/09/2000","15/11/2023"`;
+  test("should parse CSV string and call processFunction for each row", async () => {
+
+    const result = await parseCsvToArray(testCsvString);
+    expect(result).toEqual([
+      { nhs_number: "000", dob: "10/01/1991", dod: "11/01/1991" },
+      { nhs_number: "111", dob: "01/09/2000", dod: "15/11/2023" },
+    ]);
+  });
+
+  beforeEach(() => {
+    AWS.mock('S3', 'getObject', (params, callback) => {
+      // Provide a mocked response for getObject
+      callback(null, { Body: 'mocked CSV data' });
+    });
+
+    AWS.mock('S3', 'putObject', (params, callback) => {
+      // Provide a mocked response for putObject
+      callback(null, 'mocked response');
+    });
+  });
+
+  afterEach(() => {
+    AWS.restore('S3');
+  });
+
+  test('should filter records into ADD, UPDATE, and DELETE arrays', () => {
+    const records = [
+      { action: 'ADD', data: 'record1' },
+      { action: 'UPDATE', data: 'record2' },
+      { action: 'DEL', data: 'record3' },
+      { action: 'ADD', data: 'record4' },
+    ];
+
+    const [recordsAdd, recordsUpdate, recordsDelete] = filterRecordStatus(records);
+
+    expect(recordsAdd).toEqual([{ action: 'ADD', data: 'record1' }, { action: 'ADD', data: 'record4' }]);
+    expect(recordsUpdate).toEqual([{ action: 'UPDATE', data: 'record2' }]);
+    expect(recordsDelete).toEqual([{ action: 'DEL', data: 'record3' }]);
+  });
+
+  test('should handle empty records array', () => {
+    const records = [];
+
+    const [recordsAdd, recordsUpdate, recordsDelete] = filterRecordStatus(records);
+
+    expect(recordsAdd).toEqual([]);
+    expect(recordsUpdate).toEqual([]);
+    expect(recordsDelete).toEqual([]);
+  });
+
+  test('should convert an array of objects to CSV format', () => {
+    const data = [
+      { "name": 'John', "age": "30", "city": 'New York' },
+      { "name": 'Jane', "age": "25", "city": 'San Francisco' },
+    ];
+
+    const csvContent = convertArrayOfObjectsToCSV(data);
+
+    const expectedCSV = 'name,age,city\nJohn,30,New York\nJane,25,San Francisco';
+    expect(csvContent).toEqual(expectedCSV);
+  });
+
+  test('should handle empty data array', () => {
+    const data = [];
+
+    const csvContent = convertArrayOfObjectsToCSV(data);
+
+    expect(csvContent).toEqual('');
+  });
+
+  test('should parse CSV to array', async () => {
+    const csvString = 'field1,field2\nvalue1,value2\nvalue3,value4';
+
+    const result = await parseCsvToArray(csvString);
+
+    // Add your assertions here
+    expect(result).toEqual([
+      { field1: 'value1', field2: 'value2' },
+      { field1: 'value3', field2: 'value4' },
+    ]);
   });
 });

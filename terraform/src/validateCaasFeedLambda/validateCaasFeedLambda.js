@@ -6,11 +6,7 @@ import {
 import { Readable } from "stream";
 import csv from "csv-parser";
 
-
 const s3 = new S3Client();
-// const ENVIRONMENT = process.env.ENVIRONMENT;
-// const BUCKET_NAME = process.env.BUCKET_NAME;
-
 
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
@@ -119,6 +115,8 @@ export const handler = async (event) => {
 
     // InValid Records Arrangement
     const invalidRecordsCsvData = convertArrayOfObjectsToCSV(outputUnsuccess);
+
+    console.log(`Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${bucket}`);
 
     // Deposit to S3 bucket
     await pushCsvToS3(bucket, `validRecords/valid_records_add-${timeNow}.csv`, recordsAddCsvData, s3);
@@ -381,10 +379,8 @@ export function isValidAction(action) {
   return ["ADD", "DEL", "UPDATE"].includes(action);
 }
 
+//Spread records into 3 arrays. ADD, UPDATE and DELETE array
 export const filterRecordStatus = (records) => {
-  /*
-    Spread records into 3 arrays. ADD, UPDATE and DELETE array
-  */
   const recordsAdd = []
   const recordsUpdate = []
   const recordsDelete = []

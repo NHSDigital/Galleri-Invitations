@@ -649,48 +649,6 @@ module "user_accounts_lambda_trigger" {
   lambda_arn = module.user_accounts_lambda.lambda_arn
 }
 
-module "poll_mesh_mailbox_lambda" {
-  source               = "./modules/lambda"
-  environment          = var.environment
-  bucket_id            = module.s3_bucket.bucket_id
-  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "pollMeshMailboxLambda"
-  lambda_timeout       = 100
-  memory_size          = 1024
-  lambda_s3_object_key = "poll_mesh_mailbox_lambda.zip"
-  environment_vars = {
-    ENVIRONMENT = "${var.environment}"
-  }
-}
-
-module "poll_mesh_mailbox_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.poll_mesh_mailbox_lambda.lambda_function_name
-  retention_days       = 14
-}
-
-module "caas_feed_add_records_lambda" {
-  source               = "./modules/lambda"
-  environment          = var.environment
-  bucket_id            = module.s3_bucket.bucket_id
-  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "caasFeedAddRecordsLambda"
-  lambda_timeout       = 100
-  memory_size          = 1024
-  lambda_s3_object_key = "caas_feed_add_records_lambda.zip"
-  environment_vars = {
-    ENVIRONMENT = "${var.environment}"
-  }
-}
-
-module "caas_feed_add_records_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.caas_feed_add_records_lambda.lambda_function_name
-  retention_days       = 14
-}
-
 module "validate_caas_feed_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
