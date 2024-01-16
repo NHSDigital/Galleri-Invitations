@@ -1,5 +1,5 @@
 import { handShake, loadConfig, getMessageCount, sendMessageChunks, readMessage, markAsRead } from "nhs-mesh-client";
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from "stream"
 import csv from "csv-parser";
 import dotenv from "dotenv";
@@ -11,6 +11,7 @@ import {
 //VARIABLES
 const client = new DynamoDBClient({ region: "eu-west-2" });
 const smClient = new SecretsManagerClient({ region: "eu-west-2" });
+const s3 = new S3Client({});
 
 // const ENVIRONMENT = process.env.ENVIRONMENT;
 
@@ -221,22 +222,42 @@ async function readMsg(msgID) {
   }
 }
 
-function putObjectToS3(bucket, key, data) {
-  var s3 = new AWS.S3();
-  var params = {
-    Bucket: bucket,
-    Key: key,
-    Body: data
+// function putObjectToS3(bucket, key, data, client) {
+//   var s3 = new AWS.S3();
+//   var params = {
+//     Bucket: bucket,
+//     Key: key,
+//     Body: data
+//   }
+//   s3.putObject(params, function (err, data) {
+//     if (err) console.log(err, err.stack);
+//     else console.log(data);           // successful response
+//   });
+// }
+
+export const pushCsvToS3 = async (bucketName, key, body, client) => {
+  try {
+    const response = await client.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+        Body: body,
+      })
+    );
+
+    console.log("Succeeded");
+    return response;
+  } catch (err) {
+    console.log("Failed: ", err);
+    throw err;
   }
-  s3.putObject(params, function (err, data) {
-    if (err) console.log(err, err.stack);
-    else console.log(data);           // successful response
-  });
-}
+};
 //END OF FUNCTIONS
 
 //HANDLER
 export const handler = async (event, context) => {
+  let finalMsgArr = [];
+  const bucketName = `${ENVIRONMENT}-galleri-caas-data`;
   try {
     let healthy = await run();
     if (healthy === 200) {
@@ -245,7 +266,8 @@ export const handler = async (event, context) => {
       if (messageArr.length > 0) {
         for (let i = 0; i < messageArr.length; i++) {
           let message = await readMsg(messageArr[i]);
-          console.log(message);
+          finalMsgArr.push(message);
+          // console.log(message);
         }
       } else {
         console.log('No Messages');
@@ -253,10 +275,27 @@ export const handler = async (event, context) => {
     } else {
       console.log('Failed to establish connection');
     }
-
+    console.log(finalMsgArr);
   } catch (error) {
     console.error("Error occurred:", error);
   }
+
+  //TODO: need to chunk data up
+  try {
+    const dateTime = new Date(Date.now()).toISOString();
+
+    const filename = `mesh_chunk_data${dateTime}`;
+    await pushCsvToS3(
+      bucketName,
+      `galleri-caas-data/${filename}.csv`,
+      finalMsgArr,
+      s3
+    );
+  } catch (e) {
+    console.error("Error writing MESH data to bucket: ", e);
+  }
 };
+
+
 
 
