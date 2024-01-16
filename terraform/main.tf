@@ -74,7 +74,7 @@ module "gp_practices_bucket" {
 module "user_accounts_bucket" {
   source                  = "./modules/s3"
   bucket_name             = "user-accounts-bucket"
-  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  galleri_lambda_role_arn = [module.iam_galleri_lambda_role.galleri_lambda_role_arn]
   environment             = var.environment
 }
 
