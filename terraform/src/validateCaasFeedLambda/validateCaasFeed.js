@@ -48,23 +48,18 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
   }
 };
 
-// Takes Csv data read in from the S3 bucket and applies a processFunction
-// to the data to generate an array of filtered objects
-export const parseCsvToArray = async (csvString, processFunction) => {
+// Takes Csv data read in from the S3 bucket to generate an array of filtered objects
+export const parseCsvToArray = async (csvString) => {
+  console.log('Parsing csv string');
   const dataArray = [];
   let row_counter = 0;
-  let participating_counter = 0;
 
   return new Promise((resolve, reject) => {
     Readable.from(csvString)
       .pipe(csv())
       .on("data", (row) => {
         row_counter++;
-        participating_counter = processFunction(
-          dataArray,
-          row,
-          participating_counter
-        );
+        dataArray.push(row)
       })
       .on("end", () => {
         resolve(dataArray);
@@ -75,40 +70,40 @@ export const parseCsvToArray = async (csvString, processFunction) => {
   });
 };
 
-export const handler = async () => {
-  // const records = event.records;
-  const bucket = event.Records[0].s3.bucket.name;
-  const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
-  console.log(`Triggered by object ${key} in bucket ${bucket}`);
-  try {
-    const csvString = await readCsvFromS3(bucket, key, s3);
-    const dataArray = await parseCsvToArray(csvString);
-    await saveArrayToTable(dataArray, ENVIRONMENT, dbClient);
-    console.log(`Finished processing object ${key} in bucket ${bucket}`);
-    return `Finished processing object ${key} in bucket ${bucket}`;
-  } catch (err) {
-    const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
-    console.error(message);
-    throw new Error(message);
-  };
+// export const handler = async () => {
+//   // const records = event.records;
+//   const bucket = event.Records[0].s3.bucket.name;
+//   const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
+//   console.log(`Triggered by object ${key} in bucket ${bucket}`);
+//   try {
+//     const csvString = await readCsvFromS3(bucket, key, s3);
+//     const dataArray = await parseCsvToArray(csvString);
+//     await saveArrayToTable(dataArray, ENVIRONMENT, dbClient);
+//     console.log(`Finished processing object ${key} in bucket ${bucket}`);
+//     return `Finished processing object ${key} in bucket ${bucket}`;
+//   } catch (err) {
+//     const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
+//     console.error(message);
+//     throw new Error(message);
+//   };
 
-  if (!records) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({}),
-    };
-  }
+//   if (!records) {
+//     return {
+//       statusCode: 400,
+//       body: JSON.stringify({}),
+//     };
+//   }
 
-  const [outputSuccess, outputUnsuccess] = validateRecords(records);
+//   const [outputSuccess, outputUnsuccess] = validateRecords(records);
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      success: outputSuccess,
-      unsuccessful: outputUnsuccess,
-    }),
-  };
-};
+//   return {
+//     statusCode: 200,
+//     body: JSON.stringify({
+//       success: outputSuccess,
+//       unsuccessful: outputUnsuccess,
+//     }),
+//   };
+// };
 
 
 
@@ -340,7 +335,70 @@ export function isValidDateFormatOrInTheFuture(dateString) {
   return true;
 }
 
+export const filterRecordStatus = (records) => {
+  /*
+    Spread records into 3 arrays. ADD, UPDATE and DELETE array
+  */
+  const recordsAdd = []
+  const recordsUpdate = []
+  const recordsDelete = []
+
+  records.forEach(el => {
+    if (el.action === "ADD") {
+      recordsAdd.push(el)
+    } else if (el.action === "UPDATE") {
+      recordsUpdate.push(el)
+    } else if (el.action === "DEL") {
+      recordsDelete.push(el)
+    }
+  })
+
+  return [recordsAdd, recordsUpdate, recordsDelete]
+};
+
+function convertArrayOfObjectsToCSV(data) {
+  const csvContent = [];
+
+  // Extracting headers
+  const headers = Object.keys(data[0]);
+  csvContent.push(headers.join(','));
+
+  // Extracting values
+  data.forEach((item) => {
+    const values = headers.map((header) => {
+      // If the value contains a comma, enclose it in double quotes
+      const escapedValue = item[header].includes(',')
+        ? `"${item[header]}"`
+        : item[header];
+      return escapedValue;
+    });
+    csvContent.push(values.join(','));
+  });
+
+  // Combine rows into a single string with line breaks
+  return csvContent.join('\n');
+}
+
+
 const [outputSuccess, outputUnsuccess] = validateRecords(records);
+const [recordsAdd, recordsUpdate, recordsDelete] = filterRecordStatus(outputSuccess);
+const recordsAddCsvData = convertArrayOfObjectsToCSV(recordsAdd);
+const recordsUpdateCsvData = convertArrayOfObjectsToCSV(recordsUpdate);
+const recordsDeleteCsvData = convertArrayOfObjectsToCSV(recordsDelete);
+console.log('Successful Add Records:', recordsAdd)
+
+fs.writeFileSync('./valid_records_add.csv', recordsAddCsvData);
+fs.writeFileSync('./valid_records_update.csv', recordsUpdateCsvData);
+fs.writeFileSync('./valid_records_delete.csv', recordsDeleteCsvData);
+
+// console.log('Successful Add Records:', recordsAdd, recordsAdd.length)
+// console.log('Successful Update Records:', recordsUpdate, recordsUpdate.length)
+// console.log('Successful Delete Records:', recordsDelete, recordsDelete.length)
+
+console.log('Successful Add Records:', recordsAdd.length)
+console.log('Successful Update Records:', recordsUpdate.length)
+console.log('Successful Delete Records:', recordsDelete.length)
+
 
 // const stringifySuccessArray = JSON.stringify(outputSuccess, null, 2);
 // const stringifyUnsuccessArray = JSON.stringify(outputUnsuccess, null, 2);
@@ -369,5 +427,5 @@ const [outputSuccess, outputUnsuccess] = validateRecords(records);
 //   }
 // );
 
-console.log('Successful Records:', outputSuccess.length) // check first 10 items in array
-console.log('Unsuccessful Records:', outputUnsuccess.length) // check first 10 items in array
+// console.log('Successful Records:', outputSuccess.length) // check first 10 items in array
+// console.log('Unsuccessful Records:', outputUnsuccess.length) // check first 10 items in array
