@@ -2,14 +2,14 @@ import { handShake, loadConfig, getMessageCount, sendMessageChunks, readMessage,
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from "stream"
 import csv from "csv-parser";
-import dotenv from "dotenv";
+// import dotenv from "dotenv";
 import {
   SecretsManagerClient,
   GetSecretValueCommand,
 } from "@aws-sdk/client-secrets-manager";
 
 //VARIABLES
-const client = new DynamoDBClient({ region: "eu-west-2" });
+// const client = new DynamoDBClient({ region: "eu-west-2" });
 const smClient = new SecretsManagerClient({ region: "eu-west-2" });
 const s3 = new S3Client({});
 
@@ -18,10 +18,10 @@ const s3 = new S3Client({});
 //can remove, for testing purposes only
 const inputData = "/Users/abduls/repos/newProj/input/galleri_cohort_test_data_small.csv"
 
-const result = dotenv.config();
-if (result.error) {
-  throw result.error;
-}
+// const result = dotenv.config();
+// if (result.error) {
+//   throw result.error;
+// }
 
 const SECRET_MESH_CA_LOCATION = "MESH_CA_LOCATION";
 const SECRET_MESH_URL = "MESH_URL";
@@ -221,19 +221,6 @@ async function readMsg(msgID) {
     console.error("Error occurred:", error);
   }
 }
-
-// function putObjectToS3(bucket, key, data, client) {
-//   var s3 = new AWS.S3();
-//   var params = {
-//     Bucket: bucket,
-//     Key: key,
-//     Body: data
-//   }
-//   s3.putObject(params, function (err, data) {
-//     if (err) console.log(err, err.stack);
-//     else console.log(data);           // successful response
-//   });
-// }
 
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
   try {

@@ -5,7 +5,6 @@
   "main": "pollMeshMailboxLambda.js",
   "author": "",
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.398.0",
     "nhs-mesh-client": "^1.0.3"
   }
 }
