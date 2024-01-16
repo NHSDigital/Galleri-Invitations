@@ -2,6 +2,7 @@ import { handShake, loadConfig, getMessageCount, sendMessageChunks, readMessage,
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from "stream"
 import csv from "csv-parser";
+import { Agent } from "https";
 import {
   SecretsManagerClient,
   GetSecretValueCommand,
@@ -124,7 +125,7 @@ async function run() {
       mailboxID: MESH_SENDER_MAILBOX_ID,
       mailboxPassword: MESH_SENDER_MAILBOX_PASSWORD,
       sharedKey: MESH_SHARED_KEY,
-      agent: config.senderAgent,
+      agent: config.senderAgent
     });
 
     console.log(healthCheck.data);
@@ -241,41 +242,43 @@ export const handler = async (event, context) => {
   let finalMsgArr = [];
   const bucketName = `${ENVIRONMENT}-galleri-caas-data`;
   try {
+    console.log('healthy test');
     let healthy = await run();
-    if (healthy === 200) {
-      console.log(`Status ${healthy}`);
-      let messageArr = await runMessage();
-      if (messageArr.length > 0) {
-        for (let i = 0; i < messageArr.length; i++) {
-          let message = await readMsg(messageArr[i]);
-          finalMsgArr.push(message);
-          // console.log(message);
-        }
-      } else {
-        console.log('No Messages');
-      }
-    } else { //TODO: check connection to mesh, certs may be incorrect
-      console.log('Failed to establish connection');
-    }
-    console.log(finalMsgArr);
+    console.log('abdul' + healthy);
+    // if (healthy === 200) {
+    //   console.log(`Status ${healthy}`);
+    //   let messageArr = await runMessage();
+    //   if (messageArr.length > 0) {
+    //     for (let i = 0; i < messageArr.length; i++) {
+    //       let message = await readMsg(messageArr[i]);
+    //       finalMsgArr.push(message);
+    //       // console.log(message);
+    //     }
+    //   } else {
+    //     console.log('No Messages');
+    //   }
+    // } else { //TODO: check connection to mesh, certs may be incorrect
+    //   console.log('Failed to establish connection');
+    // }
+    // console.log(finalMsgArr);
   } catch (error) {
     console.error("Error occurred:", error);
   }
 
-  //TODO: need to chunk data up
-  try {
-    const dateTime = new Date(Date.now()).toISOString();
+  //TODO: need to chunk data and replace finalMsgArr
+  // try {
+  //   const dateTime = new Date(Date.now()).toISOString();
 
-    const filename = `mesh_chunk_data${dateTime}`;
-    await pushCsvToS3(
-      bucketName,
-      `galleri-caas-data/${filename}.csv`,
-      finalMsgArr,
-      s3
-    );
-  } catch (e) {
-    console.error("Error writing MESH data to bucket: ", e);
-  }
+  //   const filename = `mesh_chunk_data${dateTime}`;
+  //   await pushCsvToS3(
+  //     bucketName,
+  //     `galleri-caas-data/${filename}.csv`,
+  //     finalMsgArr,
+  //     s3
+  //   );
+  // } catch (e) {
+  //   console.error("Error writing MESH data to bucket: ", e);
+  // }
 };
 
 
