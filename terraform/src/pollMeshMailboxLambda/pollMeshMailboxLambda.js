@@ -269,7 +269,7 @@ export const handler = async (event, context) => {
   // try {
   //   const dateTime = new Date(Date.now()).toISOString();
 
-  //   const filename = `mesh_chunk_data${dateTime}`;
+  //   const filename = `mesh_chunk_data_${dateTime}`;
   //   await pushCsvToS3(
   //     bucketName,
   //     `galleri-caas-data/${filename}.csv`,

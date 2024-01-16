@@ -668,8 +668,35 @@ module "poll_mesh_mailbox_lambda" {
   lambda_s3_object_key = "poll_mesh_mailbox_lambda.zip"
   environment_vars = {
     ENVIRONMENT = "${var.environment}",
-    MESH_SANDBOX = "false"
+    MESH_SANDBOX = "false",
+    # MESH_CA_LOCATION = ,
+    MESH_URL = data.aws_secretsmanager_secret.mesh_url,
+    # MESH_SHARED_KEY = ,
+    # MESH_SENDER_MAILBOX_ID = ,
+    # MESH_SENDER_MAILBOX_PASSWORD = ,
+    MESH_RECEIVER_MAILBOX_ID = data.aws_secretsmanager_secret.meshreceiver_mailbox_id,
+    # MESH_RECEIVER_MAILBOX_PASSWORD = ,
+    MESH_RECEIVER_KEY_LOCATION = data.aws_secretsmanager_secret.mesh_receiver_key_location,
+    MESH_RECEIVER_CERT_LOCATION = data.aws_secretsmanager_secret.mesh_receiver_cert_location,
+    # MESH_SENDER_KEY_LOCATION = ,
+    # MESH_SENDER_CERT_LOCATION = data.aws_secretsmanager_secret.mesh_sender_cert_location
   }
+}
+
+data "aws_secretsmanager_secret_version" "mesh_url" {
+  secret_id = data.aws_secretsmanager_secret.secret-version.MESH_URL
+}
+
+data "aws_secretsmanager_secret_version" "mesh_receiver_mailbox_id" {
+  secret_id = data.aws_secretsmanager_secret.secret-version.MESH_RECEIVER_MAILBOX_ID
+}
+
+data "aws_secretsmanager_secret_version" "mesh_receiver_key_location" {
+  secret_id = data.aws_secretsmanager_secret.secret-version.MESH_RECEIVER_KEY_LOCATION
+}
+
+data "aws_secretsmanager_secret_version" "mesh_receiver_cert_location" {
+  secret_id = data.aws_secretsmanager_secret.secret-version.MESH_RECEIVER_CERT_LOCATION
 }
 
 module "poll_mesh_mailbox_lambda_cloudwatch" {
