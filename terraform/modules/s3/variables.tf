@@ -9,6 +9,8 @@ variable "region" {
   default     = "eu-west-2"
 }
 
-variable "galleri_lambda_role_arn" {}
+variable "galleri_lambda_role_arn" {
+  type = list(string)
+}
 
 variable "environment" {}
