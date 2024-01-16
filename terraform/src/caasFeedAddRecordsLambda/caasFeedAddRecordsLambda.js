@@ -16,6 +16,8 @@ import csv from "csv-parser";
 const s3 = new S3Client();
 const client = new DynamoDBClient({ region: "eu-west-2", convertEmptyValues: true });
 let ENVIRONMENT = process.env.ENVIRONMENT
+const SUCCESSFULL_REPSONSE = 200
+const UNSUCCESSFULL_REPSONSE = 400
 
 // Lambda Entry Point
 export const handler = async (event) => {
@@ -28,12 +30,13 @@ export const handler = async (event) => {
     const start = Date.now();
     // const csvString = await readCsvFromS3(bucket, key, s3);
     // const records = await parseCsvToArray(csvString);
-    console.log("Raw event")
-    console.log(event)
-    console.log("Stringifying event")
+    // console.log("Raw event")
+    // console.log(event)
+    // console.log("Stringifying event")
     console.log("--------------------")
-    console.log(JSON.stringify(event))
-    const records = JSON.parse(event.body)
+    const records = event
+
+    console.log(`type of event is ${typeof records}`)
 
     console.log("Split records array into unique and duplicates")
     const [
@@ -45,55 +48,50 @@ export const handler = async (event) => {
     Total records = ${uniqueRecordsToBatchProcess.length + duplicateRecordsToIndividuallyProcess.length}.`)
 
     if (uniqueRecordsToBatchProcess.length > 0){
-      let countAC1 = 0
-      let countAC2 = 0
 
       const recordsToBatchUpload = uniqueRecordsToBatchProcess.map(async (record) => {
         return processingData(record);
       })
       const recordsToUploadSettled = await Promise.all(recordsToBatchUpload)
 
-      // filter those who dont fall into ADD
-      // those who have not been rejected
-      // const filteredRecordsToUploadSettled = recordsToUploadSettled.filter(record => {
-      //   return record !== null || record?.rejectedRecordNhsNumber
-      // })
 
       const filteredRecordsToUploadSettled = [];
       const filteredRejectedRecords = [];
 
 
       recordsToUploadSettled.forEach(record => {
+        console.log("processed record = ", JSON.stringify(record, null, 2))
         if (record?.rejected){
           filteredRejectedRecords.push(record)
         } else {
           filteredRecordsToUploadSettled.push(record)
         }
       })
-
-      // DEBUG CODE
-      // {
-      // const stringifySuccessArray = JSON.stringify(await filteredRecordsToUploadSettled, null, 2);
-
-      // const writeSuccessfullToFile = fs.writeFile(
-      //   "./uploadDynamo.json",
-      //   stringifySuccessArray,
-      //   (err) => {
-      //     if (err) {
-      //       console.log("Error writing file", err);
-      //     } else {
-      //       console.log("Successfully wrote file");
-      //     }
-      //   }
-      // );
-      // }
-
+      console.log("Rejected records", filteredRejectedRecords.length)
       console.log("Successfully formatted records", filteredRecordsToUploadSettled.length)
 
-      console.log(`#AC1 = ${countAC1}\n#AC2 = ${countAC2}`)
       const uploadRecords = await batchWriteRecords(filteredRecordsToUploadSettled, 25, client);
 
       console.log('----------------------------------------------------------------')
+
+      if (filteredRejectedRecords) {
+        const timeNow = Date.now();
+        console.log(`Some records failed. A failure report will be uploaded to ${ENVIRONMENT}-galleri-validated-caas-data/rejectedRecords/rejectedRecords-${timeNow}.csv`)
+        // Generate the CSV format
+        const rejectedRecordsString = generateCsvString(
+          `nhs_number,rejected,reason`,
+          filteredRejectedRecords
+        );
+
+        // Deposit to S3 bucket
+        await pushCsvToS3(
+          `${ENVIRONMENT}-galleri-validated-caas-data`,
+          `rejectedRecords/rejectedRecords-${timeNow}.csv`,
+          rejectedRecordsString,
+          s3
+        );
+      }
+  //   console.log("GRIDALL extracted: ", Date.now() - start);
     }
 // {
 //   PutRequest: {
@@ -136,40 +134,9 @@ export const handler = async (event) => {
 //   reason: lsoaCheck.reason
 // }
 
-
-    // For each data chunk, read in the CSV stored in AWS S3.
-    // Discard rows and columns that are not needed
-    // Return an array of objects that contain the filtered data
-  //   const gridallPromises = gridallKeys.map(async (gridallKey) => {
-  //     const gridallCsvString = await readCsvFromS3(
-  //       bucketName,
-  //       gridallKey,
-  //       client
-  //     );
-  //     return parseCsvToArray(gridallCsvString, processGridallRow);
-  //   });
-
-  //   // Settle all promised in array before concatenating them into single array
-  //   const gridallDataArrayChunks = await Promise.all(gridallPromises);
-  //   gridallCombinedData = gridallDataArrayChunks.flat();
-
-  //   // Generate the CSV format
-  //   const filteredGridallFileString = generateCsvString(
-  //     `POSTCODE,POSTCODE_2,LOCAL_AUT_ORG,NHS_ENG_REGION,SUB_ICB,CANCER_REGISTRY,EASTING_1M,NORTHING_1M,LSOA_2011,MSOA_2011,CANCER_ALLIANCE,ICB,OA_2021,LSOA_2021,MSOA_2021`,
-  //     gridallCombinedData
-  //   );
-
-  //   // Deposit to S3 bucket
-  //   await pushCsvToS3(
-  //     bucketName,
-  //     "filtered_data/filteredGridallFile.csv",
-  //     filteredGridallFileString,
-  //     client
-  //   );
-  //   console.log("GRIDALL extracted: ", Date.now() - start);
   } catch (error) {
     console.error(
-      "Error with Gridall extraction, procession or uploading",
+      "Error with CaaS Feed extraction, procession or uploading",
       error
     );
   }
@@ -188,7 +155,7 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
 
     return response.Body.transformToString();
   } catch (err) {
-    console.log("Failed: ", err);
+    console.log(`Failed to read from ${bucketName}/${key}`);
     throw err;
   }
 };
@@ -203,10 +170,10 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
       })
     );
 
-    console.log("Succeeded");
+    console.log(`Successfully pushed to ${bucketName}/${key}`);
     return response;
   } catch (err) {
-    console.log("Failed: ", err);
+    console.log(`Failed to push to ${bucketName}/${key}. Error Message: ${err}`);
     throw err;
   }
 };
@@ -303,13 +270,11 @@ export const processingData = async (record) => {
   if (!checkingNHSNumber){
     // Supplied NHS No/ does not exist in Population table
     if (record.superseded_by_nhs_number === 'null'){
-      ++countAC1
       return await generateRecord(record, client);
     } else {
       const checkingSupersedNumber = await checkDynamoTable(client, record.superseded_by_nhs_number, "Population", "superseded_by_nhs_number", "N", true);
       if (!checkingSupersedNumber) {
         // Superseded by NHS No. does not exist in the MPI
-        ++countAC2
         record.nhs_number = record.superseded_by_nhs_number;
         return await generateRecord(record, client);
       }
