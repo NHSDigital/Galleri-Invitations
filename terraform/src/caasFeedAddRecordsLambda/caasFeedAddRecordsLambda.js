@@ -206,7 +206,7 @@ export const checkDynamoTable = async (dbClient, attribute, table, attributeName
 
 // returns formatted dynamodb json to be uploaded or rejected object
 const generateRecord = async (record, client) => {
-  record.participant_id = await generateParticipantID(client); // AC3
+  record.participant_id = await generateParticipantID(client);
   const lsoaCheck = await getLsoa(record, client);
 
   if (!record.participant_id || lsoaCheck.rejected){
@@ -218,7 +218,7 @@ const generateRecord = async (record, client) => {
     };
   }
   record.lsoa_2011 = lsoaCheck;
-  const responsibleIcb = await getItemFromTable(client, "GpPractice", "gp_practice_code", "S", record.primary_care_provider); // AC4
+  const responsibleIcb = await getItemFromTable(client, "GpPractice", "gp_practice_code", "S", record.primary_care_provider);
   record.responsible_icb = responsibleIcb.Item?.icb_id.S;
   return await formatDynamoDbRecord(record)
 }
@@ -248,8 +248,6 @@ export const generateParticipantID = async (dbClient) => {
 // returns LSOA using patient postcode or the LSOA from GP practice
 // or returns error message
 export const getLsoa = async (record, dbClient) => {
-  // use postcode to find LSOA
-  // if postcode unavailable use primary_care_provider to find LSOA from Gp practice table
   const { postcode, primary_care_provider } = record
   const lsoaObject = {
     lsoaCode: "",
@@ -355,7 +353,8 @@ export const lookUp = async (dbClient, ...params) => {
   const response = await dbClient.send(getCommand);
 
   if (response.Items.length > 0){
-    return UNSUCCESSFULL_REPSONSE; // participatingId already exists
+    // attribute already exists in table
+    return UNSUCCESSFULL_REPSONSE;
   }
   return SUCCESSFULL_REPSONSE;
 };
@@ -377,10 +376,12 @@ export const uploadToDynamoDb = async (dbClient, table, batch) => {
 export async function batchWriteRecords(records, chunkSize, dbClient) {
   console.log(`Number of records to push to db = ${records.length}`)
   const sendRequest = [];
-  if (records.length === 0) return sendRequest; // handle edge case
+  // handle edge case
+  if (records.length === 0) return sendRequest;
 
   for (let i = 0; i < records.length; chunkSize) {
-    if ((records.length - i) < chunkSize){ // remaining chunk
+    if ((records.length - i) < chunkSize){
+      // remaining chunk
       const batch = records.splice(i, records.length - i);
       console.log("Writing remainder")
       sendRequest.push(await uploadToDynamoDb(dbClient, `Population`, batch));
@@ -411,7 +412,7 @@ export const formatDynamoDbRecord = async (record) => {
       Item: {
         PersonId: {S: record.participant_id},
         LsoaCode: {S: record.lsoa_2011},
-        participantId: {S: record.participant_id}, // may need to change
+        participantId: {S: record.participant_id},
         nhs_number: {N: record.nhs_number},
         superseded_by_nhs_number: {N: record.superseded_by_nhs_number},
         primary_care_provider: {S: record.primary_care_provider},
