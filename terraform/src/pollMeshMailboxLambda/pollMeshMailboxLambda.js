@@ -12,6 +12,7 @@ const smClient = new SecretsManagerClient({ region: "eu-west-2" });
 const s3 = new S3Client({});
 
 const ENVIRONMENT = process.env.ENVIRONMENT;
+const MESH_SANDBOX = process.env.MESH_SANDBOX;
 
 //can remove, for testing purposes only
 const inputData = "/Users/abduls/repos/newProj/input/galleri_cohort_test_data_small.csv"

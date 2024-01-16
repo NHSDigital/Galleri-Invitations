@@ -667,7 +667,8 @@ module "poll_mesh_mailbox_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "poll_mesh_mailbox_lambda.zip"
   environment_vars = {
-    ENVIRONMENT = "${var.environment}"
+    ENVIRONMENT = "${var.environment}",
+    MESH_SANDBOX = "false"
   }
 }
 
@@ -688,7 +689,8 @@ module "caas_feed_add_records_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "caas_feed_add_records_lambda.zip"
   environment_vars = {
-    ENVIRONMENT = "${var.environment}"
+    ENVIRONMENT = "${var.environment}",
+    MESH_SANDBOX = "false"
   }
 }
 
