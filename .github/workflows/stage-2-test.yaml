@@ -61,10 +61,10 @@ jobs:
       - name: "Save the result of fast test suite"
         run: |
           echo "Nothing to save"
-      # - name: Run node unit test
-      #   run: |
-      #     npm i
-      #     npm test
+      - name: Run node unit test
+        run: |
+          npm i
+          npm test
   test-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 5

@@ -22,6 +22,8 @@ const BUCKET = process.env.BUCKET_NAME
 const SUCCESSFULL_REPSONSE = 200
 const UNSUCCESSFULL_REPSONSE = 400
 
+let participantIdStore = {}
+
 // Lambda Entry Point
 export const handler = async (event) => {
 
@@ -90,12 +92,10 @@ export const handler = async (event) => {
       error
     );
   }
-
   return "Exiting Lambda";
 };
 
 // METHODS
-// TESTED
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -112,7 +112,6 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
   }
 };
 
-// TESTED
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
   try {
     const response = await client.send(
@@ -131,9 +130,6 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
   }
 };
 
-// TESTED
-// Takes Csv data read in from the S3 bucket and applies a processFunction
-// to the data to generate an array of filtered objects
 export const parseCsvToArray = async (csvString) => {
   const dataArray = [];
 
@@ -152,10 +148,7 @@ export const parseCsvToArray = async (csvString) => {
   });
 };
 
-// TESTED
-// this function will split the incoming validated cass feed into
-// two array, a unique array and an array that contains all the duplicate
-// records
+// returns unique records array and an array that contains all the duplicate
 export const filterUniqueEntries = (cassFeed) => {
   const flag = {};
   const unique = [];
@@ -172,8 +165,7 @@ export const filterUniqueEntries = (cassFeed) => {
   return [unique, duplicate]
 }
 
-// takes a single data item and process it
-// returns records in dynamodb format with
+// returns formatted dynamodb record or rejected record object
 const processingData = async (record) => {
   const checkingNHSNumber = await checkDynamoTable(client, record.nhs_number, "Population", "nhs_number", "N", true)
   if (!checkingNHSNumber){
@@ -197,7 +189,7 @@ const processingData = async (record) => {
   }
 }
 
-// TESTED
+// returns true if item exists in dynamodb table
 export const checkDynamoTable = async (dbClient, attribute, table, attributeName, attributeType, useIndex) => {
   try {
     const checkTable = await lookUp(dbClient, attribute, table, attributeName, attributeType, useIndex);
@@ -212,6 +204,7 @@ export const checkDynamoTable = async (dbClient, attribute, table, attributeName
   }
 }
 
+// returns formatted dynamodb json to be uploaded or rejected object
 const generateRecord = async (record, client) => {
   record.participant_id = await generateParticipantID(client); // AC3
   const lsoaCheck = await getLsoa(record, client);
@@ -230,12 +223,9 @@ const generateRecord = async (record, client) => {
   return await formatDynamoDbRecord(record)
 }
 
-// TESTED
+// returns unique participant id using NHS regex
+// unique in both population table and this stream
 export const generateParticipantID = async (dbClient) => {
-  /* Participant_Id must be a unique value in the Population table
-  thus we can not use the in built dynamodb validation for uniqueness
-  We must instead use the query operation
-*/
   const participantIdRandExp = new RandExp(
     /NHS-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]/
   );
@@ -245,7 +235,8 @@ export const generateParticipantID = async (dbClient) => {
     do {
       participantId = participantIdRandExp.gen();
       found = await lookUp(dbClient, participantId, "Population", "participantId", "S", true);
-    } while (found !== SUCCESSFULL_REPSONSE);
+    } while (found !== SUCCESSFULL_REPSONSE && !participantIdStore.hasOwnProperty(participantId));
+    participantIdStore.participantId = true;
     return participantId;
   } catch (err) {
     console.error("Error generating participant id.");
@@ -254,7 +245,8 @@ export const generateParticipantID = async (dbClient) => {
   }
 };
 
-// Not unit testing
+// returns LSOA using patient postcode or the LSOA from GP practice
+// or returns error message
 export const getLsoa = async (record, dbClient) => {
   // use postcode to find LSOA
   // if postcode unavailable use primary_care_provider to find LSOA from Gp practice table
@@ -294,7 +286,7 @@ export const getLsoa = async (record, dbClient) => {
   }
 }
 
-// TESTED
+// returns item and metadata from dynamodb table
 export const getItemFromTable = async (dbClient, table, ...keys) => {
   const [
     partitionKeyName,
@@ -331,7 +323,7 @@ export const getItemFromTable = async (dbClient, table, ...keys) => {
   return response;
 }
 
-// TESTED
+// returns successful response if attribute doesn't exist in table
 export const lookUp = async (dbClient, ...params) => {
   const [
     id,
@@ -368,7 +360,7 @@ export const lookUp = async (dbClient, ...params) => {
   return SUCCESSFULL_REPSONSE;
 };
 
-// TESTED
+// returns response from batch write to dynamodb table
 export const uploadToDynamoDb = async (dbClient, table, batch) => {
   let requestItemsObject = {};
   requestItemsObject[`${ENVIRONMENT}-${table}`] = batch;
@@ -381,7 +373,7 @@ export const uploadToDynamoDb = async (dbClient, table, batch) => {
   return response.$metadata.httpStatusCode;
 }
 
-// TESTED
+// returns array with each element representing response of batch upload status
 export async function batchWriteRecords(records, chunkSize, dbClient) {
   console.log(`Number of records to push to db = ${records.length}`)
   const sendRequest = [];
@@ -401,7 +393,7 @@ export async function batchWriteRecords(records, chunkSize, dbClient) {
   return sendRequest
 }
 
-// TESTED
+// returns formatted dynamodb json to be uploaded
 export const formatDynamoDbRecord = async (record) => {
   // nhs_number: {N: record.nhs_number}, -> 0
   if (record.nhs_number === "null") record.nhs_number = "0"
@@ -450,7 +442,7 @@ export const formatDynamoDbRecord = async (record) => {
   }
 }
 
-// Concatenates header and data into single string - the format S3 looks for
+// returns string to upload to s3
 export const generateCsvString = (header, dataArray) => {
   return [
     header,
