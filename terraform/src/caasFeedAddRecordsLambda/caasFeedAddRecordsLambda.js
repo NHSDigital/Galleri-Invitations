@@ -66,8 +66,8 @@ export const handler = async (event) => {
       console.log('----------------------------------------------------------------');
 
       if (filteredRejectedRecords) {
-        const fileName = `validRecords/rejectedRecords/rejectedRecords-${timeNow}.csv`
         const timeNow = Date.now();
+        const fileName = `validRecords/rejectedRecords/rejectedRecords-${timeNow}.csv`
         console.log(`${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-${BUCKET}/${fileName}`);
         // Generate the CSV format
         const rejectedRecordsString = generateCsvString(
