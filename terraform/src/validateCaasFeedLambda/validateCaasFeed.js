@@ -1,5 +1,117 @@
 import records from "./helper/caasFeedArray.json" assert { type: "json" };
+import {
+  ListObjectsCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
+import { Readable } from "stream";
+import csv from "csv-parser";
 // import fs from "fs";
+
+const s3 = new S3Client();
+const ENVIRONMENT = process.env.ENVIRONMENT;
+const BUCKET_NAME = process.env.BUCKET_NAME;
+
+
+export const readCsvFromS3 = async (bucketName, key, client) => {
+  try {
+    const response = await client.send(
+      new GetObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+      })
+    );
+
+    return response.Body.transformToString();
+  } catch (err) {
+    console.log("Failed: ", err);
+    throw err;
+  }
+};
+
+export const pushCsvToS3 = async (bucketName, key, body, client) => {
+  try {
+    const response = await client.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+        Body: body,
+      })
+    );
+
+    console.log("Succeeded");
+    return response;
+  } catch (err) {
+    console.log("Failed: ", err);
+    throw err;
+  }
+};
+
+// Takes Csv data read in from the S3 bucket and applies a processFunction
+// to the data to generate an array of filtered objects
+export const parseCsvToArray = async (csvString, processFunction) => {
+  const dataArray = [];
+  let row_counter = 0;
+  let participating_counter = 0;
+
+  return new Promise((resolve, reject) => {
+    Readable.from(csvString)
+      .pipe(csv())
+      .on("data", (row) => {
+        row_counter++;
+        participating_counter = processFunction(
+          dataArray,
+          row,
+          participating_counter
+        );
+      })
+      .on("end", () => {
+        resolve(dataArray);
+      })
+      .on("error", (err) => {
+        reject(err);
+      });
+  });
+};
+
+export const handler = async () => {
+  // const records = event.records;
+  const bucket = event.Records[0].s3.bucket.name;
+  const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
+  console.log(`Triggered by object ${key} in bucket ${bucket}`);
+  try {
+    const csvString = await readCsvFromS3(bucket, key, s3);
+    const dataArray = await parseCsvToArray(csvString);
+    await saveArrayToTable(dataArray, ENVIRONMENT, dbClient);
+    console.log(`Finished processing object ${key} in bucket ${bucket}`);
+    return `Finished processing object ${key} in bucket ${bucket}`;
+  } catch (err) {
+    const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
+    console.error(message);
+    throw new Error(message);
+  };
+
+  if (!records) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ message: 'Records not provided in the event.' }),
+    };
+  }
+
+  const [outputSuccess, outputUnsuccess] = validateRecords(records);
+
+  // Optionally, you can return the results as the Lambda response
+  return {
+    statusCode: 200,
+    body: JSON.stringify({
+      success: outputSuccess,
+      unsuccessful: outputUnsuccess,
+    }),
+  };
+};
+
+
 
 // For now, The function iterates through the records .
 // The iteration will be removed later as this will be a Helper method

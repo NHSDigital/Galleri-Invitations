@@ -315,9 +315,9 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
   })
 }
 
-# Policy required by gpPracticesLoaderLambda
-#resource "aws_iam_policy" "gp_practice_loader_lambda" {
-#  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_gp_practices_loader_lambda_role"
+# Policy required by validateCaasFeedLambda
+# resource "aws_iam_policy" "iam_policy_for_validate_caas_feed_lambda" {
+#  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_validate_caas_feed_lambda_role"
 #  path        = "/"
 #  description = "AWS IAM Policy for pushing into S3 Bucket"
 #  policy = jsonencode(
@@ -333,20 +333,19 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 #          "Resource" : "arn:aws:logs:*:*:*"
 #        },
 #        {
-#          "Sid" : "AllowDynamodbAccess",
-#          "Effect" : "Allow",
-#          "Action" : [
-#            "dynamodb:*"
-#          ],
-#          "Resource" : [
-#            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GpPractice",
-#            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Postcode"
-#          ]
-#        }
+#           "Sid" : "AllowS3Access",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "s3:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:s3:::galleri-caas-data/*"
+#           ]
+#         }
 #      ],
 #      "Version" : "2012-10-17"
 #  })
-#}
+# }
 
 
 # Added GpPractice and Postcode to this policy as lambda role exceeded policy limit
@@ -380,7 +379,17 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Postcode",
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-UserAccounts"
           ]
-        }
+        },
+       {
+          "Sid" : "AllowS3Access",
+          "Effect" : "Allow",
+          "Action" : [
+            "s3:*"
+          ],
+          "Resource" : [
+            "arn:aws:s3:::galleri-caas-data/*"
+          ]
+        },
       ],
       "Version" : "2012-10-17"
   })
@@ -511,6 +520,12 @@ resource "aws_iam_role_policy_attachment" "clinic_information_lambda" {
 #resource "aws_iam_role_policy_attachment" "gp_practice_loader_lambda" {
 #  role       = aws_iam_role.galleri_lambda_role.name
 #  policy_arn = aws_iam_policy.gp_practice_loader_lambda.arn
+#}
+
+# Role exceeded quota for PoliciesPerRole: 10
+#resource "aws_iam_role_policy_attachment" "validate_caas_feed_lambda" {
+#  role       = aws_iam_role.galleri_lambda_role.name
+#  policy_arn = aws_iam_policy.validate_caas_feed_lambda.arn
 #}
 
 resource "aws_iam_role_policy_attachment" "participating_icb_list_lambda" {
