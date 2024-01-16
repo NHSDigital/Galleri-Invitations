@@ -95,13 +95,12 @@ export const handler = async () => {
   if (!records) {
     return {
       statusCode: 400,
-      body: JSON.stringify({ message: 'Records not provided in the event.' }),
+      body: JSON.stringify({}),
     };
   }
 
   const [outputSuccess, outputUnsuccess] = validateRecords(records);
 
-  // Optionally, you can return the results as the Lambda response
   return {
     statusCode: 200,
     body: JSON.stringify({
