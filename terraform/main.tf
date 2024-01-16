@@ -691,6 +691,36 @@ module "caas_feed_add_records_lambda_cloudwatch" {
   retention_days       = 14
 }
 
+module "validate_caas_feed_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "validateCaasFeedLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "validate_caas_feed_lambda.zip"
+  environment_vars = {
+    BUCKET_NAME = "galleri-caas-data",
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "validate_caas_feed_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.validate_caas_feed_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+
+module "validate_caas_feed_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.caas_data_bucket.bucket_id
+  bucket_arn = module.caas_data_bucket.bucket_arn
+  lambda_arn = module.validate_caas_feed_lambda.lambda_arn
+}
+
 # Dynamodb tables
 module "sdrs_table" {
   source      = "./modules/dynamodb"
