@@ -97,6 +97,7 @@ export const handler = async (event) => {
 };
 
 // METHODS
+// TESTED
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -113,6 +114,7 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
   }
 };
 
+// TESTED
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
   try {
     const response = await client.send(
@@ -131,6 +133,7 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
   }
 };
 
+// TESTED
 // Takes Csv data read in from the S3 bucket and applies a processFunction
 // to the data to generate an array of filtered objects
 export const parseCsvToArray = async (csvString) => {
@@ -171,10 +174,9 @@ export const filterUniqueEntries = (cassFeed) => {
   return [unique, duplicate]
 }
 
-
 // takes a single data item and process it
 // returns records in dynamodb format with
-export const processingData = async (record) => {
+const processingData = async (record) => {
   const checkingNHSNumber = await checkDynamoTable(client, record.nhs_number, "Population", "nhs_number", "N", true)
   if (!checkingNHSNumber){
     // Supplied NHS No/ does not exist in Population table
@@ -197,28 +199,22 @@ export const processingData = async (record) => {
   }
 }
 
-// Not unit testing
+// TESTED
 export const checkDynamoTable = async (dbClient, attribute, table, attributeName, attributeType, useIndex) => {
-  // exits and produce error
-  // if (!attribute){
-  //   return true;
-  // }
   try {
     const checkTable = await lookUp(dbClient, attribute, table, attributeName, attributeType, useIndex);
-    // console.log(`what is the response from checking the ${table} for attribute ${attributeName} with value ${attribute} -> ${checkTable}`)
     if (checkTable === UNSUCCESSFULL_REPSONSE) {
       return true
     };
     return false;
   } catch (err) {
-    console.log("args: ", ...args);
     console.error(`Error checking the ${attribute} in ${table} table.`);
     console.error(err);
     return err;
   }
 }
 
-export const generateRecord = async (record, client) => {
+const generateRecord = async (record, client) => {
   record.participant_id = await generateParticipantID(client); // AC3
   const lsoaCheck = await getLsoa(record, client);
 
@@ -260,7 +256,7 @@ export const generateParticipantID = async (dbClient) => {
   }
 };
 
-// TODO: unit
+// Not unit testing
 export const getLsoa = async (record, dbClient) => {
   // use postcode to find LSOA
   // if postcode unavailable use primary_care_provider to find LSOA from Gp practice table
@@ -375,7 +371,7 @@ export const lookUp = async (dbClient, ...params) => {
 };
 
 // TESTED
-const uploadToDynamoDb = async (dbClient, table, batch) => {
+export const uploadToDynamoDb = async (dbClient, table, batch) => {
   let requestItemsObject = {};
   requestItemsObject[`${ENVIRONMENT}-${table}`] = batch;
 
