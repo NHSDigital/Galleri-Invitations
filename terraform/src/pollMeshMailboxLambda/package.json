@@ -5,6 +5,6 @@
   "main": "pollMeshMailboxLambda.js",
   "author": "",
   "dependencies": {
-    "nhs-mesh-client": "^1.0.4"
+    "nhs-mesh-client": "^1.0.5"
   }
 }
