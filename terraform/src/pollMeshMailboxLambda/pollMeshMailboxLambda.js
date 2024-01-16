@@ -2,7 +2,6 @@ import { handShake, loadConfig, getMessageCount, sendMessageChunks, readMessage,
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from "stream"
 import csv from "csv-parser";
-import { Agent } from "https";
 import {
   SecretsManagerClient,
   GetSecretValueCommand,
@@ -11,36 +10,29 @@ import {
 //VARIABLES
 const smClient = new SecretsManagerClient({ region: "eu-west-2" });
 const s3 = new S3Client({});
+const config = await loadConfig();
+
 
 const ENVIRONMENT = process.env.ENVIRONMENT;
 const MESH_SANDBOX = process.env.MESH_SANDBOX;
+const MESH_CA_LOCATION = process.env.MESH_CA_LOCATION;
+const MESH_URL = process.env.MESH_URL;
+const MESH_SHARED_KEY = process.env.MESH_SHARED_KEY_1;
+const MESH_SENDER_MAILBOX_ID = process.env.MESH_SENDER_MAILBOX_ID;
+const MESH_SENDER_MAILBOX_PASSWORD = process.env.MESH_SENDER_MAILBOX_PASSWORD;
+const MESH_RECEIVER_MAILBOX_ID = process.env.MESH_RECEIVER_MAILBOX_ID;
+const MESH_RECEIVER_MAILBOX_PASSWORD = process.env.MESH_RECEIVER_MAILBOX_PASSWORD;
+const MESH_RECEIVER_KEY_LOCATION = process.env.MESH_RECEIVER_KEY_LOCATION;
+const MESH_RECEIVER_CERT_LOCATION = process.env.MESH_RECEIVER_CERT_LOCATION;
+const MESH_SENDER_KEY_LOCATION = process.env.MESH_SENDER_KEY_LOCATION;
+const MESH_SENDER_CERT_LOCATION = process.env.MESH_SENDER_CERT_LOCATION;
+
 
 //can remove, for testing purposes only
 const inputData = "/Users/abduls/repos/newProj/input/galleri_cohort_test_data_small.csv"
 
-const SECRET_MESH_CA_LOCATION = "MESH_CA_LOCATION";
-const SECRET_MESH_URL = "MESH_URL";
-const SECRET_MESH_SHARED_KEY = "MESH_SHARED_KEY_1";
-const SECRET_MESH_SENDER_MAILBOX_ID = "MESH_SENDER_MAILBOX_ID";
-const SECRET_MESH_SENDER_MAILBOX_PASSWORD = "MESH_SENDER_MAILBOX_PASSWORD";
-const SECRET_MESH_RECEIVER_MAILBOX_ID = "MESH_RECEIVER_MAILBOX_ID";
-const SECRET_MESH_RECEIVER_MAILBOX_PASSWORD = "MESH_RECEIVER_MAILBOX_PASSWORD";
-const SECRET_MESH_RECEIVER_KEY_LOCATION = "MESH_RECEIVER_KEY_LOCATION";
-const SECRET_MESH_RECEIVER_CERT_LOCATION = "MESH_RECEIVER_CERT_LOCATION";
-const SECRET_MESH_SENDER_KEY_LOCATION = "MESH_SENDER_KEY_LOCATION";
-const SECRET_MESH_SENDER_CERT_LOCATION = "MESH_SENDER_CERT_LOCATION";
 
-const MESH_CA_LOCATION = await getSecret(SECRET_MESH_CA_LOCATION);
-const MESH_URL = await getSecret(SECRET_MESH_URL);
-const MESH_SHARED_KEY = await getSecret(SECRET_MESH_SHARED_KEY);
-const MESH_SENDER_MAILBOX_ID = await getSecret(SECRET_MESH_SENDER_MAILBOX_ID);
-const MESH_SENDER_MAILBOX_PASSWORD = await getSecret(SECRET_MESH_SENDER_MAILBOX_PASSWORD);
-const MESH_RECEIVER_MAILBOX_ID = await getSecret(SECRET_MESH_RECEIVER_MAILBOX_ID);
-const MESH_RECEIVER_MAILBOX_PASSWORD = await getSecret(SECRET_MESH_RECEIVER_MAILBOX_PASSWORD);
-const MESH_RECEIVER_KEY_LOCATION = await getSecret(SECRET_MESH_RECEIVER_KEY_LOCATION);
-const MESH_RECEIVER_CERT_LOCATION = await getSecret(SECRET_MESH_RECEIVER_CERT_LOCATION);
-const MESH_SENDER_KEY_LOCATION = await getSecret(SECRET_MESH_SENDER_KEY_LOCATION);
-const MESH_SENDER_CERT_LOCATION = await getSecret(SECRET_MESH_SENDER_CERT_LOCATION);
+// const MESH_CA_LOCATION = await getSecret(SECRET_MESH_CA_LOCATION);
 
 //FUNCTIONS
 //Read in MESH data
@@ -118,7 +110,6 @@ export const callback = (arr) => {
 }
 
 async function run() {
-  const config = await loadConfig();
   try {
     let healthCheck = await handShake({
       url: MESH_URL,
@@ -136,7 +127,6 @@ async function run() {
 }
 
 async function runMessage() {
-  const config = await loadConfig();
   try {
     let messageCount = await getMessageCount({
       url: MESH_URL,
@@ -158,7 +148,6 @@ async function runMessage() {
 
 //Can remove, for testing purposes only
 async function sendMsg(msg) {
-  const config = await loadConfig();
   try {
     let messageChunk = await sendMessageChunks({
       url: MESH_URL,
@@ -244,7 +233,7 @@ export const handler = async (event, context) => {
   try {
     console.log('healthy test');
     let healthy = await run();
-    console.log('abdul' + healthy);
+    // console.log('abdul' + healthy);
     // if (healthy === 200) {
     //   console.log(`Status ${healthy}`);
     //   let messageArr = await runMessage();
@@ -266,19 +255,19 @@ export const handler = async (event, context) => {
   }
 
   //TODO: need to chunk data and replace finalMsgArr
-  // try {
-  //   const dateTime = new Date(Date.now()).toISOString();
+  try {
+    const dateTime = new Date(Date.now()).toISOString();
 
-  //   const filename = `mesh_chunk_data_${dateTime}`;
-  //   await pushCsvToS3(
-  //     bucketName,
-  //     `galleri-caas-data/${filename}.csv`,
-  //     finalMsgArr,
-  //     s3
-  //   );
-  // } catch (e) {
-  //   console.error("Error writing MESH data to bucket: ", e);
-  // }
+    const filename = `mesh_chunk_data_${dateTime}`;
+    await pushCsvToS3(
+      bucketName,
+      `galleri-caas-data/${filename}.csv`,
+      finalMsgArr,
+      s3
+    );
+  } catch (e) {
+    console.error("Error writing MESH data to bucket: ", e);
+  }
 };
 
 

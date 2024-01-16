@@ -669,35 +669,65 @@ module "poll_mesh_mailbox_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}",
     MESH_SANDBOX = "false",
-    # MESH_CA_LOCATION = ,
+    MESH_CA_LOCATION = data.aws_secretsmanager_secret.mesh_ca_location,
     MESH_URL = data.aws_secretsmanager_secret.mesh_url,
-    # MESH_SHARED_KEY = ,
-    # MESH_SENDER_MAILBOX_ID = ,
-    # MESH_SENDER_MAILBOX_PASSWORD = ,
-    MESH_RECEIVER_MAILBOX_ID = data.aws_secretsmanager_secret.meshreceiver_mailbox_id,
-    # MESH_RECEIVER_MAILBOX_PASSWORD = ,
+    MESH_SHARED_KEY = data.aws_secretsmanager_secret.mesh_shared_key,
+    MESH_SENDER_MAILBOX_ID = data.aws_secretsmanager_secret.mesh_sender_mailbox_id,
+    MESH_SENDER_MAILBOX_PASSWORD = data.aws_secretsmanager_secret.mesh_sender_mailbox_password,
+    MESH_RECEIVER_MAILBOX_ID = data.aws_secretsmanager_secret.mesh_receiver_mailbox_id,
+    MESH_RECEIVER_MAILBOX_PASSWORD = data.aws_secretsmanager_secret.mesh_receiver_mailbox_password,
     MESH_RECEIVER_KEY_LOCATION = data.aws_secretsmanager_secret.mesh_receiver_key_location,
     MESH_RECEIVER_CERT_LOCATION = data.aws_secretsmanager_secret.mesh_receiver_cert_location,
-    # MESH_SENDER_KEY_LOCATION = ,
-    # MESH_SENDER_CERT_LOCATION = data.aws_secretsmanager_secret.mesh_sender_cert_location
+    MESH_SENDER_KEY_LOCATION = data.aws_secretsmanager_secret.mesh_sender_key_location,
+    MESH_SENDER_CERT_LOCATION = data.aws_secretsmanager_secret.mesh_sender_cert_location
   }
 }
 
-data "aws_secretsmanager_secret_version" "mesh_url" {
-  secret_id = data.aws_secretsmanager_secret.secret-version.MESH_URL
+#MESH keys
+data "aws_secretsmanager_secret" "mesh_ca_location" { #reference
+  name = "MESH_CA_LOCATION" #secret name (id)
 }
 
-data "aws_secretsmanager_secret_version" "mesh_receiver_mailbox_id" {
-  secret_id = data.aws_secretsmanager_secret.secret-version.MESH_RECEIVER_MAILBOX_ID
+data "aws_secretsmanager_secret" "mesh_url" {
+  name = "MESH_URL"
 }
 
-data "aws_secretsmanager_secret_version" "mesh_receiver_key_location" {
-  secret_id = data.aws_secretsmanager_secret.secret-version.MESH_RECEIVER_KEY_LOCATION
+data "aws_secretsmanager_secret" "mesh_shared_key" {
+  name = "MESH_SHARED_KEY_1"
 }
 
-data "aws_secretsmanager_secret_version" "mesh_receiver_cert_location" {
-  secret_id = data.aws_secretsmanager_secret.secret-version.MESH_RECEIVER_CERT_LOCATION
+data "aws_secretsmanager_secret" "mesh_sender_mailbox_id" {
+  name = "MESH_SENDER_MAILBOX_ID"
 }
+
+data "aws_secretsmanager_secret" "mesh_sender_mailbox_password" {
+  name = "MESH_SENDER_MAILBOX_PASSWORD"
+}
+
+data "aws_secretsmanager_secret" "mesh_receiver_mailbox_id" {
+  name = "MESH_RECEIVER_MAILBOX_ID"
+}
+
+data "aws_secretsmanager_secret" "mesh_receiver_mailbox_password" {
+  name = "MESH_RECEIVER_MAILBOX_PASSWORD"
+}
+
+data "aws_secretsmanager_secret" "mesh_receiver_key_location" {
+  name = "MESH_RECEIVER_KEY_LOCATION"
+}
+
+data "aws_secretsmanager_secret" "mesh_receiver_cert_location" {
+  name = "MESH_RECEIVER_CERT_LOCATION"
+}
+
+data "aws_secretsmanager_secret" "mesh_sender_key_location" {
+  name = "MESH_SENDER_KEY_LOCATION"
+}
+
+data "aws_secretsmanager_secret" "mesh_sender_cert_location" {
+  name = "MESH_SENDER_CERT_LOCATION"
+}
+#END of MESH keys
 
 module "poll_mesh_mailbox_lambda_cloudwatch" {
   source               = "./modules/cloudwatch"
