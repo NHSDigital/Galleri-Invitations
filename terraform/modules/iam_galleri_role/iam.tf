@@ -442,17 +442,16 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
                 "secretsmanager:ListSecretVersionIds"
             ],
             "Resource": [
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_URL-jZq14O",
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SHARED_KEY_1-remfOS",
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_ID-ZSXtly",
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_PASSWORD-UbZOCY",
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_ID-Wl5ywb",
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_PASSWORD-oGQIcd",
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_KEY_LOCATION-bh4RX7",
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_CERT_LOCATION-qw1D9o",
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_KEY_LOCATION-EQ3RcE",
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_CERT_LOCATION-Wz5YXx",
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_CA_LOCATION-yEwJkw"
+                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_URL*",
+                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SHARED_KEY_1*",
+                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_ID*",
+                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_PASSWORD*",
+                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_ID*",
+                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_PASSWORD*",
+                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_KEY*",
+                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_CERT*",
+                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_KEY*",
+                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_CERT*"
             ]
         },
         {

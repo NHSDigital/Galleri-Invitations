@@ -10,22 +10,82 @@ import {
 //VARIABLES
 const smClient = new SecretsManagerClient({ region: "eu-west-2" });
 const s3 = new S3Client({});
-const config = await loadConfig();
 
 
 const ENVIRONMENT = process.env.ENVIRONMENT;
-const MESH_SANDBOX = process.env.MESH_SANDBOX;
-const MESH_CA = process.env.MESH_CA;
-const MESH_URL = process.env.MESH_URL;
-const MESH_SHARED_KEY = process.env.MESH_SHARED_KEY_1;
-const MESH_SENDER_MAILBOX_ID = process.env.MESH_SENDER_MAILBOX_ID;
-const MESH_SENDER_MAILBOX_PASSWORD = process.env.MESH_SENDER_MAILBOX_PASSWORD;
-const MESH_RECEIVER_MAILBOX_ID = process.env.MESH_RECEIVER_MAILBOX_ID;
-const MESH_RECEIVER_MAILBOX_PASSWORD = process.env.MESH_RECEIVER_MAILBOX_PASSWORD;
-const MESH_RECEIVER_KEY = process.env.MESH_RECEIVER_KEY;
-const MESH_RECEIVER_CERT = process.env.MESH_RECEIVER_CERT;
-const MESH_SENDER_KEY = process.env.MESH_SENDER_KEY;
-const MESH_SENDER_CERT = process.env.MESH_SENDER_CERT;
+// const MESH_SANDBOX = process.env.MESH_SANDBOX;
+// const MESH_URL = process.env.MESH_URL;
+
+let meshSenderCert = Buffer.from(
+  await getSecret("MESH_SENDER_CERT"),
+  "base64"
+).toString("utf8");
+let meshSenderKey = Buffer.from(
+  await getSecret("MESH_SENDER_KEY"),
+  "base64"
+).toString("utf8");
+let meshReceiverCert = Buffer.from(
+  await getSecret("MESH_RECEIVER_CERT"),
+  "base64"
+).toString("utf8");
+let meshReceiverKey = Buffer.from(
+  await getSecret("MESH_RECEIVER_KEY"),
+  "base64"
+).toString("utf8");
+
+const config = await loadConfig({
+  url: "https://msg.intspineservices.nhs.uk", //can leave as non-secret
+  sharedKey: process.env.MESH_SHARED_KEY,
+  sandbox: "false",
+  senderCert: meshSenderCert,
+  senderKey: meshSenderKey,
+  senderMailboxID: process.env.MESH_SENDER_MAILBOX_ID,
+  senderMailboxPassword: process.env.MESH_SENDER_MAILBOX_PASSWORD,
+  receiverCert: meshReceiverCert,
+  receiverKey: meshReceiverKey,
+  receiverMailboxID: process.env.MESH_RECEIVER_MAILBOX_ID,
+  receiverMailboxPassword: process.env.MESH_RECEIVER_MAILBOX_PASSWORD,
+});
+
+
+// const MESH_CA = process.env.MESH_CA;
+// const MESH_SHARED_KEY = process.env.MESH_SHARED_KEY_1;
+// const MESH_SENDER_MAILBOX_ID = process.env.MESH_SENDER_MAILBOX_ID;
+// const MESH_SENDER_MAILBOX_PASSWORD = process.env.MESH_SENDER_MAILBOX_PASSWORD;
+// const MESH_RECEIVER_MAILBOX_ID = process.env.MESH_RECEIVER_MAILBOX_ID;
+// const MESH_RECEIVER_MAILBOX_PASSWORD = process.env.MESH_RECEIVER_MAILBOX_PASSWORD;
+// const MESH_RECEIVER_KEY = process.env.MESH_RECEIVER_KEY;
+// const MESH_RECEIVER_CERT = process.env.MESH_RECEIVER_CERT;
+// const MESH_SENDER_KEY = process.env.MESH_SENDER_KEY;
+// const MESH_SENDER_CERT = process.env.MESH_SENDER_CERT;
+// const MESH_TEST = await getSecret("MESH_TEST");
+
+
+// const MESH_CA = await getSecret("MESH_CA");
+// const MESH_RECEIVER_KEY = await getSecret("MESH_RECEIVER_KEY");
+// const MESH_RECEIVER_CERT = await getSecret("MESH_RECEIVER_CERT");
+// const MESH_SENDER_KEY = await getSecret("MESH_SENDER_KEY");
+// const MESH_SENDER_CERT = await getSecret("MESH_SENDER_CERT");
+
+// process.env.MESH_CA = MESH_CA_SM;
+// process.env.MESH_RECEIVER_KEY = MESH_RECEIVER_KEY_SM;
+// process.env.MESH_RECEIVER_CERT = MESH_RECEIVER_CERT_SM;
+// process.env.MESH_SENDER_CERT = MESH_SENDER_CERT_SM;
+// process.env.MESH_SENDER_KEY = MESH_SENDER_KEY_SM;
+
+
+// const config = await loadConfig();
+
+// const senderAgent = new Agent({
+//   cert: Buffer.from(MESH_SENDER_CERT, "base64").toString(
+//     "utf8"
+//   ),
+//   key: Buffer.from(MESH_SENDER_KEY, "base64").toString("utf8"),
+//   rejectUnauthorized: false,
+// })
+
+
+
 
 
 //can remove, for testing purposes only
@@ -66,6 +126,7 @@ async function getSecret(secretName) {
     throw error;
   }
   const secret = response.SecretString;
+  // console.log(response);
   return secret;
 }
 
@@ -112,11 +173,17 @@ export const callback = (arr) => {
 async function run() {
   try {
     let healthCheck = await handShake({
-      url: MESH_URL,
-      mailboxID: MESH_SENDER_MAILBOX_ID,
-      mailboxPassword: MESH_SENDER_MAILBOX_PASSWORD,
-      sharedKey: MESH_SHARED_KEY,
-      agent: config.senderAgent
+      // url: MESH_URL,
+      // mailboxID: MESH_SENDER_MAILBOX_ID,
+      // mailboxPassword: MESH_SENDER_MAILBOX_PASSWORD,
+      // sharedKey: MESH_SHARED_KEY,
+      // // agent: config.senderAgent
+      // agent: senderAgent
+      url: config.url,
+      mailboxID: config.senderMailboxID,
+      mailboxPassword: config.senderMailboxPassword,
+      sharedKey: config.sharedKey,
+      agent: config.senderAgent,
     });
 
     console.log(healthCheck.data);
@@ -129,10 +196,10 @@ async function run() {
 async function runMessage() {
   try {
     let messageCount = await getMessageCount({
-      url: MESH_URL,
-      mailboxID: MESH_SENDER_MAILBOX_ID,
-      mailboxPassword: MESH_SENDER_MAILBOX_PASSWORD,
-      sharedKey: MESH_SHARED_KEY,
+      url: config.url,
+      mailboxID: config.senderMailboxID,
+      mailboxPassword: config.senderMailboxPassword,
+      sharedKey: config.sharedKey,
       agent: config.senderAgent,
     });
     let messageList = messageCount.data.messages
@@ -150,12 +217,12 @@ async function runMessage() {
 async function sendMsg(msg) {
   try {
     let messageChunk = await sendMessageChunks({
-      url: MESH_URL,
-      mailboxID: MESH_SENDER_MAILBOX_ID,
-      mailboxPassword: MESH_SENDER_MAILBOX_PASSWORD,
-      sharedKey: MESH_SHARED_KEY,
+      url: config.url,
+      mailboxID: config.senderMailboxID,
+      mailboxPassword: config.senderMailboxPassword,
+      sharedKey: config.sharedKey,
       messageFile: inputData,
-      mailboxTarget: MESH_SENDER_MAILBOX_ID,
+      mailboxTarget: config.senderMailboxID,
       agent: config.senderAgent,
     });
 
@@ -166,13 +233,12 @@ async function sendMsg(msg) {
 }
 
 async function markRead(msgID) {
-  const config = await loadConfig();
   try {
     let markMsg = await markAsRead({
-      url: MESH_URL,
-      mailboxID: MESH_SENDER_MAILBOX_ID,
-      mailboxPassword: MESH_SENDER_MAILBOX_PASSWORD,
-      sharedKey: MESH_SHARED_KEY,
+      url: config.url,
+      mailboxID: config.senderMailboxID,
+      mailboxPassword: config.senderMailboxPassword,
+      sharedKey: config.sharedKey,
       message: msgID,
       agent: config.senderAgent,
     });
@@ -184,13 +250,12 @@ async function markRead(msgID) {
 }
 
 async function readMsg(msgID) {
-  const config = await loadConfig();
   try {
     let messages = await readMessage({
-      url: MESH_URL,
-      mailboxID: MESH_SENDER_MAILBOX_ID,
-      mailboxPassword: MESH_SENDER_MAILBOX_PASSWORD,
-      sharedKey: MESH_SHARED_KEY,
+      url: config.url,
+      mailboxID: config.senderMailboxID,
+      mailboxPassword: config.senderMailboxPassword,
+      sharedKey: config.sharedKey,
       messageID: msgID,
       agent: config.senderAgent,
     });
@@ -231,45 +296,52 @@ export const handler = async (event, context) => {
   let finalMsgArr = [];
   const bucketName = `${ENVIRONMENT}-galleri-caas-data`;
   try {
+    // let healthy = await run();
+    // console.log(healthy);
+    // let message = await runMessage();
+    // console.log(message);
     console.log('healthy test');
     let healthy = await run();
     // console.log('abdul' + healthy);
-    // if (healthy === 200) {
-    //   console.log(`Status ${healthy}`);
-    //   let messageArr = await runMessage();
-    //   if (messageArr.length > 0) {
-    //     for (let i = 0; i < messageArr.length; i++) {
-    //       let message = await readMsg(messageArr[i]);
-    //       finalMsgArr.push(message);
-    //       // console.log(message);
-    //     }
-    //   } else {
-    //     console.log('No Messages');
-    //   }
-    // } else { //TODO: check connection to mesh, certs may be incorrect
-    //   console.log('Failed to establish connection');
-    // }
-    // console.log(finalMsgArr);
+    if (healthy === 200) {
+      console.log(`Status ${healthy}`);
+      let messageArr = await runMessage();
+      if (messageArr.length > 0) {
+        for (let i = 0; i < messageArr.length; i++) {
+          let message = await readMsg(messageArr[i]);
+          finalMsgArr.push(message);
+          // console.log(message);
+        }
+      } else {
+        console.log('No Messages');
+      }
+    } else {
+      console.log('Failed to establish connection');
+    }
+    console.log(finalMsgArr);
   } catch (error) {
     console.error("Error occurred:", error);
   }
 
+
+
+
+
   //TODO: need to chunk data and replace finalMsgArr
-  try {
-    const dateTime = new Date(Date.now()).toISOString();
+  // try {
+  //   const dateTime = new Date(Date.now()).toISOString();
 
-    const filename = `mesh_chunk_data_${dateTime}`;
-    await pushCsvToS3(
-      bucketName,
-      `galleri-caas-data/${filename}.csv`,
-      finalMsgArr,
-      s3
-    );
-  } catch (e) {
-    console.error("Error writing MESH data to bucket: ", e);
-  }
+  //   const filename = `mesh_chunk_data_${dateTime}`;
+  //   await pushCsvToS3(
+  //     bucketName,
+  //     `galleri-caas-data/${filename}.csv`,
+  //     finalMsgArr,
+  //     s3
+  //   );
+  // } catch (e) {
+  //   console.error("Error writing MESH data to bucket: ", e);
+  // }
 };
-
 
 
 

@@ -669,24 +669,24 @@ module "poll_mesh_mailbox_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}",
     MESH_SANDBOX = "false",
-    MESH_CA = jsondecode(data.aws_secretsmanager_secret_version.mesh_ca.secret_string)["MESH_CA"],
+    # MESH_CA = jsondecode(data.aws_secretsmanager_secret_version.mesh_ca.secret_string)["MESH_CA"],
     MESH_URL = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
     MESH_SHARED_KEY = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
     MESH_SENDER_MAILBOX_ID = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_id.secret_string)["MESH_SENDER_MAILBOX_ID"],
     MESH_SENDER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_password.secret_string)["MESH_SENDER_MAILBOX_PASSWORD"],
     MESH_RECEIVER_MAILBOX_ID = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_id.secret_string)["MESH_RECEIVER_MAILBOX_ID"],
-    MESH_RECEIVER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_password.secret_string)["MESH_RECEIVER_MAILBOX_PASSWORD"],
-    MESH_RECEIVER_KEY = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_key.secret_string)["MESH_RECEIVER_KEY"],
-    MESH_RECEIVER_CERT = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_cert.secret_string)["MESH_RECEIVER_CERT"],
-    MESH_SENDER_KEY = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_key.secret_string)["MESH_SENDER_KEY"],
-    MESH_SENDER_CERT = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_cert.secret_string)["MESH_SENDER_CERT"],
+    MESH_RECEIVER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_password.secret_string)["MESH_RECEIVER_MAILBOX_PASSWORD"]#,
+    # MESH_RECEIVER_KEY = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_key.secret_string)["MESH_RECEIVER_KEY"],
+    # MESH_RECEIVER_CERT = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_cert.secret_string)["MESH_RECEIVER_CERT"],
+    # MESH_SENDER_KEY = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_key.secret_string)["MESH_SENDER_KEY"],
+    # MESH_SENDER_CERT = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_cert.secret_string)["MESH_SENDER_CERT"],
   }
 }
 
 #MESH keys
-data "aws_secretsmanager_secret_version" "mesh_ca" { #reference
-  secret_id = "MESH_CA" #secret name (id)
-}
+# data "aws_secretsmanager_secret_version" "mesh_ca" { #reference
+#   secret_id = "MESH_CA" #secret name (id)
+# }
 
 data "aws_secretsmanager_secret_version" "mesh_url" {
   secret_id = "MESH_URL"
@@ -727,6 +727,22 @@ data "aws_secretsmanager_secret_version" "mesh_sender_key" {
 data "aws_secretsmanager_secret_version" "mesh_sender_cert" {
   secret_id = "MESH_SENDER_CERT"
 }
+
+# data "aws_secretsmanager_secret_version" "mesh_receiver_key" {
+#   secret_id = "MESH_RECEIVER_KEY"
+# }
+
+# data "aws_secretsmanager_secret_version" "mesh_receiver_cert" {
+#   secret_id = "MESH_RECEIVER_CERT"
+# }
+
+# data "aws_secretsmanager_secret_version" "mesh_sender_key" {
+#   secret_id = "MESH_SENDER_KEY"
+# }
+
+# data "aws_secretsmanager_secret_version" "mesh_sender_cert" {
+#   secret_id = "MESH_SENDER_CERT"
+# }
 #END of MESH keys
 
 module "poll_mesh_mailbox_lambda_cloudwatch" {
