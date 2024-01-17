@@ -46,6 +46,7 @@ jobs:
     timeout-minutes: 1
     env:
       environment: "performance"
+      version_bump: "MINOR"
     outputs:
       build_datetime_london: ${{ steps.variables.outputs.build_datetime_london }}
       build_datetime: ${{ steps.variables.outputs.build_datetime }}
@@ -62,6 +63,7 @@ jobs:
       database_seeding: ${{ github.event.inputs.database_seeding }}
       tf_action: ${{ github.event.inputs.tf_action }}
       test: ${{ github.event.inputs.test }}
+      version_bump: ${{ env.version_bump }}
     steps:
       - name: "print environment name"
         run: |
@@ -117,42 +119,49 @@ jobs:
           make list-variables
 
   performance-stage:
-    runs-on: ubuntu-latest
     needs: [metadata]
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v4
-      - name: "git tag with next release version"
-        shell: bash
-        run: |
-          ./scripts/pipeline/version.sh MINOR
-      # - name: "create tagged versions of lambdas"
-      #   run: |
-      #     echo "TODO: create release versions of lambdas"
-      # - name: "create tagged versions of frontend"
-      #   run: |
-      #     echo "TODO: create release versions of lambdas"
-      # - name: "create tagged versions of frontend"
-      #   run: |
-      #     echo "TODO: tag main branch"
-      - name: "run performance check against latest versions"
-        run: |
-          JMETER_VERSION="5.6.3"
-          curl https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-$JMETER_VERSION.tgz -o apache-jmeter.tgz
-          tar -xvzf apache-jmeter.tgz
-          ./apache-jmeter-$JMETER_VERSION/bin/jmeter --version
-          curl https://repo1.maven.org/maven2/kg/apc/cmdrunner/2.3/cmdrunner-2.3.jar -o apache-jmeter-$JMETER_VERSION/lib/cmdrunner-2.3.jar
-          curl https://repo1.maven.org/maven2/kg/apc/jmeter-plugins-manager/1.10/jmeter-plugins-manager-1.10.jar -o apache-jmeter-$JMETER_VERSION/lib/ext/jmeter-plugins-manager-1.10.jar
-          java -cp apache-jmeter-$JMETER_VERSION/lib/ext/jmeter-plugins-manager-1.10.jar org.jmeterplugins.repository.PluginManagerCMDInstaller
-          cd apache-jmeter-$JMETER_VERSION/bin
-          ./PluginsManagerCMD.sh install-for-jmx $GITHUB_WORKSPACE/scripts/test/perftest/NHS_Galleri_Perf_Test_v1.0.jmx
-          ./jmeter -n -t $GITHUB_WORKSPACE/scripts/test/perftest/NHS_Galleri_Perf_Test_v1.0.jmx -l $GITHUB_WORKSPACE/result.jtl
-          cat $GITHUB_WORKSPACE/result.jtl
-      - name: "Upload Performance Test Results"
-        uses: actions/upload-artifact@v3
-        with:
-          name: performance-test-result
-          path: result.jtl
+    with:
+      version_bump: "${{ needs.metadata.outputs.version_bump }}"
+    uses: ./.github/workflows/stage-7-performance.yaml
+    secrets: inherit
+
+  # performance-stage:
+  #   runs-on: ubuntu-latest
+  #   needs: [metadata]
+  #   steps:
+  #     - name: "Checkout code"
+  #       uses: actions/checkout@v4
+  #     - name: "git tag with next release version"
+  #       shell: bash
+  #       run: |
+  #         ./scripts/pipeline/version.sh MINOR
+  #     # - name: "create tagged versions of lambdas"
+  #     #   run: |
+  #     #     echo "TODO: create release versions of lambdas"
+  #     # - name: "create tagged versions of frontend"
+  #     #   run: |
+  #     #     echo "TODO: create release versions of lambdas"
+  #     # - name: "create tagged versions of frontend"
+  #     #   run: |
+  #     #     echo "TODO: tag main branch"
+  #     - name: "run performance check against latest versions"
+  #       run: |
+  #         JMETER_VERSION="5.6.3"
+  #         curl https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-$JMETER_VERSION.tgz -o apache-jmeter.tgz
+  #         tar -xvzf apache-jmeter.tgz
+  #         ./apache-jmeter-$JMETER_VERSION/bin/jmeter --version
+  #         curl https://repo1.maven.org/maven2/kg/apc/cmdrunner/2.3/cmdrunner-2.3.jar -o apache-jmeter-$JMETER_VERSION/lib/cmdrunner-2.3.jar
+  #         curl https://repo1.maven.org/maven2/kg/apc/jmeter-plugins-manager/1.10/jmeter-plugins-manager-1.10.jar -o apache-jmeter-$JMETER_VERSION/lib/ext/jmeter-plugins-manager-1.10.jar
+  #         java -cp apache-jmeter-$JMETER_VERSION/lib/ext/jmeter-plugins-manager-1.10.jar org.jmeterplugins.repository.PluginManagerCMDInstaller
+  #         cd apache-jmeter-$JMETER_VERSION/bin
+  #         ./PluginsManagerCMD.sh install-for-jmx $GITHUB_WORKSPACE/scripts/test/perftest/NHS_Galleri_Perf_Test_v1.0.jmx
+  #         ./jmeter -n -t $GITHUB_WORKSPACE/scripts/test/perftest/NHS_Galleri_Perf_Test_v1.0.jmx -l $GITHUB_WORKSPACE/result.jtl
+  #         cat $GITHUB_WORKSPACE/result.jtl
+  #     - name: "Upload Performance Test Results"
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: performance-test-result
+  #         path: result.jtl
 
   commit-stage: # Recommended maximum execution time is 2 minutes
     needs: [metadata]
