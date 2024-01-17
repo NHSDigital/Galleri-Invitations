@@ -17,3 +17,6 @@ regexes = [
 
 [allowlist]
 files = ['.terraform.lock.hcl', 'poetry.lock', 'yarn.lock']
+
+# description = "Allow specific AWS Secrets Manager ARN"
+regex = '''arn:aws:secretsmanager:[a-z0-9\-]+:[0-9]+:secret:[A-Z0-9_\-]+'''
