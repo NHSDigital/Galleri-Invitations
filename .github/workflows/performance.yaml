@@ -147,13 +147,16 @@ jobs:
           ls -l apache-jmeter-5.6.3/lib/
           ls -l apache-jmeter-5.6.3/lib/ext/
           java -cp apache-jmeter-5.6.3/lib/ext/jmeter-plugins-manager-1.10.jar org.jmeterplugins.repository.PluginManagerCMDInstaller
-          ls -l
-          echo $HOME
-          ls $HOME
+          env
           cd apache-jmeter-5.6.3/bin
           ./PluginsManagerCMD.sh install-for-jmx ../../scripts/test/perftest/NHS_Galleri_Perf_Test_v1.0.jmx
           ./jmeter -n -t ../../scripts/test/perftest/NHS_Galleri_Perf_Test_v1.0.jmx -l ../../result.jtl
           cat ../../result.jtl
+      - name: "Upload Performance Test Results"
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-test
+          path: result.jtl
 
   commit-stage: # Recommended maximum execution time is 2 minutes
     needs: [metadata]
