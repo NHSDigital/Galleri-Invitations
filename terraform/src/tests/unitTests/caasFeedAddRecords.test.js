@@ -507,7 +507,7 @@ describe('formatDynamoDbRecord', () => {
 
     const result = await formatDynamoDbRecord(mockRecord);
 
-    expect(result).toEqual(result);
+    expect(result).toEqual(expectedResult);
   });
 })
 
