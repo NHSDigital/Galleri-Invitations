@@ -8,6 +8,54 @@ import csv from "csv-parser";
 
 const s3 = new S3Client();
 
+export const handler = async (event) => {
+  const bucket = event.Records[0].s3.bucket.name;
+  const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
+  console.log(`Triggered by object ${key} in bucket ${bucket}`);
+  try {
+    const csvString = await readCsvFromS3(bucket, key, s3);
+    const records = await parseCsvToArray(csvString);
+
+    const [outputSuccess, outputUnsuccess] = validateRecords(records);
+    console.log(`Finished validating object ${key} in bucket ${bucket}`);
+    console.log('----------------------------------------------------------------');
+
+    console.log('Start Filtering the successful Validated records and split into 3 arrays. ADD, UPDATE and DELETE array ');
+
+    //Timestamp
+    const timeNow = Date.now();
+
+    // Valid Records Arrangement
+    const [recordsAdd, recordsUpdate, recordsDelete] = filterRecordStatus(outputSuccess);
+    const recordsAddCsvData = convertArrayOfObjectsToCSV(recordsAdd);
+    const recordsUpdateCsvData = convertArrayOfObjectsToCSV(recordsUpdate);
+    const recordsDeleteCsvData = convertArrayOfObjectsToCSV(recordsDelete);
+
+    // InValid Records Arrangement
+    const invalidRecordsCsvData = convertArrayOfObjectsToCSV(outputUnsuccess);
+
+    console.log(`Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${bucket}`);
+
+    // Deposit to S3 bucket
+    await pushCsvToS3(bucket, `validRecords/valid_records_add-${timeNow}.csv`, recordsAddCsvData, s3);
+    await pushCsvToS3(bucket, `validRecords/valid_records_update-${timeNow}.csv`, recordsUpdateCsvData, s3);
+    await pushCsvToS3(bucket, `validRecords/valid_records_delete-${timeNow}.csv`, recordsDeleteCsvData, s3);
+
+    await pushCsvToS3(bucket, `invalidRecords/invalid_records-${timeNow}.csv`, invalidRecordsCsvData, s3);
+
+    // Logging the invalid records
+    console.warn("PLEASE FIND THE INVALID CAAS RECORDS FROM THE PROCESSED CAAS FEED BELOW:\n" + JSON.stringify(outputUnsuccess, null, 2))
+
+    return `Finished validating object ${key} in bucket ${bucket}`;
+
+  } catch (err) {
+    const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
+    console.error(message);
+    throw new Error(message);
+  };
+};
+
+
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -89,56 +137,6 @@ export const convertArrayOfObjectsToCSV = (data) => {
 
   return csvContent.join('\n');
 }
-
-export const handler = async (event) => {
-  const bucket = event.Records[0].s3.bucket.name;
-  const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
-  console.log(`Triggered by object ${key} in bucket ${bucket}`);
-  try {
-    const csvString = await readCsvFromS3(bucket, key, s3);
-    const records = await parseCsvToArray(csvString);
-
-    const [outputSuccess, outputUnsuccess] = validateRecords(records);
-    console.log(`Finished validating object ${key} in bucket ${bucket}`);
-    console.log('----------------------------------------------------------------');
-
-    console.log('Start Filtering the successful Validated records and split into 3 arrays. ADD, UPDATE and DELETE array ');
-
-    //Timestamp
-    const timeNow = Date.now();
-
-    // Valid Records Arrangement
-    const [recordsAdd, recordsUpdate, recordsDelete] = filterRecordStatus(outputSuccess);
-    const recordsAddCsvData = convertArrayOfObjectsToCSV(recordsAdd);
-    const recordsUpdateCsvData = convertArrayOfObjectsToCSV(recordsUpdate);
-    const recordsDeleteCsvData = convertArrayOfObjectsToCSV(recordsDelete);
-
-    // InValid Records Arrangement
-    const invalidRecordsCsvData = convertArrayOfObjectsToCSV(outputUnsuccess);
-
-    console.log(`Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${bucket}`);
-
-    // Deposit to S3 bucket
-    await pushCsvToS3(bucket, `validRecords/valid_records_add-${timeNow}.csv`, recordsAddCsvData, s3);
-    await pushCsvToS3(bucket, `validRecords/valid_records_update-${timeNow}.csv`, recordsUpdateCsvData, s3);
-    await pushCsvToS3(bucket, `validRecords/valid_records_delete-${timeNow}.csv`, recordsDeleteCsvData, s3);
-
-    await pushCsvToS3(bucket, `invalidRecords/invalid_records-${timeNow}.csv`, invalidRecordsCsvData, s3);
-
-    // Logging the invalid records
-    console.warn("PLEASE FIND THE INVALID CAAS RECORDS FROM THE PROCESSED CAAS FEED BELOW:\n" + JSON.stringify(outputUnsuccess, null, 2))
-
-    return `Finished validating object ${key} in bucket ${bucket}`;
-
-  } catch (err) {
-    const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
-    console.error(message);
-    throw new Error(message);
-  };
-};
-
-
-
 
 // Main Validation function which will iterate through the records
 export default function validateRecords(records) {

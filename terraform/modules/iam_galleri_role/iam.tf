@@ -15,6 +15,24 @@ resource "aws_iam_role" "galleri_lambda_role" {
   })
 }
 
+# IAM Role for validate_caas_feed_lambda
+# resource "aws_iam_role" "galleri_validate_caas_feed_lambda_role" {
+#   name = "${var.environment}-${var.role_name}"
+
+#   assume_role_policy = jsonencode({
+#     "Version" : "2012-10-17",
+#     "Statement" : [
+#       {
+#         "Effect" : "Allow",
+#         "Principal" : {
+#           "Service" : "lambda.amazonaws.com"
+#         },
+#         "Action" : "sts:AssumeRole"
+#       }
+#     ]
+#   })
+# }
+
 resource "aws_iam_policy" "iam_policy_for_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_lambda_role"
   path        = "/"
