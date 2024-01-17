@@ -15,24 +15,6 @@ resource "aws_iam_role" "galleri_lambda_role" {
   })
 }
 
-# IAM Role for validate_caas_feed_lambda
-# resource "aws_iam_role" "galleri_validate_caas_feed_lambda_role" {
-#   name = "${var.environment}-${var.role_name}"
-
-#   assume_role_policy = jsonencode({
-#     "Version" : "2012-10-17",
-#     "Statement" : [
-#       {
-#         "Effect" : "Allow",
-#         "Principal" : {
-#           "Service" : "lambda.amazonaws.com"
-#         },
-#         "Action" : "sts:AssumeRole"
-#       }
-#     ]
-#   })
-# }
-
 resource "aws_iam_policy" "iam_policy_for_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_lambda_role"
   path        = "/"
@@ -127,49 +109,6 @@ resource "aws_iam_policy" "clinic_information_lambda" {
 #      "Version" : "2012-10-17"
 #  })
 #}
-
-# Policy required by caasFeedAddRecordsLambda
-# resource "aws_iam_policy" "caas_feed_add_records_lambda" {
-#  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_caas_feed_add_records_lambda_role"
-#  path        = "/"
-#  description = "AWS IAM Policy for loading adding records from caas feed role"
-#  policy = jsonencode(
-#    {
-#      "Statement" : [
-#        {
-#          "Action" : [
-#            "logs:CreateLogGroup",
-#            "logs:CreateLogStream",
-#            "logs:PutLogEvents"
-#          ],
-#          "Effect" : "Allow",
-#          "Resource" : "arn:aws:logs:*:*:*"
-#        },
-#        {
-#          "Sid" : "AllowDynamodbAccess",
-#          "Effect" : "Allow",
-#          "Action" : [
-#            "dynamodb:*"
-#          ],
-#          "Resource" : [
-#            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GpPractice",
-#            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Postcode"
-#          ]
-#        },
-#  {
-#     "Sid" : "AllowS3Access",
-#     "Effect" : "Allow",
-#     "Action" : [
-#       "s3:*"
-#     ],
-#     "Resource" : [
-#       "arn:aws:s3:::galleri-caas-data"
-#     ]
-#   }
-#      ],
-#      "Version" : "2012-10-17"
-#  })
-# }
 
 resource "aws_iam_policy" "participating_icb_list_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participating_icb_list_lambda_role"
