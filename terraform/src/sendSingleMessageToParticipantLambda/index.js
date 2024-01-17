@@ -9,6 +9,17 @@ const {
   SecretsManagerClient,
 } = require('@aws-sdk/client-secrets-manager');
 
+const handler = async(event) => {
+  try {
+    const privateKey = await getSecretValue();
+    const signedJWT = generateJWT(process.env.API_KEY, process.env.TOKEN_ENDPOINT_URL, process.env.PUBLIC_KEY_ID, privateKey);
+    const accessToken = await getAccessToken(process.env.TOKEN_ENDPOINT_URL, signedJWT);
+    return accessToken;
+  } catch (error) {
+    console.error(error.message);
+    return undefined;
+  }
+};
 
 const getSecretValue = async (secretName = process.env.PRIVATE_KEY_SECRET_NAME) => {
   const client = new SecretsManagerClient();
@@ -57,19 +68,6 @@ const getAccessToken = async (tokenEndpointUrl, signedJWT) => {
   } else {
     return undefined;
   }
-};
-
-const handler = async(event) => {
-  try {
-    const privateKey = await getSecretValue();
-    const signedJWT = generateJWT(process.env.API_KEY, process.env.TOKEN_ENDPOINT_URL, process.env.PUBLIC_KEY_ID, privateKey);
-    const accessToken = await getAccessToken(process.env.TOKEN_ENDPOINT_URL, signedJWT);
-    return accessToken;
-  } catch (error) {
-    console.error(error.message);
-    return undefined;
-  }
-  
 };
 
 exports.handler = handler;
