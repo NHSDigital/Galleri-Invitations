@@ -59,6 +59,8 @@ jobs:
   version-bump:
     runs-on: ubuntu-latest
     steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
       - name: "Versioning"
         uses: ./.github/actions/versioning
         with:
@@ -67,5 +69,7 @@ jobs:
     needs: [version-bump]
     runs-on: ubuntu-latest
     steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
       - name: "Performance test"
         uses: ./.github/actions/performance-test
