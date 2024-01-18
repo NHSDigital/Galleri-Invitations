@@ -6,10 +6,11 @@ import {
   SecretsManagerClient,
   GetSecretValueCommand,
 } from "@aws-sdk/client-secrets-manager";
+import { Upload } from "@aws-sdk/lib-storage";
 
 //VARIABLES
 const smClient = new SecretsManagerClient({ region: "eu-west-2" });
-const s3 = new S3Client({});
+const clientS3 = new S3Client({});
 
 
 const ENVIRONMENT = process.env.ENVIRONMENT;
@@ -89,7 +90,7 @@ const config = await loadConfig({
 
 
 //can remove, for testing purposes only
-const inputData = "/Users/abduls/repos/newProj/input/galleri_cohort_test_data_small.csv"
+// const inputData = "/Users/abduls/repos/newProj/input/galleri_cohort_test_data_small.csv"
 
 
 // const MESH_CA_LOCATION = await getSecret(SECRET_MESH_CA_LOCATION);
@@ -112,6 +113,13 @@ export const processData = async (csvString, callback) => {
         reject(err);
       });
   });
+};
+
+export const generateCsvString = (header, dataArray) => {
+  return [
+    header,
+    ...dataArray.map((element) => Object.values(element).join(",")),
+  ].join("\n");
 };
 
 async function getSecret(secretName) {
@@ -221,7 +229,7 @@ async function sendMsg(msg) {
       mailboxID: config.senderMailboxID,
       mailboxPassword: config.senderMailboxPassword,
       sharedKey: config.sharedKey,
-      messageFile: inputData,
+      messageFile: msg,
       mailboxTarget: config.senderMailboxID,
       agent: config.senderAgent,
     });
@@ -260,11 +268,15 @@ async function readMsg(msgID) {
       agent: config.senderAgent,
     });
     const messageData = messages.data;
+    // const messageData = messages;
     // console.log(messageData);
 
-    const meshArr = await processData(messageData, callback);
-    return meshArr;
+    // const meshArr = await processData(messageData, callback);
+    // const header = "nhs_number,superseded_by_nhs_number,primary_care_provider,gp_connect,name_prefix,given_name,other_given_names,family_name,date_of_birth,gender,address_line_1,address_line_2,address_line_3,address_line_4,address_line_5,postcode,reason_for_removal,reason_for_removal_effective_from_date,date_of_death,telephone_number,mobile_number,email_address,preferred_language,is_interpreter_required,action";
 
+    // const meshString = await generateCsvString(header, meshArr);
+    return messageData;
+    // return messageData;
     //mark message as read once file is created (do a conditional check)
     // markRead(msgID);
   } catch (error) {
@@ -277,7 +289,7 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
     const response = await client.send(
       new PutObjectCommand({
         Bucket: bucketName,
-        Key: key,
+        Key: key, //filename
         Body: body,
       })
     );
@@ -289,6 +301,8 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
     throw err;
   }
 };
+
+
 //END OF FUNCTIONS
 
 //HANDLER
@@ -298,8 +312,9 @@ export const handler = async (event, context) => {
   try {
     // let healthy = await run();
     // console.log(healthy);
-    // let message = await runMessage();
-    // console.log(message);
+    // await readMsg("20240118112144232103_89FA75");
+    let message = await runMessage();
+    console.log(message);
     console.log('healthy test');
     let healthy = await run();
     // console.log('abdul' + healthy);
@@ -309,6 +324,7 @@ export const handler = async (event, context) => {
       if (messageArr.length > 0) {
         for (let i = 0; i < messageArr.length; i++) {
           let message = await readMsg(messageArr[i]);
+          console.log(messageArr[i]);
           finalMsgArr.push(message);
           // console.log(message);
         }
@@ -318,7 +334,7 @@ export const handler = async (event, context) => {
     } else {
       console.log('Failed to establish connection');
     }
-    console.log(finalMsgArr);
+    // console.log(finalMsgArr);
   } catch (error) {
     console.error("Error occurred:", error);
   }
@@ -328,19 +344,22 @@ export const handler = async (event, context) => {
 
 
   //TODO: need to chunk data and replace finalMsgArr
-  // try {
-  //   const dateTime = new Date(Date.now()).toISOString();
+  console.log(finalMsgArr);
+  console.log('abdul -finalMsgArr');
+  try {
+    const dateTime = new Date(Date.now()).toISOString();
 
-  //   const filename = `mesh_chunk_data_${dateTime}`;
-  //   await pushCsvToS3(
-  //     bucketName,
-  //     `galleri-caas-data/${filename}.csv`,
-  //     finalMsgArr,
-  //     s3
-  //   );
-  // } catch (e) {
-  //   console.error("Error writing MESH data to bucket: ", e);
-  // }
+    const filename = `mesh_chunk_data_${dateTime}`;
+    await pushCsvToS3(
+      "dev-1-galleri-caas-data",
+      `${filename}.csv`,
+      finalMsgArr[0],
+      clientS3
+    );
+  } catch (e) {
+    console.error("Error writing MESH data to bucket: ", e);
+  }
+
 };
 
 
