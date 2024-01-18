@@ -284,6 +284,23 @@ async function readMsg(msgID) {
   }
 }
 
+//generator function yields chunkSegment when desired size is reached
+const chunking = function* (itr, size) {
+  let chunkSegment = [header];
+  let tempStr = header;
+  for (const val of itr) {
+    tempStr += ",";
+    tempStr += val;
+    chunkSegment.push(val);
+    if (chunkSegment.length === size) {
+      yield tempStr;
+      chunkSegment = [header];
+      tempStr = header;
+    }
+  }
+  if (chunkSegment.length) yield tempStr;
+}; //make it reusable by allowing header to be set
+
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
   try {
     const response = await client.send(
@@ -301,8 +318,6 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
     throw err;
   }
 };
-
-
 //END OF FUNCTIONS
 
 //HANDLER
@@ -343,17 +358,42 @@ export const handler = async (event, context) => {
 
 
 
-  //TODO: need to chunk data and replace finalMsgArr
+  //TODO: figure out how you want to chunk data, could be explicit number or avg size
   console.log(finalMsgArr);
   console.log('abdul -finalMsgArr');
+  const meshString = finalMsgArr[0];
+  const header = meshString.split("\n")[0];
+  const messageBody = meshString.split("\n").splice(1);
+
+  const chunking = function* (itr, size) {
+    let chunkSegment = [header];
+    let tempStr = header;
+    for (const val of itr) {
+      tempStr += ",";
+      tempStr += val;
+      chunkSegment.push(val);
+      if (chunkSegment.length === size) {
+        yield tempStr;
+        chunkSegment = [header];
+        tempStr = header;
+      }
+    }
+    if (chunkSegment.length) yield tempStr;
+  };
+
+  const x = new Set(messageBody);
+  // console.log(x);
+  let chunk = [...chunking(x, 4)];
+  console.log(chunk);
+
   try {
     const dateTime = new Date(Date.now()).toISOString();
 
     const filename = `mesh_chunk_data_${dateTime}`;
     await pushCsvToS3(
-      "dev-1-galleri-caas-data",
+      bucketName,
       `${filename}.csv`,
-      finalMsgArr[0],
+      meshString,
       clientS3
     );
   } catch (e) {
