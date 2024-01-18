@@ -118,13 +118,6 @@ jobs:
           export DOES_PULL_REQUEST_EXIST="${{ steps.pr_exists.outputs.does_pull_request_exist }}"
           make list-variables
 
-  performance-stage:
-    needs: [metadata]
-    uses: ./.github/workflows/stage-7-performance.yaml
-    with:
-      version_bump: "${{ needs.metadata.outputs.version_bump }}"
-    secrets: inherit
-
   commit-stage: # Recommended maximum execution time is 2 minutes
     needs: [metadata]
     uses: ./.github/workflows/stage-1-commit.yaml
@@ -197,4 +190,11 @@ jobs:
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
+    secrets: inherit
+
+  performance-stage:
+    needs: [metadata, build-stage, data-stage]
+    uses: ./.github/workflows/stage-6-performance.yaml
+    with:
+      version_bump: "${{ needs.metadata.outputs.version_bump }}"
     secrets: inherit

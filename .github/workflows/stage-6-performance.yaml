@@ -36,7 +36,7 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
-      - name: "Run performance check against latest versions"
+      - name: "Run Jmeter performance test against latest versions"
         run: |
           JMETER_VERSION="5.6.3"
           curl https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-$JMETER_VERSION.tgz -o apache-jmeter.tgz
