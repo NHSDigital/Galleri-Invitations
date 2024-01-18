@@ -17,7 +17,6 @@ const s3 = new S3Client();
 const client = new DynamoDBClient({ region: "eu-west-2", convertEmptyValues: true });
 
 const ENVIRONMENT = process.env.ENVIRONMENT
-const BUCKET = process.env.BUCKET_NAME
 
 const SUCCESSFULL_REPSONSE = 200
 const UNSUCCESSFULL_REPSONSE = 400
@@ -32,7 +31,6 @@ export const handler = async (event) => {
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
   try {
-    const start = Date.now();
     const csvString = await readCsvFromS3(bucket, key, s3);
     const records = await parseCsvToArray(csvString);
 
@@ -70,7 +68,7 @@ export const handler = async (event) => {
       if (filteredRejectedRecords) {
         const timeNow = Date.now();
         const fileName = `validRecords/rejectedRecords/rejectedRecords-${timeNow}.csv`
-        console.log(`${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-${BUCKET}/${fileName}`);
+        console.log(`${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-${bucket}/${fileName}`);
         // Generate the CSV format
         const rejectedRecordsString = generateCsvString(
           `nhs_number,rejected,reason`,
@@ -79,7 +77,7 @@ export const handler = async (event) => {
 
         // Deposit to S3 bucket
         await pushCsvToS3(
-          `${ENVIRONMENT}-${BUCKET}`,
+          `${ENVIRONMENT}-${bucket}`,
           `${fileName}`,
           rejectedRecordsString,
           s3
@@ -261,11 +259,8 @@ export const getLsoa = async (record, dbClient) => {
       // Get LSOA using GP practice
       if (!checkLsoa.Item) {
         const lsoaFromGp = await getItemFromTable(dbClient, "GpPractice", "gp_practice_code", "S", primary_care_provider);
-        if (!lsoaFromGp.Item || lsoaFromGp.Item.LSOA_2011.S === "") {
-          lsoaObject.rejected = true;
-          lsoaObject.reason = `Rejecting record ${record.nhs_number} as can't get LSOA from the GP practice with code ${primary_care_provider} as it is not part of participating ICB`;
-          return lsoaObject;
-        }
+        // LSOA code could not be found for record using postcode or gp practice code. Set as null
+        if (!lsoaFromGp.Item || lsoaFromGp.Item.LSOA_2011.S === "") return lsoaObject.lsoaCode = "null";
         return lsoaObject.lsoaCode = lsoaFromGp.Item.LSOA_2011.S;
       }
       if (checkLsoa.Item.LSOA_2011.S !== "") return lsoaObject.lsoaCode = checkLsoa.Item.LSOA_2011.S;
