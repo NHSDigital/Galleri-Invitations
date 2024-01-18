@@ -1,0 +1,10 @@
+{
+  "name": "calculateNumberToInviteLambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "calculateNumberToInviteLambda.js",
+  "author": "",
+  "dependencies": {
+
+  }
+}
