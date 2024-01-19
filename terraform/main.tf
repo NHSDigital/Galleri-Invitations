@@ -670,13 +670,41 @@ module "validate_caas_feed_lambda_cloudwatch" {
   retention_days       = 14
 }
 
-
 module "validate_caas_feed_lambda_trigger" {
   source        = "./modules/lambda_trigger"
   bucket_id     = module.caas_data_bucket.bucket_id
   bucket_arn    = module.caas_data_bucket.bucket_arn
   lambda_arn    = module.validate_caas_feed_lambda.lambda_arn
   filter_prefix = "mesh_chunk_data_"
+}
+
+module "caas_feed_add_records_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "caasFeedAddRecordsLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "caas_feed_add_records_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "caas_feed_add_records_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.caas_feed_add_records_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "caas_feed_add_records_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.caas_data_bucket.bucket_id
+  bucket_arn    = module.caas_data_bucket.bucket_arn
+  lambda_arn    = module.caas_feed_add_records_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_add-"
 }
 
 # Dynamodb tables
