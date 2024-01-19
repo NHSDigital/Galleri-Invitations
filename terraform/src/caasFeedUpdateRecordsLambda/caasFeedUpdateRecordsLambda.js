@@ -171,17 +171,23 @@ const updateRecord = async (record, dbClient) => {
   // sortKeyType,
   // sortKeyValue
   const recordFromTable = await getItemFromTable(dbClient, "Population", "POSTCODE", "S", postcode);
+  // AC1b
   if (record.date_of_death !== recordFromTable.date_of_death){
     // update record in population table
     // check if open record
-    if ()
-    // close record in population table
+    // AC1a
+    if (){
+      // close record in population table
+
+    }
   }
 
+  // AC2
   if (record.primary_care_provider !== recordFromTable.primary_care_provider){
     // responsible icb and lsoa
   }
 
+  // AC4
   if (record.postcode !== recordFromTable.postcode){
     // responsible icb and lsoa
   }
@@ -197,6 +203,7 @@ const processingData = async (record) => {
     } else {
 
       const checkingSupersedNumber = await checkDynamoTable(client, record.superseded_by_nhs_number, "Population", "superseded_by_nhs_number", "N", true);
+      // AC5
       if (!checkingSupersedNumber) {
         // THEN replace NHS no. with the Superseded by NHS no
         record.nhs_number = record.superseded_by_nhs_number;
