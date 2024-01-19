@@ -40,10 +40,20 @@ export const handler = async (event) => {
     ] = filterUniqueEntries(records);
 
     if (uniqueRecordsToBatchProcess.length > 0){
-
       const recordsToBatchUpload = uniqueRecordsToBatchProcess.map(async (record) => {
-        return processingData(record);
+        // GIVEN the supplied NHS No. does exist in MPI
+        const tableRecord = lookUp(client, record.nhs_number, "Population", "nhs_number", "N", true);
+        if (tableRecord.Items.length > 0){
+          return processingData(record, tableRecord);
+        } else {
+          return {
+            rejectedRecordNhsNumber: record.nhs_number,
+            rejected: true,
+            reason: `Rejecting record ${record.nhs_number}. Cannot update record as it doesn't exist in table`
+          }
+        }
       });
+
       const recordsToUploadSettled = await Promise.all(recordsToBatchUpload);
 
       const filteredRecordsToUploadSettled = [];
@@ -163,14 +173,11 @@ export const filterUniqueEntries = (cassFeed) => {
   return [unique, duplicate]
 }
 
-const updateRecord = async (record, dbClient) => {
-  // partitionKeyName,
-  // partitionKeyType,
-  // partitionKeyValue,
-  // sortKeyName,
-  // sortKeyType,
-  // sortKeyValue
-  const recordFromTable = await getItemFromTable(dbClient, "Population", "POSTCODE", "S", postcode);
+const updateRecord = async (record, recordFromTable) => {
+  const {
+    personId,
+    lsoaCode
+  } = record
   // AC1b
   if (record.date_of_death !== recordFromTable.date_of_death){
     // update record in population table
@@ -178,59 +185,107 @@ const updateRecord = async (record, dbClient) => {
     // AC1a
     if (){
       // close record in population table
-
     }
+    // update record with new date_of_death
+    await updateRecordInTable(client, personId, lsoaCode, "date_of_death", "S", record.date_of_death)
   }
 
   // AC2
   if (record.primary_care_provider !== recordFromTable.primary_care_provider){
     // responsible icb and lsoa
+    const lsoaCheck = await getLsoa(record, client);
+
+    if (!record.participant_id || lsoaCheck.rejected){
+      // Records keys failed
+      return {
+        rejectedRecordNhsNumber: record.nhs_number,
+        rejected: true,
+        reason: lsoaCheck.reason
+      };
+    }
+    record.lsoa_2011 = lsoaCheck;
+    const responsibleIcb = await getItemFromTable(client, "GpPractice", "gp_practice_code", "S", record.primary_care_provider);
+    record.responsible_icb = responsibleIcb.Item?.icb_id.S;
+
+    // update record with new primary_care_provider && responsible_ICB && LSOA
+    await updateRecordInTable(client, personId, lsoaCode,
+      "date_of_death", "S", record.date_of_death,
+      "responsible_icb", "S", record.responsible_icb,
+      "LsoaCode", "S", record.lsoa_2011)
   }
 
   // AC4
   if (record.postcode !== recordFromTable.postcode){
-    // responsible icb and lsoa
+    // set lsoa
+    const lsoaCheck = await getLsoa(record, client);
+
+    if (!record.participant_id || lsoaCheck.rejected){
+      // Records keys failed
+      return {
+        rejectedRecordNhsNumber: record.nhs_number,
+        rejected: true,
+        reason: lsoaCheck.reason
+      };
+    }
+    record.lsoa_2011 = lsoaCheck;
+
+    // update record with new postcode && LSOA
+    updateRecordInTable(record)
   }
+}
+
+export async function updateRecordInTable(client, personId, LsoaCode, ...itemsToUpdate) {
+
+  const [
+
+  ]
+
+  const input = {
+    ExpressionAttributeNames: {
+      "#IDENTIFIED_TO_BE_UPDATED": "identified_to_be_invited",
+      "#BATCH_ID": "Batch_Id"
+    },
+    ExpressionAttributeValues: {
+      ":to_be_invited": {
+        BOOL: true,
+      },
+      ":batch": {
+        S: `${batchId}`,
+      },
+    },
+    Key: {
+      PersonId: {
+        S: `${record}`,
+      },
+      LsoaCode: {
+        S: `${lsoaCode}`,
+      },
+    },
+    TableName: `${ENVIRONMENT}-Population`,
+    UpdateExpression: `SET
+      #IDENTIFIED_TO_BE_UPDATED = :to_be_invited,
+      #BATCH_ID = :batch`,
+  };
+
+  const command = new UpdateItemCommand(input);
+  const response = await client.send(command);
+  if ((response.$metadata.httpStatusCode) != 200){
+    console.log(`record update failed for person ${record}`)
+  }
+  return response.$metadata.httpStatusCode;
 }
 
 // returns formatted dynamodb record or rejected record object
-const processingData = async (record) => {
-  const checkingNHSNumber = await checkDynamoTable(client, record.nhs_number, "Population", "nhs_number", "N", true)
-  if (checkingNHSNumber){
-    // Supplied NHS No/ does not exist in Population table
-    if (record.superseded_by_nhs_number === 'null'){
-      return await updateRecord(record, client);
-    } else {
-
-      const checkingSupersedNumber = await checkDynamoTable(client, record.superseded_by_nhs_number, "Population", "superseded_by_nhs_number", "N", true);
-      // AC5
-      if (!checkingSupersedNumber) {
-        // THEN replace NHS no. with the Superseded by NHS no
-        record.nhs_number = record.superseded_by_nhs_number;
-        return await updateRecord(record, client);
-      }
+const processingData = async (record, tableRecord) => {
+  if (record.superseded_by_nhs_number === 'null'){
+    return await updateRecord(record, client);
+  } else {
+    // AC5
+    if (!tableRecord.superseded_by_nhs_number) {
+      // THEN replace NHS no. with the Superseded by NHS no
+      record.nhs_number = record.superseded_by_nhs_number;
+      return await updateRecord(record, client); // call the function to updateItem
     }
-  }
-
-  return {
-    rejectedRecordNhsNumber: record.nhs_number,
-    rejected: true,
-    reason: `Rejecting record ${record.nhs_number}. Cannot update record as it doesn't exist in table`
-  }
-}
-
-// returns true if item exists in dynamodb table
-export const checkDynamoTable = async (dbClient, attribute, table, attributeName, attributeType, useIndex) => {
-  try {
-    const checkTable = await lookUp(dbClient, attribute, table, attributeName, attributeType, useIndex);
-    if (checkTable === UNSUCCESSFULL_REPSONSE) {
-      return true
-    };
-    return false;
-  } catch (err) {
-    console.error(`Error checking the ${attribute} in ${table} table.`);
-    console.error(err);
-    return err;
   }
 }
 
@@ -339,11 +394,7 @@ export const lookUp = async (dbClient, ...params) => {
   const getCommand = new QueryCommand(input);
   const response = await dbClient.send(getCommand);
 
-  if (response.Items.length > 0){
-    // attribute already exists in table
-    return UNSUCCESSFULL_REPSONSE;
-  }
-  return SUCCESSFULL_REPSONSE;
+  return response;
 };
 
 // returns response from batch write to dynamodb table
