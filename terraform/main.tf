@@ -695,7 +695,7 @@ module "caas_feed_add_records_lambda" {
 module "caas_feed_add_records_lambda_cloudwatch" {
   source               = "./modules/cloudwatch"
   environment          = var.environment
-  lambda_function_name = module.validate_caas_feed_lambda.lambda_function_name
+  lambda_function_name = module.caas_feed_add_records_lambda.lambda_function_name
   retention_days       = 14
 }
 
