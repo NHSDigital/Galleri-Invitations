@@ -434,30 +434,30 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           ]
         },
         {
-            "Effect": "Allow",
-            "Action": [
-                "secretsmanager:GetResourcePolicy",
-                "secretsmanager:GetSecretValue",
-                "secretsmanager:DescribeSecret",
-                "secretsmanager:ListSecretVersionIds"
-            ],
-            "Resource": [
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_URL*",
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SHARED_KEY_1*",
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_ID*",
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_PASSWORD*",
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_ID*",
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_PASSWORD*",
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_KEY*",
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_CERT*",
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_KEY*",
-                "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_CERT*"
-            ]
+          "Effect" : "Allow",
+          "Action" : [
+            "secretsmanager:GetResourcePolicy",
+            "secretsmanager:GetSecretValue",
+            "secretsmanager:DescribeSecret",
+            "secretsmanager:ListSecretVersionIds"
+          ],
+          "Resource" : [
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_URL*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SHARED_KEY_1*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_ID*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_PASSWORD*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_ID*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_PASSWORD*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_KEY*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_CERT*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_KEY*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_CERT*"
+          ]
         },
         {
-            "Effect": "Allow",
-            "Action": "secretsmanager:ListSecrets",
-            "Resource": "*"
+          "Effect" : "Allow",
+          "Action" : "secretsmanager:ListSecrets",
+          "Resource" : "*"
         },
       ],
       "Version" : "2012-10-17"
