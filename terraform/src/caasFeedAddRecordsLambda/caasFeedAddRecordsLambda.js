@@ -68,7 +68,7 @@ export const handler = async (event) => {
       if (filteredRejectedRecords) {
         const timeNow = Date.now();
         const fileName = `validRecords/rejectedRecords/rejectedRecords-${timeNow}.csv`
-        console.log(`${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-${bucket}/${fileName}`);
+        console.log(`${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${bucket}/${fileName}`);
         // Generate the CSV format
         const rejectedRecordsString = generateCsvString(
           `nhs_number,rejected,reason`,
@@ -77,7 +77,7 @@ export const handler = async (event) => {
 
         // Deposit to S3 bucket
         await pushCsvToS3(
-          `${ENVIRONMENT}-${bucket}`,
+          `${bucket}`,
           `${fileName}`,
           rejectedRecordsString,
           s3
