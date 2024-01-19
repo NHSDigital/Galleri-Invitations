@@ -692,7 +692,7 @@ module "caas_feed_add_records_lambda" {
   }
 }
 
-module "validate_caas_feed_lambda_cloudwatch" {
+module "caas_feed_add_records_lambda_cloudwatch" {
   source               = "./modules/cloudwatch"
   environment          = var.environment
   lambda_function_name = module.validate_caas_feed_lambda.lambda_function_name
