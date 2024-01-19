@@ -285,11 +285,11 @@ async function readMsg(msgID) {
 }
 
 //generator function yields chunkSegment when desired size is reached
-const chunking = function* (itr, size) {
+const chunking = function* (itr, size, header) {
   let chunkSegment = [header];
   let tempStr = header;
   for (const val of itr) {
-    tempStr += ",";
+    tempStr += "\n";
     tempStr += val;
     chunkSegment.push(val);
     if (chunkSegment.length === size) {
@@ -299,7 +299,8 @@ const chunking = function* (itr, size) {
     }
   }
   if (chunkSegment.length) yield tempStr;
-}; //make it reusable by allowing header to be set
+};//make it reusable by allowing header to be set
+
 
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
   try {
@@ -318,6 +319,29 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
     throw err;
   }
 };
+
+async function multipleUpload(chunk, client) {
+  // let dateTime = new Date(Date.now()).toISOString();
+  // let filename = `mesh_chunk_data_${dateTime}`;
+  let count = 0;
+  return Promise.all(
+    chunk.map(async (x) => {
+      count++;
+      console.log(count);
+      let dateTime = new Date(Date.now()).toISOString();
+      let filename = `mesh_chunk_data_${count}_${dateTime}`;
+      let response = await (pushCsvToS3(
+        `${ENVIRONEMNT}-galleri-caas-data`,
+        `${filename}.csv`,
+        x,
+        client
+      )).then(console.log("hello"));
+      console.log(response);
+      if (response.$metadata.httpStatusCode !== 200) {
+        console.error("Error uploading item ");
+      }
+    }))
+}
 //END OF FUNCTIONS
 
 //HANDLER
@@ -335,10 +359,11 @@ export const handler = async (event, context) => {
     // console.log('abdul' + healthy);
     if (healthy === 200) {
       console.log(`Status ${healthy}`);
-      let messageArr = await runMessage();
+      let messageArr = await runMessage(); //return arr of message ids
       if (messageArr.length > 0) {
         for (let i = 0; i < messageArr.length; i++) {
-          let message = await readMsg(messageArr[i]);
+          let message = await readMsg(messageArr[i]); //returns messages based on id, iteratively from message list arr
+          //TODO: move chunk message here, chunk per message in message arr, then call s3 multiple upload func
           console.log(messageArr[i]);
           finalMsgArr.push(message);
           // console.log(message);
@@ -356,46 +381,27 @@ export const handler = async (event, context) => {
 
 
 
-
-
-  //TODO: figure out how you want to chunk data, could be explicit number or avg size
   console.log(finalMsgArr);
   console.log('abdul -finalMsgArr');
   const meshString = finalMsgArr[0];
   const header = meshString.split("\n")[0];
   const messageBody = meshString.split("\n").splice(1);
 
-  const chunking = function* (itr, size) {
-    let chunkSegment = [header];
-    let tempStr = header;
-    for (const val of itr) {
-      tempStr += ",";
-      tempStr += val;
-      chunkSegment.push(val);
-      if (chunkSegment.length === size) {
-        yield tempStr;
-        chunkSegment = [header];
-        tempStr = header;
-      }
-    }
-    if (chunkSegment.length) yield tempStr;
-  };
-
   const x = new Set(messageBody);
-  // console.log(x);
-  let chunk = [...chunking(x, 4)];
+  let chunk = [...chunking(x, 4, header)];
   console.log(chunk);
 
   try {
-    const dateTime = new Date(Date.now()).toISOString();
+    multipleUpload(chunk, clientS3)
+    // const dateTime = new Date(Date.now()).toISOString();
 
-    const filename = `mesh_chunk_data_${dateTime}`;
-    await pushCsvToS3(
-      bucketName,
-      `${filename}.csv`,
-      meshString,
-      clientS3
-    );
+    // const filename = `mesh_chunk_data_${dateTime}`;
+    // await pushCsvToS3(
+    //   bucketName,
+    //   `${filename}.csv`,
+    //   meshString,
+    //   clientS3
+    // );
   } catch (e) {
     console.error("Error writing MESH data to bucket: ", e);
   }
