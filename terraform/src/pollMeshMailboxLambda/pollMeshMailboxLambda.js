@@ -134,7 +134,7 @@ async function getSecret(secretName) {
     throw error;
   }
   const secret = response.SecretString;
-  // console.log(response);
+  console.log('Retrieved value successfully');
   return secret;
 }
 

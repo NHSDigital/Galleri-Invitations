@@ -1,5 +1,4 @@
 import { mockClient } from "aws-sdk-client-mock";
-import { sdkStreamMixin } from "@aws-sdk/util-stream-node";
 import { pushCsvToS3, chunking } from "./pollMeshMailboxLambda";
 
 describe("chunking", () => {
@@ -43,6 +42,29 @@ describe("pushCsvToS3", () => {
     expect(logSpy).toHaveBeenCalledWith(`Successfully pushed to galleri-caas-data/test.csv`);
     expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
   });
+})
+
+describe("getSecret", () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("Successfully retrieve secret from secret manager", async () => {
+    const logSpy = jest.spyOn(global.console, "log");
+    const smClient = mockClient(new SecretsManagerClient({ region: "eu-west-2" }));
+
+    smClient.resolves({
+      $metadata: { httpStatusCode: 200 },
+      body: { value: "test" }
+    });
+
+    const result = await getSecret("MESH_SECRET_TEST");
+    expect(logSpy).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledWith(`Retrieved value successfully`);
+    expect(result).toHaveProperty("body.value", "test");
+    expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
+  })
 })
 
 //Need tests for getSecret, run, runMessage, sendMessage, markRead, ReadMsg, Chunking, pushcsvtos3, multipleUpload
