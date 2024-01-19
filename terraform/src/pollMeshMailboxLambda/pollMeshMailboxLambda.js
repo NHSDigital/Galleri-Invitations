@@ -1,19 +1,15 @@
 import { pushCsvToS3, getSecret, chunking, multipleUpload } from "./helper.js"
 import { handShake, loadConfig, getMessageCount, sendMessageChunks, readMessage, markAsRead } from "nhs-mesh-client";
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { Readable } from "stream"
-import csv from "csv-parser";
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 
 //VARIABLES
 const smClient = new SecretsManagerClient({ region: "eu-west-2" });
 const clientS3 = new S3Client({});
 
-
 const ENVIRONMENT = process.env.ENVIRONMENT;
-// const MESH_SANDBOX = process.env.MESH_SANDBOX;
-// const MESH_URL = process.env.MESH_URL;
 
+//retrieve secrets into lambda, certificates required to connect to MESH
 let meshSenderCert = Buffer.from(
   await getSecret("MESH_SENDER_CERT", smClient),
   "base64"
@@ -31,6 +27,7 @@ let meshReceiverKey = Buffer.from(
   "base64"
 ).toString("utf8");
 
+//Set environment variables
 const config = await loadConfig({
   url: "https://msg.intspineservices.nhs.uk", //can leave as non-secret
   sharedKey: process.env.MESH_SHARED_KEY,
@@ -45,20 +42,11 @@ const config = await loadConfig({
   receiverMailboxPassword: process.env.MESH_RECEIVER_MAILBOX_PASSWORD,
 });
 
-//can remove, for testing purposes only
-// const inputData = "/Users/abduls/repos/newProj/input/galleri_cohort_test_data_small.csv"
-
 //FUNCTIONS
 //Read in MESH data
 async function run() {
   try {
     let healthCheck = await handShake({
-      // url: MESH_URL,
-      // mailboxID: MESH_SENDER_MAILBOX_ID,
-      // mailboxPassword: MESH_SENDER_MAILBOX_PASSWORD,
-      // sharedKey: MESH_SHARED_KEY,
-      // // agent: config.senderAgent
-      // agent: senderAgent
       url: config.url,
       mailboxID: config.senderMailboxID,
       mailboxPassword: config.senderMailboxPassword,
@@ -73,6 +61,7 @@ async function run() {
   }
 }
 
+//Return an array of message IDs
 async function runMessage() {
   try {
     let messageCount = await getMessageCount({
@@ -86,14 +75,13 @@ async function runMessage() {
     let inboxCount = messageCount.data.approx_inbox_count;
     console.log(messageList);
     console.log(`Inbox contains ${inboxCount} messages`);
-    // console.log(messageCount.data);
     return messageList;
   } catch (error) {
     console.error("Error occurred:", error);
   }
 }
 
-//Can remove, for testing purposes only
+//For loading data to MESH (testing)
 async function sendMsg(msg) {
   try {
     let messageChunk = await sendMessageChunks({
@@ -112,6 +100,7 @@ async function sendMsg(msg) {
   }
 }
 
+//Marks messaged as read based on the message ID passed in
 async function markRead(msgID) {
   try {
     let markMsg = await markAsRead({
@@ -124,11 +113,13 @@ async function markRead(msgID) {
     });
 
     console.log(markMsg.data);
+    return markMsg;
   } catch (error) {
     console.error("Error occurred:", error);
   }
 }
 
+//Reads message data based on message ID
 async function readMsg(msgID) {
   try {
     let messages = await readMessage({
@@ -140,12 +131,7 @@ async function readMsg(msgID) {
       agent: config.senderAgent,
     });
     const messageData = messages.data;
-    // const messageData = messages;
-    // console.log(messageData);
     return messageData;
-    // return messageData;
-    //mark message as read once file is created (do a conditional check)
-    // markRead(msgID);
   } catch (error) {
     console.error("Error occurred:", error);
   }
@@ -157,24 +143,31 @@ export const handler = async (event, context) => {
   let finalMsgArr = [];
   const bucketName = `${ENVIRONMENT}-galleri-caas-data`;
   try {
-    // let healthy = await run();
-    // console.log(healthy);
-    // await readMsg("20240118112144232103_89FA75");
-    let message = await runMessage();
-    console.log(message);
     console.log('healthy test');
     let healthy = await run();
-    // console.log('abdul' + healthy);
     if (healthy === 200) {
       console.log(`Status ${healthy}`);
       let messageArr = await runMessage(); //return arr of message ids
+      console.log('messageArr');
+      console.log(messageArr);
       if (messageArr.length > 0) {
         for (let i = 0; i < messageArr.length; i++) {
           let message = await readMsg(messageArr[i]); //returns messages based on id, iteratively from message list arr
-          //TODO: move chunk message here, chunk per message in message arr, then call s3 multiple upload func
           console.log(messageArr[i]);
           finalMsgArr.push(message);
-          // console.log(message);
+
+          const meshString = finalMsgArr[0];
+          const header = meshString.split("\n")[0];
+          const messageBody = meshString.split("\n").splice(1); //data - header
+
+          const x = new Set(messageBody);
+          let chunk = [...chunking(x, 2001, header)]; //includes header and 2000 records
+
+          const upload = await multipleUpload(chunk, clientS3, ENVIRONMENT);
+          if (upload[0].$metadata.httpStatusCode === 200) {
+            const response = await markRead(messageArr[i]); //remove message after actioned message
+            console.log(`${response.status} ${response.statusText}`);
+          }
         }
       } else {
         console.log('No Messages');
@@ -182,38 +175,9 @@ export const handler = async (event, context) => {
     } else {
       console.log('Failed to establish connection');
     }
-    // console.log(finalMsgArr);
   } catch (error) {
     console.error("Error occurred:", error);
   }
-
-
-
-  console.log(finalMsgArr);
-  console.log('abdul -finalMsgArr');
-  const meshString = finalMsgArr[0];
-  const header = meshString.split("\n")[0];
-  const messageBody = meshString.split("\n").splice(1);
-
-  const x = new Set(messageBody);
-  let chunk = [...chunking(x, 4, header)];
-  console.log(chunk);
-
-  try {
-    multipleUpload(chunk, clientS3, ENVIRONMENT);
-    // const dateTime = new Date(Date.now()).toISOString();
-
-    // const filename = `mesh_chunk_data_${dateTime}`;
-    // await pushCsvToS3(
-    //   bucketName,
-    //   `${filename}.csv`,
-    //   meshString,
-    //   clientS3
-    // );
-  } catch (e) {
-    console.error("Error writing MESH data to bucket: ", e);
-  }
-
 };
 
 
