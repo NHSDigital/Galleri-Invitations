@@ -217,7 +217,14 @@ const generateRecord = async (record, client) => {
   }
   record.lsoa_2011 = lsoaCheck;
   const responsibleIcb = await getItemFromTable(client, "GpPractice", "gp_practice_code", "S", record.primary_care_provider);
-  record.responsible_icb = responsibleIcb.Item?.icb_id.S;
+  if (!responsibleIcb) {
+    return {
+      rejectedRecordNhsNumber: record.nhs_number,
+      rejected: true,
+      reason: `GP practice with code ${record.primary_care_provider} is not part of a participating ICB`
+    };
+  }
+  record.responsible_icb = responsibleIcb.Item.icb_id.S;
   return await formatDynamoDbRecord(record)
 }
 
@@ -426,6 +433,7 @@ export const formatDynamoDbRecord = async (record) => {
         postcode: {S: record.postcode},
         reason_for_removal: {S: record.reason_for_removal},
         reason_for_removal_effective_from_date: {S: record.reason_for_removal_effective_from_date},
+        responsible_icb: {S: record.responsible_icb},
         date_of_death: {S: record.date_of_death},
         telephone_number: {N: record.telephone_number},
         mobile_number: {N: record.mobile_number},
