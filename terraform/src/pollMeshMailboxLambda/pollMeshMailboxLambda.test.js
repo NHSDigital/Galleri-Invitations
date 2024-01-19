@@ -12,10 +12,10 @@ describe("chunking", () => {
     const x = new Set(messageBody);
     let chunk = [...chunking(x, 2, header)];
 
-    expect(chunk).toBe('nhs_number,superseded_by_nhs_number,primary_care_provider\n' +
+    expect(chunk).toBe(['nhs_number,superseded_by_nhs_number,primary_care_provider\n' +
       '5558028009,null,B83006',
-      'nhs_number,superseded_by_nhs_number,primary_care_provider\n' +
-      '5558045337,null,D81026');
+    'nhs_number,superseded_by_nhs_number,primary_care_provider\n' +
+    '5558045337,null,D81026']);
   });
 })
 
@@ -63,6 +63,32 @@ describe("getSecret", () => {
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith(`Retrieved value successfully`);
     expect(result).toHaveProperty("body.value", "test");
+    expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
+  })
+})
+
+describe("multipleUpload", () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("Successfully upload data to S3", async () => {
+    const logSpy = jest.spyOn(global.console, "log");
+    const mockS3Client = mockClient(new S3Client({}));
+
+    const chunk = ['nhs_number,superseded_by_nhs_number,primary_care_provider\n' +
+      '5558028009,null,B83006',
+    'nhs_number,superseded_by_nhs_number,primary_care_provider\n' +
+    '5558045337,null,D81026'];
+
+    mockS3Client.resolves({
+      $metadata: { httpStatusCode: 200 },
+    });
+
+    const result = await multipleUpload(chunk, mockS3Client);
+    expect(logSpy).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledTimes(2);
+    expect(logSpy).toHaveBeenCalledWith(`success`);
     expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
   })
 })

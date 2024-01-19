@@ -335,8 +335,7 @@ async function multipleUpload(chunk, client) {
         `${filename}.csv`,
         x,
         client
-      )).then(console.log("hello"));
-      console.log(response);
+      )).then(console.log("success"));
       if (response.$metadata.httpStatusCode !== 200) {
         console.error("Error uploading item ");
       }
