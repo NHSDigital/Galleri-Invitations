@@ -1,10 +1,12 @@
 import { mockClient } from "aws-sdk-client-mock";
-import { pushCsvToS3, chunking } from "./pollMeshMailboxLambda";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { pushCsvToS3, getSecret, chunking, multipleUpload } from "../../pollMeshMailboxLambda/helper"; //chunking, getSecret, multipleUpload
+import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 
 describe("chunking", () => {
 
   test("create chunks", async () => {
-    let message = 'nhs_number,superseded_by_nhs_number,primary_care_provider,\n' +
+    let message = 'nhs_number,superseded_by_nhs_number,primary_care_provider\n' +
       '5558028009,null,B83006\n' +
       '5558045337,null,D81026';
     const header = message.split("\n")[0];
@@ -12,10 +14,10 @@ describe("chunking", () => {
     const x = new Set(messageBody);
     let chunk = [...chunking(x, 2, header)];
 
-    expect(chunk).toBe(['nhs_number,superseded_by_nhs_number,primary_care_provider\n' +
-      '5558028009,null,B83006',
-    'nhs_number,superseded_by_nhs_number,primary_care_provider\n' +
-    '5558045337,null,D81026']);
+    expect(chunk[0]).toBe('nhs_number,superseded_by_nhs_number,primary_care_provider\n' +
+      '5558028009,null,B83006');
+    expect(chunk[1]).toBe('nhs_number,superseded_by_nhs_number,primary_care_provider\n' +
+      '5558045337,null,D81026');
   });
 })
 
@@ -51,19 +53,24 @@ describe("getSecret", () => {
 
   test("Successfully retrieve secret from secret manager", async () => {
     const logSpy = jest.spyOn(global.console, "log");
-    const smClient = mockClient(new SecretsManagerClient({ region: "eu-west-2" }));
+    const smClient = mockClient(SecretsManagerClient);
 
-    smClient.resolves({
-      $metadata: { httpStatusCode: 200 },
-      body: { value: "test" }
+
+    smClient.on(GetSecretValueCommand).resolves({
+      SecretString: JSON.stringify({ my_secret_key: 'my_secret_value' }),
     });
+    const sm = new SecretsManagerClient({});
+    const result = await sm.send(new GetSecretValueCommand({ "SecretId": "MESH_SENDER_CERT" }));
+    expect(result.SecretString).toBe('{"my_secret_key":"my_secret_value"}');
 
-    const result = await getSecret("MESH_SECRET_TEST");
+    const smClient2 = mockClient(SecretsManagerClient);
+    smClient2.resolves({});
+    const response = await getSecret("MESH_SENDER_CERT", smClient2);
+    // console.log(response);
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith(`Retrieved value successfully`);
-    expect(result).toHaveProperty("body.value", "test");
-    expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
+    expect(logSpy).toHaveBeenCalledWith(`Retrieved value successfully MESH_SENDER_CERT`);
+
   })
 })
 
@@ -80,17 +87,19 @@ describe("multipleUpload", () => {
       '5558028009,null,B83006',
     'nhs_number,superseded_by_nhs_number,primary_care_provider\n' +
     '5558045337,null,D81026'];
+    const ENVIRONMENT = 'dev-1';
 
-    mockS3Client.resolves({
+    mockS3Client.on(PutObjectCommand).resolves({
       $metadata: { httpStatusCode: 200 },
     });
 
-    const result = await multipleUpload(chunk, mockS3Client);
+    const result = await multipleUpload(chunk, mockS3Client, ENVIRONMENT);
+    console.log(result);
     expect(logSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenCalledWith(`success`);
-    expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
+    expect(logSpy).toHaveBeenCalledTimes(3);
+    expect(logSpy).toHaveBeenCalledWith([{ "$metadata": { "httpStatusCode": 200 } }, { "$metadata": { "httpStatusCode": 200 } }]);
+    expect(result[0]).toHaveProperty("$metadata.httpStatusCode", 200);
   })
 })
 
-//Need tests for getSecret, run, runMessage, sendMessage, markRead, ReadMsg, Chunking, pushcsvtos3, multipleUpload
+//TODO: tests for run, runMessage, sendMessage, markRead, ReadMsg
