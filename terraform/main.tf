@@ -649,6 +649,35 @@ module "user_accounts_lambda_trigger" {
   lambda_arn = module.user_accounts_lambda.lambda_arn
 }
 
+module "validate_caas_feed_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "validateCaasFeedLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "validate_caas_feed_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "validate_caas_feed_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.validate_caas_feed_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "validate_caas_feed_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.caas_data_bucket.bucket_id
+  bucket_arn    = module.caas_data_bucket.bucket_arn
+  lambda_arn    = module.validate_caas_feed_lambda.lambda_arn
+  filter_prefix = "mesh_chunk_data_"
+}
+
 module "caas_feed_add_records_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
@@ -663,10 +692,10 @@ module "caas_feed_add_records_lambda" {
   }
 }
 
-module "caas_feed_add_records_lambda_cloudwatch" {
+module "validate_caas_feed_lambda_cloudwatch" {
   source               = "./modules/cloudwatch"
   environment          = var.environment
-  lambda_function_name = module.caas_feed_add_records_lambda.lambda_function_name
+  lambda_function_name = module.validate_caas_feed_lambda.lambda_function_name
   retention_days       = 14
 }
 
@@ -863,18 +892,6 @@ module "population_table" {
     {
       name = "Batch_Id"
       type = "S"
-    },
-    {
-      name = "participantId"
-      type = "S"
-    },
-    {
-      name = "nhs_number"
-      type = "N"
-    },
-    {
-      name = "superseded_by_nhs_number"
-      type = "N"
     }
   ]
   global_secondary_index = [
@@ -886,21 +903,6 @@ module "population_table" {
     {
       name      = "BatchId-index"
       hash_key  = "Batch_Id"
-      range_key = null
-    },
-    {
-      name      = "participantId-index"
-      hash_key  = "participantId"
-      range_key = null
-    },
-    {
-      name      = "nhs_number-index"
-      hash_key  = "nhs_number"
-      range_key = null
-    },
-    {
-      name      = "superseded_by_nhs_number-index"
-      hash_key  = "superseded_by_nhs_number"
       range_key = null
     }
   ]
