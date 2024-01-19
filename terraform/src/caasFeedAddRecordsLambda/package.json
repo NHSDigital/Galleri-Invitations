@@ -1,0 +1,12 @@
+{
+  "name": "caasFeedAddRecordsLambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "caasFeedAddRecordsLambda.js",
+  "author": "",
+  "dependencies": {
+    "csv-parser": "^3.0.0",
+    "randexp": "^0.5.3",
+    "stream": "^0.0.2"
+  }
+}
