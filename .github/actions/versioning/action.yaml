@@ -1,0 +1,21 @@
+name: "Versioning"
+description: "Tags repository with the next version"
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Checkout code"
+      uses: actions/checkout@v4
+    - name: "Tag with next release version"
+      shell: bash
+      run: |
+        ./scripts/pipeline/version.sh ${{ env.version_bump }}
+    # - name: "create tagged versions of lambdas"
+    #   run: |
+    #     echo "TODO: create release versions of lambdas"
+    # - name: "create tagged versions of frontend"
+    #   run: |
+    #     echo "TODO: create release versions of lambdas"
+    # - name: "create tagged versions of frontend"
+    #   run: |
+    #     echo "TODO: tag main branch"

@@ -25,5 +25,5 @@ fi
 echo OLD VERSION - $VERSION
 echo NEW VERSION - $NEW_VERSION
 
-git tag -a $NEW_VERSION -m "initial version"
+# git tag -a $NEW_VERSION -m "initial version"
 # git push origin --tags
