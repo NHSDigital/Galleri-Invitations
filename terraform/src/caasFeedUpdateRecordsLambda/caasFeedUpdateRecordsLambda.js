@@ -163,19 +163,44 @@ export const filterUniqueEntries = (cassFeed) => {
   return [unique, duplicate]
 }
 
+const updateRecord = async (record, dbClient) => {
+  // partitionKeyName,
+  // partitionKeyType,
+  // partitionKeyValue,
+  // sortKeyName,
+  // sortKeyType,
+  // sortKeyValue
+  const recordFromTable = await getItemFromTable(dbClient, "Population", "POSTCODE", "S", postcode);
+  if (record.date_of_death !== recordFromTable.date_of_death){
+    // update record in population table
+    // check if open record
+    if ()
+    // close record in population table
+  }
+
+  if (record.primary_care_provider !== recordFromTable.primary_care_provider){
+    // responsible icb and lsoa
+  }
+
+  if (record.postcode !== recordFromTable.postcode){
+    // responsible icb and lsoa
+  }
+}
+
 // returns formatted dynamodb record or rejected record object
 const processingData = async (record) => {
   const checkingNHSNumber = await checkDynamoTable(client, record.nhs_number, "Population", "nhs_number", "N", true)
   if (checkingNHSNumber){
     // Supplied NHS No/ does not exist in Population table
     if (record.superseded_by_nhs_number === 'null'){
-      return await generateRecord(record, client);
+      return await updateRecord(record, client);
     } else {
+
       const checkingSupersedNumber = await checkDynamoTable(client, record.superseded_by_nhs_number, "Population", "superseded_by_nhs_number", "N", true);
       if (!checkingSupersedNumber) {
-        // Superseded by NHS No. does not exist in the MPI
+        // THEN replace NHS no. with the Superseded by NHS no
         record.nhs_number = record.superseded_by_nhs_number;
-        return await generateRecord(record, client);
+        return await updateRecord(record, client);
       }
     }
   }
