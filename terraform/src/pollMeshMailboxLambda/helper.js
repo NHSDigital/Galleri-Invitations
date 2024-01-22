@@ -11,7 +11,6 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
         Body: body,
       })
     );
-
     console.log(`Successfully pushed to ${bucketName}/${key}`);
     return response;
   } catch (err) {
@@ -74,4 +73,23 @@ export async function multipleUpload(chunk, client, environment) {
       }
       return response;
     }))
+}
+
+//For loading data to MESH (testing)
+async function sendMsg(msg) {
+  try {
+    let messageChunk = await sendMessageChunks({
+      url: CONFIG.url,
+      mailboxID: CONFIG.senderMailboxID,
+      mailboxPassword: CONFIG.senderMailboxPassword,
+      sharedKey: CONFIG.sharedKey,
+      messageFile: msg,
+      mailboxTarget: CONFIG.senderMailboxID,
+      agent: CONFIG.senderAgent,
+    });
+
+    console.log(messageChunk.data);
+  } catch (error) {
+    console.error("Error occurred:", error);
+  }
 }

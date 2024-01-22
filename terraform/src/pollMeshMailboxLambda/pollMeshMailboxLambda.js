@@ -1,6 +1,6 @@
-import { pushCsvToS3, getSecret, chunking, multipleUpload } from "./helper.js"
-import { handShake, loadConfig, getMessageCount, sendMessageChunks, readMessage, markAsRead } from "nhs-mesh-client";
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSecret, chunking, multipleUpload } from "./helper.js"
+import { handShake, loadConfig, getMessageCount, readMessage, markAsRead } from "nhs-mesh-client";
+import { S3Client } from '@aws-sdk/client-s3';
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 
 //VARIABLES
@@ -10,133 +10,25 @@ const clientS3 = new S3Client({});
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
 //retrieve secrets into lambda, certificates required to connect to MESH
-const meshSenderCert = Buffer.from(
-  await getSecret("MESH_SENDER_CERT", smClient),
-  "base64"
-).toString("utf8");
-const meshSenderKey = Buffer.from(
-  await getSecret("MESH_SENDER_KEY", smClient),
-  "base64"
-).toString("utf8");
-const meshReceiverCert = Buffer.from(
-  await getSecret("MESH_RECEIVER_CERT", smClient),
-  "base64"
-).toString("utf8");
-const meshReceiverKey = Buffer.from(
-  await getSecret("MESH_RECEIVER_KEY", smClient),
-  "base64"
-).toString("utf8");
+const MESH_SENDER_CERT = readSecret("MESH_SENDER_CERT", smClient);
+const MESH_SENDER_KEY = readSecret("MESH_SENDER_KEY", smClient);
+const MESH_RECEIVER_CERT = readSecret("MESH_RECEIVER_CERT", smClient);
+const MESH_RECEIVER_KEY = readSecret("MESH_RECEIVER_KEY", smClient);
 
 //Set environment variables
-const config = await loadConfig({
+const CONFIG = await loadConfig({
   url: "https://msg.intspineservices.nhs.uk", //can leave as non-secret
   sharedKey: process.env.MESH_SHARED_KEY,
   sandbox: "false",
-  senderCert: meshSenderCert,
-  senderKey: meshSenderKey,
+  senderCert: MESH_SENDER_CERT,
+  senderKey: MESH_SENDER_KEY,
   senderMailboxID: process.env.MESH_SENDER_MAILBOX_ID,
   senderMailboxPassword: process.env.MESH_SENDER_MAILBOX_PASSWORD,
-  receiverCert: meshReceiverCert,
-  receiverKey: meshReceiverKey,
+  receiverCert: MESH_RECEIVER_CERT,
+  receiverKey: MESH_RECEIVER_KEY,
   receiverMailboxID: process.env.MESH_RECEIVER_MAILBOX_ID,
   receiverMailboxPassword: process.env.MESH_RECEIVER_MAILBOX_PASSWORD,
 });
-
-//FUNCTIONS
-//Read in MESH data
-async function run() {
-  try {
-    let healthCheck = await handShake({
-      url: config.url,
-      mailboxID: config.senderMailboxID,
-      mailboxPassword: config.senderMailboxPassword,
-      sharedKey: config.sharedKey,
-      agent: config.senderAgent,
-    });
-
-    console.log(healthCheck.data);
-    return healthCheck.status
-  } catch (error) {
-    console.error("Error occurred:", error);
-  }
-}
-
-//Return an array of message IDs
-async function runMessage() {
-  try {
-    let messageCount = await getMessageCount({
-      url: config.url,
-      mailboxID: config.senderMailboxID,
-      mailboxPassword: config.senderMailboxPassword,
-      sharedKey: config.sharedKey,
-      agent: config.senderAgent,
-    });
-    let messageList = messageCount.data.messages
-    let inboxCount = messageCount.data.approx_inbox_count;
-    console.log(messageList);
-    console.log(`Inbox contains ${inboxCount} messages`);
-    return messageList;
-  } catch (error) {
-    console.error("Error occurred:", error);
-  }
-}
-
-//For loading data to MESH (testing)
-async function sendMsg(msg) {
-  try {
-    let messageChunk = await sendMessageChunks({
-      url: config.url,
-      mailboxID: config.senderMailboxID,
-      mailboxPassword: config.senderMailboxPassword,
-      sharedKey: config.sharedKey,
-      messageFile: msg,
-      mailboxTarget: config.senderMailboxID,
-      agent: config.senderAgent,
-    });
-
-    console.log(messageChunk.data);
-  } catch (error) {
-    console.error("Error occurred:", error);
-  }
-}
-
-//Marks messaged as read based on the message ID passed in
-async function markRead(msgID) {
-  try {
-    let markMsg = await markAsRead({
-      url: config.url,
-      mailboxID: config.senderMailboxID,
-      mailboxPassword: config.senderMailboxPassword,
-      sharedKey: config.sharedKey,
-      message: msgID,
-      agent: config.senderAgent,
-    });
-
-    console.log(markMsg.data);
-    return markMsg;
-  } catch (error) {
-    console.error("Error occurred:", error);
-  }
-}
-
-//Reads message data based on message ID
-async function readMsg(msgID) {
-  try {
-    let messages = await readMessage({
-      url: config.url,
-      mailboxID: config.senderMailboxID,
-      mailboxPassword: config.senderMailboxPassword,
-      sharedKey: config.sharedKey,
-      messageID: msgID,
-      agent: config.senderAgent,
-    });
-    const messageData = messages.data;
-    return messageData;
-  } catch (error) {
-    console.error("Error occurred:", error);
-  }
-}
-//END OF FUNCTIONS
 
 //HANDLER
 export const handler = async (event, context) => {
@@ -146,16 +38,15 @@ export const handler = async (event, context) => {
     let healthy = await run();
     if (healthy === 200) {
       console.log(`Status ${healthy}`);
-      let messageArr = await runMessage(); //return arr of message ids
-      console.log('messageArr');
-      console.log(messageArr);
+      let messageArr = await getMessageArray(); //return arr of message ids
+      console.log(`messageArr ${messageArr}`);
       if (messageArr.length > 0) {
         for (let i = 0; i < messageArr.length; i++) {
           let message = await readMsg(messageArr[i]); //returns messages based on id, iteratively from message list arr
           console.log(messageArr[i]);
           finalMsgArr.push(message);
 
-          const meshString = finalMsgArr[0];
+          const meshString = finalMsgArr[i]; //[0]
           const splitMeshString = meshString.split("\n");
           const header = splitMeshString[0];
           const messageBody = splitMeshString.splice(1); //data - header
@@ -181,4 +72,87 @@ export const handler = async (event, context) => {
 };
 
 
+//FUNCTIONS
+//Read in MESH data
+async function run() {
+  try {
+    let healthCheck = await handShake({
+      url: CONFIG.url,
+      mailboxID: CONFIG.senderMailboxID,
+      mailboxPassword: CONFIG.senderMailboxPassword,
+      sharedKey: CONFIG.sharedKey,
+      agent: CONFIG.senderAgent,
+    });
+
+    console.log(healthCheck.data);
+    return healthCheck.status
+  } catch (error) {
+    console.error("Error occurred:", error);
+  }
+}
+
+//Return an array of message IDs
+async function getMessageArray() {
+  try {
+    let messageCount = await getMessageCount({
+      url: CONFIG.url,
+      mailboxID: CONFIG.senderMailboxID,
+      mailboxPassword: CONFIG.senderMailboxPassword,
+      sharedKey: CONFIG.sharedKey,
+      agent: CONFIG.senderAgent,
+    });
+    let messageList = messageCount.data.messages
+    let inboxCount = messageCount.data.approx_inbox_count;
+    console.log(messageList);
+    console.log(`Inbox contains ${inboxCount} messages`);
+    return messageList;
+  } catch (error) {
+    console.error("Error occurred:", error);
+  }
+}
+
+//Marks messaged as read based on the message ID passed in
+async function markRead(msgID) {
+  try {
+    let markMsg = await markAsRead({
+      url: CONFIG.url,
+      mailboxID: CONFIG.senderMailboxID,
+      mailboxPassword: CONFIG.senderMailboxPassword,
+      sharedKey: CONFIG.sharedKey,
+      message: msgID,
+      agent: CONFIG.senderAgent,
+    });
+
+    console.log(markMsg.data);
+    return markMsg;
+  } catch (error) {
+    console.error("Error occurred:", error);
+  }
+}
+
+//Reads message data based on message ID
+async function readMsg(msgID) {
+  try {
+    let messages = await readMessage({
+      url: CONFIG.url,
+      mailboxID: CONFIG.senderMailboxID,
+      mailboxPassword: CONFIG.senderMailboxPassword,
+      sharedKey: CONFIG.sharedKey,
+      messageID: msgID,
+      agent: CONFIG.senderAgent,
+    });
+    const messageData = messages.data;
+    return messageData;
+  } catch (error) {
+    console.error("Error occurred:", error);
+  }
+}
+
+const readSecret = async (secretName, client) => {
+  return Buffer.from(
+    await getSecret(secretName, client),
+    "base64"
+  ).toString("utf8");
+}
+//END OF FUNCTIONS
 
