@@ -66,8 +66,6 @@ export async function multipleUpload(chunk, client, environment) {
         x,
         client
       ));
-      dateTime = new Date(Date.now()).toISOString();
-      filename = `mesh_chunk_data_${count}_${dateTime}`;
       if (response.$metadata.httpStatusCode !== 200) {
         console.error("Error uploading item ");
       }
