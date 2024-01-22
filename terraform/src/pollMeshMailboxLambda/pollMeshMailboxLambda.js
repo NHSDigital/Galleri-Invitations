@@ -141,7 +141,6 @@ async function readMsg(msgID) {
 //HANDLER
 export const handler = async (event, context) => {
   let finalMsgArr = [];
-  const bucketName = `${ENVIRONMENT}-galleri-caas-data`;
   try {
     console.log('healthy test');
     let healthy = await run();
