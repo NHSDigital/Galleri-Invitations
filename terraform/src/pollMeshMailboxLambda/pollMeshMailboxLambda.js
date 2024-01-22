@@ -10,10 +10,10 @@ const clientS3 = new S3Client({});
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
 //retrieve secrets into lambda, certificates required to connect to MESH
-const MESH_SENDER_CERT = readSecret("MESH_SENDER_CERT", smClient);
-const MESH_SENDER_KEY = readSecret("MESH_SENDER_KEY", smClient);
-const MESH_RECEIVER_CERT = readSecret("MESH_RECEIVER_CERT", smClient);
-const MESH_RECEIVER_KEY = readSecret("MESH_RECEIVER_KEY", smClient);
+const MESH_SENDER_CERT = await readSecret("MESH_SENDER_CERT", smClient);
+const MESH_SENDER_KEY = await readSecret("MESH_SENDER_KEY", smClient);
+const MESH_RECEIVER_CERT = await readSecret("MESH_RECEIVER_CERT", smClient);
+const MESH_RECEIVER_KEY = await readSecret("MESH_RECEIVER_KEY", smClient);
 
 //Set environment variables
 const CONFIG = await loadConfig({
@@ -46,7 +46,7 @@ export const handler = async (event, context) => {
           console.log(messageArr[i]);
           finalMsgArr.push(message);
 
-          const meshString = finalMsgArr[i]; //[0]
+          const meshString = finalMsgArr[i];
           const splitMeshString = meshString.split("\n");
           const header = splitMeshString[0];
           const messageBody = splitMeshString.splice(1); //data - header
@@ -148,7 +148,7 @@ async function readMsg(msgID) {
   }
 }
 
-const readSecret = async (secretName, client) => {
+async function readSecret(secretName, client) {
   return Buffer.from(
     await getSecret(secretName, client),
     "base64"
