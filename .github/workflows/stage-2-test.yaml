@@ -61,10 +61,10 @@ jobs:
       - name: "Save the result of fast test suite"
         run: |
           echo "Nothing to save"
-      # - name: Run node unit test
-      #   run: |
-      #     npm i
-      #     npm test
+      - name: Run node unit test
+        run: |
+          npm i
+          npm test
   test-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -92,9 +92,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Full history is needed to improving relevancy of reporting
-      # - name: "Perform static analysis"
-      #   uses: ./.github/actions/perform-static-analysis
-      #   with:
-      #     sonar_organisation_key: "${{ vars.SONAR_ORGANISATION_KEY }}"
-      #     sonar_project_key: "${{ vars.SONAR_PROJECT_KEY }}"
-      #     sonar_token: "${{ secrets.SONAR_TOKEN }}"
+      - name: "Perform static analysis"
+        uses: ./.github/actions/perform-static-analysis
+        with:
+          sonar_organisation_key: "${{ vars.SONAR_ORGANISATION_KEY }}"
+          sonar_project_key: "${{ vars.SONAR_PROJECT_KEY }}"
+          sonar_token: "${{ secrets.SONAR_TOKEN }}"

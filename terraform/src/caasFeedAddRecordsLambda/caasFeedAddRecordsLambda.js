@@ -15,68 +15,60 @@ import csv from "csv-parser";
 
 const s3 = new S3Client();
 const client = new DynamoDBClient({ region: "eu-west-2", convertEmptyValues: true });
-let ENVIRONMENT = process.env.ENVIRONMENT
+
+const ENVIRONMENT = process.env.ENVIRONMENT
+
 const SUCCESSFULL_REPSONSE = 200
 const UNSUCCESSFULL_REPSONSE = 400
+
+let participantIdStore = {}
 
 // Lambda Entry Point
 export const handler = async (event) => {
 
-  // const bucket = event.Records[0].s3.bucket.name;
-  // const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
-  // console.log(`Triggered by object ${key} in bucket ${bucket}`);
+  const bucket = event.Records[0].s3.bucket.name;
+  const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
+  console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
   try {
-    const start = Date.now();
-    // const csvString = await readCsvFromS3(bucket, key, s3);
-    // const records = await parseCsvToArray(csvString);
-    // console.log("Raw event")
-    // console.log(event)
-    // console.log("Stringifying event")
-    console.log("--------------------")
-    const records = event
+    const csvString = await readCsvFromS3(bucket, key, s3);
+    const records = await parseCsvToArray(csvString);
 
-    console.log(`type of event is ${typeof records}`)
-
-    console.log("Split records array into unique and duplicates")
     const [
       uniqueRecordsToBatchProcess,
       duplicateRecordsToIndividuallyProcess
-    ] = filterUniqueEntries(records)
-
-    console.log(`Unique record count = ${uniqueRecordsToBatchProcess.length}, duplicate record count = ${duplicateRecordsToIndividuallyProcess.length}
-    Total records = ${uniqueRecordsToBatchProcess.length + duplicateRecordsToIndividuallyProcess.length}.`)
+    ] = filterUniqueEntries(records);
 
     if (uniqueRecordsToBatchProcess.length > 0){
 
       const recordsToBatchUpload = uniqueRecordsToBatchProcess.map(async (record) => {
         return processingData(record);
-      })
-      const recordsToUploadSettled = await Promise.all(recordsToBatchUpload)
-
+      });
+      const recordsToUploadSettled = await Promise.all(recordsToBatchUpload);
 
       const filteredRecordsToUploadSettled = [];
       const filteredRejectedRecords = [];
 
-
       recordsToUploadSettled.forEach(record => {
-        console.log("processed record = ", JSON.stringify(record, null, 2))
         if (record?.rejected){
-          filteredRejectedRecords.push(record)
+          filteredRejectedRecords.push(record);
         } else {
-          filteredRecordsToUploadSettled.push(record)
+          filteredRecordsToUploadSettled.push(record);
         }
-      })
-      console.log("Rejected records", filteredRejectedRecords.length)
-      console.log("Successfully formatted records", filteredRecordsToUploadSettled.length)
+      });
 
-      const uploadRecords = await batchWriteRecords(filteredRecordsToUploadSettled, 25, client);
+      if (filteredRecordsToUploadSettled){
+        console.log(`${filteredRecordsToUploadSettled.length} records successfully formatted`);
+        const uploadRecords = await batchWriteRecords(filteredRecordsToUploadSettled, 25, client);
+        console.log(`uploadRecords = ${JSON.stringify(uploadRecords, null, 2)}`);
+      }
 
-      console.log('----------------------------------------------------------------')
+      console.log('----------------------------------------------------------------');
 
       if (filteredRejectedRecords) {
         const timeNow = Date.now();
-        console.log(`Some records failed. A failure report will be uploaded to ${ENVIRONMENT}-galleri-validated-caas-data/rejectedRecords/rejectedRecords-${timeNow}.csv`)
+        const fileName = `validRecords/rejectedRecords/rejectedRecords-${timeNow}.csv`
+        console.log(`${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${bucket}/${fileName}`);
         // Generate the CSV format
         const rejectedRecordsString = generateCsvString(
           `nhs_number,rejected,reason`,
@@ -85,62 +77,20 @@ export const handler = async (event) => {
 
         // Deposit to S3 bucket
         await pushCsvToS3(
-          `${ENVIRONMENT}-galleri-validated-caas-data`,
-          `rejectedRecords/rejectedRecords-${timeNow}.csv`,
+          `${bucket}`,
+          `${fileName}`,
           rejectedRecordsString,
           s3
         );
       }
-  //   console.log("GRIDALL extracted: ", Date.now() - start);
     }
-// {
-//   PutRequest: {
-//     Item: {
-//       PersonId: {S: record.participant_id},
-//       LsoaCode: {S: record.lsoa_2011},
-//       participantId: {S: record.participant_id}, // may need to change
-//       nhs_number: {N: record.nhs_number},
-//       superseded_by_nhs_number: {N: record.superseded_by_nhs_number},
-//       primary_care_provider: {S: record.primary_care_provider},
-//       gp_connect: {S: record.gp_connect},
-//       name_prefix: {S: record.name_prefix},
-//       given_name: {S: record.given_name},
-//       other_given_names: {S: record.other_given_names},
-//       family_name: {S: record.family_name},
-//       date_of_birth: {S: record.date_of_birth},
-//       gender: {N: record.gender},
-//       address_line_1: {S: record.address_line_1},
-//       address_line_2: {S: record.address_line_2},
-//       address_line_3: {S: record.address_line_3},
-//       address_line_4: {S: record.address_line_4},
-//       address_line_5: {S: record.address_line_5},
-//       postcode: {S: record.postcode},
-//       reason_for_removal: {S: record.reason_for_removal},
-//       reason_for_removal_effective_from_date: {S: record.reason_for_removal_effective_from_date},
-//       date_of_death: {S: record.date_of_death},
-//       telephone_number: {N: record.telephone_number},
-//       mobile_number: {N: record.mobile_number},
-//       email_address: {S: record.email_address},
-//       preferred_language: {S: record.preferred_language},
-//       is_interpreter_required: {BOOL: Boolean(record.is_interpreter_required)},
-//       action: {S: record.action},
-//     }
-//   }
-// }
-
-// {
-//   rejectedRecordNhsNumber: record.nhs_number,
-//   rejected: true,
-//   reason: lsoaCheck.reason
-// }
-
   } catch (error) {
     console.error(
       "Error with CaaS Feed extraction, procession or uploading",
       error
     );
   }
-
+  return "Exiting Lambda";
 };
 
 // METHODS
@@ -178,8 +128,6 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
   }
 };
 
-// Takes Csv data read in from the S3 bucket and applies a processFunction
-// to the data to generate an array of filtered objects
 export const parseCsvToArray = async (csvString) => {
   const dataArray = [];
 
@@ -198,10 +146,7 @@ export const parseCsvToArray = async (csvString) => {
   });
 };
 
-// TESTED
-// this function will split the incoming validated cass feed into
-// two array, a unique array and an array that contains all the duplicate
-// records
+// returns unique records array and an array that contains all the duplicate
 export const filterUniqueEntries = (cassFeed) => {
   const flag = {};
   const unique = [];
@@ -218,54 +163,8 @@ export const filterUniqueEntries = (cassFeed) => {
   return [unique, duplicate]
 }
 
-// takes a single data item and process it
-// returns records in dynamodb format with
-// export const processingData = async (record) => {
-//   const checkingNHSNumber = await checkDynamoTable(client, record.nhs_number, "Population", "nhs_number", "N", true)
-//   // Supplied NHS No. exists in Population table
-//   if (checkingNHSNumber){
-//     if (record.superseded_by_nhs_number === 'null'){
-//       ++countAC5
-//       // TODO: UPDATE A RECORD
-//       // return await formatDynamoDbRecord("", true)
-//       return null
-//     } else {
-//       const checkingSupersedNumber = await checkDynamoTable(client, record.superseded_by_nhs_number, "Population", "superseded_by_nhs_number", "N", true);
-//        // Superseded by NHS No. does not exist in the MPI
-//       if (checkingSupersedNumber) {
-//         ++countAC7
-//         // TODO: THEN merge two MPI record
-//         // return await formatDynamoDbRecord("", true)
-//         return null
-//       } else {
-//         ++countAC6
-//         // TODO: THEN replace NHS no. with the Superseded by NHS no
-//         // return await formatDynamoDbRecord("", true)
-//         return null
-//       }
-//     }
-//   } else { // Supplied NHS No/ does not exist in Population table
-//     if (record.superseded_by_nhs_number === 'null'){
-//       ++countAC1
-//       // const formattedRecord = await generateRecord(record, client);
-//       return await generateRecord(record, client);
-//     } else { // Superseded by NHS No. !== Null
-//       const checkingSupersedNumber = await checkDynamoTable(client, record.superseded_by_nhs_number, "Population", "superseded_by_nhs_number", "N", true);
-//       // Superseded by NHS No. does not exist in the MPI
-//       if (!checkingSupersedNumber) {
-//         ++countAC2
-//         record.nhs_number = record.superseded_by_nhs_number;
-//         // const formattedRecord = await generateRecord(record, client);
-//         return await generateRecord(record, client);
-//       }
-//     }
-//   }
-// }
-
-
-// takes a single data item and process it
-// returns records in dynamodb format with
-export const processingData = async (record) => {
+// returns formatted dynamodb record or rejected record object
+const processingData = async (record) => {
   const checkingNHSNumber = await checkDynamoTable(client, record.nhs_number, "Population", "nhs_number", "N", true)
   if (!checkingNHSNumber){
     // Supplied NHS No/ does not exist in Population table
@@ -288,11 +187,10 @@ export const processingData = async (record) => {
   }
 }
 
-// Not unit testing
+// returns true if item exists in dynamodb table
 export const checkDynamoTable = async (dbClient, attribute, table, attributeName, attributeType, useIndex) => {
   try {
     const checkTable = await lookUp(dbClient, attribute, table, attributeName, attributeType, useIndex);
-    // console.log(`what is the response from checking the ${table} for attribute ${attributeName} with value ${attribute} -> ${checkTable}`)
     if (checkTable === UNSUCCESSFULL_REPSONSE) {
       return true
     };
@@ -304,8 +202,9 @@ export const checkDynamoTable = async (dbClient, attribute, table, attributeName
   }
 }
 
-export const generateRecord = async (record, client) => {
-  record.participant_id = await generateParticipantID(client); // AC3
+// returns formatted dynamodb json to be uploaded or rejected object
+const generateRecord = async (record, client) => {
+  record.participant_id = await generateParticipantID(client);
   const lsoaCheck = await getLsoa(record, client);
 
   if (!record.participant_id || lsoaCheck.rejected){
@@ -316,19 +215,22 @@ export const generateRecord = async (record, client) => {
       reason: lsoaCheck.reason
     };
   }
-
-  record.lsoa_2011 = lsoaCheck.lsoaCode;
-  const responsibleIcb = await getItemFromTable(client, "GpPractice", "gp_practice_code", "S", record.primary_care_provider); // AC4
-  record.responsible_icb = responsibleIcb.Item?.icb_id.S;
+  record.lsoa_2011 = lsoaCheck;
+  const responsibleIcb = await getItemFromTable(client, "GpPractice", "gp_practice_code", "S", record.primary_care_provider);
+  if (!responsibleIcb) {
+    return {
+      rejectedRecordNhsNumber: record.nhs_number,
+      rejected: true,
+      reason: `GP practice with code ${record.primary_care_provider} is not part of a participating ICB`
+    };
+  }
+  record.responsible_icb = responsibleIcb.Item.icb_id.S;
   return await formatDynamoDbRecord(record)
 }
 
-// TODO: unit
+// returns unique participant id using NHS regex
+// unique in both population table and this stream
 export const generateParticipantID = async (dbClient) => {
-  /* Participant_Id must be a unique value in the Population table
-  thus we can not use the in built dynamodb validation for uniqueness
-  We must instead use the query operation
-*/
   const participantIdRandExp = new RandExp(
     /NHS-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]/
   );
@@ -338,7 +240,8 @@ export const generateParticipantID = async (dbClient) => {
     do {
       participantId = participantIdRandExp.gen();
       found = await lookUp(dbClient, participantId, "Population", "participantId", "S", true);
-    } while (found !== SUCCESSFULL_REPSONSE);
+    } while (found !== SUCCESSFULL_REPSONSE && !participantIdStore.hasOwnProperty(participantId));
+    participantIdStore.participantId = true;
     return participantId;
   } catch (err) {
     console.error("Error generating participant id.");
@@ -347,10 +250,9 @@ export const generateParticipantID = async (dbClient) => {
   }
 };
 
-// TODO: unit
+// returns LSOA using patient postcode or the LSOA from GP practice
+// or returns error message
 export const getLsoa = async (record, dbClient) => {
-  // use postcode to find LSOA
-  // if postcode unavailable use primary_care_provider to find LSOA from Gp practice table
   const { postcode, primary_care_provider } = record
   const lsoaObject = {
     lsoaCode: "",
@@ -364,11 +266,8 @@ export const getLsoa = async (record, dbClient) => {
       // Get LSOA using GP practice
       if (!checkLsoa.Item) {
         const lsoaFromGp = await getItemFromTable(dbClient, "GpPractice", "gp_practice_code", "S", primary_care_provider);
-        if (!lsoaFromGp.Item || lsoaFromGp.Item.LSOA_2011.S === "") {
-          lsoaObject.rejected = true;
-          lsoaObject.reason = `Rejecting record ${record.nhs_number} as can't get LSOA from the GP practice with code ${primary_care_provider} as it is not part of participating ICB`;
-          return lsoaObject;
-        }
+        // LSOA code could not be found for record using postcode or gp practice code. Set as null
+        if (!lsoaFromGp.Item || lsoaFromGp.Item.LSOA_2011.S === "") return lsoaObject.lsoaCode = "null";
         return lsoaObject.lsoaCode = lsoaFromGp.Item.LSOA_2011.S;
       }
       if (checkLsoa.Item.LSOA_2011.S !== "") return lsoaObject.lsoaCode = checkLsoa.Item.LSOA_2011.S;
@@ -387,7 +286,7 @@ export const getLsoa = async (record, dbClient) => {
   }
 }
 
-// TESTED
+// returns item and metadata from dynamodb table
 export const getItemFromTable = async (dbClient, table, ...keys) => {
   const [
     partitionKeyName,
@@ -424,7 +323,7 @@ export const getItemFromTable = async (dbClient, table, ...keys) => {
   return response;
 }
 
-// TESTED
+// returns successful response if attribute doesn't exist in table
 export const lookUp = async (dbClient, ...params) => {
   const [
     id,
@@ -456,13 +355,14 @@ export const lookUp = async (dbClient, ...params) => {
   const response = await dbClient.send(getCommand);
 
   if (response.Items.length > 0){
-    return UNSUCCESSFULL_REPSONSE; // participatingId already exists
+    // attribute already exists in table
+    return UNSUCCESSFULL_REPSONSE;
   }
   return SUCCESSFULL_REPSONSE;
 };
 
-// TESTED
-const uploadToDynamoDb = async (dbClient, table, batch) => {
+// returns response from batch write to dynamodb table
+export const uploadToDynamoDb = async (dbClient, table, batch) => {
   let requestItemsObject = {};
   requestItemsObject[`${ENVIRONMENT}-${table}`] = batch;
 
@@ -474,18 +374,18 @@ const uploadToDynamoDb = async (dbClient, table, batch) => {
   return response.$metadata.httpStatusCode;
 }
 
-// TODO: unit
+// returns array with each element representing response of batch upload status
 export async function batchWriteRecords(records, chunkSize, dbClient) {
-  // console.log("Writing:", JSON.stringify(records, null, 2))
   console.log(`Number of records to push to db = ${records.length}`)
   const sendRequest = [];
-  if (records.length === 0) return sendRequest; // handle edge case
+  // handle edge case
+  if (records.length === 0) return sendRequest;
 
   for (let i = 0; i < records.length; chunkSize) {
-    if ((records.length - i) < chunkSize){ // remaining chunk
+    if ((records.length - i) < chunkSize){
+      // remaining chunk
       const batch = records.splice(i, records.length - i);
       console.log("Writing remainder")
-      // , JSON.stringify(batch, null, 2))
       sendRequest.push(await uploadToDynamoDb(dbClient, `Population`, batch));
       return sendRequest;
     }
@@ -496,7 +396,7 @@ export async function batchWriteRecords(records, chunkSize, dbClient) {
   return sendRequest
 }
 
-// TESTED
+// returns formatted dynamodb json to be uploaded
 export const formatDynamoDbRecord = async (record) => {
   // nhs_number: {N: record.nhs_number}, -> 0
   if (record.nhs_number === "null") record.nhs_number = "0"
@@ -514,7 +414,7 @@ export const formatDynamoDbRecord = async (record) => {
       Item: {
         PersonId: {S: record.participant_id},
         LsoaCode: {S: record.lsoa_2011},
-        participantId: {S: record.participant_id}, // may need to change
+        participantId: {S: record.participant_id},
         nhs_number: {N: record.nhs_number},
         superseded_by_nhs_number: {N: record.superseded_by_nhs_number},
         primary_care_provider: {S: record.primary_care_provider},
@@ -533,6 +433,7 @@ export const formatDynamoDbRecord = async (record) => {
         postcode: {S: record.postcode},
         reason_for_removal: {S: record.reason_for_removal},
         reason_for_removal_effective_from_date: {S: record.reason_for_removal_effective_from_date},
+        responsible_icb: {S: record.responsible_icb},
         date_of_death: {S: record.date_of_death},
         telephone_number: {N: record.telephone_number},
         mobile_number: {N: record.mobile_number},
@@ -545,7 +446,7 @@ export const formatDynamoDbRecord = async (record) => {
   }
 }
 
-// Concatenates header and data into single string - the format S3 looks for
+// returns string to upload to s3
 export const generateCsvString = (header, dataArray) => {
   return [
     header,

@@ -110,49 +110,6 @@ resource "aws_iam_policy" "clinic_information_lambda" {
 #  })
 #}
 
-# Policy required by caasFeedAddRecordsLambda
-# resource "aws_iam_policy" "caas_feed_add_records_lambda" {
-#  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_caas_feed_add_records_lambda_role"
-#  path        = "/"
-#  description = "AWS IAM Policy for loading adding records from caas feed role"
-#  policy = jsonencode(
-#    {
-#      "Statement" : [
-#        {
-#          "Action" : [
-#            "logs:CreateLogGroup",
-#            "logs:CreateLogStream",
-#            "logs:PutLogEvents"
-#          ],
-#          "Effect" : "Allow",
-#          "Resource" : "arn:aws:logs:*:*:*"
-#        },
-#        {
-#          "Sid" : "AllowDynamodbAccess",
-#          "Effect" : "Allow",
-#          "Action" : [
-#            "dynamodb:*"
-#          ],
-#          "Resource" : [
-#            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GpPractice",
-#            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Postcode"
-#          ]
-#        },
-#  {
-#     "Sid" : "AllowS3Access",
-#     "Effect" : "Allow",
-#     "Action" : [
-#       "s3:*"
-#     ],
-#     "Resource" : [
-#       "arn:aws:s3:::galleri-caas-data"
-#     ]
-#   }
-#      ],
-#      "Version" : "2012-10-17"
-#  })
-# }
-
 resource "aws_iam_policy" "participating_icb_list_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participating_icb_list_lambda_role"
   path        = "/"
