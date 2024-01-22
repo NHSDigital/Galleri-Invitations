@@ -643,7 +643,7 @@ resource "aws_iam_role_policy_attachment" "generate_invites_policy" {
 # }
 
 data "aws_iam_role_policy_attachment" "secrets_lambda_policy" {
-  role = aws_iam_role.github-oidc-invitations-role.name
+  role       = aws_iam_role.github-oidc-invitations-role.name
   policy_arn = aws_iam_policy.iam_policy_for_participants_in_lsoa_lambda.arn
 }
 
