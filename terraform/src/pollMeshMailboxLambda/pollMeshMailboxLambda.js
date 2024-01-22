@@ -32,7 +32,7 @@ const CONFIG = await loadConfig({
 
 //HANDLER
 export const handler = async (event, context) => {
-  let finalMsgArr = [];
+  const finalMsgArr = [];
   try {
     console.log('healthy test');
     let healthy = await run();
@@ -43,7 +43,6 @@ export const handler = async (event, context) => {
       if (messageArr.length > 0) {
         for (let i = 0; i < messageArr.length; i++) {
           let message = await readMsg(messageArr[i]); //returns messages based on id, iteratively from message list arr
-          console.log(messageArr[i]);
           finalMsgArr.push(message);
 
           const meshString = finalMsgArr[i];
@@ -84,7 +83,6 @@ async function run() {
       agent: CONFIG.senderAgent,
     });
 
-    console.log(healthCheck.data);
     return healthCheck.status
   } catch (error) {
     console.error("Error occurred:", error);
@@ -103,7 +101,6 @@ async function getMessageArray() {
     });
     let messageList = messageCount.data.messages
     let inboxCount = messageCount.data.approx_inbox_count;
-    console.log(messageList);
     console.log(`Inbox contains ${inboxCount} messages`);
     return messageList;
   } catch (error) {
@@ -122,8 +119,6 @@ async function markRead(msgID) {
       message: msgID,
       agent: CONFIG.senderAgent,
     });
-
-    console.log(markMsg.data);
     return markMsg;
   } catch (error) {
     console.error("Error occurred:", error);
@@ -141,8 +136,7 @@ async function readMsg(msgID) {
       messageID: msgID,
       agent: CONFIG.senderAgent,
     });
-    const messageData = messages.data;
-    return messageData;
+    return messages.data;
   } catch (error) {
     console.error("Error occurred:", error);
   }
