@@ -642,10 +642,10 @@ resource "aws_iam_role_policy_attachment" "generate_invites_policy" {
 #   policy_arn = aws_iam_policy.iam_policy_for_create_episode_record_lambda.arn
 # }
 
-resource "aws_iam_role_policy_attachment" "secrets_lambda_policy" {
-  role       = aws_iam_role.github-oidc-invitations-role.name
-  policy_arn = aws_iam_policy.iam_policy_for_participants_in_lsoa_lambda.arn
-}
+# resource "aws_iam_role_policy_attachment" "secrets_lambda_policy" {
+#   role       = aws_iam_role.github-oidc-invitations-role.name
+#   policy_arn = aws_iam_policy.iam_policy_for_participants_in_lsoa_lambda.arn
+# }
 
 resource "aws_iam_role" "api_gateway_logging_role" {
   name = "${var.environment}-galleri_logging_role"
