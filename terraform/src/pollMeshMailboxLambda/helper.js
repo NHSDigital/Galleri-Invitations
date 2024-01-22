@@ -56,11 +56,11 @@ export const chunking = function* (itr, size, header) {
 //Allows upload of string from chunks to be uploaded to S3
 export async function multipleUpload(chunk, client, environment) {
   let count = 0;
+  const dateTime = new Date(Date.now()).toISOString();
   return Promise.all(
-    chunk.map(async (x) => {
+    chunk.map(async (x, index) => {
       count++;
-      let dateTime = new Date(Date.now()).toISOString();
-      let filename = `mesh_chunk_data_${count}_${dateTime}`;
+      const filename = `mesh_chunk_data_${index}_${dateTime}`;
       let response = await (pushCsvToS3(
         `${environment}-galleri-caas-data`,
         `${filename}.csv`,
