@@ -459,6 +459,7 @@ describe('formatDynamoDbRecord', () => {
     "postcode": "BD10 0LH",
     "reason_for_removal": "null",
     "reason_for_removal_effective_from_date": "null",
+    "responsible_icb": "null",
     "date_of_death": "null",
     "telephone_number": "null",
     "mobile_number": "null",
@@ -473,34 +474,35 @@ describe('formatDynamoDbRecord', () => {
     const expectedResult = {
       PutRequest: {
         Item: {
-          PersonId: {S: "NHS-QJ63-YT22"},
-          LsoaCode: {S: "E00000001"},
-          participantId: {S: "NHS-QJ63-YT22"}, // may need to change
-          nhs_number: {N: "0"},
-          superseded_by_nhs_number: {N: "0"},
-          primary_care_provider: {S: "Y00291"},
-          gp_connect: {S: "true"},
-          name_prefix: {S: "Mr"},
-          given_name: {S: "David"},
-          other_given_names: {S: "null"},
-          family_name: {S: "GIB"},
-          date_of_birth: {S: "1960-04-01"},
-          gender: {N: "-1"},
-          address_line_1: {S: "TEST3.1.11"},
-          address_line_2: {S: "PYNES HILL"},
-          address_line_3: {S: "RYDON LANE"},
-          address_line_4: {S: "EXETER"},
-          address_line_5: {S: "DEVON"},
-          postcode: {S: "BD10 0LH"},
-          reason_for_removal: {S: "null"},
-          reason_for_removal_effective_from_date: {S: "null"},
-          date_of_death: {S: "null"},
-          telephone_number: {N: "0"},
-          mobile_number: {N: "0"},
-          email_address: {S: "null"},
-          preferred_language: {S: "fr"},
-          is_interpreter_required: {BOOL: Boolean("1")},
-          action: {S: "ADD"},
+          PersonId: { S: "NHS-QJ63-YT22" },
+          LsoaCode: { S: "E00000001" },
+          participantId: { S: "NHS-QJ63-YT22" }, // may need to change
+          nhs_number: { N: "0" },
+          superseded_by_nhs_number: { N: "0" },
+          primary_care_provider: { S: "Y00291" },
+          gp_connect: { S: "true" },
+          name_prefix: { S: "Mr" },
+          given_name: { S: "David" },
+          other_given_names: { S: "null" },
+          family_name: { S: "GIB" },
+          date_of_birth: { S: "1960-04-01" },
+          gender: { N: "-1" },
+          address_line_1: { S: "TEST3.1.11" },
+          address_line_2: { S: "PYNES HILL" },
+          address_line_3: { S: "RYDON LANE" },
+          address_line_4: { S: "EXETER" },
+          address_line_5: { S: "DEVON" },
+          postcode: { S: "BD10 0LH" },
+          reason_for_removal: { S: "null" },
+          reason_for_removal_effective_from_date: { S: "null" },
+          responsible_icb: { S: "null" },
+          date_of_death: { S: "null" },
+          telephone_number: { N: "0" },
+          mobile_number: { N: "0" },
+          email_address: { S: "null" },
+          preferred_language: { S: "fr" },
+          is_interpreter_required: { BOOL: Boolean("1") },
+          action: { S: "ADD" },
         }
       }
     }
@@ -522,7 +524,7 @@ describe('uploadToDynamoDb', () => {
     });
 
     const mockTable = "table-A"
-    const mockBatch = [{records: 1}, {record: 2}]
+    const mockBatch = [{ records: 1 }, { record: 2 }]
 
     const result = await uploadToDynamoDb(mockDynamoDbClient, mockTable, mockBatch);
 
