@@ -217,7 +217,7 @@ const generateRecord = async (record, client) => {
   }
   record.lsoa_2011 = lsoaCheck;
   const responsibleIcb = await getItemFromTable(client, "GpPractice", "gp_practice_code", "S", record.primary_care_provider);
-  if (!responsibleIcb) {
+  if (!responsibleIcb.Item?.icb_id?.S) {
     return {
       rejectedRecordNhsNumber: record.nhs_number,
       rejected: true,
