@@ -10,19 +10,19 @@ const clientS3 = new S3Client({});
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
 //retrieve secrets into lambda, certificates required to connect to MESH
-let meshSenderCert = Buffer.from(
+const meshSenderCert = Buffer.from(
   await getSecret("MESH_SENDER_CERT", smClient),
   "base64"
 ).toString("utf8");
-let meshSenderKey = Buffer.from(
+const meshSenderKey = Buffer.from(
   await getSecret("MESH_SENDER_KEY", smClient),
   "base64"
 ).toString("utf8");
-let meshReceiverCert = Buffer.from(
+const meshReceiverCert = Buffer.from(
   await getSecret("MESH_RECEIVER_CERT", smClient),
   "base64"
 ).toString("utf8");
-let meshReceiverKey = Buffer.from(
+const meshReceiverKey = Buffer.from(
   await getSecret("MESH_RECEIVER_KEY", smClient),
   "base64"
 ).toString("utf8");
@@ -157,8 +157,9 @@ export const handler = async (event, context) => {
           finalMsgArr.push(message);
 
           const meshString = finalMsgArr[0];
-          const header = meshString.split("\n")[0];
-          const messageBody = meshString.split("\n").splice(1); //data - header
+          const splitMeshString = meshString.split("\n");
+          const header = splitMeshString[0];
+          const messageBody = splitMeshString.splice(1); //data - header
 
           const x = new Set(messageBody);
           let chunk = [...chunking(x, 2001, header)]; //includes header and 2000 records
