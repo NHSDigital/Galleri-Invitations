@@ -179,23 +179,32 @@ const updateRecord = async (record, recordFromTable) => {
     lsoaCode
   } = record
   // AC1b
-  if (record.date_of_death !== recordFromTable.date_of_death){
+  if (record.date_of_death !== recordFromTable.date_of_death) {
     // update record in population table
     // check if open record
     // AC1a
-    if (){
+    const episodeRecord = lookUp(client, record.PersonId, "Episode", "Participant_Id", "S", true);
+    if (episodeRecord.Items.length > 0) {
       // close record in population table
+      const {
+        batchId,
+        Participant_Id
+      } = episodeRecord.Items
+
+      const updateEpisodeRecord = ["Episode_Status", "S", "Closed"]
+      updateRecordInTable(client, "Episode", batchId, Participant_Id, updateEpisodeRecord)
     }
     // update record with new date_of_death
-    await updateRecordInTable(client, personId, lsoaCode, "date_of_death", "S", record.date_of_death)
+    const updateDateOfDeath = ["date_of_death", "S", record.date_of_death]
+    await updateRecordInTable(client, "Population", personId, lsoaCode, updateDateOfDeath)
   }
 
   // AC2
-  if (record.primary_care_provider !== recordFromTable.primary_care_provider){
+  if (record.primary_care_provider !== recordFromTable.primary_care_provider) {
     // responsible icb and lsoa
     const lsoaCheck = await getLsoa(record, client);
 
-    if (!record.participant_id || lsoaCheck.rejected){
+    if (!record.participant_id || lsoaCheck.rejected) {
       // Records keys failed
       return {
         rejectedRecordNhsNumber: record.nhs_number,
@@ -208,14 +217,15 @@ const updateRecord = async (record, recordFromTable) => {
     record.responsible_icb = responsibleIcb.Item?.icb_id.S;
 
     // update record with new primary_care_provider && responsible_ICB && LSOA
-    await updateRecordInTable(client, personId, lsoaCode,
-      "date_of_death", "S", record.date_of_death,
-      "responsible_icb", "S", record.responsible_icb,
-      "LsoaCode", "S", record.lsoa_2011)
+    const updateDateOfDeath = ["primary_care_provider", "S", record.primary_care_provider]
+    const updateResponsibleIcb = ["responsible_icb", "S", record.responsible_icb]
+    const updateLsoaCode = ["LsoaCode", "S", record.lsoa_2011]
+
+    await updateRecordInTable(client, "Population", personId, lsoaCode, updateDateOfDeath, updateResponsibleIcb, updateLsoaCode)
   }
 
   // AC4
-  if (record.postcode !== recordFromTable.postcode){
+  if (record.postcode !== recordFromTable.postcode) {
     // set lsoa
     const lsoaCheck = await getLsoa(record, client);
 
@@ -230,42 +240,70 @@ const updateRecord = async (record, recordFromTable) => {
     record.lsoa_2011 = lsoaCheck;
 
     // update record with new postcode && LSOA
-    updateRecordInTable(record)
+    const updateResponsibleIcb = ["responsible_icb", "S", record.responsible_icb];
+    const updateLsoaCode = ["LsoaCode", "S", record.lsoa_2011];
+    updateRecordInTable(client, "Population", personId, lsoaCode, updateResponsibleIcb, updateLsoaCode)
   }
 }
 
-export async function updateRecordInTable(client, personId, LsoaCode, ...itemsToUpdate) {
+export async function updateRecordInTable(client, table, partitionKey, sortKey, ...itemsToUpdate) {
 
-  const [
+  let updateItemCommandKey = {}
+  updateItemCommandKey[partitionKey] = { S: `${partitionKey}` }
+  updateItemCommandKey[sortKey] = { S: `${sortKey}`}
 
-  ]
+  let updateItemCommandExpressionAttributeNames = {}
+
+  let updateItemCommandExpressionAttributeValues = {}
+
+  let updateItemCommandUpdateExpression = `SET`
+
+  itemsToUpdate.forEach(updateItem => {
+    const [
+      itemName,
+      itemType,
+      item
+    ] = updateItem
+
+    // ExpressionAttributeNames
+    const localAttributeName = `#${itemName.toUpperCase}`
+    updateItemCommandExpressionAttributeNames[localAttributeName] = itemName;
+
+    const localItemName = `local_${itemName}`
+    // ExpressionAttributeValues
+    updateItemCommandExpressionAttributeValues[`:${localItemName}`] = { itemType: item };
+
+    // UpdateExpression
+    updateItemCommandUpdateExpression += `${localAttributeName} = :${localItemName},`
+  })
 
   const input = {
-    ExpressionAttributeNames: {
-      "#IDENTIFIED_TO_BE_UPDATED": "identified_to_be_invited",
-      "#BATCH_ID": "Batch_Id"
-    },
-    ExpressionAttributeValues: {
-      ":to_be_invited": {
-        BOOL: true,
-      },
-      ":batch": {
-        S: `${batchId}`,
-      },
-    },
-    Key: {
-      PersonId: {
-        S: `${record}`,
-      },
-      LsoaCode: {
-        S: `${lsoaCode}`,
-      },
-    },
-    TableName: `${ENVIRONMENT}-Population`,
-    UpdateExpression: `SET
-      #IDENTIFIED_TO_BE_UPDATED = :to_be_invited,
-      #BATCH_ID = :batch`,
+    ExpressionAttributeNames: updateItemCommandExpressionAttributeNames,
+    ExpressionAttributeValues: updateItemCommandExpressionAttributeValues,
+    Key: updateItemCommandKey,
+    TableName: `${ENVIRONMENT}-${table}`,
+    UpdateExpression: updateItemCommandUpdateExpression,
   };
+
+  // const inputOG = {
+  //   ExpressionAttributeNames: {
+  //     "#IDENTIFIED_TO_BE_UPDATED": "identified_to_be_invited",
+  //     "#BATCH_ID": "Batch_Id"
+  //   },
+  //   ExpressionAttributeValues: {
+  //     ":to_be_invited": {
+  //       BOOL: true,
+  //     },
+  //     ":batch": {
+  //       S: `${batchId}`,
+  //     },
+  //   },
+  //   Key: updateItemCommandKey,
+  //   TableName: `${ENVIRONMENT}-${table}`,
+  //   UpdateExpression: `SET
+  //     #IDENTIFIED_TO_BE_UPDATED = :to_be_invited,
+  //     #BATCH_ID = :batch`,
+  // };
 
   const command = new UpdateItemCommand(input);
   const response = await client.send(command);
