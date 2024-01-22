@@ -101,5 +101,3 @@ describe("multipleUpload", () => {
     expect(result[0]).toHaveProperty("$metadata.httpStatusCode", 200);
   })
 })
-
-//TODO: tests for run, runMessage, sendMessage, markRead, ReadMsg
