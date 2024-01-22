@@ -22,7 +22,6 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
 
 //Return 'Secret value' from secrets manager by passing in 'Secret name'
 export const getSecret = async (secretName, client) => {
-  // let response = "";
   try {
     const response = await client.send(
       new GetSecretValueCommand({
@@ -30,8 +29,7 @@ export const getSecret = async (secretName, client) => {
       })
     );
     console.log(`Retrieved value successfully ${secretName}`);
-    const secret = response.SecretString;
-    return secret;
+    return response.SecretString;
   } catch (error) {
     console.log("Failed: ", error);
     throw error;
