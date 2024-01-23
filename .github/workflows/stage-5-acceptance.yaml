@@ -54,7 +54,7 @@ on:
         required: false
       test:
         description: "If the tests should be run or not"
-        default: "false"
+        default: "no"
         type: string
         required: false
 
