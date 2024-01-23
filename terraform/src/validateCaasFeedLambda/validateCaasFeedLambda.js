@@ -204,21 +204,24 @@ export function validateRecord(record) {
   }
 
   // AC9 - Given Name not provided
-  // (!record.given_name || record.given_name === "null" || record.given_name.trim() === "")
-  if (record.given_name !== "null" && !isValidNameFormat(record.given_name)) {
+  if ((record.given_name !== "null" && !isValidNameFormat(record.given_name)) || (record.given_name === "")) {
     validationResults.success = false;
     validationResults.message = "Technical error - Given Name is missing";
     return validationResults;
   }
 
   // AC8 - Family Name not provided
-  // (!record.family_name || record.family_name === "null" || record.family_name.trim() === "")
-  if (record.family_name !== "null" && !isValidNameFormat(record.family_name)) {
+  if ((record.family_name !== "null" && !isValidNameFormat(record.family_name)) || (record.family_name === "")) {
     validationResults.success = false;
     validationResults.message = "Technical error - Family Name is missing";
     return validationResults;
   }
 
+  if ((record.other_given_names !== "null" && !isValidNameFormat(record.other_given_names)) || (record.other_given_names === "")) {
+    validationResults.success = false;
+    validationResults.message = "Technical error - Other given name is missing";
+    return validationResults;
+  }
   // AC7 - Date of Birth is an invalid format or is in the future
   if (
     !record.date_of_birth ||
@@ -301,7 +304,10 @@ export function isValidNHSNumberFormat(nhsNumber) {
 
 export function isValidNameFormat(given_name) {
   //Check Valid name format
-  const isValidFormat = /^[a-zÀ-ú ,.'-]+$/gim.test(given_name);
+  const isValidFormat = /^[a-zÀ-ú1-9 ]+$/gim.test(given_name);
+  if (given_name.split("").length > 32) {
+    return false;
+  }
   if (!isValidFormat) {
     return false; //Invalid format
   }
