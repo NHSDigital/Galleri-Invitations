@@ -5,7 +5,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { Readable } from "stream";
 import csv from "csv-parser";
-
+//^[a-zÀ-ú ,.'-]+$/gim
 const s3 = new S3Client();
 
 export const handler = async (event) => {
@@ -15,6 +15,7 @@ export const handler = async (event) => {
   try {
     const csvString = await readCsvFromS3(bucket, key, s3);
     const records = await parseCsvToArray(csvString);
+    console.log(records);
 
     const [outputSuccess, outputUnsuccess] = validateRecords(records);
     console.log(`Finished validating object ${key} in bucket ${bucket}`);
@@ -37,11 +38,11 @@ export const handler = async (event) => {
     console.log(`Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${bucket}`);
 
     // Deposit to S3 bucket
-    await pushCsvToS3(bucket, `validRecords/valid_records_add-${timeNow}.csv`, recordsAddCsvData, s3);
-    await pushCsvToS3(bucket, `validRecords/valid_records_update-${timeNow}.csv`, recordsUpdateCsvData, s3);
-    await pushCsvToS3(bucket, `validRecords/valid_records_delete-${timeNow}.csv`, recordsDeleteCsvData, s3);
+    await pushCsvToS3('dev-1-galleri-processed-caas-data', `validRecords/valid_records_add-${timeNow}.csv`, recordsAddCsvData, s3);
+    await pushCsvToS3('dev-1-galleri-processed-caas-data', `validRecords/valid_records_update-${timeNow}.csv`, recordsUpdateCsvData, s3);
+    await pushCsvToS3('dev-1-galleri-processed-caas-data', `validRecords/valid_records_delete-${timeNow}.csv`, recordsDeleteCsvData, s3);
 
-    await pushCsvToS3(bucket, `invalidRecords/invalid_records-${timeNow}.csv`, invalidRecordsCsvData, s3);
+    await pushCsvToS3('dev-1-galleri-processed-caas-data', `invalidRecords/invalid_records-${timeNow}.csv`, invalidRecordsCsvData, s3);
 
     // Logging the invalid records
     console.warn("PLEASE FIND THE INVALID CAAS RECORDS FROM THE PROCESSED CAAS FEED BELOW:\n" + JSON.stringify(outputUnsuccess, null, 2))
@@ -203,14 +204,16 @@ export function validateRecord(record) {
   }
 
   // AC9 - Given Name not provided
-  if (!record.given_name || record.given_name === "null" || record.given_name.trim() === "") {
+  // (!record.given_name || record.given_name === "null" || record.given_name.trim() === "")
+  if (record.given_name !== "null" && !isValidNameFormat(record.given_name)) {
     validationResults.success = false;
     validationResults.message = "Technical error - Given Name is missing";
     return validationResults;
   }
 
   // AC8 - Family Name not provided
-  if (!record.family_name || record.family_name === "null" || record.family_name.trim() === "") {
+  // (!record.family_name || record.family_name === "null" || record.family_name.trim() === "")
+  if (record.family_name !== "null" && !isValidNameFormat(record.family_name)) {
     validationResults.success = false;
     validationResults.message = "Technical error - Family Name is missing";
     return validationResults;
@@ -294,6 +297,15 @@ export function isValidNHSNumberFormat(nhsNumber) {
   // AC1 - NHS Number is not a valid format (n10),
   // check if it's a numeric string with a length of 10
   return /^\d{10}$/.test(nhsNumber);
+}
+
+export function isValidNameFormat(given_name) {
+  //Check Valid name format
+  const isValidFormat = /^[a-zÀ-ú ,.'-]+$/gim.test(given_name);
+  if (!isValidFormat) {
+    return false; //Invalid format
+  }
+  return true;
 }
 
 export function isValidRemovalReasonCode(reasonCode) {
