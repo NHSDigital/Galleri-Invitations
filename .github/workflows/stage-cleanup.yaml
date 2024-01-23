@@ -15,14 +15,6 @@ on:
         description: "Build epoch, set by the CI/CD pipeline workflow"
         required: true
         type: string
-      nodejs_version:
-        description: "Node.js version, set by the CI/CD pipeline workflow"
-        required: true
-        type: string
-      python_version:
-        description: "Python version, set by the CI/CD pipeline workflow"
-        required: true
-        type: string
       terraform_version:
         description: "Terraform version, set by the CI/CD pipeline workflow"
         required: true
@@ -48,10 +40,6 @@ on:
         default: destroy
         type: string
         required: false
-      database_seeding:
-        description: "Determines if the database requires data being added"
-        type: string
-        required: false
 
 env:
   role-to-assume: ${{ vars.AWS_ROLE_ARN }}
@@ -64,7 +52,7 @@ env:
   tf-action: ${{ inputs.tf_action }}
 
 jobs:
-  environment-set-up:
+  environment-teardown:
     permissions:
       id-token: write # This is required for aws oidc connection
       contents: read # This is required for actions/checkout
@@ -81,7 +69,7 @@ jobs:
           pip install boto3
           pip install rstr
           pip install random_word
-      - name: "Create infrastructure"
+      - name: "Environment teardown"
         uses: ./.github/actions/terraform
         with:
           role-to-assume: ${{ env.role-to-assume }}
@@ -93,123 +81,3 @@ jobs:
           frontend-branch: ${{ env.frontend-branch }}
           tf-action: ${{ env.tf-action }}
         timeout-minutes: 15
-      - name: "Seed databases"
-        # if: inputs.tf_action == 'apply' || inputs.database_seeding == "true"
-        if: inputs.tf_action == 'apply'
-        uses: ./.github/actions/seeding
-        with:
-          role-to-assume: ${{ env.role-to-assume }}
-          aws-region: ${{ env.aws-region }}
-          environment: ${{ env.environment }}
-        timeout-minutes: 30
-      - name: "Deploy application"
-        if: inputs.tf_action == 'apply'
-        run: |
-          echo "Deploying application..."
-  # test-contract:
-  #   runs-on: ubuntu-latest
-  #   needs: environment-set-up
-  #   timeout-minutes: 10
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: "Run contract test"
-  #       run: |
-  #         make test-contract
-  #     - name: "Save result"
-  #       run: |
-  #         echo "Nothing to save"
-  # test-security:
-  #   runs-on: ubuntu-latest
-  #   needs: environment-set-up
-  #   timeout-minutes: 10
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: "Run security test"
-  #       run: |
-  #         make test-security
-  #     - name: "Save result"
-  #       run: |
-  #         echo "Nothing to save"
-  # test-ui:
-  #   runs-on: ubuntu-latest
-  #   needs: environment-set-up
-  #   timeout-minutes: 10
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: "Run UI test"
-  #       run: |
-  #         make test-ui
-  #     - name: "Save result"
-  #       run: |
-  #         echo "Nothing to save"
-  # test-ui-performance:
-  #   runs-on: ubuntu-latest
-  #   needs: environment-set-up
-  #   timeout-minutes: 10
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: "Run UI performance test"
-  #       run: |
-  #         make test-ui-performance
-  #     - name: "Save result"
-  #       run: |
-  #         echo "Nothing to save"
-  # test-integration:
-  #   runs-on: ubuntu-latest
-  #   needs: environment-set-up
-  #   timeout-minutes: 10
-  #   steps:
-  #     - name: "Checkout code"
-  #       uses: actions/checkout@v4
-  #     - name: "Run integration test"
-  #       run: |
-  #         make test-integration
-  #     - name: "Save result"
-  #       run: |
-  #         echo "Nothing to save"
-  # test-accessibility:
-  #   runs-on: ubuntu-latest
-  #   needs: environment-set-up
-  #   timeout-minutes: 10
-  #   steps:
-  #     - name: "Checkout code"
-  #       uses: actions/checkout@v4
-  #     - name: "Run accessibility test"
-  #       run: |
-  #         make test-accessibility
-  #     - name: "Save result"
-  #       run: |
-  #         echo "Nothing to save"
-  # test-load:
-  #   runs-on: ubuntu-latest
-  #   needs: environment-set-up
-  #   timeout-minutes: 10
-  #   steps:
-  #     - name: "Checkout code"
-  #       uses: actions/checkout@v4
-  #     - name: "Run load tests"
-  #       run: |
-  #         make test-load
-  #     - name: "Save result"
-  #       run: |
-  #         echo "Nothing to save"
-  # environment-tear-down:
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #     [
-  #       test-accessibility,
-  #       test-contract,
-  #       test-integration,
-  #       test-load,
-  #       test-security,
-  #       test-ui-performance,
-  #       test-ui,
-  #     ]
-  #   if: always()
-  #   timeout-minutes: 5
-  #   steps:
-  #     - name: "Checkout code"
-  #       uses: actions/checkout@v4
-  #     - name: "Tear down environment"
-  #       run: |
-  #         echo "Tearing down environment..."
