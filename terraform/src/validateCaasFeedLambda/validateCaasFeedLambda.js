@@ -40,11 +40,11 @@ export const handler = async (event) => {
     console.log(`Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${bucket}`);
 
     // Deposit to S3 bucket
-    await pushCsvToS3(`${ENVIRONMENT}-dev-1-galleri-processed-caas-data`, `validRecords/valid_records_add-${timeNow}.csv`, recordsAddCsvData, s3);
-    await pushCsvToS3(`${ENVIRONMENT}-dev-1-galleri-processed-caas-data`, `validRecords/valid_records_update-${timeNow}.csv`, recordsUpdateCsvData, s3);
-    await pushCsvToS3(`${ENVIRONMENT}-dev-1-galleri-processed-caas-data`, `validRecords/valid_records_delete-${timeNow}.csv`, recordsDeleteCsvData, s3);
+    await pushCsvToS3(`${ENVIRONMENT}-galleri-processed-caas-data`, `validRecords/valid_records_add-${timeNow}.csv`, recordsAddCsvData, s3);
+    await pushCsvToS3(`${ENVIRONMENT}-galleri-processed-caas-data`, `validRecords/valid_records_update-${timeNow}.csv`, recordsUpdateCsvData, s3);
+    await pushCsvToS3(`${ENVIRONMENT}-galleri-processed-caas-data`, `validRecords/valid_records_delete-${timeNow}.csv`, recordsDeleteCsvData, s3);
 
-    await pushCsvToS3(`${ENVIRONMENT}-dev-1-galleri-processed-caas-data`, `invalidRecords/invalid_records-${timeNow}.csv`, invalidRecordsCsvData, s3);
+    await pushCsvToS3(`${ENVIRONMENT}-galleri-processed-caas-data`, `invalidRecords/invalid_records-${timeNow}.csv`, invalidRecordsCsvData, s3);
 
     // Logging the invalid records
     console.warn("PLEASE FIND THE INVALID CAAS RECORDS FROM THE PROCESSED CAAS FEED BELOW:\n" + JSON.stringify(outputUnsuccess, null, 2))
