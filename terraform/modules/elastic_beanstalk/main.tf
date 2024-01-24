@@ -242,6 +242,6 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "USERS"
-    value     = [{ id : "1", name : "dev", email : "dev@nhs.net", password : "Testing" }, { id : "2", name : "test", email : "test@nhs.net", password : "Testing" }, { id : "3", name : "pen", email : "pen@nhs.net", password : "Testing" }, ]
+    value     = "[{ id : '1', name : 'dev', email : 'dev@nhs.net', password : 'Testing' }, { id : '2', name : 'test', email : 'test@nhs.net', password : 'Testing' }, { id : '3', name : 'pen', email : 'pen@nhs.net', password : 'Testing' }, ]"
   }
 }
