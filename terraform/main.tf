@@ -648,6 +648,33 @@ module "user_accounts_lambda_trigger" {
   lambda_arn = module.user_accounts_lambda.lambda_arn
 }
 
+module "gtms_mesh_mailbox_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gtmsMeshMailboxLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "gtms_mesh_mailbox_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT            = "${var.environment}",
+    MESH_SANDBOX           = "false",
+    MESH_SENDER_MAILBOX_ID = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_id.secret_string)["MESH_SENDER_MAILBOX_ID"]
+  }
+}
+
+data "aws_secretsmanager_secret_version" "mesh_sender_mailbox_id" {
+  secret_id = "MESH_SENDER_MAILBOX_ID"
+}
+
+module "gtms_mesh_mailbox_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gtms_mesh_mailbox_lambda.lambda_function_name
+  retention_days       = 14
+}
+
 # Dynamodb tables
 module "sdrs_table" {
   source      = "./modules/dynamodb"
