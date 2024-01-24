@@ -238,4 +238,10 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     name      = "NEXT_PUBLIC_GENERATE_INVITES"
     value     = var.NEXT_PUBLIC_GENERATE_INVITES
   }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "USERS"
+    value     = var.USERS
+  }
 }

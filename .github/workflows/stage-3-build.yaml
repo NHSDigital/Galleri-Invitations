@@ -88,6 +88,7 @@ jobs:
           invitations-branch: ${{ env.invitations-branch }}
           frontend-branch: ${{ env.frontend-branch }}
           tf-action: ${{ env.tf-action }}
+          TF_VAR_USERS: ${{ secrets.USERS }}
         timeout-minutes: 15
 # name: "Build stage"
 
