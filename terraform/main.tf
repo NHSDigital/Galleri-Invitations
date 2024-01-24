@@ -78,6 +78,13 @@ module "user_accounts_bucket" {
   environment             = var.environment
 }
 
+module "gtms_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "galleri-gtms-data"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
 # Data Filter Gridall IMD
 module "data_filter_gridall_imd_lambda" {
   source               = "./modules/lambda"
