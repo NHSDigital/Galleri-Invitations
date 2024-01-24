@@ -95,4 +95,5 @@ variable "NEXT_PUBLIC_GENERATE_INVITES" {
 
 variable "USERS" {
   description = "A list of users who can access the system via local login"
+  default     = null
 }
