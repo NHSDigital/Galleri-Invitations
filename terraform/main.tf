@@ -761,14 +761,6 @@ module "caas_feed_add_records_lambda_cloudwatch" {
   retention_days       = 14
 }
 
-# module "caas_feed_add_records_lambda_trigger" {
-#   source        = "./modules/lambda_trigger"
-#   bucket_id     = module.caas_data_bucket.bucket_id
-#   bucket_arn    = module.caas_data_bucket.bucket_arn
-#   lambda_arn    = module.caas_feed_add_records_lambda.lambda_arn
-#   filter_prefix = "validRecords/valid_records_add-"
-# }
-
 module "caas_feed_add_records_lambda_trigger" {
   source        = "./modules/lambda_trigger"
   bucket_id     = module.test_bucket.bucket_id

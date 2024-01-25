@@ -1,6 +1,6 @@
 import { mockClient } from "aws-sdk-client-mock";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { pushCsvToS3, getSecret, chunking, multipleUpload } from "../../pollMeshMailboxLambda/helper"; //chunking, getSecret, multipleUpload
+import { pushCsvToS3, getSecret, chunking, multipleUpload } from "../../pollMeshMailboxLambda/helper";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 
 describe("chunking", () => {
