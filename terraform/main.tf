@@ -702,22 +702,6 @@ data "aws_secretsmanager_secret_version" "mesh_receiver_mailbox_id" {
 data "aws_secretsmanager_secret_version" "mesh_receiver_mailbox_password" {
   secret_id = "MESH_RECEIVER_MAILBOX_PASSWORD"
 }
-
-data "aws_secretsmanager_secret_version" "mesh_receiver_key" {
-  secret_id = "MESH_RECEIVER_KEY"
-}
-
-data "aws_secretsmanager_secret_version" "mesh_receiver_cert" {
-  secret_id = "MESH_RECEIVER_CERT"
-}
-
-data "aws_secretsmanager_secret_version" "mesh_sender_key" {
-  secret_id = "MESH_SENDER_KEY"
-}
-
-data "aws_secretsmanager_secret_version" "mesh_sender_cert" {
-  secret_id = "MESH_SENDER_CERT"
-}
 #END of MESH keys
 
 module "poll_mesh_mailbox_lambda_cloudwatch" {
