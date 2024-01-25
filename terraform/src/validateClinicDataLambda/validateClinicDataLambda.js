@@ -18,10 +18,6 @@ export const handler = async (event) => {
 
   try {
     const jsonString = await readFromS3(bucket, key, s3);
-
-    var v = new Validator();
-    console.log(v.validate(jsonString, json));
-
     const validationResult = validateRecord(jsonString);
 
     console.log(`Finished validating object ${key} in bucket ${bucket}`);
@@ -77,7 +73,6 @@ export const pushToS3 = async (bucketName, key, body, client) => {
       })
     );
 
-    console.log("Succeeded");
     return response;
   } catch (err) {
     console.log("Failed: ", err);
@@ -85,7 +80,7 @@ export const pushToS3 = async (bucketName, key, body, client) => {
   }
 };
 
-export function validateRecord(record) {
+export async function validateRecord(record) {
   const validationResults = {
     success: true,
     message: "success",
@@ -96,7 +91,7 @@ export function validateRecord(record) {
   const validation = validate(record, json);
   if (validation.valid) {
     // validate the JSON Schema
-    const postcodeValidation = isPostcodeInGridall(client, record.ClinicCreateOrUpdate.Postcode);
+    const postcodeValidation = await isPostcodeInGridall(client, record.ClinicCreateOrUpdate.Postcode);
 
     if (postcodeValidation) {
       // AC - not covered Postcode provided (if supplied)
@@ -106,20 +101,20 @@ export function validateRecord(record) {
       ) {
         // AC - not covered ICB code provided (if supplied)
         validationResults.success = false;
-        validationResults.message = "Technical error - Invalid ICB Code";
+        validationResults.message = `Invalid ICB Code : ${record.ClinicCreateOrUpdate.ICBCode}`;
         return validationResults;
       }
     }
     else {
       validationResults.success = false;
-      validationResults.message = "Technical error - Invalid PostCode";
+      validationResults.message = `Invalid PostCode : ${record.ClinicCreateOrUpdate.Postcode}`;
       return validationResults;
     }
   }
   else {
     validationResults.success = false;
-    validationResults.message = "Technical error - Invalid Schema";
-    console.log("errors : ", validation.errors);
+    validationResults.message = "Invalid JSON";
+    console.error("errors : ", validation.errors);
     return validationResults;
   }
   return validationResults;
@@ -142,9 +137,9 @@ export async function isPostcodeInGridall(client, Postcode) {
   const response = await client.send(command);
 
   if (!response.Items.length) { // if response is empty, no matching Postcode
+    console.log("Postcode does not exists in Gridall:", Postcode);
     return false;
   }
-  console.log("Postcode exists")
   return true;
 }
 

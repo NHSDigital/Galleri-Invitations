@@ -1,5 +1,5 @@
 import {
-    validateRecord, handler, readFromS3, pushToS3, isValidICBCode, isPostcodeInGridall
+    validateRecord, readFromS3, pushToS3
   } from '../../validateClinicDataLambda/validateClinicDataLambda.js';
 import AWS from 'aws-sdk-mock';
 import { mockClient } from "aws-sdk-client-mock";
@@ -18,38 +18,38 @@ import data from "./testData/ClinicData.json";
 
       expect(validationResult.success).toBe(false);
       expect(validationResult.message).toBe(
-        'Technical error - Invalid ICB Code'
+        'Invalid ICB Code : 01D'
       );
     });
 
     test('should return failure for wrong postcode', () => {
       const validationResult = validateRecord(data[2]);
       expect(validationResult.success).toBe(false);
-      expect(validationResult.message).toBe("Technical error - Invalid Schema");
+      expect(validationResult.message).toBe("Invalid JSON");
     });
 
     test('should return failure for wrong ODScode', () => {
         const validationResult = validateRecord(data[3]);
         expect(validationResult.success).toBe(false);
-        expect(validationResult.message).toBe("Technical error - Invalid Schema");
+        expect(validationResult.message).toBe("Invalid JSON");
       });
 
       test('should return failure for missing Clinic Name', () => {
         const validationResult = validateRecord(data[4]);
         expect(validationResult.success).toBe(false);
-        expect(validationResult.message).toBe("Technical error - Invalid Schema");
+        expect(validationResult.message).toBe("Invalid JSON");
       });
 
       test('should return failure for missing Address', () => {
         const validationResult = validateRecord(data[5]);
         expect(validationResult.success).toBe(false);
-        expect(validationResult.message).toBe("Technical error - Invalid Schema");
+        expect(validationResult.message).toBe("Invalid JSON");
       });
 
       test('should return failure for missing Directions', () => {
         const validationResult = validateRecord(data[6]);
         expect(validationResult.success).toBe(false);
-        expect(validationResult.message).toBe("Technical error - Invalid Schema");
+        expect(validationResult.message).toBe("Invalid JSON");
       });
 
     afterEach(() => {
@@ -80,15 +80,13 @@ import data from "./testData/ClinicData.json";
         $metadata: { httpStatusCode: 200 },
       });
       const result = await pushToS3(
-        "galleri-ons-data",
+        "galleri-clinic-data",
         "test.txt",
         "dfsdfd",
         mockS3Client
       );
 
-      expect(logSpy).toHaveBeenCalled();
-      expect(logSpy).toHaveBeenCalledTimes(1);
-      expect(logSpy).toHaveBeenCalledWith(`Succeeded`);
+      expect(logSpy).toHaveBeenCalledTimes(0);
       expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
     });
 
@@ -99,7 +97,7 @@ import data from "./testData/ClinicData.json";
         send: jest.fn().mockRejectedValue(errorMsg),
       };
       try {
-        await pushToS3("galleri-ons-data", "test.txt", "dfsdfd", mockClient);
+        await pushToS3("galleri-clinic-data", "test.txt", "dfsdfd", mockClient);
       } catch (err) {
         expect(err.message).toBe("Mocked error");
       }
