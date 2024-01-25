@@ -71,6 +71,14 @@ module "gp_practices_bucket" {
   environment             = var.environment
 }
 
+# clinic data bucket
+module "clinic_data_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "galleri-clinic-data"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
 module "user_accounts_bucket" {
   source                  = "./modules/s3"
   bucket_name             = "user-accounts-bucket"
@@ -639,6 +647,36 @@ module "user_accounts_lambda_trigger" {
   bucket_id  = module.user_accounts_bucket.bucket_id
   bucket_arn = module.user_accounts_bucket.bucket_arn
   lambda_arn = module.user_accounts_lambda.lambda_arn
+}
+
+module "validate_clinic_data_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "validateClinicDataLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "validate_clinic_data_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "validate_clinic_data_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.validate_clinic_data_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+
+module "validate_clinic_data_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.caas_data_bucket.bucket_id
+  bucket_arn    = module.caas_data_bucket.bucket_arn
+  lambda_arn    = module.validate_caas_feed_lambda.lambda_arn
+  filter_prefix = "mesh_chunk_data_"
 }
 
 # Dynamodb tables
