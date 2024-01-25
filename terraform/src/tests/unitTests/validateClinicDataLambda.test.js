@@ -5,7 +5,7 @@ import AWS from 'aws-sdk-mock';
 import { mockClient } from "aws-sdk-client-mock";
 import { S3Client } from "@aws-sdk/client-s3";
 import data from "./testData/ClinicData.json";
-  
+
   describe('validateClinicData function', () => {
 
     test('should return success for a valid record', () => {
