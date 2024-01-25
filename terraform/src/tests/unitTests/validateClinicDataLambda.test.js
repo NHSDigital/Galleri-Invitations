@@ -12,16 +12,16 @@ import data from "./testData/ClinicData.json";
       const validationResult = validateRecord(data[0]);
       expect(validationResult.success).toBe(true);
     });
-  
+
     test('should return failure for an invalid ICB code', () => {
       const validationResult = validateRecord(data[1]);
-  
+
       expect(validationResult.success).toBe(false);
       expect(validationResult.message).toBe(
         'Technical error - Invalid ICB Code'
       );
     });
-  
+
     test('should return failure for wrong postcode', () => {
       const validationResult = validateRecord(data[2]);
       expect(validationResult.success).toBe(false);
@@ -51,18 +51,18 @@ import data from "./testData/ClinicData.json";
         expect(validationResult.success).toBe(false);
         expect(validationResult.message).toBe("Technical error - Invalid Schema");
       });
-  
+
     afterEach(() => {
       jest.clearAllMocks();
     });
-  
+
     test("Failed response when error occurs getting file to bucket", async () => {
       const logSpy = jest.spyOn(global.console, "log");
       const errorMsg = new Error("Mocked error");
       const mockClient = {
         send: jest.fn().mockRejectedValue(errorMsg),
       };
-  
+
       try {
         await readFromS3("aaaaaaa", "aaaaaaa", mockClient);
       } catch (err) {
@@ -72,7 +72,7 @@ import data from "./testData/ClinicData.json";
       expect(logSpy).toHaveBeenCalledTimes(1);
       expect(logSpy).toHaveBeenCalledWith("Failed: ", errorMsg);
     });
-  
+
     test("Successful response from sending file to bucket", async () => {
       const logSpy = jest.spyOn(global.console, "log");
       const mockS3Client = mockClient(new S3Client({}));
@@ -85,7 +85,7 @@ import data from "./testData/ClinicData.json";
         "dfsdfd",
         mockS3Client
       );
-  
+
       expect(logSpy).toHaveBeenCalled();
       expect(logSpy).toHaveBeenCalledTimes(1);
       expect(logSpy).toHaveBeenCalledWith(`Succeeded`);
@@ -107,19 +107,19 @@ import data from "./testData/ClinicData.json";
       expect(logSpy).toHaveBeenCalledTimes(1);
       expect(logSpy).toHaveBeenCalledWith("Failed: ", errorMsg);
     });
-  
+
     beforeEach(() => {
       AWS.mock('S3', 'getObject', (params, callback) => {
         // Provide a mocked response for getObject
         callback(null, { Body: 'mocked CSV data' });
       });
-  
+
       AWS.mock('S3', 'putObject', (params, callback) => {
         // Provide a mocked response for putObject
         callback(null, 'mocked response');
       });
     });
-  
+
     afterEach(() => {
       AWS.restore('S3');
     });
