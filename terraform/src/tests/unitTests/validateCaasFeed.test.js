@@ -15,7 +15,7 @@ const validRecord = {
   "gp_connect": "true",
   "name_prefix": "null",
   "given_name": "Yellow",
-  "other_given_names": "null",
+  "other_given_names": "test",
   "family_name": "Bentley",
   "date_of_birth": "1990-01-01",
   "gender": "2",
@@ -98,6 +98,15 @@ describe('validateCaasFeed function', () => {
     expect(validationResult.success).toBe(false);
     expect(validationResult.message).toBe(
       "Technical error - Family Name is missing"
+    );
+  });
+
+  test('should return failure for missing other given name', () => {
+    const validationResult = validateRecord({ ...validRecord, other_given_names: "" });
+
+    expect(validationResult.success).toBe(false);
+    expect(validationResult.message).toBe(
+      "Technical error - Other given name is missing"
     );
   });
 

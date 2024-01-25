@@ -206,20 +206,20 @@ export function validateRecord(record) {
   }
 
   // AC9 - Given Name not provided
-  if ((record.given_name !== "null" && !isValidNameFormat(record.given_name, 35)) || (record.given_name === "")) {
+  if ((record.given_name !== "null" && !isValidNameFormat(record.given_name, 35)) || (record.given_name === "") || (record.given_name === "null")) {
     validationResults.success = false;
     validationResults.message = "Technical error - Given Name is missing";
     return validationResults;
   }
 
   // AC8 - Family Name not provided
-  if ((record.family_name !== "null" && !isValidNameFormat(record.family_name, 35)) || (record.family_name === "")) {
+  if ((record.family_name !== "null" && !isValidNameFormat(record.family_name, 35)) || (record.family_name === "") || (record.family_name === "null")) {
     validationResults.success = false;
     validationResults.message = "Technical error - Family Name is missing";
     return validationResults;
   }
 
-  if ((record.other_given_names !== "null" && !isValidNameFormat(record.other_given_names, 100)) || (record.other_given_names === "")) {
+  if ((record.other_given_names !== "null" && !isValidNameFormat(record.other_given_names, 100)) || (record.other_given_names === "") || (record.other_given_names === "null")) {
     validationResults.success = false;
     validationResults.message = "Technical error - Other given name is missing";
     return validationResults;
