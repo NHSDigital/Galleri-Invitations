@@ -80,7 +80,7 @@ export const pushToS3 = async (bucketName, key, body, client) => {
   }
 };
 
-export async function validateRecord(record) {
+export async function validateRecord(record, client) {
   const validationResults = {
     success: true,
     message: "success",
