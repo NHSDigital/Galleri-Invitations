@@ -28,7 +28,7 @@ export const handler = async (event) => {
   // console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
   const bucket = `dev-2-galleri-caas-data`;
-  const key = `validRecords/valid_records_update-3.csv`;
+  const key = `validRecords/dod_open_record_change.csv`;
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
   // try {
@@ -41,25 +41,26 @@ export const handler = async (event) => {
     ] = filterUniqueEntries(records);
 
     if (uniqueRecordsToBatchProcess.length > 0){
-      const recordsToBatchUpload = uniqueRecordsToBatchProcess.map(async (record) => {
-        // GIVEN the supplied NHS No. does exist in MPI, get the entire record from the table
-        let tableRecord;
-        if(record.nhs_number) tableRecord = await lookUp(client, record.nhs_number, "Population", "nhs_number", "N", true);
+      const recordsToUploadSettled = await Promise.allSettled(
+        uniqueRecordsToBatchProcess.map(async (record) => {
+          // GIVEN the supplied NHS No. does exist in MPI, get the entire record from the table
+          let tableRecord;
+          if(record.nhs_number) {
+            tableRecord = await lookUp(client, record.nhs_number, "Population", "nhs_number", "N", true);
+          };
 
-        // nhs_number-index needs to return ALL items of record
-        if (tableRecord?.Items.length > 0){
-          // console.log(`NHS Number queried = ${record.nhs_number}`)
-          return processingData(record, tableRecord.Items[0]);
-        } else {
-          return {
-            rejectedRecordNhsNumber: record.nhs_number,
-            rejected: true,
-            reason: `Rejecting record ${record.nhs_number}. Cannot update record as it doesn't exist in table`
+          if (tableRecord?.Items.length > 0){
+            return processingData(record, tableRecord.Items[0]);
+          } else {
+            return {
+              rejectedRecordNhsNumber: record.nhs_number,
+              rejected: true,
+              reason: `Rejecting record ${record.nhs_number}. Cannot update record as it doesn't exist in table`
+            }
           }
-        }
-      });
+        })
+      );
 
-      const recordsToUploadSettled = await Promise.all(recordsToBatchUpload);
 
       const filteredRejectedRecords = [];
 
@@ -70,7 +71,6 @@ export const handler = async (event) => {
       console.log('----------------------------------------------------------------');
 
       if (filteredRejectedRecords) {
-        console.log(`filteredRejectedRecords = ${JSON.stringify(filteredRejectedRecords)}`)
         const timeNow = Date.now();
         const fileName = `validRecords/rejectedRecords/update/rejectedRecords-${timeNow}.csv`
         console.log(`${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-${bucket}/${fileName}`);
@@ -82,7 +82,7 @@ export const handler = async (event) => {
 
         // Deposit to S3 bucket
         await pushCsvToS3(
-          `${ENVIRONMENT}-${bucket}`,
+          `${bucket}`,
           `${fileName}`,
           rejectedRecordsString,
           s3
@@ -100,13 +100,12 @@ export const handler = async (event) => {
 };
 
 // METHODS
-// returns formatted dynamodb record or rejected record object
+
+// takes incoming record and record from table and compares the two
 const processingData = async (record, tableRecord) => {
-  if (record.superseded_by_nhs_number === 'null') {
-    // console.log(`Updating record ${record.nhs_number}`);
-    return await updateRecord(record, tableRecord);
+  if (record.superseded_by_nhs_number === 'null' || record.superseded_by_nhs_number == 0) { // superseded_by_nhs_number is a Number type thus 0 === null
+    return await updateRecord(record, tableRecord); // AC1, 2, 4
   } else {
-    // AC5
     if (!tableRecord.superseded_by_nhs_number) {
       // superseded by NHS No. does not exist in the MPI
       const {
@@ -120,55 +119,36 @@ const processingData = async (record, tableRecord) => {
   }
 }
 
-/* need a to create test data such that:
-  - date of death change but no open record -> DONE. 5558001216
-  - date of death change WITH open record -> DONE. Record 5558008113 and  NHS-DM72-ES61 for this
-  - primary care provider changed to something that is in participating ICB -> DONE. 5558001216
-  - post code change to in participating ICB -> DONE. 5558008113
-*/
 const updateRecord = async (record, recordFromTable) => {
   const {
     PersonId,
     LsoaCode
   } = recordFromTable
 
-  if (record.nhs_number === "5558001216" || record.nhs_number === "5558008113" || record.nhs_number === "5558001216" || record.nhs_number === "5558008113" ){
-    console.log(`For record ${record.nhs_number}, PersonId = ${PersonId.S} and LsoaCode = ${LsoaCode.S}`)
-  }
-  // AC1b -> 5558008113
-  if (record.date_of_death !== recordFromTable.date_of_death) {
-    // update record in population table
-    // check if open record
-    // AC1a
-    if (record.nhs_number === "5558001216" || record.nhs_number === "5558008113"){
-      console.log(`In date_of_death`)
-    }
+  if (record.date_of_death !== recordFromTable.date_of_death) { // AC1a and AC1b
     const episodeRecord = await lookUp(client, PersonId.S, "Episode", "Participant_Id", "S", true);
+    // close open Episode record
     if (episodeRecord?.Items.length > 0) {
-      // close record in population table
       const batchId = episodeRecord.Items[0].Batch_Id.S
       const participantId = episodeRecord.Items[0].Participant_Id.S
 
-      console.log(`For record ${record.nhs_number} | batchId = ${batchId} and participantId = ${participantId}`)
-
-
       const updateEpisodeRecord = ["Episode_Status", "S", "Closed"]
       await updateRecordInTable(client, "Episode", batchId, "Batch_Id", participantId, "Participant_Id", updateEpisodeRecord);
+    } else {
+      console.log('No open Episode record')
     }
     // update record with new date_of_death
     const updateDateOfDeath = ["date_of_death", "S", record.date_of_death];
-    await updateRecordInTable(client, "Population", PersonId.S, "PersonId", LsoaCode.S, "LsoaCode", updateDateOfDeath);
-  }
-
-  // AC2 -> 5558001216
-  if (record.primary_care_provider !== recordFromTable.primary_care_provider) {
-    // set the personId for the incoming data item
+    const updateAction = ["action", "S", record.action];
+    await updateRecordInTable(client, "Population", PersonId.S, "PersonId", LsoaCode.S, "LsoaCode", updateDateOfDeath, updateAction);
+    return {
+      rejected: false
+    }
+  } else if (record.primary_care_provider !== recordFromTable.primary_care_provider) { // AC2
     record.participant_id = PersonId.S;
-    // responsible icb and lsoa
-    const lsoaCheck = await getLsoa(record, client);
 
+    const lsoaCheck = await getLsoa(record, client);
     if (lsoaCheck.rejected) {
-      // Records keys failed
       return {
         rejectedRecordNhsNumber: record.nhs_number,
         rejected: true,
@@ -176,23 +156,27 @@ const updateRecord = async (record, recordFromTable) => {
       };
     }
     record.lsoa_2011 = lsoaCheck;
+
     const responsibleIcb = await getItemFromTable(client, "GpPractice", "gp_practice_code", "S", record.primary_care_provider);
     record.responsible_icb = responsibleIcb.Item?.icb_id.S;
-    console.log(`for record ${record.nhs_number}, the responsible icb found = ${responsibleIcb.Item?.icb_id.S} and lsoa found = ${lsoaCheck} for primary care provide = ${record.primary_care_provider}`)
 
+    if (!record.responsible_icb) {
+      return {
+        rejectedRecordNhsNumber: record.nhs_number,
+        rejected: true,
+        reason: `Rejecting record ${record.nhs_number} as could not find ICB in participating ICB for GP Practice code ${record.primary_care_provider}`
+      };
+    }
     // overwrite record with new primary_care_provider && responsible_ICB && LSOA
     await overwriteRecordInTable(client, "Population", record, recordFromTable);
-  }
-
-  // AC4 -> 5558008113
-  if (record.postcode !== recordFromTable.postcode) {
-    // set the personId for the incoming data item
+    return {
+      rejected: false
+    }
+  } else if (record.postcode !== recordFromTable.postcode) { //AC43
     record.participant_id = PersonId.S;
-    // set lsoa
-    const lsoaCheck = await getLsoa(record, client);
 
+    const lsoaCheck = await getLsoa(record, client);
     if (!record.participant_id || lsoaCheck.rejected){
-      // Records keys failed
       return {
         rejectedRecordNhsNumber: record.nhs_number,
         rejected: true,
@@ -200,12 +184,18 @@ const updateRecord = async (record, recordFromTable) => {
       };
     }
     record.lsoa_2011 = lsoaCheck;
-
-
-    console.log(`for record ${record.nhs_number}, the lsoa found = ${lsoaCheck} for postcode = ${record.postcode}. Should be E-123-ABC`)
 
     // overwrite record with new postcode && LSOA
     await overwriteRecordInTable(client, "Population", record, recordFromTable);
+    return {
+      rejected: false
+    }
+  } else {
+    record.lsoa_2011 = LsoaCode
+    await overwriteRecordInTable(client, "Population", record, recordFromTable);
+    return {
+      rejected: false
+    }
   }
 }
 
@@ -235,12 +225,15 @@ export async function updateRecordInTable(client, table, partitionKey, partition
     updateItemCommandExpressionAttributeNames[localAttributeName] = itemName;
 
     const localItemName = `local_${itemName}`
+
     // ExpressionAttributeValues
-    updateItemCommandExpressionAttributeValuesNested [`${itemType}`] = item ;
+    updateItemCommandExpressionAttributeValuesNested = {...updateItemCommandExpressionAttributeValuesNested,
+      [itemType] : item
+    };
     updateItemCommandExpressionAttributeValues[`:${localItemName}`] = updateItemCommandExpressionAttributeValuesNested
 
     // UpdateExpression
-    if (index > 0){
+    if (index > 0) {
       updateItemCommandUpdateExpression += `,${localAttributeName} = :${localItemName}`
     } else {
       updateItemCommandUpdateExpression += `${localAttributeName} = :${localItemName}`
@@ -255,7 +248,6 @@ export async function updateRecordInTable(client, table, partitionKey, partition
     UpdateExpression: updateItemCommandUpdateExpression,
   };
 
-  console.log(`logging update command for ${JSON.stringify(input, null, 2)}`);
 
   const command = new UpdateItemCommand(input);
   const response = await client.send(command);
@@ -342,8 +334,6 @@ export async function putTableRecord(client, table, newRecord) {
       TableName: `${ENVIRONMENT}-${table}`
     }
 
-    console.log(`Put Item: ${JSON.stringify(input, null, 2)}`)
-
     const command = new PutItemCommand(input);
     const response = await client.send(command);
 
@@ -354,7 +344,7 @@ export async function putTableRecord(client, table, newRecord) {
 // or returns error message
 export const getLsoa = async (record, dbClient) => {
   const { postcode, primary_care_provider } = record
-  console.log(`for record ${record.nhs_number}, the postcode = ${postcode} and the primary_care_provider = ${primary_care_provider}`)
+  // console.log(`for record ${record.nhs_number}, the postcode = ${postcode} and the primary_care_provider = ${primary_care_provider}`)
   const lsoaObject = {
     lsoaCode: "",
     rejected: false,
@@ -364,16 +354,23 @@ export const getLsoa = async (record, dbClient) => {
   try {
     if (postcode) {
       const checkLsoa = await getItemFromTable(dbClient, "Postcode", "POSTCODE", "S", postcode);
-      // Get LSOA using GP practice
       if (!checkLsoa.Item) {
+      // Get LSOA using GP practice
         const lsoaFromGp = await getItemFromTable(dbClient, "GpPractice", "gp_practice_code", "S", primary_care_provider);
         // LSOA code could not be found for record using postcode or gp practice code. Set as null
-        if (!lsoaFromGp.Item || lsoaFromGp.Item.LSOA_2011.S === "") return lsoaObject.lsoaCode = "null";
+        if (!lsoaFromGp.Item || lsoaFromGp.Item.LSOA_2011.S === "") {
+          return lsoaObject.lsoaCode = "null"
+        };
+
         return lsoaObject.lsoaCode = lsoaFromGp.Item.LSOA_2011.S;
       }
-      if (checkLsoa.Item.LSOA_2011.S !== "") return lsoaObject.lsoaCode = checkLsoa.Item.LSOA_2011.S;
+
+      if (checkLsoa.Item.LSOA_2011.S !== "") {
+        return lsoaObject.lsoaCode = checkLsoa.Item.LSOA_2011.S
+      };
+
       lsoaObject.rejected = true;
-      lsoaObject.reason = `Rejecting record ${record.nhs_number} as Postcode is not in participating ICB`;
+      lsoaObject.reason = `Rejecting record ${record.nhs_number} as Postcode ${postcode} is not in participating ICB`;
       return lsoaObject;
     } else {
       lsoaObject.rejected = true;
@@ -502,14 +499,6 @@ export const lookUp = async (dbClient, ...params) => {
     }
   }
 
-  // if (attribute === "Participant_Id"){
-  //   console.log("params = ", params)
-  //   console.log(`look up item input = ${JSON.stringify(input, null, 2)}`)
-  // }
-
-  // if (attribute === "nhs_number"){
-  //   console.log(`look up item input = ${JSON.stringify(input, null, 2)}`)
-  // }
   const getCommand = new QueryCommand(input);
   const response = await dbClient.send(getCommand);
 
