@@ -1082,7 +1082,7 @@ module "episode_table" {
   ]
   global_secondary_index = [
     {
-      name      = "ParticipantId-index"
+      name      = "Participant_Id-index"
       hash_key  = "Participant_Id"
       range_key = null
     }
