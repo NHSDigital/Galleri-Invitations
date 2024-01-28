@@ -41,9 +41,7 @@ export const handler = async (event) => {
         uniqueRecordsToBatchProcess.map(async (record) => {
           // GIVEN the supplied NHS No. does exist in MPI, get the entire record from the table
           let tableRecord;
-          if(record.nhs_number) {
-            tableRecord = await lookUp(client, record.nhs_number, "Population", "nhs_number", "N", true);
-          };
+          if(record.nhs_number) tableRecord = await lookUp(client, record.nhs_number, "Population", "nhs_number", "N", true);
 
           if (tableRecord?.Items.length > 0){
             return processingData(record, tableRecord.Items[0]);
