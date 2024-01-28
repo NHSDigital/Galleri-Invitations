@@ -1,4 +1,5 @@
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 //Push string from MESH to S3
 export const pushCsvToS3 = async (bucketName, key, body, client) => {

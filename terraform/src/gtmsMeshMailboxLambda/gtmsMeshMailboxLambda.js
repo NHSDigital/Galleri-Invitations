@@ -1,5 +1,5 @@
 //IMPORTS
-import { getSecret } from "./helper.js"
+import { getSecret, pushCsvToS3 } from "./helper.js"
 import { handShake, loadConfig, getMessageCount, readMessage, markAsRead } from "nhs-mesh-client";
 import { S3Client } from '@aws-sdk/client-s3';
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
@@ -30,6 +30,7 @@ const CONFIG = await loadConfig({
 
 //HANDLER
 export const handler = async (event, context) => {
+
   try {
     console.log('healthy test');
     let healthy = await run();
@@ -41,6 +42,20 @@ export const handler = async (event, context) => {
         for (let i = 0; i < messageArr.length; i++) {
           let message = await readMsg(messageArr[i]); //returns messages based on id, iteratively from message list arr
           console.log(message); //observing if format is correct for msg
+          if (message?.ClinicCreateOrUpdate) {
+            const dateTime = new Date(Date.now()).toISOString();
+            //Deposit to S3
+            await pushCsvToS3(
+              `${ENVIRONMENT}-gtms-clinic-create-or-update`,
+              `clinic_create_or_update_${dateTime}.json`,
+              JSON.stringify(message),
+              clientS3
+            );
+            //  after success remove msg
+            //  example if  $metadata.httpStatusCode === 200
+            //  const response = await markRead(messageArr[i]);
+            //  console.log(`${response.status} ${response.statusText}`);
+          }
         }
       }
     }
