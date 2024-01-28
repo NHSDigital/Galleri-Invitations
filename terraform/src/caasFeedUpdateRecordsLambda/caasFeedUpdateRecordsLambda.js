@@ -23,13 +23,13 @@ const ENVIRONMENT = process.env.ENVIRONMENT
 // Lambda Entry Point
 export const handler = async (event) => {
 
-  // const bucket = event.Records[0].s3.bucket.name;
-  // const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
-  // console.log(`Triggered by object ${key} in bucket ${bucket}`);
-
-  const bucket = `dev-2-galleri-caas-data`;
-  const key = `validRecords/dod_open_record_change.csv`;
+  const bucket = event.Records[0].s3.bucket.name;
+  const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
+
+  // const bucket = `dev-2-galleri-caas-data`;
+  // const key = `validRecords/pcp.csv`;
+  // console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
   // try {
     const csvString = await readCsvFromS3(bucket, key, s3);
@@ -108,13 +108,9 @@ const processingData = async (record, tableRecord) => {
   } else {
     if (!tableRecord.superseded_by_nhs_number) {
       // superseded by NHS No. does not exist in the MPI
-      const {
-        personId,
-        lsoaCode
-      } = tableRecord
       // THEN replace NHS no. with the Superseded by NHS no
-      const updateSuperseededId = ["superseded_by_nhs_number", "N", record.superseded_by_nhs_number]
-      return await updateRecordInTable(client, "Population", personId, "PersonId", lsoaCode, "LsoaCode", updateSuperseededId);
+      record.nhs_number = record.superseded_by_nhs_number
+      return await overwriteRecordInTable(client, "Population", record, tableRecord);
     }
   }
 }
@@ -124,8 +120,6 @@ const updateRecord = async (record, recordFromTable) => {
     PersonId,
     LsoaCode
   } = recordFromTable
-
-  // let updatePrimaryKey = false;
 
   if (record.date_of_death !== recordFromTable.date_of_death) { // AC1a and AC1b
     const episodeRecord = await lookUp(client, PersonId.S, "Episode", "Participant_Id", "S", true);
@@ -139,17 +133,9 @@ const updateRecord = async (record, recordFromTable) => {
     } else {
       console.log('No open Episode record')
     }
-    // update record with new date_of_death
-    // const updateDateOfDeath = ["date_of_death", "S", record.date_of_death];
-    // const updateAction = ["action", "S", record.action];
-    // await updateRecordInTable(client, "Population", PersonId.S, "PersonId", LsoaCode.S, "LsoaCode", updateDateOfDeath, updateAction);
-    // return {
-    //   rejected: false
-    // }
   }
 
   if (record.primary_care_provider !== recordFromTable.primary_care_provider) { // AC2
-    // updatePrimaryKey = true;
     record.participant_id = PersonId.S;
 
     const lsoaCheck = await getLsoa(record, client);
@@ -172,16 +158,9 @@ const updateRecord = async (record, recordFromTable) => {
         reason: `Rejecting record ${record.nhs_number} as could not find ICB in participating ICB for GP Practice code ${record.primary_care_provider}`
       };
     }
-
-    // // overwrite record with new primary_care_provider && responsible_ICB && LSOA
-    // await overwriteRecordInTable(client, "Population", record, recordFromTable);
-    // return {
-    //   rejected: false
-    // }
   }
 
   if (record.postcode !== recordFromTable.postcode) { //AC43
-    // updatePrimaryKey = true;
     record.participant_id = PersonId.S;
 
     const lsoaCheck = await getLsoa(record, client);
@@ -193,12 +172,6 @@ const updateRecord = async (record, recordFromTable) => {
       };
     }
     record.lsoa_2011 = lsoaCheck;
-
-    // overwrite record with new postcode && LSOA
-    // await overwriteRecordInTable(client, "Population", record, recordFromTable);
-    // return {
-    //   rejected: false
-    // }
   }
 
   await overwriteRecordInTable(client, "Population", record, recordFromTable);
@@ -352,7 +325,6 @@ export async function putTableRecord(client, table, newRecord) {
 // or returns error message
 export const getLsoa = async (record, dbClient) => {
   const { postcode, primary_care_provider } = record
-  // console.log(`for record ${record.nhs_number}, the postcode = ${postcode} and the primary_care_provider = ${primary_care_provider}`)
   const lsoaObject = {
     lsoaCode: "",
     rejected: false,
