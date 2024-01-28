@@ -20,12 +20,12 @@ const CONFIG = await loadConfig({
   sandbox: "false",
   senderCert: GTMS_MESH_CERT,
   senderKey: MESH_GTMS_KEY,
-  senderMailboxID: process.env.MESH_SENDER_MAILBOX_ID,
-  senderMailboxPassword: process.env.MESH_SENDER_MAILBOX_PASSWORD,
+  senderMailboxID: process.env.GTMS_MESH_MAILBOX_ID,
+  senderMailboxPassword: process.env.GTMS_MESH_MAILBOX_PASSWORD,
   receiverCert: GTMS_MESH_CERT,
   receiverKey: MESH_GTMS_KEY,
-  receiverMailboxID: process.env.MESH_RECEIVER_MAILBOX_ID,
-  receiverMailboxPassword: process.env.MESH_RECEIVER_MAILBOX_PASSWORD,
+  receiverMailboxID: process.env.GTMS_MESH_MAILBOX_ID,
+  receiverMailboxPassword: process.env.GTMS_MESH_MAILBOX_PASSWORD,
 });
 
 //HANDLER
@@ -40,7 +40,7 @@ export const handler = async (event, context) => {
       if (messageArr.length > 0) {
         for (let i = 0; i < messageArr.length; i++) {
           let message = await readMsg(messageArr[i]); //returns messages based on id, iteratively from message list arr
-          console.log(message.data); //observing if format is correct for msg
+          console.log(message); //observing if format is correct for msg
         }
       }
     }
