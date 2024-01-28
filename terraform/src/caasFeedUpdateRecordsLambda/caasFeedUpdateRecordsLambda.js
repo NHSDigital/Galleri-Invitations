@@ -102,7 +102,7 @@ export const handler = async (event) => {
 // METHODS
 
 // takes incoming record and record from table and compares the two
-const processingData = async (record, tableRecord) => {
+export const processingData = async (record, tableRecord) => {
   if (record.superseded_by_nhs_number === 'null' || record.superseded_by_nhs_number == 0) { // superseded_by_nhs_number is a Number type thus 0 === null
     return await updateRecord(record, tableRecord); // AC1, 2, 4
   } else {
