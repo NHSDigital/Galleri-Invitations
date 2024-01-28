@@ -1009,7 +1009,7 @@ module "population_table" {
       range_key = null
     },
     {
-      name      = "participantId-index"
+      name      = "Participant_Id-index"
       hash_key  = "participantId"
       range_key = null
     },
