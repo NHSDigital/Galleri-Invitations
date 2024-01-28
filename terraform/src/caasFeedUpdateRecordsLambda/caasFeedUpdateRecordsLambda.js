@@ -125,6 +125,8 @@ const updateRecord = async (record, recordFromTable) => {
     LsoaCode
   } = recordFromTable
 
+  // let updatePrimaryKey = false;
+
   if (record.date_of_death !== recordFromTable.date_of_death) { // AC1a and AC1b
     const episodeRecord = await lookUp(client, PersonId.S, "Episode", "Participant_Id", "S", true);
     // close open Episode record
@@ -138,13 +140,16 @@ const updateRecord = async (record, recordFromTable) => {
       console.log('No open Episode record')
     }
     // update record with new date_of_death
-    const updateDateOfDeath = ["date_of_death", "S", record.date_of_death];
-    const updateAction = ["action", "S", record.action];
-    await updateRecordInTable(client, "Population", PersonId.S, "PersonId", LsoaCode.S, "LsoaCode", updateDateOfDeath, updateAction);
-    return {
-      rejected: false
-    }
-  } else if (record.primary_care_provider !== recordFromTable.primary_care_provider) { // AC2
+    // const updateDateOfDeath = ["date_of_death", "S", record.date_of_death];
+    // const updateAction = ["action", "S", record.action];
+    // await updateRecordInTable(client, "Population", PersonId.S, "PersonId", LsoaCode.S, "LsoaCode", updateDateOfDeath, updateAction);
+    // return {
+    //   rejected: false
+    // }
+  }
+
+  if (record.primary_care_provider !== recordFromTable.primary_care_provider) { // AC2
+    // updatePrimaryKey = true;
     record.participant_id = PersonId.S;
 
     const lsoaCheck = await getLsoa(record, client);
@@ -167,12 +172,16 @@ const updateRecord = async (record, recordFromTable) => {
         reason: `Rejecting record ${record.nhs_number} as could not find ICB in participating ICB for GP Practice code ${record.primary_care_provider}`
       };
     }
-    // overwrite record with new primary_care_provider && responsible_ICB && LSOA
-    await overwriteRecordInTable(client, "Population", record, recordFromTable);
-    return {
-      rejected: false
-    }
-  } else if (record.postcode !== recordFromTable.postcode) { //AC43
+
+    // // overwrite record with new primary_care_provider && responsible_ICB && LSOA
+    // await overwriteRecordInTable(client, "Population", record, recordFromTable);
+    // return {
+    //   rejected: false
+    // }
+  }
+
+  if (record.postcode !== recordFromTable.postcode) { //AC43
+    // updatePrimaryKey = true;
     record.participant_id = PersonId.S;
 
     const lsoaCheck = await getLsoa(record, client);
@@ -186,16 +195,15 @@ const updateRecord = async (record, recordFromTable) => {
     record.lsoa_2011 = lsoaCheck;
 
     // overwrite record with new postcode && LSOA
-    await overwriteRecordInTable(client, "Population", record, recordFromTable);
-    return {
-      rejected: false
-    }
-  } else {
-    record.lsoa_2011 = LsoaCode
-    await overwriteRecordInTable(client, "Population", record, recordFromTable);
-    return {
-      rejected: false
-    }
+    // await overwriteRecordInTable(client, "Population", record, recordFromTable);
+    // return {
+    //   rejected: false
+    // }
+  }
+
+  await overwriteRecordInTable(client, "Population", record, recordFromTable);
+  return {
+    rejected: false
   }
 }
 
