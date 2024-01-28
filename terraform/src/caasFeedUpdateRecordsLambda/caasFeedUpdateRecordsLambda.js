@@ -27,11 +27,7 @@ export const handler = async (event) => {
   const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
-  // const bucket = `dev-2-galleri-caas-data`;
-  // const key = `validRecords/pcp.csv`;
-  // console.log(`Triggered by object ${key} in bucket ${bucket}`);
-
-  // try {
+  try {
     const csvString = await readCsvFromS3(bucket, key, s3);
     const records = await parseCsvToArray(csvString);
 
@@ -61,12 +57,13 @@ export const handler = async (event) => {
         })
       );
 
+      const filteredRejectedRecords = recordsToUploadSettled.filter(record => { !record?.rejected });
 
-      const filteredRejectedRecords = [];
+      // const filteredRejectedRecords = [];
 
-      recordsToUploadSettled.forEach(record => {
-        if (!record?.rejected) filteredRejectedRecords.push(record)
-      });
+      // recordsToUploadSettled.forEach(record => {
+      //   if (!record?.rejected) filteredRejectedRecords.push(record)
+      // });
 
       console.log('----------------------------------------------------------------');
 
@@ -89,13 +86,13 @@ export const handler = async (event) => {
         );
       }
     }
-  // }
-  // catch (error) {
-  //   console.error(
-  //     "Error with CaaS Feed extraction, procession or uploading",
-  //     error
-  //   );
-  // }
+  }
+  catch (error) {
+    console.error(
+      "Error with CaaS Feed extraction, procession or uploading",
+      error
+    );
+  }
   return "Exiting Lambda";
 };
 
@@ -110,7 +107,10 @@ export const processingData = async (record, tableRecord) => {
       // superseded by NHS No. does not exist in the MPI
       // THEN replace NHS no. with the Superseded by NHS no
       record.nhs_number = record.superseded_by_nhs_number
-      return await overwriteRecordInTable(client, "Population", record, tableRecord);
+      await overwriteRecordInTable(client, "Population", record, tableRecord);
+      return {
+        rejected: false
+      }
     }
   }
 }
