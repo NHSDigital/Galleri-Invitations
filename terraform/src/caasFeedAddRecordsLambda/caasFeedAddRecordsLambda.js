@@ -217,7 +217,7 @@ const generateRecord = async (record, client) => {
   }
   record.lsoa_2011 = lsoaCheck;
   const responsibleIcb = await getItemFromTable(client, "GpPractice", "gp_practice_code", "S", record.primary_care_provider);
-  if (!responsibleIcb) {
+  if (!responsibleIcb.Item?.icb_id?.S) {
     return {
       rejectedRecordNhsNumber: record.nhs_number,
       rejected: true,
@@ -404,9 +404,9 @@ export const formatDynamoDbRecord = async (record) => {
   if (record.superseded_by_nhs_number === "null") record.superseded_by_nhs_number = "0"
   // gender: {N: record.gender}, -> -1
   if (record.gender === "null") record.gender = "-1"
-  // telephone_number: {N: record.telephone_number}, -> 0
+  // telephone_number: {S: record.telephone_number}, -> 0
   if (record.telephone_number === "null") record.telephone_number = "0"
-  // mobile_number: {N: record.mobile_number}, -> 0
+  // mobile_number: {S: record.mobile_number}, -> 0
   if (record.mobile_number === "null") record.mobile_number = "0"
 
   return {
@@ -435,8 +435,8 @@ export const formatDynamoDbRecord = async (record) => {
         reason_for_removal_effective_from_date: {S: record.reason_for_removal_effective_from_date},
         responsible_icb: {S: record.responsible_icb},
         date_of_death: {S: record.date_of_death},
-        telephone_number: {N: record.telephone_number},
-        mobile_number: {N: record.mobile_number},
+        telephone_number: {S: record.telephone_number},
+        mobile_number: {S: record.mobile_number},
         email_address: {S: record.email_address},
         preferred_language: {S: record.preferred_language},
         is_interpreter_required: {BOOL: Boolean(record.is_interpreter_required)},

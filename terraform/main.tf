@@ -86,6 +86,13 @@ module "caas_data_bucket" {
   environment             = var.environment
 }
 
+module "test_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "galleri-processed-caas-data"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
 # Data Filter Gridall IMD
 module "data_filter_gridall_imd_lambda" {
   source               = "./modules/lambda"
@@ -649,6 +656,61 @@ module "user_accounts_lambda_trigger" {
   lambda_arn = module.user_accounts_lambda.lambda_arn
 }
 
+module "poll_mesh_mailbox_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "pollMeshMailboxLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "poll_mesh_mailbox_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                    = "${var.environment}",
+    MESH_SANDBOX                   = "false",
+    MESH_URL                       = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
+    MESH_SHARED_KEY                = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
+    MESH_SENDER_MAILBOX_ID         = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_id.secret_string)["MESH_SENDER_MAILBOX_ID"],
+    MESH_SENDER_MAILBOX_PASSWORD   = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_password.secret_string)["MESH_SENDER_MAILBOX_PASSWORD"],
+    MESH_RECEIVER_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_id.secret_string)["MESH_RECEIVER_MAILBOX_ID"],
+    MESH_RECEIVER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_password.secret_string)["MESH_RECEIVER_MAILBOX_PASSWORD"]
+  }
+}
+
+#MESH keys
+
+data "aws_secretsmanager_secret_version" "mesh_url" {
+  secret_id = "MESH_URL"
+}
+
+data "aws_secretsmanager_secret_version" "mesh_shared_key" {
+  secret_id = "MESH_SHARED_KEY_1"
+}
+
+data "aws_secretsmanager_secret_version" "mesh_sender_mailbox_id" {
+  secret_id = "MESH_SENDER_MAILBOX_ID"
+}
+
+data "aws_secretsmanager_secret_version" "mesh_sender_mailbox_password" {
+  secret_id = "MESH_SENDER_MAILBOX_PASSWORD"
+}
+
+data "aws_secretsmanager_secret_version" "mesh_receiver_mailbox_id" {
+  secret_id = "MESH_RECEIVER_MAILBOX_ID"
+}
+
+data "aws_secretsmanager_secret_version" "mesh_receiver_mailbox_password" {
+  secret_id = "MESH_RECEIVER_MAILBOX_PASSWORD"
+}
+#END of MESH keys
+
+module "poll_mesh_mailbox_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.poll_mesh_mailbox_lambda.lambda_function_name
+  retention_days       = 14
+}
+
 module "validate_caas_feed_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
@@ -701,8 +763,8 @@ module "caas_feed_add_records_lambda_cloudwatch" {
 
 module "caas_feed_add_records_lambda_trigger" {
   source        = "./modules/lambda_trigger"
-  bucket_id     = module.caas_data_bucket.bucket_id
-  bucket_arn    = module.caas_data_bucket.bucket_arn
+  bucket_id     = module.test_bucket.bucket_id
+  bucket_arn    = module.test_bucket.bucket_arn
   lambda_arn    = module.caas_feed_add_records_lambda.lambda_arn
   filter_prefix = "validRecords/valid_records_add-"
 }

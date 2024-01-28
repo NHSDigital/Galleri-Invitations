@@ -387,8 +387,34 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "s3:*"
           ],
           "Resource" : [
-            "arn:aws:s3:::galleri-caas-data/*"
+            "arn:aws:s3:::${var.environment}-galleri-caas-data/*"
           ]
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "secretsmanager:GetResourcePolicy",
+            "secretsmanager:GetSecretValue",
+            "secretsmanager:DescribeSecret",
+            "secretsmanager:ListSecretVersionIds"
+          ],
+          "Resource" : [
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_URL*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SHARED_KEY_1*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_ID*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_PASSWORD*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_ID*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_PASSWORD*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_KEY*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_CERT*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_KEY*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_CERT*"
+          ]
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : "secretsmanager:ListSecrets",
+          "Resource" : "*"
         },
       ],
       "Version" : "2012-10-17"
@@ -571,6 +597,11 @@ resource "aws_iam_role_policy_attachment" "generate_invites_policy" {
 # resource "aws_iam_role_policy_attachment" "create_episode_record_policy" {
 #   role       = aws_iam_role.galleri_lambda_role.name
 #   policy_arn = aws_iam_policy.iam_policy_for_create_episode_record_lambda.arn
+# }
+
+# resource "aws_iam_role_policy_attachment" "secrets_lambda_policy" {
+#   role       = aws_iam_role.github-oidc-invitations-role.name
+#   policy_arn = aws_iam_policy.iam_policy_for_participants_in_lsoa_lambda.arn
 # }
 
 resource "aws_iam_role" "api_gateway_logging_role" {

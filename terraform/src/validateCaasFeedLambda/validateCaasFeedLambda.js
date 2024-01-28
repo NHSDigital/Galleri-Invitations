@@ -8,6 +8,8 @@ import csv from "csv-parser";
 
 const s3 = new S3Client();
 
+const ENVIRONMENT = process.env.ENVIRONMENT;
+
 export const handler = async (event) => {
   const bucket = event.Records[0].s3.bucket.name;
   const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
@@ -15,6 +17,7 @@ export const handler = async (event) => {
   try {
     const csvString = await readCsvFromS3(bucket, key, s3);
     const records = await parseCsvToArray(csvString);
+    console.log(records);
 
     const [outputSuccess, outputUnsuccess] = validateRecords(records);
     console.log(`Finished validating object ${key} in bucket ${bucket}`);
@@ -37,11 +40,11 @@ export const handler = async (event) => {
     console.log(`Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${bucket}`);
 
     // Deposit to S3 bucket
-    await pushCsvToS3(bucket, `validRecords/valid_records_add-${timeNow}.csv`, recordsAddCsvData, s3);
-    await pushCsvToS3(bucket, `validRecords/valid_records_update-${timeNow}.csv`, recordsUpdateCsvData, s3);
-    await pushCsvToS3(bucket, `validRecords/valid_records_delete-${timeNow}.csv`, recordsDeleteCsvData, s3);
+    await pushCsvToS3(`${ENVIRONMENT}-galleri-processed-caas-data`, `validRecords/valid_records_add-${timeNow}.csv`, recordsAddCsvData, s3);
+    await pushCsvToS3(`${ENVIRONMENT}-galleri-processed-caas-data`, `validRecords/valid_records_update-${timeNow}.csv`, recordsUpdateCsvData, s3);
+    await pushCsvToS3(`${ENVIRONMENT}-galleri-processed-caas-data`, `validRecords/valid_records_delete-${timeNow}.csv`, recordsDeleteCsvData, s3);
 
-    await pushCsvToS3(bucket, `invalidRecords/invalid_records-${timeNow}.csv`, invalidRecordsCsvData, s3);
+    await pushCsvToS3(`${ENVIRONMENT}-galleri-processed-caas-data`, `invalidRecords/invalid_records-${timeNow}.csv`, invalidRecordsCsvData, s3);
 
     // Logging the invalid records
     console.warn("PLEASE FIND THE INVALID CAAS RECORDS FROM THE PROCESSED CAAS FEED BELOW:\n" + JSON.stringify(outputUnsuccess, null, 2))
@@ -203,19 +206,24 @@ export function validateRecord(record) {
   }
 
   // AC9 - Given Name not provided
-  if (!record.given_name || record.given_name === "null" || record.given_name.trim() === "") {
+  if ((record.given_name !== "null" && !isValidNameFormat(record.given_name, 35)) || (record.given_name === "") || (record.given_name === "null")) {
     validationResults.success = false;
     validationResults.message = "Technical error - Given Name is missing";
     return validationResults;
   }
 
   // AC8 - Family Name not provided
-  if (!record.family_name || record.family_name === "null" || record.family_name.trim() === "") {
+  if ((record.family_name !== "null" && !isValidNameFormat(record.family_name, 35)) || (record.family_name === "") || (record.family_name === "null")) {
     validationResults.success = false;
     validationResults.message = "Technical error - Family Name is missing";
     return validationResults;
   }
 
+  if ((record.other_given_names !== "null" && !isValidNameFormat(record.other_given_names, 100)) || (record.other_given_names === "") || (record.other_given_names === "null")) {
+    validationResults.success = false;
+    validationResults.message = "Technical error - Other given name is missing";
+    return validationResults;
+  }
   // AC7 - Date of Birth is an invalid format or is in the future
   if (
     !record.date_of_birth ||
@@ -294,6 +302,18 @@ export function isValidNHSNumberFormat(nhsNumber) {
   // AC1 - NHS Number is not a valid format (n10),
   // check if it's a numeric string with a length of 10
   return /^\d{10}$/.test(nhsNumber);
+}
+
+export function isValidNameFormat(given_name, limit) {
+  //Check Valid name format
+  const isValidFormat = /^[a-zÀ-ú1-9 ]+$/gim.test(given_name);
+  if (given_name.split("").length > limit) {
+    return false;
+  }
+  if (!isValidFormat) {
+    return false; //Invalid format
+  }
+  return true;
 }
 
 export function isValidRemovalReasonCode(reasonCode) {
