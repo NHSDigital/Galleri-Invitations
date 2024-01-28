@@ -30,7 +30,23 @@ const CONFIG = await loadConfig({
 
 //HANDLER
 export const handler = async (event, context) => {
-
+  try {
+    console.log('healthy test');
+    let healthy = await run();
+    if (healthy === 200) {
+      console.log(`Status ${healthy}`);
+      let messageArr = await getMessageArray(); //return arr of message ids
+      console.log(`messageArr ${messageArr}`);
+      if (messageArr.length > 0) {
+        for (let i = 0; i < messageArr.length; i++) {
+          let message = await readMsg(messageArr[i]); //returns messages based on id, iteratively from message list arr
+          console.log(message.data); //observing if format is correct for msg
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error occurred:", error);
+  }
 };
 
 
