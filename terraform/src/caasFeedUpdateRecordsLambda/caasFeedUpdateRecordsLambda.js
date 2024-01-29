@@ -95,14 +95,14 @@ export const processingData = async (record, tableRecord) => {
   if (record.superseded_by_nhs_number === 'null' || record.superseded_by_nhs_number == 0) { // superseded_by_nhs_number is a Number type thus 0 === null
     return await updateRecord(record, tableRecord); // AC1, 2, 4
   } else {
-    if (!tableRecord.superseded_by_nhs_number) {
-      // superseded by NHS No. does not exist in the MPI
-      // THEN replace NHS no. with the Superseded by NHS no
-      record.nhs_number = record.superseded_by_nhs_number
-      await overwriteRecordInTable(client, "Population", record, tableRecord);
-      return {
-        rejected: false
-      }
+    // superseded by NHS No. does not exist in the MPI
+    // THEN replace NHS no. with the Superseded by NHS no
+    if (!tableRecord.superseded_by_nhs_number) record.nhs_number = record.superseded_by_nhs_number
+
+    // merge new and existing record
+    await overwriteRecordInTable(client, "Population", record, tableRecord);
+    return {
+      rejected: false
     }
   }
 }
