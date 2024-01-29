@@ -55,7 +55,7 @@ export const handler = async (event) => {
         })
       );
 
-      const filteredRejectedRecords = recordsToUploadSettled.filter(record => { !record?.rejected });
+      const filteredRejectedRecords = recordsToUploadSettled.filter((record) => { return !record?.rejected });
 
       console.log('----------------------------------------------------------------');
 
