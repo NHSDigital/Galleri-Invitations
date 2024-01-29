@@ -32,15 +32,15 @@ const CONFIG = await loadConfig({
 export const handler = async (event, context) => {
 
   try {
-    console.log('healthy test');
+    console.log('Establishing connection');
     let healthy = await run();
     if (healthy === 200) {
-      console.log(`Status ${healthy}`);
+      console.log(`Status: ${healthy}`);
       let messageArr = await getMessageArray(); //return arr of message ids
-      console.log(`messageArr ${messageArr}`);
+      console.log(`messageArr: ${messageArr}`);
       if (messageArr.length > 0) {
-        for (let i = 0; i < messageArr.length; i++) {
-          let message = await readMsg(messageArr[i]); //returns messages based on id, iteratively from message list arr
+        for (const element of messageArr) {
+          let message = await readMsg(element); //returns messages based on id, iteratively from message list arr
           console.log(message); //observing if format is correct for msg
           const response = await processMessage(message, ENVIRONMENT, clientS3);
           console.log(response);
