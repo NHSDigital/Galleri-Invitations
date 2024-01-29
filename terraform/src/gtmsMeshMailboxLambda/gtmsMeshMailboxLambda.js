@@ -59,10 +59,10 @@ async function run() {
   try {
     let healthCheck = await handShake({
       url: CONFIG.url,
-      mailboxID: CONFIG.senderMailboxID,
-      mailboxPassword: CONFIG.senderMailboxPassword,
+      mailboxID: CONFIG.receiverMailboxID,
+      mailboxPassword: CONFIG.receiverMailboxPassword,
       sharedKey: CONFIG.sharedKey,
-      agent: CONFIG.senderAgent,
+      agent: CONFIG.receiverAgent,
     });
 
     return healthCheck.status
@@ -76,10 +76,10 @@ async function getMessageArray() {
   try {
     let messageCount = await getMessageCount({
       url: CONFIG.url,
-      mailboxID: CONFIG.senderMailboxID,
-      mailboxPassword: CONFIG.senderMailboxPassword,
+      mailboxID: CONFIG.receiverMailboxID,
+      mailboxPassword: CONFIG.receiverMailboxPassword,
       sharedKey: CONFIG.sharedKey,
-      agent: CONFIG.senderAgent,
+      agent: CONFIG.receiverAgent,
     });
     let messageList = messageCount.data.messages
     let inboxCount = messageCount.data.approx_inbox_count;
@@ -95,11 +95,11 @@ async function markRead(msgID) {
   try {
     let markMsg = await markAsRead({
       url: CONFIG.url,
-      mailboxID: CONFIG.senderMailboxID,
-      mailboxPassword: CONFIG.senderMailboxPassword,
+      mailboxID: CONFIG.receiverMailboxID,
+      mailboxPassword: CONFIG.receiverMailboxPassword,
       sharedKey: CONFIG.sharedKey,
       message: msgID,
-      agent: CONFIG.senderAgent,
+      agent: CONFIG.receiverAgent,
     });
     return markMsg;
   } catch (error) {
@@ -112,11 +112,11 @@ async function readMsg(msgID) {
   try {
     let messages = await readMessage({
       url: CONFIG.url,
-      mailboxID: CONFIG.senderMailboxID,
-      mailboxPassword: CONFIG.senderMailboxPassword,
+      mailboxID: CONFIG.receiverMailboxID,
+      mailboxPassword: CONFIG.receiverMailboxPassword,
       sharedKey: CONFIG.sharedKey,
       messageID: msgID,
-      agent: CONFIG.senderAgent,
+      agent: CONFIG.receiverAgent,
     });
     return messages.data;
   } catch (error) {
