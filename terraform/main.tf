@@ -778,7 +778,7 @@ module "caas_feed_update_records_lambda" {
   lambda_timeout       = 100
   memory_size          = 1024
   lambda_s3_object_key = "caas_feed_update_records_lambda.zip"
-    environment_vars = {
+  environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
 }
