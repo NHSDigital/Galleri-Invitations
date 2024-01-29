@@ -57,12 +57,6 @@ export const handler = async (event) => {
 
       const filteredRejectedRecords = recordsToUploadSettled.filter(record => { !record?.rejected });
 
-      // const filteredRejectedRecords = [];
-
-      // recordsToUploadSettled.forEach(record => {
-      //   if (!record?.rejected) filteredRejectedRecords.push(record)
-      // });
-
       console.log('----------------------------------------------------------------');
 
       if (filteredRejectedRecords) {
