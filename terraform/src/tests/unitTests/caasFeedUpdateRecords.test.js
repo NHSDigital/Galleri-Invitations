@@ -6,16 +6,16 @@ import * as fs from "fs";
 import path from "path";
 
 import {
-  readCsvFromS3, // done
-  pushCsvToS3, // done
-  parseCsvToArray, // done
-  filterUniqueEntries, // done
-  lookUp, // done
-  getItemFromTable, // done
-  generateCsvString, // done
-  putTableRecord, // done
-  deleteTableRecord, // done
-  overwriteRecordInTable //
+  readCsvFromS3,
+  pushCsvToS3,
+  parseCsvToArray,
+  filterUniqueEntries,
+  lookUp,
+  getItemFromTable,
+  generateCsvString,
+  putTableRecord,
+  deleteTableRecord,
+  overwriteRecordInTable
 } from '../../caasFeedUpdateRecordsLambda/caasFeedUpdateRecordsLambda';
 
 describe("readCsvFromS3", () => {
@@ -293,9 +293,6 @@ describe('filterUniqueEntries', () => {
 
 describe('lookUp', () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
-  const SUCCESSFULL_REPSONSE = 200
-  const UNSUCCESSFULL_REPSONSE = 400
-
 
   test('should return successful response if item does not exist from query', async () => {
     mockDynamoDbClient.resolves({

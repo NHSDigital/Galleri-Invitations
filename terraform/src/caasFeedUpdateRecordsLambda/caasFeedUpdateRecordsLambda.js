@@ -108,10 +108,7 @@ export const processingData = async (record, tableRecord) => {
 }
 
 const updateRecord = async (record, recordFromTable) => {
-  const {
-    PersonId,
-    LsoaCode
-  } = recordFromTable
+  const { PersonId } = recordFromTable
 
   if (record.date_of_death !== recordFromTable.date_of_death) { // AC1a and AC1b
     const episodeRecord = await lookUp(client, PersonId.S, "Episode", "Participant_Id", "S", true);
