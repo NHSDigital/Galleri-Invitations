@@ -242,6 +242,49 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "USERS"
-    value     = "[{ id : '1', name : 'dev', email : 'dev@nhs.net', password : 'Testing' }, { id : '2', name : 'test', email : 'test@nhs.net', password : 'Testing' }, { id : '3', name : 'pen', email : 'pen@nhs.net', password : 'Testing' }, ]"
+    value = jsonencode([
+      {
+        "id" : "1",
+        "name" : "dev",
+        "email" : "dev@nhs.net",
+        "password" : "Testing"
+      },
+      {
+        "id" : "2",
+        "name" : "test",
+        "email" : "test@nhs.net",
+        "password" : "Testing"
+      },
+      {
+        "id" : "3",
+        "name" : "pen",
+        "email" : "pen@nhs.net",
+        "password" : "Testing"
+      }
+    ])
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "CIS2_ID"
+    value     = "328183617639.apps.supplier"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "CIS2_SECRET"
+    value     = var.CIS2_SECRET
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXTAUTH_SECRET"
+    value     = var.NEXTAUTH_SECRET
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXTAUTH_URL"
+    value     = "http://localhost:3000/"
   }
 }

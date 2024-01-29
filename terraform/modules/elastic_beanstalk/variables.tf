@@ -96,3 +96,19 @@ variable "NEXT_PUBLIC_GENERATE_INVITES" {
 variable "USERS" {
   description = "A list of users who can access the system via local login"
 }
+
+variable "CIS2_ID" {
+
+}
+
+variable "CIS2_SECRET" {
+
+}
+
+variable "NEXTAUTH_SECRET" {
+
+}
+
+variable "NEXTAUTH_URL" {
+
+}

@@ -19,3 +19,19 @@ variable "frontend_repo_location" {
 variable "USERS" {
   default = null
 }
+
+variable "CIS2_ID" {
+  default = null
+}
+
+variable "CIS2_SECRET" {
+  default = null
+}
+
+variable "NEXTAUTH_SECRET" {
+  default = null
+}
+
+variable "NEXTAUTH_URL" {
+  default = null
+}
