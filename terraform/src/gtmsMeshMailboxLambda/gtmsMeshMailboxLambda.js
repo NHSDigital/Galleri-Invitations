@@ -42,20 +42,8 @@ export const handler = async (event, context) => {
         for (let i = 0; i < messageArr.length; i++) {
           let message = await readMsg(messageArr[i]); //returns messages based on id, iteratively from message list arr
           console.log(message); //observing if format is correct for msg
-          if (message?.ClinicCreateOrUpdate) {
-            const dateTime = new Date(Date.now()).toISOString();
-            //Deposit to S3
-            await pushCsvToS3(
-              `${ENVIRONMENT}-gtms-clinic-create-or-update`,
-              `clinic_create_or_update_${dateTime}.json`,
-              JSON.stringify(message),
-              clientS3
-            );
-            //  after success remove msg
-            //  example if  $metadata.httpStatusCode === 200
-            //  const response = await markRead(messageArr[i]);
-            //  console.log(`${response.status} ${response.statusText}`);
-          }
+          const response = await processMessage(message, ENVIRONMENT, clientS3);
+          console.log(response);
         }
       }
     }
@@ -141,5 +129,135 @@ async function readSecret(secretName, client) {
     await getSecret(secretName, client),
     "base64"
   ).toString("utf8");
+}
+
+async function processMessage(message, environment, S3client) {
+  const dateTime = new Date(Date.now()).toISOString();
+  if (message?.ClinicCreateOrUpdate) {
+    //Deposit to S3
+    const confirmation = await pushCsvToS3(
+      `${environment}-gtms-clinic-create-or-update`,
+      `clinic_create_or_update_${dateTime}.json`,
+      JSON.stringify(message),
+      S3client
+    );
+    if (confirmation.$metadata.httpStatusCode === 200) {
+      //  const response = await markRead(messageArr[i]);
+      //  console.log(`${response.status} ${response.statusText}`);
+      console.log('test success -abdul');
+    };
+  }
+
+  if (message?.ClinicScheduleSummary) {
+    //Deposit to S3
+    const confirmation = await pushCsvToS3(
+      `${environment}-gtms-clinic-schedule-summary`,
+      `clinic_schedule_summary_${dateTime}.json`,
+      JSON.stringify(message),
+      S3client
+    );
+    if (confirmation.$metadata.httpStatusCode === 200) {
+      // const response = await markRead(messageArr[i]);
+      // console.log(`${response.status} ${response.statusText}`);
+    };
+  }
+
+  if (message?.InvitedParticipantBatch) {
+    //Deposit to S3
+    const confirmation = await pushCsvToS3(
+      `${environment}-gtms-invited-participant-batch`,
+      `invited_participant_batch_${dateTime}.json`,
+      JSON.stringify(message),
+      S3client
+    );
+    if (confirmation.$metadata.httpStatusCode === 200) {
+      // const response = await markRead(messageArr[i]);
+      // console.log(`${response.status} ${response.statusText}`);
+    };
+  }
+
+  if (message?.Appointment) {
+    //Deposit to S3
+    const confirmation = await pushCsvToS3(
+      `${environment}-gtms-appointment`,
+      `appointment_${dateTime}.json`,
+      JSON.stringify(message),
+      S3client
+    );
+    if (confirmation.$metadata.httpStatusCode === 200) {
+      // const response = await markRead(messageArr[i]);
+      // console.log(`${response.status} ${response.statusText}`);
+    };
+  }
+
+  if (message?.Withdrawal) {
+    //Deposit to S3
+    const confirmation = await pushCsvToS3(
+      `${environment}-gtms-withdrawal`,
+      `withdrawal_${dateTime}.json`,
+      JSON.stringify(message),
+      S3client
+    );
+    if (confirmation.$metadata.httpStatusCode === 200) {
+      // const response = await markRead(messageArr[i]);
+      // console.log(`${response.status} ${response.statusText}`);
+    };
+  }
+
+  if (message?.SiteAccessibilityOptions) {
+    //Deposit to S3
+    const confirmation = await pushCsvToS3(
+      `${environment}-gtms-site-accessibility-options`,
+      `site_accessibility_options_${dateTime}.json`,
+      JSON.stringify(message),
+      S3client
+    );
+    if (confirmation.$metadata.httpStatusCode === 200) {
+      // const response = await markRead(messageArr[i]);
+      // console.log(`${response.status} ${response.statusText}`);
+    };
+  }
+
+  if (message?.CommunicationAccessibility) {
+    //Deposit to S3
+    const confirmation = await pushCsvToS3(
+      `${environment}-gtms-communication-accessibility`,
+      `communication_accessibility_${dateTime}.json`,
+      JSON.stringify(message),
+      S3client
+    );
+    if (confirmation.$metadata.httpStatusCode === 200) {
+      // const response = await markRead(messageArr[i]);
+      // console.log(`${response.status} ${response.statusText}`);
+    };
+  }
+
+  if (message?.InterpreterLanguage) {
+    //Deposit to S3
+    const confirmation = await pushCsvToS3(
+      `${environment}-gtms-interpreter-language`,
+      `interpreter_language_${dateTime}.json`,
+      JSON.stringify(message),
+      S3client
+    );
+    if (confirmation.$metadata.httpStatusCode === 200) {
+      // const response = await markRead(messageArr[i]);
+      // console.log(`${response.status} ${response.statusText}`);
+    };
+  }
+
+  if (message?.NotificationPreferences) {
+    //Deposit to S3
+    const confirmation = await pushCsvToS3(
+      `${environment}-gtms-notification-preferences`,
+      `notification_preferences_${dateTime}.json`,
+      JSON.stringify(message),
+      S3client
+    );
+    if (confirmation.$metadata.httpStatusCode === 200) {
+      // const response = await markRead(messageArr[i]);
+      // console.log(`${response.status} ${response.statusText}`);
+    };
+  }
 }
 //END OF FUNCTIONS
