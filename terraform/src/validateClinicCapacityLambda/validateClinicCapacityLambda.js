@@ -1,0 +1,140 @@
+import {
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
+import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
+import { Validator, validate } from "jsonschema";
+import ClinicSchemaGTMS from "../validateClinicDataLambda/clinic-schema.json";
+
+const s3 = new S3Client();
+const ENVIRONMENT = process.env.ENVIRONMENT;
+const client = new DynamoDBClient({ region: "eu-west-2" });
+
+export const handler = async (event) => {
+  const bucket = event.Records[0].s3.bucket.name;
+  const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
+  console.log(`Triggered by object ${key} in bucket ${bucket}`);
+
+  try {
+    const jsonString = await readFromS3(bucket, key, s3);
+
+    const validationResult = validateRecord(jsonString);
+    console.log(`Finished validating object ${key} in bucket ${bucket}`);
+    console.log('----------------------------------------------------------------');
+
+      //Timestamp
+      const timeNow = Date.now();
+
+      console.log(`Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${bucket}`);
+
+      // Valid Records Arrangement
+      if (validationResults.success) {
+      // Deposit to S3 bucket
+      await pushToS3(bucket, `validRecords/valid_records_add-${timeNow}.csv`, jsonString, s3);
+      }
+      else {
+        await pushToS3(bucket, `invalidRecords/invalid_records-${timeNow}.csv`, jsonString, s3);
+        console.warn("PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Capacity BELOW:\n" + validationResult.errors, null, 2);
+      }
+      return `Finished validating object ${key} in bucket ${bucket}`;
+
+    } catch (err) {
+        const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
+        console.error(message);
+        throw new Error(message);
+    };
+};
+
+
+export const readFromS3 = async (bucketName, key, client) => {
+  try {
+    const response = await client.send(
+      new GetObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+      })
+    );
+
+    return response.Body.transformToString();
+  } catch (err) {
+    console.log("Failed: ", err);
+    throw err;
+  }
+};
+
+export const pushToS3 = async (bucketName, key, body, client) => {
+  try {
+    const response = await client.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+        Body: body,
+      })
+    );
+
+    return response;
+  } catch (err) {
+    console.log("Failed: ", err);
+    throw err;
+  }
+};
+
+export async function validateRecord(record, client) {
+  const validationResults = {
+    success: true,
+    message: "success",
+  };
+
+  console.log("record:", record);
+
+  const numberOfClinics = record.ClinicScheduleSummary.ClinicScheduleSummary.length;
+  console.log("length:",numberOfClinics);
+  let count = 0;
+
+  while ( count < numberOfClinics ){
+    const clinicValidation = await isClinicIDvalid(client, record.ClinicScheduleSummary.ClinicScheduleSummary[count].ClinicID);
+
+    if(clinicValidation){
+      const validation = validate(record, ClinicSchemaGTMS);
+      if (!validation.valid) {    // validate the JSON Schema
+        validationResults.success = false;
+        validationResults.message = `Invalid JSON Schema`;
+        console.error("errors : ", validation.errors);
+        return validationResults;
+      }
+    }
+    else {
+      validationResults.success = false;
+      validationResults.message = `Invalid ClinicID: ${record.ClinicScheduleSummary.ClinicScheduleSummary[count].ClinicID}`;
+      return validationResults;
+    }
+    count++;
+  }
+  return validationResults;
+}
+
+export async function isClinicIDvalid(client, clinicID) {
+  //AC - Check if ClinicID exists in the ClinicID DynamoDB Table
+
+  const input = {
+    ExpressionAttributeValues: {
+      ":clinicID": {
+        S: `${clinicID}`,
+      },
+    },
+    KeyConditionExpression: "ClinicId = :clinicID",
+    ProjectionExpression: "ClinicId",
+    TableName: `${ENVIRONMENT}-PhlebotomySite`,
+  };
+
+  const command = new QueryCommand(input);
+  const response = await client.send(command);
+
+  if (!response.Items.length) { // if response is empty, no matching ClinicID
+    console.log("ClinicID does not exist in PhlebotomySite DynamoDB Table:", clinicID);
+    return false;
+  }
+  console.log("ClinicID exists in PhlebotomySite DynamoDB Table:", clinicID);
+  return true;
+}
