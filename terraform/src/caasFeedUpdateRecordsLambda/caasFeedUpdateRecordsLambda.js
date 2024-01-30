@@ -36,6 +36,13 @@ export const handler = async (event) => {
       duplicateRecordsToIndividuallyProcess
     ] = filterUniqueEntries(records);
 
+    // get record from pop table for nhs number
+    // get record from pop table for superseded
+    // check episode record for nhs number
+    // check episode record for superseded
+    // nhs number record has episode? Update nhs number record
+    // superseded record has episode? Set this episode record to point to nhs record. Update nhs number record
+
     if (uniqueRecordsToBatchProcess.length > 0){
       const recordsToUploadSettled = await Promise.allSettled(
         uniqueRecordsToBatchProcess.map(async (record) => {
@@ -97,14 +104,50 @@ export const processingData = async (record, tableRecord) => {
   } else {
     // superseded by NHS No. does not exist in the MPI
     // THEN replace NHS no. with the Superseded by NHS no
-    if (!tableRecord.superseded_by_nhs_number) record.nhs_number = record.superseded_by_nhs_number
+    const checkSupersedeNoRecord = await lookUp(client, record.superseded_by_nhs_number, "Population", "nhs_number", "N", true);
+    // AND Superseded by NHS No. exists in the MPI (Superseded by NHS No from incoming update)
+    if (checkSupersedeNoRecord?.Items.length) {
+      record.nhs_number = record.superseded_by_nhs_number
 
-    // merge new and existing record
-    await overwriteRecordInTable(client, "Population", record, tableRecord);
-    return {
-      rejected: false
+      // merge new and existing record
+      await overwriteRecordInTable(client, "Population", record, tableRecord);
+      return {
+        rejected: false
+      }
     }
+
+    // associate everything from previous nhs number with the new nhs number
+    const { PersonId } = tableRecord
+    record.participant_id = PersonId.S
+    record.lsoa_2011 = getLsoa(record, client)
+
+    // check if a record exists in pop table for superseded nhs number
+    // checkSupersedeNoRecord = await lookUp(client, record.superseded_by_nhs_number, "Population", "nhs_number", "N", true);
+    if (checkSupersedeNoRecord?.Items.length){
+      //AC2b: Superseded NHS No - Merge Two records - One Open Episode (Superseded)
+      return "something"
+    }
+
+    // call episode table with record and tableRecord
+    // extract the old records personId
+
   }
+  const supersedeNoTableRecord = await lookUp(client, record.superseded_by_nhs_number, "Population", "nhs_number", "N", true);
+
+  const retainedEpisodeRecord = await lookUp(client, tableRecord.PersonId.S, "Episode", "Participant_Id", "S", true);
+  const supersededEpisodeRecord = await lookUp(client, supersedeNoTableRecord.PersonId.S, "Episode", "Participant_Id", "S", true);
+
+  if (supersededEpisodeRecord.Items.length > 0){
+    // change the participant id for the record that exists for the superseded by number to be the participant id of the retained nhs number
+    await overwriteRecordInTable(client, "Episode", tableRecord.PersonId.S, record)
+  }
+
+  record.nhs_number = record.superseded_by_nhs_number
+  record.superseded_by_nhs_number = "0"
+
+  await overwriteRecordInTable(client, "Population", record, tableRecord);
+
+
 }
 
 const updateRecord = async (record, recordFromTable) => {
