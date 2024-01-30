@@ -5,4 +5,12 @@ resource "aws_lambda_event_source_mapping" "dynamodb_stream_map" {
   starting_position                  = var.starting_position
   batch_size                         = var.batch_size
   maximum_batching_window_in_seconds = var.maximum_batching_window_in_seconds
+
+  filter_criteria {
+    filter {
+      pattern = jsonencode({
+        eventName = ["${var.filter_event_name}"]
+      })
+    }
+  }
 }
