@@ -420,7 +420,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "s3:*"
           ],
           "Resource" : [
-            "arn:aws:s3:::galleri-clinic-data/*"
+            "arn:aws:s3:::galleri-clinic-data/*",
             "arn:aws:s3:::galleri-clinic-capacity/*"
           ]
         },
