@@ -30,6 +30,9 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
+  # if [ $environment_type == "dev" || "test " ]; then
+  #   aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/lsoa.json 
+  # fi
   NONPROD_LSOA_DATA_COUNT=$(aws dynamodb scan --table-name $environment-UniqueLsoa --select "COUNT" | jq -r ".Count")
   if [[ $? -eq 0 ]] && [[ $NONPROD_LSOA_DATA_COUNT =~ ^[0-9]+$ ]]; then
     if (($NONPROD_LSOA_DATA_COUNT < 17741)); then
@@ -50,6 +53,10 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
+  echo $environment_type
+  if [ $environment_type == "dev" || "test " ]; then
+    aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/phlebotomy.json 
+  fi
   PHLEBOTOMY_CLINIC_DATA_COUNT=$(aws dynamodb scan --table-name $environment-PhlebotomySite --select "COUNT" | jq -r ".Count")
   if [[ $? -eq 0 ]] && [[ $PHLEBOTOMY_CLINIC_DATA_COUNT =~ ^[0-9]+$ ]]; then
     if (($PHLEBOTOMY_CLINIC_DATA_COUNT < 100)); then
@@ -84,6 +91,9 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
+  # if [ $environment_type == "dev" || "test " ]; then
+  #   aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/population.json 
+  # fi
   POPULATION_COUNT=$(aws dynamodb scan --table-name $environment-Population --select "COUNT" | jq -r ".Count")
   if [[ $? -eq 0 ]] && [[ $POPULATION_COUNT =~ ^[0-9]+$ ]]; then
     if (($POPULATION_COUNT < 1)); then
