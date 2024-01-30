@@ -117,7 +117,7 @@ const updateRecord = async (record, recordFromTable) => {
       const batchId = episodeRecord.Items[0].Batch_Id.S
       const participantId = episodeRecord.Items[0].Participant_Id.S
 
-      const updateEpisodeRecord = ["Episode_Status", "S", "Closed"]
+      const updateEpisodeRecord = ["Episode_Status", "S", "Deceased"]
       await updateRecordInTable(client, "Episode", batchId, "Batch_Id", participantId, "Participant_Id", updateEpisodeRecord);
     } else {
       console.log('No open Episode record')
