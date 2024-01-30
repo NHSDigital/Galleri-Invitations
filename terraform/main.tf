@@ -45,6 +45,7 @@ module "galleri_invitations_screen" {
   CIS2_SECRET                                           = var.CIS2_SECRET
   NEXTAUTH_SECRET                                       = var.NEXTAUTH_SECRET
   NEXTAUTH_URL                                          = var.NEXTAUTH_URL
+  NEXTAUTH_PASS                                         = var.NEXTAUTH_PASS
 }
 
 # the role that all lambda's are utilising,
