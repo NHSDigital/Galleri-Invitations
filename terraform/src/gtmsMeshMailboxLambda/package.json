@@ -8,6 +8,6 @@
     "nhs-mesh-client": "^1.0.8"
   },
   "engines": {
-    "nhs-mesh-client": ">=1.06"
+    "nhs-mesh-client": ">=1.0.6"
   }
 }

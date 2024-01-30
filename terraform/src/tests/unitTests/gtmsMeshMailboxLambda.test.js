@@ -1,6 +1,7 @@
+import { processMessage } from "../../gtmsMeshMailboxLambda/gtmsMeshMailboxLambda";
 import { mockClient } from "aws-sdk-client-mock";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { pushCsvToS3, getSecret, processMessage, run } from "../../gtmsMeshMailboxLambda/helper";
+import { pushCsvToS3, getSecret } from "../../gtmsMeshMailboxLambda/helper";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 
 
@@ -26,6 +27,27 @@ describe("pushCsvToS3", () => {
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith(`Successfully pushed to galleri-caas-data/test.csv`);
     expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
+  });
+
+  test("Failure when depositing to S3", async () => {
+    const logSpy = jest.spyOn(global.console, "log");
+    const errorMsg = new Error("Failed to push to S3");
+    const mockS3Client = {
+      send: jest.fn().mockRejectedValue(errorMsg),
+    };
+    try {
+      await pushCsvToS3(
+        "galleri-caas-data",
+        "test.csv",
+        "arr",
+        mockS3Client
+      );
+    } catch (err) {
+      expect(err.message).toBe("Failed to push to S3");
+    }
+    expect(logSpy).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledWith('Failed: Error: Failed to push to S3');
   });
 })
 
@@ -54,8 +76,23 @@ describe("getSecret", () => {
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith(`Retrieved value successfully MESH_SENDER_CERT`);
-
   })
+
+  test("Failure when retrieving secret", async () => {
+    const logSpy = jest.spyOn(global.console, "log");
+    const errorMsg = new Error("Failed to retrieve secret to S3");
+    const smClient = {
+      send: jest.fn().mockRejectedValue(errorMsg),
+    };
+    try {
+      const response = await getSecret("MESH_SENDER_CERT", smClient);
+    } catch (error) {
+      expect(error.message).toBe("Failed to retrieve secret to S3");
+    }
+    expect(logSpy).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledWith('Failed: Error: Failed to retrieve secret to S3');
+  });
 })
 
 describe("processMessage", () => {
