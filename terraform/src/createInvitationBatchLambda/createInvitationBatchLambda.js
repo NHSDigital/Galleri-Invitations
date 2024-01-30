@@ -11,7 +11,7 @@ from '@aws-sdk/client-s3';
 const dbClient = new DynamoDBClient({ region: "eu-west-2" });
 const s3 = new S3Client({ region: "eu-west-2" });
 const ENVIRONMENT = process.env.ENVIRONMENT;
-const BUCKET = `${ENVIRONMENT}-invitation-batch-bucket`;
+const BUCKET = `${ENVIRONMENT}-gtms-invited-participant-batch`;
 const KEY_PREFIX = "invitation_batch_";
 
 export const handler = async (event) => {

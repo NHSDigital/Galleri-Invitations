@@ -78,9 +78,9 @@ module "user_accounts_bucket" {
   environment             = var.environment
 }
 
-module "invitation_batch_bucket" {
+module "invited_participant_batch" {
   source                  = "./modules/s3"
-  bucket_name             = "invitation-batch-bucket"
+  bucket_name             = "gtms-invited-participant-batch"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
@@ -986,6 +986,8 @@ ITEM
 module "episode_table" {
   source                   = "./modules/dynamodb"
   billing_mode             = "PROVISIONED"
+  stream_enabled           = true
+  stream_view_type         = "NEW_IMAGE "
   table_name               = "Episode"
   hash_key                 = "Batch_Id"
   range_key                = "Participant_Id"
