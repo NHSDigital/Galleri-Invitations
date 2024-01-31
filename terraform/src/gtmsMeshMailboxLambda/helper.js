@@ -53,7 +53,6 @@ export const run = async (CONFIG, handshake) => {
     // console.log(healthCheck);
     return healthCheck.status;
   } catch (error) {
-    console.log("its here");
-    console.error("Error occurred:", error);
+    console.error(`Error occurred: ${error}`);
   }
 }

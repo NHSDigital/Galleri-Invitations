@@ -311,7 +311,6 @@ describe("processMessage", () => {
 })
 
 describe('run', () => {
-
   const mockConfig = {
     url: "example",
     mailboxID: "example",
@@ -324,10 +323,26 @@ describe('run', () => {
     //pass in mocked handShake function from globally mocked nhs-mesh-client module
     const result = await run(mockConfig, handShake);
     console.log(`result: ${result}`);
-
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith(`result: Handshake successful, status 200`);
     expect(result).toBe("Handshake successful, status 200");
+    // expect(result).toHaveReturnedWith("Handshake successful, status 200");
+  })
+
+  test('test run failure', async () => {
+    jest.mock("nhs-mesh-client");
+    handShake.mockRejectedValue("ERROR: Request 'handShake' completed but responded with incorrect status");
+    const logSpy = jest.spyOn(global.console, "log");
+    try {
+      const result = await run(mockConfig, handShake);
+      console.log(`result: ${result}`);
+    } catch (err) {
+      console.log(err);
+      expect(err).toBe("ERROR: Request 'handShake' completed but responded with incorrect status");
+      expect(logSpy).toHaveBeenCalled();
+      expect(logSpy).toHaveBeenCalledTimes(1);
+      expect(logSpy).toHaveBeenCalledWith(`result: undefined`);
+    }
   })
 });
