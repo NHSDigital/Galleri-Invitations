@@ -102,13 +102,16 @@ variable "CIS2_ID" {
 }
 
 variable "CIS2_SECRET" {
+  default = "Change_Me"
 
 }
 
 variable "NEXTAUTH_SECRET" {
+  default = "Change_Me"
 
 }
 
 variable "NEXTAUTH_URL" {
+
 
 }

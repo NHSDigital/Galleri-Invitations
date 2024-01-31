@@ -42,8 +42,6 @@ module "galleri_invitations_screen" {
   NEXT_PUBLIC_GENERATE_INVITES                          = module.generate_invites_api_gateway.rest_api_galleri_id
   USERS                                                 = var.USERS
   CIS2_ID                                               = var.CIS2_ID
-  CIS2_SECRET                                           = var.CIS2_SECRET
-  NEXTAUTH_SECRET                                       = var.NEXTAUTH_SECRET
   NEXTAUTH_URL                                          = var.NEXTAUTH_URL
 }
 

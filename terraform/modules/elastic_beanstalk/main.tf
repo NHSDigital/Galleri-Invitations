@@ -270,17 +270,17 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     value     = "328183617639.apps.supplier"
   }
 
-  # setting {
-  #   namespace = "aws:elasticbeanstalk:application:environment"
-  #   name      = "CIS2_SECRET"
-  #   value     = var.CIS2_SECRET
-  # }
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "CIS2_SECRET"
+    value     = var.CIS2_SECRET
+  }
 
-  # setting {
-  #   namespace = "aws:elasticbeanstalk:application:environment"
-  #   name      = "NEXTAUTH_SECRET"
-  #   value     = var.NEXTAUTH_SECRET
-  # }
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXTAUTH_SECRET"
+    value     = var.NEXTAUTH_SECRET
+  }
 
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
