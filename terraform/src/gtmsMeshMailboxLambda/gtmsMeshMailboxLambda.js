@@ -1,5 +1,5 @@
 //IMPORTS
-import { getSecret, pushCsvToS3, run } from "./helper.js"
+import { getSecret, pushCsvToS3, run, getMessageArray } from "./helper.js"
 import { handShake, loadConfig, getMessageCount, readMessage, markAsRead } from "nhs-mesh-client";
 import { S3Client } from '@aws-sdk/client-s3';
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
@@ -74,23 +74,23 @@ export const handler = async (event, context) => {
 // }
 
 //Return an array of message IDs
-async function getMessageArray(CONFIG) {
-  try {
-    let messageCount = await getMessageCount({
-      url: CONFIG.url,
-      mailboxID: CONFIG.receiverMailboxID,
-      mailboxPassword: CONFIG.receiverMailboxPassword,
-      sharedKey: CONFIG.sharedKey,
-      agent: CONFIG.receiverAgent,
-    });
-    let messageList = messageCount.data.messages
-    let inboxCount = messageCount.data.approx_inbox_count;
-    console.log(`Inbox contains ${inboxCount} messages`);
-    return messageList;
-  } catch (error) {
-    console.error("Error occurred:", error);
-  }
-}
+// async function getMessageArray(CONFIG) {
+//   try {
+//     let messageCount = await getMessageCount({
+//       url: CONFIG.url,
+//       mailboxID: CONFIG.receiverMailboxID,
+//       mailboxPassword: CONFIG.receiverMailboxPassword,
+//       sharedKey: CONFIG.sharedKey,
+//       agent: CONFIG.receiverAgent,
+//     });
+//     let messageList = messageCount.data.messages
+//     let inboxCount = messageCount.data.approx_inbox_count;
+//     console.log(`Inbox contains ${inboxCount} messages`);
+//     return messageList;
+//   } catch (error) {
+//     console.error("Error occurred:", error);
+//   }
+// }
 
 //Marks messaged as read based on the message ID passed in
 async function markRead(msgID, CONFIG) {

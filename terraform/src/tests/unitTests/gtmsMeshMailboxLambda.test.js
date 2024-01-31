@@ -1,12 +1,15 @@
 import { processMessage } from "../../gtmsMeshMailboxLambda/gtmsMeshMailboxLambda";
 import { mockClient } from "aws-sdk-client-mock";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { pushCsvToS3, getSecret, run } from "../../gtmsMeshMailboxLambda/helper";
+import { pushCsvToS3, getSecret, run, getMessageArray } from "../../gtmsMeshMailboxLambda/helper";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
-import { handShake } from "nhs-mesh-client";
+import { handShake, getMessageCount } from "nhs-mesh-client";
+
+
 
 jest.mock("nhs-mesh-client");
 handShake.mockResolvedValue({ status: "Handshake successful, status 200" });
+getMessageCount.mockResolvedValue({ data: { messages: "123ID", "approx_inbox_count": 1 } });
 
 describe("pushCsvToS3", () => {
   afterEach(() => {
@@ -310,7 +313,7 @@ describe("processMessage", () => {
   })
 })
 
-describe('run', () => {
+describe("run", () => {
   const mockConfig = {
     url: "example",
     mailboxID: "example",
@@ -327,11 +330,10 @@ describe('run', () => {
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith(`result: Handshake successful, status 200`);
     expect(result).toBe("Handshake successful, status 200");
-    // expect(result).toHaveReturnedWith("Handshake successful, status 200");
   })
 
   test('test run failure', async () => {
-    jest.mock("nhs-mesh-client");
+    // jest.mock("nhs-mesh-client");
     handShake.mockRejectedValue("ERROR: Request 'handShake' completed but responded with incorrect status");
     const logSpy = jest.spyOn(global.console, "log");
     try {
@@ -345,4 +347,30 @@ describe('run', () => {
       expect(logSpy).toHaveBeenCalledWith(`result: undefined`);
     }
   })
+});
+
+describe("getMessageArray", () => {
+  const mockConfig = {
+    url: "example",
+    mailboxID: "example",
+    mailboxPassword: "example",
+    sharedKey: "example",
+    agent: "example"
+  };
+  beforeEach(() => {
+    jest.clearAllMocks();
+  })
+  test('test getMessageArray', async () => {
+    // handShake.mockRejectedValue("test");
+    const logSpy = jest.spyOn(global.console, "log");
+    //pass in mocked handShake function from globally mocked nhs-mesh-client module
+    const result = await getMessageArray(mockConfig, getMessageCount);
+    // console.log(`result: ${result}`);
+    console.log(result);
+    expect(logSpy).toHaveBeenCalled();
+    // expect(logSpy).toHaveBeenCalledTimes(2);
+    expect(logSpy).toHaveBeenNthCalledWith(1, `Inbox contains 1 messages`);
+    expect(logSpy).toHaveBeenNthCalledWith(2, `123ID`);
+    expect(result).toBe("123ID");
+  });
 });
