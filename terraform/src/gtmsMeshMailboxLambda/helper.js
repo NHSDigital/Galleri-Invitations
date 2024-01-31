@@ -1,6 +1,6 @@
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { handShake, getMessageCount } from "nhs-mesh-client";
+import { handShake, getMessageCount, markAsRead } from "nhs-mesh-client";
 
 //Push string from MESH to S3
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
@@ -58,7 +58,7 @@ export const run = async (CONFIG, handshake) => {
 }
 
 const msgCount = getMessageCount;
-
+//Return an array of message IDs
 export const getMessageArray = async (CONFIG, msgCount) => {
   try {
     // console.log(CONFIG);
@@ -77,5 +77,28 @@ export const getMessageArray = async (CONFIG, msgCount) => {
     return messageList;
   } catch (error) {
     console.error("Error occurred:", error);
+  }
+}
+
+const marked = markAsRead;
+//Marks messaged as read based on the message ID passed in
+export const markRead = async (CONFIG, marked, msgID) => {
+  try {
+    // console.log(CONFIG);
+    // console.log(msgCount);
+    // console.log(msgID);
+    let markMsg = await marked({
+      url: CONFIG.url,
+      mailboxID: CONFIG.receiverMailboxID,
+      mailboxPassword: CONFIG.receiverMailboxPassword,
+      sharedKey: CONFIG.sharedKey,
+      message: msgID,
+      agent: CONFIG.receiverAgent,
+    });
+    // console.log('final');
+    // console.log(markMsg);
+    return markMsg;
+  } catch (error) {
+    console.error(`Error occurred: ${error}`);
   }
 }

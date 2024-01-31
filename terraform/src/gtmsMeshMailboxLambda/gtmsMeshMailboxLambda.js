@@ -93,21 +93,21 @@ export const handler = async (event, context) => {
 // }
 
 //Marks messaged as read based on the message ID passed in
-async function markRead(msgID, CONFIG) {
-  try {
-    let markMsg = await markAsRead({
-      url: CONFIG.url,
-      mailboxID: CONFIG.receiverMailboxID,
-      mailboxPassword: CONFIG.receiverMailboxPassword,
-      sharedKey: CONFIG.sharedKey,
-      message: msgID,
-      agent: CONFIG.receiverAgent,
-    });
-    return markMsg;
-  } catch (error) {
-    console.error("Error occurred:", error);
-  }
-}
+// async function markRead(msgID, CONFIG) {
+//   try {
+//     let markMsg = await markAsRead({
+//       url: CONFIG.url,
+//       mailboxID: CONFIG.receiverMailboxID,
+//       mailboxPassword: CONFIG.receiverMailboxPassword,
+//       sharedKey: CONFIG.sharedKey,
+//       message: msgID,
+//       agent: CONFIG.receiverAgent,
+//     });
+//     return markMsg;
+//   } catch (error) {
+//     console.error("Error occurred:", error);
+//   }
+// }
 
 //Reads message data based on message ID
 async function readMsg(msgID, CONFIG) {
