@@ -71,7 +71,7 @@ env:
   frontend-branch: ${{ inputs.frontend_branch }}
   invitations-branch: ${{ inputs.invitations_branch }}
   tf-action: ${{ inputs.tf_action }}
-  environment_type: "{{ inputs.environment_type }}"
+  environment_type: ${{ inputs.environment_type }}
 
 jobs:
   load-data:
