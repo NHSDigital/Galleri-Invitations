@@ -37,7 +37,7 @@ on:
         type: string
       environment_type:
         description: "the environment type the environment belongs to"
-        required: true
+        required: false
         type: string
       invitations_branch:
         description: "Branch of invitations repository to checkout"
