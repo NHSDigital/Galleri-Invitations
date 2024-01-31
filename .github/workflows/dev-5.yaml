@@ -53,7 +53,7 @@ jobs:
       version: ${{ steps.variables.outputs.version }}
       does_pull_request_exist: ${{ steps.pr_exists.outputs.does_pull_request_exist }}
       environment: ${{ env.environment }}
-      environment_type: ${{ needs.metadata.steps.variables.outputs.environment_type }}
+      environment_type: ${{ steps.variables.outputs.environment_type }}
       invitations_branch: ${{ github.event.inputs.invitations_branch }}
       frontend_branch: ${{ github.event.inputs.invitations_branch }}
       database_seeding: ${{ github.event.inputs.database_seeding }}
