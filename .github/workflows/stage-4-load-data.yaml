@@ -101,5 +101,5 @@ jobs:
           role-to-assume: ${{ env.role-to-assume }}
           aws-region: ${{ env.aws-region }}
           environment: ${{ env.environment }}
-          environment_type: "${{ env.environment_type }}"
+          environment_type: ${{ env.environment_type }}
         timeout-minutes: 30
