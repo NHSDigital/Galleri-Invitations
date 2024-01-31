@@ -1,5 +1,5 @@
 //IMPORTS
-import { getSecret, pushCsvToS3 } from "./helper.js"
+import { getSecret, pushCsvToS3, run } from "./helper.js"
 import { handShake, loadConfig, getMessageCount, readMessage, markAsRead } from "nhs-mesh-client";
 import { S3Client } from '@aws-sdk/client-s3';
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
@@ -56,22 +56,22 @@ export const handler = async (event, context) => {
 
 
 //FUNCTIONS
-//Establish connection with MESH
-async function run(CONFIG) {
-  try {
-    let healthCheck = await handShake({
-      url: CONFIG.url,
-      mailboxID: CONFIG.receiverMailboxID,
-      mailboxPassword: CONFIG.receiverMailboxPassword,
-      sharedKey: CONFIG.sharedKey,
-      agent: CONFIG.receiverAgent,
-    });
+// //Establish connection with MESH
+// async function run(CONFIG) {
+//   try {
+//     let healthCheck = await handShake({
+//       url: CONFIG.url,
+//       mailboxID: CONFIG.receiverMailboxID,
+//       mailboxPassword: CONFIG.receiverMailboxPassword,
+//       sharedKey: CONFIG.sharedKey,
+//       agent: CONFIG.receiverAgent,
+//     });
 
-    return healthCheck.status
-  } catch (error) {
-    console.error("Error occurred:", error);
-  }
-}
+//     return healthCheck.status
+//   } catch (error) {
+//     console.error("Error occurred:", error);
+//   }
+// }
 
 //Return an array of message IDs
 async function getMessageArray(CONFIG) {

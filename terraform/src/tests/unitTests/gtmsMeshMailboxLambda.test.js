@@ -1,8 +1,10 @@
 import { processMessage } from "../../gtmsMeshMailboxLambda/gtmsMeshMailboxLambda";
 import { mockClient } from "aws-sdk-client-mock";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { pushCsvToS3, getSecret } from "../../gtmsMeshMailboxLambda/helper";
+import { pushCsvToS3, getSecret, run } from "../../gtmsMeshMailboxLambda/helper";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
+import { handShake } from "nhs-mesh-client";
+import mockAxios from "axios"
 
 
 describe("pushCsvToS3", () => {
@@ -307,3 +309,56 @@ describe("processMessage", () => {
   })
 })
 
+describe('run', () => {
+  // jest.spyOn(mock, "log");
+  // const mockConfig = {
+  //   url: "example",
+  //   mailboxID: "example",
+  //   mailboxPassword: "example",
+  //   sharedKey: "example",
+  //   agent: "example"
+  // };
+
+  // jest.mock('nhs-mesh-client', () => ({
+  //   //   handShake: jest.fn(() => { status: "Handshake successful, status 200" }),
+  //   ...jest.requireActual('nhs-mesh-client'),
+  //   // handShake: jest.fn(({ a, b, c, d, e }) => { response: "Handshake successful, status 200" })
+  //   handShake: jest.fn(mockConfig).mockedResolvedValue({ response: "Handshake successful, status 200" })
+  //   // handShake: jest.fn()
+  // }))
+
+  jest.mock('nhs-mesh-client', () =>
+    Promise.resolve({
+      handShake: () => Promise.resolve({}),
+    })
+  );
+
+  // jest.mock('axios', () => ({
+  //   get: jest.fn().mockedResolvedValue({ data: { response: "hello" } })
+  // }))
+  // expect(get).toHaveBeenCalledTimes(1);
+  // jest.mock('../../gtmsMeshMailboxLambda/helper', () => {
+  //   run: jest.fn().mockResolvedValue({ status: 200 })
+  // })
+  // handShake: jest.fn(() => { status: "Handshake successful, status 200" });
+  // handShake = jest
+  //   .fn()
+  //   .mockResolvedValue({ status: "Handshake successful, status 200" });
+  test.only('test run', async () => {
+    // handShake.resolves({ status: "Handshake successful, status 200" });
+    // expect(jest.isMockFunction(handShake)).toBeTruthy();
+    // expect(handShake()).toBe("Handshake successful, status 200");
+    // jest.mock('nhs-mesh-client');
+    // handShake.mockImplementation(() => { status: "Handshake successful, status 200" });
+    const config = {
+      url: "example",
+      mailboxID: "example",
+      mailboxPassword: "example",
+      sharedKey: "example",
+      agent: "example"
+    };
+    // expect(await run(config, handShake)).toBe("Handshake successful, status 200");
+    expect(await handShake(config)).toBe("Handshake successful, status 200");
+
+  })
+});
