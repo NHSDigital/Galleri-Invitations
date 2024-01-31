@@ -35,8 +35,11 @@ export const getSecret = async (secretName, client) => {
     throw error;
   }
 }
-const handshake = handShake;
-//Establish connection with MESH
+
+/*
+ * Establish connection with MESH
+ * @params handshake to be replaced with handShake fn
+ */
 export const run = async (CONFIG, handshake) => {
 
   try {
@@ -56,9 +59,10 @@ export const run = async (CONFIG, handshake) => {
     console.error(`Error occurred: ${error}`);
   }
 }
-
-const msgCount = getMessageCount;
-//Return an array of message IDs
+/*
+ * Return an array of message IDs from MESH
+ * @params msgCount to be replaced with getMessageCount fn
+ */
 export const getMessageArray = async (CONFIG, msgCount) => {
   try {
     // console.log(CONFIG);
@@ -80,8 +84,11 @@ export const getMessageArray = async (CONFIG, msgCount) => {
   }
 }
 
-const marked = markAsRead;
-//Marks messaged as read based on the message ID passed in
+/*
+ * Marks messaged as read based on the message ID passed in,
+ * subsequently removing message from MESH mailbox
+ * @params marked to be replaced with markAsRead fn
+ */
 export const markRead = async (CONFIG, marked, msgID) => {
   try {
     // console.log(CONFIG);
@@ -102,9 +109,10 @@ export const markRead = async (CONFIG, marked, msgID) => {
     console.error(`Error occurred: ${error}`);
   }
 }
-
-const readingMsg = readMessage;
-//Reads message data based on message ID
+/*
+ * Reads message data from MESH based on message ID
+ * @params readingMsg to be replaced with readMessage fn
+ */
 export const readMsg = async (CONFIG, readingMsg, msgID) => {
   try {
     // console.log(CONFIG);
