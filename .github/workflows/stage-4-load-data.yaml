@@ -35,6 +35,10 @@ on:
         description: "the environment to deploy terraform into"
         required: true
         type: string
+      environment_type:
+        description: "the environment type the environment belongs to"
+        required: true
+        type: string
       invitations_branch:
         description: "Branch of invitations repository to checkout"
         required: false
@@ -67,6 +71,7 @@ env:
   frontend-branch: ${{ inputs.frontend_branch }}
   invitations-branch: ${{ inputs.invitations_branch }}
   tf-action: ${{ inputs.tf_action }}
+  environment_type: "{{ inputs.environment_type }}"
 
 jobs:
   load-data:
@@ -96,4 +101,5 @@ jobs:
           role-to-assume: ${{ env.role-to-assume }}
           aws-region: ${{ env.aws-region }}
           environment: ${{ env.environment }}
+          environment_type: "${{ env.environment_type }}"
         timeout-minutes: 30

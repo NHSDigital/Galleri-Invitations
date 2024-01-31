@@ -53,8 +53,9 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
-  echo $environment_type
-  if [ $environment_type == "dev" || "test " ]; then
+  echo "env type: $environment_type"
+  if [ $environment_type == "dev" || "test" ]; then
+    echo "hello"
     aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/phlebotomy.json
   fi
   PHLEBOTOMY_CLINIC_DATA_COUNT=$(aws dynamodb scan --table-name $environment-PhlebotomySite --select "COUNT" | jq -r ".Count")
