@@ -1,5 +1,5 @@
 //IMPORTS
-import { getSecret, pushCsvToS3, run, getMessageArray } from "./helper.js"
+import { getSecret, pushCsvToS3, run, getMessageArray, markRead, readMsg } from "./helper.js"
 import { handShake, loadConfig, getMessageCount, readMessage, markAsRead } from "nhs-mesh-client";
 import { S3Client } from '@aws-sdk/client-s3';
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
@@ -110,21 +110,21 @@ export const handler = async (event, context) => {
 // }
 
 //Reads message data based on message ID
-async function readMsg(msgID, CONFIG) {
-  try {
-    let messages = await readMessage({
-      url: CONFIG.url,
-      mailboxID: CONFIG.receiverMailboxID,
-      mailboxPassword: CONFIG.receiverMailboxPassword,
-      sharedKey: CONFIG.sharedKey,
-      messageID: msgID,
-      agent: CONFIG.receiverAgent,
-    });
-    return messages.data;
-  } catch (error) {
-    console.error("Error occurred:", error);
-  }
-}
+// async function readMsg(msgID, CONFIG) {
+//   try {
+//     let messages = await readMessage({
+//       url: CONFIG.url,
+//       mailboxID: CONFIG.receiverMailboxID,
+//       mailboxPassword: CONFIG.receiverMailboxPassword,
+//       sharedKey: CONFIG.sharedKey,
+//       messageID: msgID,
+//       agent: CONFIG.receiverAgent,
+//     });
+//     return messages.data;
+//   } catch (error) {
+//     console.error("Error occurred:", error);
+//   }
+// }
 
 export async function readSecret(secretName, client) {
   return Buffer.from(

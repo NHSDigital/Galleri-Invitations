@@ -1,6 +1,6 @@
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { handShake, getMessageCount, markAsRead } from "nhs-mesh-client";
+import { handShake, getMessageCount, markAsRead, readMessage } from "nhs-mesh-client";
 
 //Push string from MESH to S3
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
@@ -100,5 +100,27 @@ export const markRead = async (CONFIG, marked, msgID) => {
     return markMsg;
   } catch (error) {
     console.error(`Error occurred: ${error}`);
+  }
+}
+
+const readingMsg = readMessage;
+//Reads message data based on message ID
+export const readMsg = async (CONFIG, readingMsg, msgID) => {
+  try {
+    // console.log(CONFIG);
+    // console.log(msgCount);
+    // console.log(msgID);
+    let messages = await readingMsg({
+      url: CONFIG.url,
+      mailboxID: CONFIG.receiverMailboxID,
+      mailboxPassword: CONFIG.receiverMailboxPassword,
+      sharedKey: CONFIG.sharedKey,
+      messageID: msgID,
+      agent: CONFIG.receiverAgent,
+    });
+    // console.log(messages.data);
+    return messages.data;
+  } catch (error) {
+    console.error("Error occurred:", error);
   }
 }

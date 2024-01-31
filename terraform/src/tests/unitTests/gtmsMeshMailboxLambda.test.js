@@ -1,9 +1,9 @@
 import { processMessage } from "../../gtmsMeshMailboxLambda/gtmsMeshMailboxLambda";
 import { mockClient } from "aws-sdk-client-mock";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { pushCsvToS3, getSecret, run, getMessageArray, markRead } from "../../gtmsMeshMailboxLambda/helper";
+import { pushCsvToS3, getSecret, run, getMessageArray, markRead, readMsg } from "../../gtmsMeshMailboxLambda/helper";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
-import { handShake, getMessageCount, markAsRead } from "nhs-mesh-client";
+import { handShake, getMessageCount, markAsRead, readMessage } from "nhs-mesh-client";
 
 
 
@@ -11,6 +11,7 @@ jest.mock("nhs-mesh-client");
 handShake.mockResolvedValue({ status: "Handshake successful, status 200" });
 getMessageCount.mockResolvedValue({ data: { messages: "123ID", "approx_inbox_count": 1 } });
 markAsRead.mockResolvedValue('message cleared');
+readMessage.mockResolvedValue({ data: { nhs_num: "123", name: "bolo" } })
 
 describe("pushCsvToS3", () => {
   afterEach(() => {
@@ -417,6 +418,45 @@ describe("markRead", () => {
     const logSpy = jest.spyOn(global.console, "log");
     try {
       const result = await markRead(mockConfig, markAsRead, msgID);
+      console.log(result);
+    } catch (err) {
+      console.log(err);
+      expect(err).toBe("ERROR: Request 'getMessages' completed but responded with incorrect status");
+      expect(logSpy).toHaveBeenCalled();
+      expect(logSpy).toHaveBeenCalledTimes(1);
+      expect(logSpy).toHaveBeenCalledWith(`result: undefined`);
+    }
+  })
+})
+
+describe("readMsg", () => {
+  const mockConfig = {
+    url: "example",
+    mailboxID: "example",
+    mailboxPassword: "example",
+    sharedKey: "example",
+    agent: "example"
+  };
+  beforeEach(() => {
+    jest.clearAllMocks();
+  })
+  test('test readMsg', async () => {
+    const msgID = '123ID';
+    const logSpy = jest.spyOn(global.console, "log");
+    //pass in mocked readMessage function from globally mocked nhs-mesh-client module
+    const result = await readMsg(mockConfig, readMessage, msgID);
+    console.log(result);
+    expect(logSpy).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(result).toStrictEqual({ nhs_num: "123", name: "bolo" });
+  });
+
+  test('test readMsg failure', async () => {
+    readMessage.mockRejectedValue("ERROR: Request 'getMessages' completed but responded with incorrect status");
+    const msgID = '123ID';
+    const logSpy = jest.spyOn(global.console, "log");
+    try {
+      const result = await readMsg(mockConfig, readMessage, msgID);
       console.log(result);
     } catch (err) {
       console.log(err);
