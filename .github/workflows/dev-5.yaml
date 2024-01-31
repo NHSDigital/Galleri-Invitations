@@ -170,8 +170,8 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
-      environment: ${{ needs.metadata.outputs.environment }}
-      environment_type: ${{ needs.metadata.outputs.environment_type }}
+      environment: "${{ needs.metadata.outputs.environment }}"
+      environment_type: "${{ needs.metadata.outputs.environment_type }}"
     secrets: inherit
 
   acceptance-stage: # Recommended maximum execution time is 10 minutes
