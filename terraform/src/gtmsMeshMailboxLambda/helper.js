@@ -40,9 +40,9 @@ const handshake = handShake;
 export const run = async (CONFIG, handshake) => {
 
   try {
-    console.log(CONFIG);
-    console.log(handshake);
-    return await handshake({
+    // console.log(CONFIG);
+    // console.log(handshake);
+    const healthCheck = await handshake({
       url: CONFIG.url,
       mailboxID: CONFIG.receiverMailboxID,
       mailboxPassword: CONFIG.receiverMailboxPassword,
@@ -50,8 +50,8 @@ export const run = async (CONFIG, handshake) => {
       agent: CONFIG.receiverAgent,
     });
 
-    console.log(healthCheck);
-    // return healthCheck.status
+    // console.log(healthCheck);
+    return healthCheck.status;
   } catch (error) {
     console.log("its here");
     console.error("Error occurred:", error);
