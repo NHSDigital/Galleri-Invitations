@@ -373,4 +373,19 @@ describe("getMessageArray", () => {
     expect(logSpy).toHaveBeenNthCalledWith(2, `123ID`);
     expect(result).toBe("123ID");
   });
+
+  test('test getMessageArray failure', async () => {
+    getMessageCount.mockRejectedValue("ERROR: Request 'getMessages' completed but responded with incorrect status");
+    const logSpy = jest.spyOn(global.console, "log");
+    try {
+      const result = await getMessageArray(mockConfig, getMessageCount);
+      console.log(`result: ${result}`);
+    } catch (err) {
+      console.log(err);
+      expect(err).toBe("ERROR: Request 'getMessages' completed but responded with incorrect status");
+      expect(logSpy).toHaveBeenCalled();
+      expect(logSpy).toHaveBeenCalledTimes(1);
+      expect(logSpy).toHaveBeenCalledWith(`result: undefined`);
+    }
+  })
 });
