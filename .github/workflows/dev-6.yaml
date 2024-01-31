@@ -82,7 +82,6 @@ jobs:
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
           echo "environment=dev-6" >> $GITHUB_OUTPUT
-          echo "environment_type=$(echo '${{ env.environment }}' | cut -f1 -d'-')" >> $GITHUB_OUTPUT
       - name: "Check if pull request exists for this branch"
         id: pr_exists
         env:
@@ -170,7 +169,6 @@ jobs:
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
-      environment_type: ${{ needs.metadata.outputs.environment_type }}
     secrets: inherit
 
   acceptance-stage: # Recommended maximum execution time is 10 minutes
