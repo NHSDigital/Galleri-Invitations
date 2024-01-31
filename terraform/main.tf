@@ -987,7 +987,7 @@ module "episode_table" {
   source                   = "./modules/dynamodb"
   billing_mode             = "PROVISIONED"
   stream_enabled           = true
-  stream_view_type         = "NEW_IMAGE "
+  stream_view_type         = "NEW_IMAGE"
   table_name               = "Episode"
   hash_key                 = "Batch_Id"
   range_key                = "Participant_Id"
