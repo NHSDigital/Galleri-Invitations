@@ -247,19 +247,19 @@ resource "aws_elastic_beanstalk_environment" "screens" {
         "id" : "1",
         "name" : "dev",
         "email" : "dev@nhs.net",
-        "password" : "${var.NEXTAUTH_PASS}"
+        "password" : "Testing"
       },
       {
         "id" : "2",
         "name" : "test",
         "email" : "test@nhs.net",
-        "password" : "${var.NEXTAUTH_PASS}"
+        "password" : "Testing"
       },
       {
         "id" : "3",
         "name" : "pen",
         "email" : "pen@nhs.net",
-        "password" : "${var.NEXTAUTH_PASS}"
+        "password" : "Testing"
       }
     ])
   }

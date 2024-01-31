@@ -112,7 +112,3 @@ variable "NEXTAUTH_SECRET" {
 variable "NEXTAUTH_URL" {
 
 }
-
-variable "NEXTAUTH_PASS" {
-
-}

@@ -35,7 +35,3 @@ variable "NEXTAUTH_SECRET" {
 variable "NEXTAUTH_URL" {
   default = null
 }
-
-variable "NEXTAUTH_PASS" {
-  default = null
-}
