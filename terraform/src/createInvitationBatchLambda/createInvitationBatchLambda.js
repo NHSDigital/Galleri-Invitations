@@ -89,6 +89,7 @@ export const lookupParticipant = async (dbClient, environment, participantId) =>
       console.error(`Participant id ${participantId} does not exist in Population table.`);
       return undefined;
     }
+    console.log("Found participant: ", participantId);
     return response.Items[0];
 };
 
