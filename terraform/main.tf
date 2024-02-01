@@ -74,7 +74,7 @@ module "gp_practices_bucket" {
 # clinic data bucket
 module "clinic_data_bucket" {
   source                  = "./modules/s3"
-  bucket_name             = "galleri-clinic-data"
+  bucket_name             = "gtms-clinic-create-or-update"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }

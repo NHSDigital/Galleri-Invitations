@@ -339,7 +339,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 #             "s3:*"
 #           ],
 #           "Resource" : [
-#             "arn:aws:s3:::galleri-clinic-data/*"
+#             "arn:aws:s3:::gtms-clinic-create-or-update/*"
 #           ]
 #         }
 #      ],
@@ -387,7 +387,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "s3:*"
           ],
           "Resource" : [
-            "arn:aws:s3:::galleri-clinic-data/*"
+            "arn:aws:s3:::gtms-clinic-create-or-update/*"
           ]
         },
       ],
@@ -619,4 +619,3 @@ resource "aws_iam_role_policy_attachment" "api_gateway_logging_attach" {
 resource "aws_api_gateway_account" "account" {
   cloudwatch_role_arn = aws_iam_role.api_gateway_logging_role.arn
 }
-
