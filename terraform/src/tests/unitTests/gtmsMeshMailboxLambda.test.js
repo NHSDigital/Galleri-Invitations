@@ -59,7 +59,6 @@ describe("pushCsvToS3", () => {
   });
 })
 
-
 describe("getSecret", () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -68,7 +67,6 @@ describe("getSecret", () => {
   test("Successfully retrieve secret from secret manager", async () => {
     const logSpy = jest.spyOn(global.console, "log");
     const smClient = mockClient(SecretsManagerClient);
-
 
     smClient.on(GetSecretValueCommand).resolves({
       SecretString: JSON.stringify({ my_secret_key: 'my_secret_value' }),
@@ -80,7 +78,6 @@ describe("getSecret", () => {
     const smClient2 = mockClient(SecretsManagerClient);
     smClient2.resolves({});
     const response = await getSecret("MESH_SENDER_CERT", smClient2);
-    // console.log(response);
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith(`Retrieved value successfully MESH_SENDER_CERT`);
@@ -335,7 +332,6 @@ describe("run", () => {
   })
 
   test('test run failure', async () => {
-    // jest.mock("nhs-mesh-client");
     handShake.mockRejectedValue("ERROR: Request 'handShake' completed but responded with incorrect status");
     const logSpy = jest.spyOn(global.console, "log");
     try {
@@ -374,14 +370,14 @@ describe("getMessageArray", () => {
   });
 
   test('test getMessageArray failure', async () => {
-    getMessageCount.mockRejectedValue("ERROR: Request 'getMessages' completed but responded with incorrect status");
+    getMessageCount.mockRejectedValue("ERROR: Request 'getMessageCount' completed but responded with incorrect status");
     const logSpy = jest.spyOn(global.console, "log");
     try {
       const result = await getMessageArray(mockConfig, getMessageCount);
       console.log(`result: ${result}`);
     } catch (err) {
       console.log(err);
-      expect(err).toBe("ERROR: Request 'getMessages' completed but responded with incorrect status");
+      expect(err).toBe("ERROR: Request 'getMessageCount' completed but responded with incorrect status");
       expect(logSpy).toHaveBeenCalled();
       expect(logSpy).toHaveBeenCalledTimes(1);
       expect(logSpy).toHaveBeenCalledWith(`result: undefined`);
@@ -413,7 +409,7 @@ describe("markRead", () => {
   });
 
   test('test markRead failure', async () => {
-    markAsRead.mockRejectedValue("ERROR: Request 'getMessages' completed but responded with incorrect status");
+    markAsRead.mockRejectedValue("ERROR: Request 'markAsRead' completed but responded with incorrect status");
     const msgID = '123ID';
     const logSpy = jest.spyOn(global.console, "log");
     try {
@@ -421,7 +417,7 @@ describe("markRead", () => {
       console.log(result);
     } catch (err) {
       console.log(err);
-      expect(err).toBe("ERROR: Request 'getMessages' completed but responded with incorrect status");
+      expect(err).toBe("ERROR: Request 'markAsRead' completed but responded with incorrect status");
       expect(logSpy).toHaveBeenCalled();
       expect(logSpy).toHaveBeenCalledTimes(1);
       expect(logSpy).toHaveBeenCalledWith(`result: undefined`);
@@ -452,7 +448,7 @@ describe("readMsg", () => {
   });
 
   test('test readMsg failure', async () => {
-    readMessage.mockRejectedValue("ERROR: Request 'getMessages' completed but responded with incorrect status");
+    readMessage.mockRejectedValue("ERROR: Request 'readMessage' completed but responded with incorrect status");
     const msgID = '123ID';
     const logSpy = jest.spyOn(global.console, "log");
     try {
@@ -460,7 +456,7 @@ describe("readMsg", () => {
       console.log(result);
     } catch (err) {
       console.log(err);
-      expect(err).toBe("ERROR: Request 'getMessages' completed but responded with incorrect status");
+      expect(err).toBe("ERROR: Request 'readMessage' completed but responded with incorrect status");
       expect(logSpy).toHaveBeenCalled();
       expect(logSpy).toHaveBeenCalledTimes(1);
       expect(logSpy).toHaveBeenCalledWith(`result: undefined`);
