@@ -54,14 +54,15 @@ export const getInvitationBatch = async (dbClient, environment, idArray) => {
     idArray.map(async (id) => {
       const participant = await lookupParticipant(dbClient, environment, id);
       if (participant) {
-        const nhsNumber = (participant.superseded_by_nhs_number.S !== "0"
-          ? participant.superseded_by_nhs_number.S
-          : participant.nhs_number.S);
-        invitationBatch.push({
+        const nhsNumber = (participant.superseded_by_nhs_number.N !== "0"
+          ? participant.superseded_by_nhs_number.N
+          : participant.nhs_number.N);
+        const invitedParticipant = {
           participantId: id,
           nhsNumber: nhsNumber,
           dateOfBirth: participant.date_of_birth.S
-        });
+        };
+        invitationBatch.push(invitedParticipant);
       }
   }));
   console.log("Generated invitation batch size: ", invitationBatch.length);
