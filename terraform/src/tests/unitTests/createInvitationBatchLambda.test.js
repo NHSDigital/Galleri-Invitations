@@ -111,12 +111,12 @@ describe("getInvitationBatch", () => {
     const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
     const item = {
-      "nhs_number": { "S": "123" },
-      "superseded_by_nhs_number": { "S": "0" },
+      "nhs_number": { "N": "123" },
+      "superseded_by_nhs_number": { "N": "0" },
       "date_of_birth": { "S": "2000-01-01" }
     };
     const ids = ["id1", "id2"];
-    const batchItem = { "nhsNumber": item.nhs_number.S, "dateOfBirth": item.date_of_birth.S };
+    const batchItem = { "nhsNumber": item.nhs_number.N, "dateOfBirth": item.date_of_birth.S };
     mockDynamoDbClient
       .on(QueryCommand)
       .resolves({
