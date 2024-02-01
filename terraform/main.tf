@@ -769,6 +769,35 @@ module "caas_feed_add_records_lambda_trigger" {
   filter_prefix = "validRecords/valid_records_add-"
 }
 
+module "caas_feed_update_records_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "caasFeedUpdateRecordsLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "caas_feed_update_records_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "caas_feed_update_records_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.caas_feed_update_records_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "caas_feed_update_records_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.caas_data_bucket.bucket_id
+  bucket_arn    = module.caas_data_bucket.bucket_arn
+  lambda_arn    = module.caas_feed_update_records_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_update-"
+}
+
 # Dynamodb tables
 module "sdrs_table" {
   source      = "./modules/dynamodb"
@@ -941,7 +970,7 @@ module "population_table" {
   secondary_write_capacity = null
   secondary_read_capacity  = null
   environment              = var.environment
-  non_key_attributes       = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited"]
+  non_key_attributes       = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
   projection_type          = "INCLUDE"
   attributes = [{
     name = "PersonId"
@@ -980,7 +1009,7 @@ module "population_table" {
       range_key = null
     },
     {
-      name      = "participantId-index"
+      name      = "Participant_Id-index"
       hash_key  = "participantId"
       range_key = null
     },
@@ -1115,7 +1144,7 @@ module "episode_table" {
   ]
   global_secondary_index = [
     {
-      name      = "ParticipantId-index"
+      name      = "Participant_Id-index"
       hash_key  = "Participant_Id"
       range_key = null
     }

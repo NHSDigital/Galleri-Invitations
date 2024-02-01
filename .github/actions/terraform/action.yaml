@@ -122,4 +122,5 @@ runs:
         npm install --prefix src/pollMeshMailboxLambda
         npm install --prefix src/validateCaasFeedLambda
         npm install --prefix src/caasFeedAddRecordsLambda
+        npm install --prefix src/caasFeedUpdateRecordsLambda
         terraform ${{ env.tf-action }} -auto-approve -input=false -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars
