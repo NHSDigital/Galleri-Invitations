@@ -43,8 +43,6 @@ export const getSecret = async (secretName, client) => {
 export const run = async (CONFIG, handshake) => {
 
   try {
-    // console.log(CONFIG);
-    // console.log(handshake);
     const healthCheck = await handshake({
       url: CONFIG.url,
       mailboxID: CONFIG.receiverMailboxID,
@@ -53,7 +51,6 @@ export const run = async (CONFIG, handshake) => {
       agent: CONFIG.receiverAgent,
     });
 
-    // console.log(healthCheck);
     return healthCheck.status;
   } catch (error) {
     console.error(`Error occurred: ${error}`);
@@ -65,16 +62,13 @@ export const run = async (CONFIG, handshake) => {
  */
 export const getMessageArray = async (CONFIG, msgCount) => {
   try {
-    // console.log(CONFIG);
-    // console.log(msgCount);
     let messageCount = await msgCount({
       url: CONFIG.url,
       mailboxID: CONFIG.receiverMailboxID,
       mailboxPassword: CONFIG.receiverMailboxPassword,
       sharedKey: CONFIG.sharedKey,
       agent: CONFIG.receiverAgent,
-    });
-    // console.log(messageCount);
+    })
     let messageList = messageCount.data.messages
     let inboxCount = messageCount.data.approx_inbox_count;
     console.log(`Inbox contains ${inboxCount} messages`);
@@ -91,9 +85,6 @@ export const getMessageArray = async (CONFIG, msgCount) => {
  */
 export const markRead = async (CONFIG, marked, msgID) => {
   try {
-    // console.log(CONFIG);
-    // console.log(msgCount);
-    // console.log(msgID);
     let markMsg = await marked({
       url: CONFIG.url,
       mailboxID: CONFIG.receiverMailboxID,
@@ -102,8 +93,6 @@ export const markRead = async (CONFIG, marked, msgID) => {
       message: msgID,
       agent: CONFIG.receiverAgent,
     });
-    // console.log('final');
-    // console.log(markMsg);
     return markMsg;
   } catch (error) {
     console.error(`Error occurred: ${error}`);
@@ -115,9 +104,6 @@ export const markRead = async (CONFIG, marked, msgID) => {
  */
 export const readMsg = async (CONFIG, readingMsg, msgID) => {
   try {
-    // console.log(CONFIG);
-    // console.log(msgCount);
-    // console.log(msgID);
     let messages = await readingMsg({
       url: CONFIG.url,
       mailboxID: CONFIG.receiverMailboxID,
@@ -126,7 +112,6 @@ export const readMsg = async (CONFIG, readingMsg, msgID) => {
       messageID: msgID,
       agent: CONFIG.receiverAgent,
     });
-    // console.log(messages.data);
     return messages.data;
   } catch (error) {
     console.error("Error occurred:", error);
