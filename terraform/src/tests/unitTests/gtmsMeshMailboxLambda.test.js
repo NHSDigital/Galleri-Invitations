@@ -179,28 +179,6 @@ describe("processMessage", () => {
     expect(logSpy).toHaveBeenNthCalledWith(2, { "$metadata": { "httpStatusCode": 200 } });
   })
 
-  test("successfully identify InvitedParticipantBatch, and push to S3", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
-
-    const environment = 'dev-1';
-    const mockS3Client = mockClient(new S3Client({}));
-    mockS3Client.resolves({
-      $metadata: { httpStatusCode: 200 },
-    });
-    const clinicData = {
-      "InvitedParticipantBatch": {
-        "test_data": "example"
-      }
-    };
-
-    const result = await processMessage(clinicData, environment, mockS3Client, 29012024);
-    console.log(result);
-    expect(logSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenNthCalledWith(1, `Successfully pushed to dev-1-gtms-invited-participant-batch/invited_participant_batch_29012024.json`);
-    expect(logSpy).toHaveBeenNthCalledWith(2, { "$metadata": { "httpStatusCode": 200 } });
-  })
-
   test("successfully identify Withdrawal, and push to S3", async () => {
     const logSpy = jest.spyOn(global.console, "log");
 
@@ -220,94 +198,6 @@ describe("processMessage", () => {
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(2);
     expect(logSpy).toHaveBeenNthCalledWith(1, `Successfully pushed to dev-1-gtms-withdrawal/withdrawal_29012024.json`);
-    expect(logSpy).toHaveBeenNthCalledWith(2, { "$metadata": { "httpStatusCode": 200 } });
-  })
-
-  test("successfully identify SiteAccessibilityOptions, and push to S3", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
-
-    const environment = 'dev-1';
-    const mockS3Client = mockClient(new S3Client({}));
-    mockS3Client.resolves({
-      $metadata: { httpStatusCode: 200 },
-    });
-    const clinicData = {
-      "SiteAccessibilityOptions": {
-        "test_data": "example"
-      }
-    };
-
-    const result = await processMessage(clinicData, environment, mockS3Client, 29012024);
-    console.log(result);
-    expect(logSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenNthCalledWith(1, `Successfully pushed to dev-1-gtms-site-accessibility-options/site_accessibility_options_29012024.json`);
-    expect(logSpy).toHaveBeenNthCalledWith(2, { "$metadata": { "httpStatusCode": 200 } });
-  })
-
-  test("successfully identify CommunicationAccessibility, and push to S3", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
-
-    const environment = 'dev-1';
-    const mockS3Client = mockClient(new S3Client({}));
-    mockS3Client.resolves({
-      $metadata: { httpStatusCode: 200 },
-    });
-    const clinicData = {
-      "CommunicationAccessibility": {
-        "test_data": "example"
-      }
-    };
-
-    const result = await processMessage(clinicData, environment, mockS3Client, 29012024);
-    console.log(result);
-    expect(logSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenNthCalledWith(1, `Successfully pushed to dev-1-gtms-communication-accessibility/communication_accessibility_29012024.json`);
-    expect(logSpy).toHaveBeenNthCalledWith(2, { "$metadata": { "httpStatusCode": 200 } });
-  })
-
-  test("successfully identify InterpreterLanguage, and push to S3", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
-
-    const environment = 'dev-1';
-    const mockS3Client = mockClient(new S3Client({}));
-    mockS3Client.resolves({
-      $metadata: { httpStatusCode: 200 },
-    });
-    const clinicData = {
-      "InterpreterLanguage": {
-        "test_data": "example"
-      }
-    };
-
-    const result = await processMessage(clinicData, environment, mockS3Client, 29012024);
-    console.log(result);
-    expect(logSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenNthCalledWith(1, `Successfully pushed to dev-1-gtms-interpreter-language/interpreter_language_29012024.json`);
-    expect(logSpy).toHaveBeenNthCalledWith(2, { "$metadata": { "httpStatusCode": 200 } });
-  })
-
-  test("successfully identify NotificationPreferences, and push to S3", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
-
-    const environment = 'dev-1';
-    const mockS3Client = mockClient(new S3Client({}));
-    mockS3Client.resolves({
-      $metadata: { httpStatusCode: 200 },
-    });
-    const clinicData = {
-      "NotificationPreferences": {
-        "test_data": "example"
-      }
-    };
-
-    const result = await processMessage(clinicData, environment, mockS3Client, 29012024);
-    console.log(result);
-    expect(logSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenNthCalledWith(1, `Successfully pushed to dev-1-gtms-notification-preferences/notification_preferences_29012024.json`);
     expect(logSpy).toHaveBeenNthCalledWith(2, { "$metadata": { "httpStatusCode": 200 } });
   })
 })

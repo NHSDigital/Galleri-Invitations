@@ -68,6 +68,12 @@ export async function readSecret(secretName, client) {
   ).toString("utf8");
 }
 
+/*
+ * Processing incoming messages from GTMS (MESH mailbox)
+ * @params timestamp can be changed for testing fixed time values
+ * The outbound-gtms-invited-participant-batch bucket is not included here as it is
+ * an outbound bucket, where GPS will be sending info to GTMS
+ */
 export async function processMessage(message, environment, S3client, timestamp) {
   const dateTime = timestamp || new Date(Date.now()).toISOString()
   if (message?.ClinicCreateOrUpdate) {
@@ -92,17 +98,6 @@ export async function processMessage(message, environment, S3client, timestamp) 
     return confirmation;
   }
 
-  if (message?.InvitedParticipantBatch) {
-    //Deposit to S3
-    const confirmation = await pushCsvToS3(
-      `${environment}-gtms-invited-participant-batch`,
-      `invited_participant_batch_${dateTime}.json`,
-      JSON.stringify(message),
-      S3client
-    );
-    return confirmation;
-  }
-
   if (message?.Appointment) {
     //Deposit to S3
     const confirmation = await pushCsvToS3(
@@ -119,50 +114,6 @@ export async function processMessage(message, environment, S3client, timestamp) 
     const confirmation = await pushCsvToS3(
       `${environment}-gtms-withdrawal`,
       `withdrawal_${dateTime}.json`,
-      JSON.stringify(message),
-      S3client
-    );
-    return confirmation;
-  }
-
-  if (message?.SiteAccessibilityOptions) {
-    //Deposit to S3
-    const confirmation = await pushCsvToS3(
-      `${environment}-gtms-site-accessibility-options`,
-      `site_accessibility_options_${dateTime}.json`,
-      JSON.stringify(message),
-      S3client
-    );
-    return confirmation;
-  }
-
-  if (message?.CommunicationAccessibility) {
-    //Deposit to S3
-    const confirmation = await pushCsvToS3(
-      `${environment}-gtms-communication-accessibility`,
-      `communication_accessibility_${dateTime}.json`,
-      JSON.stringify(message),
-      S3client
-    );
-    return confirmation;
-  }
-
-  if (message?.InterpreterLanguage) {
-    //Deposit to S3
-    const confirmation = await pushCsvToS3(
-      `${environment}-gtms-interpreter-language`,
-      `interpreter_language_${dateTime}.json`,
-      JSON.stringify(message),
-      S3client
-    );
-    return confirmation;
-  }
-
-  if (message?.NotificationPreferences) {
-    //Deposit to S3
-    const confirmation = await pushCsvToS3(
-      `${environment}-gtms-notification-preferences`,
-      `notification_preferences_${dateTime}.json`,
       JSON.stringify(message),
       S3client
     );

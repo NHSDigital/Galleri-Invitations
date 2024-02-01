@@ -81,27 +81,27 @@ module "user_accounts_bucket" {
 # GTMS buckets for each JSON response header
 module "invited_participant_batch" {
   source                  = "./modules/s3"
-  bucket_name             = "gtms-invited-participant-batch"
+  bucket_name             = "outbound-gtms-invited-participant-batch"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
 
 module "clinic_create_or_update" {
   source                  = "./modules/s3"
-  bucket_name             = "gtms-clinic-create-or-update"
+  bucket_name             = "inbound-gtms-clinic-create-or-update"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
 module "clinic_schedule_summary" {
   source                  = "./modules/s3"
-  bucket_name             = "gtms-clinic-schedule-summary"
+  bucket_name             = "inbound-gtms-clinic-schedule-summary"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
 
 module "gtms_appointment" {
   source                  = "./modules/s3"
-  bucket_name             = "gtms-appointment"
+  bucket_name             = "inbound-gtms-appointment"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
@@ -109,34 +109,6 @@ module "gtms_appointment" {
 module "gtms_withdrawal" {
   source                  = "./modules/s3"
   bucket_name             = "gtms-withdrawal"
-  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  environment             = var.environment
-}
-
-module "site_accessibility_options" {
-  source                  = "./modules/s3"
-  bucket_name             = "gtms-site-accessibility-options"
-  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  environment             = var.environment
-}
-
-module "communication_accessibility" {
-  source                  = "./modules/s3"
-  bucket_name             = "gtms-communication-accessibility"
-  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  environment             = var.environment
-}
-
-module "interpreter_language" {
-  source                  = "./modules/s3"
-  bucket_name             = "gtms-interpreter-language"
-  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  environment             = var.environment
-}
-
-module "notification_preferences" {
-  source                  = "./modules/s3"
-  bucket_name             = "gtms-notification-preferences"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
