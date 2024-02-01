@@ -45,7 +45,6 @@ export const handler = async (event, context) => {
         for (const element of messageArr) {
           let message = await readMsg(CONFIG, READING_MSG, element); //returns messages based on id, iteratively from message list arr
           const response = await processMessage(message, ENVIRONMENT, clientS3);
-          console.log(response);
           if (response.$metadata.httpStatusCode === 200) {
             const confirmation = await markRead(CONFIG, MARKED, element);
             console.log(`${confirmation.status} ${confirmation.statusText}`);
