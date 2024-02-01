@@ -1,46 +1,62 @@
-[
-  {
-    "ClinicId": "QM94P231",
-    "ClinicName": "Phlebotomy clinic 1",
-    "Address": "1 frequented Avenue, Mordor YR0 0BT",
-    "Directions": "These will contain directions to the site",
-    "ICBCode": "QNQ",
-    "ODSCode": "H16094",
-    "PostCode": "YR0 0BT",
-    "PrevInviteDate": "Sunday 3 December 2023",
-    "WeekCommencingDate": {
-      "1 January 2024": 24,
-      "8 January 2024": 57,
-      "15 January 2024": 66,
-      "22 January 2024": 86,
-      "29 January 2024": 23,
-      "5 February 2024": 1
+{
+  "dev-5-PhlebotomySite": [
+    {
+      "PutRequest": {
+        "Item": {
+          "ClinicId": { "S": "UB77S836" },
+          "ClinicName": { "S": "Phlebotomy clinic 1" },
+          "Address": {
+            "S": "1 infelicity Street ,             Gondor MK42 9DJ"
+          },
+          "Directions": { "S": "These will contain directions to the site" },
+          "ICBCode": { "S": "QHG" },
+          "ODSCode": { "S": "M82641" },
+          "PostCode": { "S": "MK42 9DJ" },
+          "PrevInviteDate": { "S": "Thursday 11 January 2024" },
+          "WeekCommencingDate": {
+            "M": {
+              "15 February 2024": { "N": "47" },
+              "22 February 2024": { "N": "1" },
+              "29 February 2024": { "N": "45" },
+              "7 March 2024": { "N": "47" },
+              "14 March 2024": { "N": "100" },
+              "21 March 2024": { "N": "23" }
+            }
+          },
+          "Availability": { "N": "263" },
+          "InvitesSent": { "N": "131" },
+          "TargetFillToPercentage": { "N": "50" },
+          "LastSelectedRange": { "N": "1" }
+        }
+      }
     },
-    "Availability": 257,
-    "InvitesSent": 128,
-    "TargetFillToPercentage": 50,
-    "LastSelectedRange": 1
-  },
-  {
-    "ClinicId": "QZ32E239",
-    "ClinicName": "Phlebotomy clinic 2",
-    "Address": "2 caback Avenue, Hobbiton AK0 5KU",
-    "Directions": "These will contain directions to the site",
-    "ICBCode": "QHG",
-    "ODSCode": "M02766",
-    "PostCode": "AK0 5KU",
-    "PrevInviteDate": "Sunday 3 December 2023",
-    "WeekCommencingDate": {
-      "1 January 2024": 2,
-      "8 January 2024": 49,
-      "15 January 2024": 56,
-      "22 January 2024": 1,
-      "29 January 2024": 5,
-      "5 February 2024": 27
-    },
-    "Availability": 140,
-    "InvitesSent": 70,
-    "TargetFillToPercentage": 50,
-    "LastSelectedRange": 1
-  }
-]
+    {
+      "PutRequest": {
+        "Item": {
+          "ClinicId": { "S": "YB85A769" },
+          "ClinicName": { "S": "Phlebotomy clinic 2" },
+          "Address": { "S": "1 unangry Road ,             Gondor TA1 2PX" },
+          "Directions": { "S": "These will contain directions to the site" },
+          "ICBCode": { "S": "QSL" },
+          "ODSCode": { "S": "Z99609" },
+          "PostCode": { "S": "TA1 2PX" },
+          "PrevInviteDate": { "S": "Tuesday 16 January 2024" },
+          "WeekCommencingDate": {
+            "M": {
+              "15 February 2024": { "N": "80" },
+              "22 February 2024": { "N": "55" },
+              "29 February 2024": { "N": "59" },
+              "7 March 2024": { "N": "18" },
+              "14 March 2024": { "N": "87" },
+              "21 March 2024": { "N": "82" }
+            }
+          },
+          "Availability": { "N": "381" },
+          "InvitesSent": { "N": "190" },
+          "TargetFillToPercentage": { "N": "50" },
+          "LastSelectedRange": { "N": "1" }
+        }
+      }
+    }
+  ]
+}
