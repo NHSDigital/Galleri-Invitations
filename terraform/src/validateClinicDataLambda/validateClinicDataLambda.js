@@ -5,7 +5,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { DynamoDBClient, GetItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { Validator, validate } from "jsonschema";
-import json from "./clinic-schema.json" with { type: "json" };
+import json from "./clinic-schema.json" assert { type: "json" };
 
 const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
