@@ -3,9 +3,9 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, GetItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { Validator, validate } from "jsonschema";
-import json from "./clinic-schema.json";
+import json from "./clinic-schema.json" with { type: "json" };
 
 const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
@@ -93,21 +93,20 @@ export async function validateRecord(record, client) {
     // validate the JSON Schema
     const postcodeValidation = await isPostcodeInGridall(client, record.ClinicCreateOrUpdate.Postcode);
 
-    if (postcodeValidation) {
+    if (postcodeValidation.Item.length!=0) {
       // AC - not covered Postcode provided (if supplied)
-      if (
-        record.ClinicCreateOrUpdate.ICBCode !== "null" &&
-        !isValidICBCode(record.ClinicCreateOrUpdate.ICBCode)
-      ) {
+      const ICBValidation = postcodeValidation.Item.ICB.S;
+      if (!isValidICBCode(ICBValidation)) {
         // AC - not covered ICB code provided (if supplied)
         validationResults.success = false;
-        validationResults.message = `Invalid ICB Code : ${record.ClinicCreateOrUpdate.ICBCode}`;
+        validationResults.message = `Invalid ICB Code : ${ICBValidation}`;
         return validationResults;
       }
     }
     else {
       validationResults.success = false;
       validationResults.message = `Invalid PostCode : ${record.ClinicCreateOrUpdate.Postcode}`;
+      console.log("Postcode does not exists in Gridall:", record.ClinicCreateOrUpdate.Postcode);
       return validationResults;
     }
   }
@@ -123,24 +122,20 @@ export async function validateRecord(record, client) {
 export async function isPostcodeInGridall(client, Postcode) {
   //AC - Check if Postcode exists in the Postcode DynamoDB Table
   const input = {
-    ExpressionAttributeValues: {
-      ":postcode": {
-        S: `${Postcode}`,
-      },
+    "Key": {
+      "POSTCODE": {
+          "S": `${Postcode}`
+      }
     },
-    KeyConditionExpression: "POSTCODE = :postcode",
-    ProjectionExpression: "POSTCODE",
+    ProjectionExpression: "ICB",
     TableName: `${ENVIRONMENT}-Postcode`,
+    "ConsistentRead": true,
   };
 
-  const command = new QueryCommand(input);
+  const command = new GetItemCommand(input);
   const response = await client.send(command);
 
-  if (!response.Items.length) { // if response is empty, no matching Postcode
-    console.log("Postcode does not exists in Gridall:", Postcode);
-    return false;
-  }
-  return true;
+  return response;
 }
 
 export function isValidICBCode(ICBCode) {
