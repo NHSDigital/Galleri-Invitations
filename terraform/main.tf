@@ -676,7 +676,7 @@ module "validate_clinic_data_lambda_trigger" {
   bucket_id     = module.clinic_data_bucket.bucket_id
   bucket_arn    = module.clinic_data_bucket.bucket_arn
   lambda_arn    = module.validate_clinic_data_lambda.lambda_arn
-  filter_prefix = "mesh_clinic_data_"
+  filter_prefix = "clinic_create_or_update_"
 }
 
 # Dynamodb tables
