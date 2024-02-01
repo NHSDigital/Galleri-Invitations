@@ -55,7 +55,7 @@ def format_dynamodb_json(csvreader, table_name):
                     {
                         "Put": {
                             "Item": {
-                                "PersonId": {"S": f"{nhs_number}"},
+                                "PersonId": { "S": f'{str(participant_id_rand_exp)}' },
                                 "superseded_by_subject_id": {
                                     "S": f"{superseded_by_subject_id}"
                                 },
