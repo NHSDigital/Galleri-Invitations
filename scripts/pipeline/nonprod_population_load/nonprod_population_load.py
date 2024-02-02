@@ -55,7 +55,7 @@ def format_dynamodb_json(csvreader, table_name):
                     {
                         "Put": {
                             "Item": {
-                                "PersonId": {"S": f"{nhs_number}"},
+                                "PersonId": { "S": f'{str(participant_id_rand_exp)}' },
                                 "superseded_by_subject_id": {
                                     "S": f"{superseded_by_subject_id}"
                                 },
@@ -77,6 +77,8 @@ def format_dynamodb_json(csvreader, table_name):
                                 "removal_reason": {"S": f"{removal_reason}"},
                                 "removal_date": {"S": f"{removal_date}"},
                                 "date_of_death": {"S": f"{date_of_death}"},
+                                "nhs_number": {"N": f"{nhs_number}"},
+                                "superseded_by_nhs_number": {"N": "0"},
                                 "telephone_number_home": {
                                     "S": f"{telephone_number_home}"
                                 },

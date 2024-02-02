@@ -81,6 +81,13 @@ module "user_accounts_bucket" {
   environment             = var.environment
 }
 
+module "invited_participant_batch" {
+  source                  = "./modules/s3"
+  bucket_name             = "outbound-gtms-invited-participant-batch"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
 # Data Filter Gridall IMD
 module "data_filter_gridall_imd_lambda" {
   source               = "./modules/lambda"
@@ -583,6 +590,13 @@ module "gp_practices_loader_cloudwatch" {
   retention_days       = 14
 }
 
+module "gp_practices_loader_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.gp_practices_bucket.bucket_id
+  bucket_arn = module.gp_practices_bucket.bucket_arn
+  lambda_arn = module.gp_practices_loader_lambda.lambda_arn
+}
+
 # Create Episode Records
 module "create_episode_record_lambda" {
   source               = "./modules/lambda"
@@ -642,6 +656,39 @@ module "user_accounts_lambda_trigger" {
   bucket_id  = module.user_accounts_bucket.bucket_id
   bucket_arn = module.user_accounts_bucket.bucket_arn
   lambda_arn = module.user_accounts_lambda.lambda_arn
+}
+
+# Create GTMS Invitation Batch
+module "create_invitation_batch_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "createInvitationBatchLambda"
+  lambda_timeout       = 900
+  memory_size          = 1024
+  lambda_s3_object_key = "create_invitation_batch_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "create_invitation_batch_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.create_invitation_batch_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "create_invitation_batch_dynamodb_stream" {
+  source                             = "./modules/dynamodb_stream"
+  enabled                            = true
+  event_source_arn                   = module.episode_table.dynamodb_stream_arn
+  function_name                      = module.create_invitation_batch_lambda.lambda_function_name
+  starting_position                  = "LATEST"
+  batch_size                         = 200
+  maximum_batching_window_in_seconds = 300
+  filter_event_name                  = "INSERT"
 }
 
 # Dynamodb tables
@@ -942,6 +989,8 @@ ITEM
 module "episode_table" {
   source                   = "./modules/dynamodb"
   billing_mode             = "PROVISIONED"
+  stream_enabled           = true
+  stream_view_type         = "NEW_IMAGE"
   table_name               = "Episode"
   hash_key                 = "Batch_Id"
   range_key                = "Participant_Id"
