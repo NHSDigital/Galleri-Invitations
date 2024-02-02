@@ -83,7 +83,7 @@ module "user_accounts_bucket" {
 
 module "invited_participant_batch" {
   source                  = "./modules/s3"
-  bucket_name             = "gtms-invited-participant-batch"
+  bucket_name             = "outbound-gtms-invited-participant-batch"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
