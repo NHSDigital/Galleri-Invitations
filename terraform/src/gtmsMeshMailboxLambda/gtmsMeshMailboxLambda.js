@@ -79,7 +79,7 @@ export async function processMessage(message, environment, S3client, timestamp) 
   if (message?.ClinicCreateOrUpdate) {
     //Deposit to S3
     const confirmation = await pushCsvToS3(
-      `${environment}-gtms-clinic-create-or-update`,
+      `${environment}-inbound-gtms-clinic-create-or-update`,
       `clinic_create_or_update_${dateTime}.json`,
       JSON.stringify(message),
       S3client
@@ -90,7 +90,7 @@ export async function processMessage(message, environment, S3client, timestamp) 
   if (message?.ClinicScheduleSummary) {
     //Deposit to S3
     const confirmation = await pushCsvToS3(
-      `${environment}-gtms-clinic-schedule-summary`,
+      `${environment}-inbound-gtms-clinic-schedule-summary`,
       `clinic_schedule_summary_${dateTime}.json`,
       JSON.stringify(message),
       S3client
@@ -101,7 +101,7 @@ export async function processMessage(message, environment, S3client, timestamp) 
   if (message?.Appointment) {
     //Deposit to S3
     const confirmation = await pushCsvToS3(
-      `${environment}-gtms-appointment`,
+      `${environment}-inbound-gtms-appointment`,
       `appointment_${dateTime}.json`,
       JSON.stringify(message),
       S3client
@@ -112,7 +112,7 @@ export async function processMessage(message, environment, S3client, timestamp) 
   if (message?.Withdrawal) {
     //Deposit to S3
     const confirmation = await pushCsvToS3(
-      `${environment}-gtms-withdrawal`,
+      `${environment}-inbound-gtms-withdrawal`,
       `withdrawal_${dateTime}.json`,
       JSON.stringify(message),
       S3client

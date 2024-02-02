@@ -353,11 +353,11 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "s3:*"
           ],
           "Resource" : [
-            "arn:aws:s3:::${var.environment}-gtms-invited-participant-batch/*",
-            "arn:aws:s3:::${var.environment}-gtms-clinic-create-or-update/*",
-            "arn:aws:s3:::${var.environment}-gtms-clinic-schedule-summary/*",
-            "arn:aws:s3:::${var.environment}-gtms-appointment/*",
-            "arn:aws:s3:::${var.environment}-gtms-withdrawal/*",
+            "arn:aws:s3:::${var.environment}-outbound-gtms-invited-participant-batch/*",
+            "arn:aws:s3:::${var.environment}-inbound-gtms-clinic-create-or-update/*",
+            "arn:aws:s3:::${var.environment}-inbound-gtms-clinic-schedule-summary/*",
+            "arn:aws:s3:::${var.environment}-inbound-gtms-appointment/*",
+            "arn:aws:s3:::${var.environment}-inbound-gtms-withdrawal/*",
           ]
         },
         {

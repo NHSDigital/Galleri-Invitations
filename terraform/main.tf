@@ -111,7 +111,7 @@ module "gtms_appointment" {
 
 module "gtms_withdrawal" {
   source                  = "./modules/s3"
-  bucket_name             = "gtms-withdrawal"
+  bucket_name             = "inbound-gtms-withdrawal"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
