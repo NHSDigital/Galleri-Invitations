@@ -89,7 +89,7 @@ module "invited_participant_batch" {
   environment             = var.environment
 }
 
-module "clinic_create_or_update" {
+module "clinic_data_bucket" {
   source                  = "./modules/s3"
   bucket_name             = "inbound-gtms-clinic-create-or-update"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
