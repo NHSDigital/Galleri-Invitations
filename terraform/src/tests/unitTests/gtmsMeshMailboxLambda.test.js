@@ -124,7 +124,7 @@ describe("processMessage", () => {
     console.log(result);
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenNthCalledWith(1, `Successfully pushed to dev-1-gtms-clinic-create-or-update/clinic_create_or_update_29012024.json`);
+    expect(logSpy).toHaveBeenNthCalledWith(1, `Successfully pushed to dev-1-inbound-gtms-clinic-create-or-update/clinic_create_or_update_29012024.json`);
     expect(logSpy).toHaveBeenNthCalledWith(2, { "$metadata": { "httpStatusCode": 200 } });
   })
 
@@ -153,7 +153,7 @@ describe("processMessage", () => {
     console.log(result);
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenNthCalledWith(1, `Successfully pushed to dev-1-gtms-appointment/appointment_29012024.json`);
+    expect(logSpy).toHaveBeenNthCalledWith(1, `Successfully pushed to dev-1-inbound-gtms-appointment/appointment_29012024.json`);
     expect(logSpy).toHaveBeenNthCalledWith(2, { "$metadata": { "httpStatusCode": 200 } });
   })
 
@@ -175,7 +175,7 @@ describe("processMessage", () => {
     console.log(result);
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenNthCalledWith(1, `Successfully pushed to dev-1-gtms-clinic-schedule-summary/clinic_schedule_summary_29012024.json`);
+    expect(logSpy).toHaveBeenNthCalledWith(1, `Successfully pushed to dev-1-inbound-gtms-clinic-schedule-summary/clinic_schedule_summary_29012024.json`);
     expect(logSpy).toHaveBeenNthCalledWith(2, { "$metadata": { "httpStatusCode": 200 } });
   })
 
@@ -197,7 +197,7 @@ describe("processMessage", () => {
     console.log(result);
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenNthCalledWith(1, `Successfully pushed to dev-1-gtms-withdrawal/withdrawal_29012024.json`);
+    expect(logSpy).toHaveBeenNthCalledWith(1, `Successfully pushed to dev-1-inbound-gtms-withdrawal/withdrawal_29012024.json`);
     expect(logSpy).toHaveBeenNthCalledWith(2, { "$metadata": { "httpStatusCode": 200 } });
   })
 })
