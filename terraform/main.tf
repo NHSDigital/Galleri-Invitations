@@ -81,6 +81,14 @@ module "user_accounts_bucket" {
   environment             = var.environment
 }
 
+# clinic data bucket
+module "clinic_data_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-gtms-clinic-create-or-update"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
 module "invited_participant_batch" {
   source                  = "./modules/s3"
   bucket_name             = "outbound-gtms-invited-participant-batch"
@@ -689,6 +697,35 @@ module "create_invitation_batch_dynamodb_stream" {
   batch_size                         = 200
   maximum_batching_window_in_seconds = 300
   filter_event_name                  = "INSERT"
+}
+
+module "gtms_upload_clinic_data_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gtmsUploadClinicDataLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "gtms_upload_clinic_data_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "gtms_upload_clinic_data_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gtms_upload_clinic_data_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "gtms_upload_clinic_data_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.clinic_data_bucket.bucket_id
+  bucket_arn    = module.clinic_data_bucket.bucket_arn
+  lambda_arn    = module.gtms_upload_clinic_data_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_add-"
 }
 
 # Dynamodb tables
