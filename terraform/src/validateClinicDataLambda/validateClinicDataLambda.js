@@ -3,15 +3,13 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
 import { validate } from "jsonschema";
 import json from "./clinic-schema.json" assert { type: "json" };
 
 const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
 const client = new DynamoDBClient({ region: "eu-west-2" });
-const docClient = DynamoDBDocumentClient.from(client);
 
 export const handler = async (event) => {
   const bucket = event.Records[0].s3.bucket.name;
@@ -20,7 +18,7 @@ export const handler = async (event) => {
 
   try {
     const jsonString = await readFromS3(bucket, key, s3);
-    const validationResults = await validateRecord(JSON.parse(jsonString)); //need parse as s3 resolves as string
+    const validationResults = await validateRecord(JSON.parse(jsonString),client); //need parse as s3 resolves as string
 
     console.log(`Finished validating object ${key} in bucket ${bucket}`);
     console.log('----------------------------------------------------------------');
@@ -129,8 +127,8 @@ export async function isPostcodeInGridall(client, Postcode) {
       },
       ProjectionExpression: "ICB"
   };
-  const getCommand = new GetCommand(getParams);
-  const response = await docClient.send(getCommand);
+  const getCommand = new GetItemCommand(getParams);
+  const response = await client.send(getCommand);
 
   return response;
 }

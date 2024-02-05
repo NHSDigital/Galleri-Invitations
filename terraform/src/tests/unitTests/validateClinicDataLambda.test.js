@@ -36,9 +36,7 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
       mockDynamoDbClient.resolves({
         "Item": {
-          "ICB": {
-            "S": "QNX"
-          }
+          "ICB": "QNX"
         }
       });
       const validationResult = await moduleapi.validateRecord(data[0], mockDynamoDbClient);
@@ -48,7 +46,7 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
     test('should return failure for an invalid post code', async() => {
 
       mockDynamoDbClient.resolves({
-        Item: [],
+        metadata: [],
       });
       const validationResult = await moduleapi.validateRecord(data[0], mockDynamoDbClient);
       expect(validationResult.success).toBe(false);
@@ -60,9 +58,7 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
     test('should return failure for an invalid ICB code', async() => {
       mockDynamoDbClient.resolves({
         "Item": {
-          "ICB": {
-            "S": "01D"
-          }
+          "ICB": "01D"
         }
       });
       const validationResult = await moduleapi.validateRecord(data[1], mockDynamoDbClient);
