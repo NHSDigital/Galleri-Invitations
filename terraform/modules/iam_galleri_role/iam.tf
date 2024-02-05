@@ -387,8 +387,34 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "s3:*"
           ],
           "Resource" : [
-            "arn:aws:s3:::gtms-clinic-create-or-update/*"
+            "arn:aws:s3:::${var.environment}-outbound-gtms-invited-participant-batch/*",
+            "arn:aws:s3:::${var.environment}-inbound-gtms-clinic-create-or-update/*",
+            "arn:aws:s3:::${var.environment}-inbound-gtms-clinic-schedule-summary/*",
+            "arn:aws:s3:::${var.environment}-inbound-gtms-appointment/*",
+            "arn:aws:s3:::${var.environment}-inbound-gtms-withdrawal/*",
           ]
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "secretsmanager:GetResourcePolicy",
+            "secretsmanager:GetSecretValue",
+            "secretsmanager:DescribeSecret",
+            "secretsmanager:ListSecretVersionIds"
+          ],
+          "Resource" : [
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_URL*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SHARED_KEY_1*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:GTMS_MESH_MAILBOX_ID*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:GTMS_MESH_MAILBOX_PASSWORD*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:GTMS_MESH_CERT*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_KEY*"
+          ]
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : "secretsmanager:ListSecrets",
+          "Resource" : "*"
         },
       ],
       "Version" : "2012-10-17"

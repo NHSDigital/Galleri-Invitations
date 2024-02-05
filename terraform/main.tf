@@ -40,6 +40,9 @@ module "galleri_invitations_screen" {
   NEXT_PUBLIC_PUT_TARGET_PERCENTAGE                     = module.target_fill_to_percentage_put_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_TARGET_PERCENTAGE                         = module.target_fill_to_percentage_get_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_GENERATE_INVITES                          = module.generate_invites_api_gateway.rest_api_galleri_id
+  USERS                                                 = var.USERS
+  CIS2_ID                                               = var.CIS2_ID
+  NEXTAUTH_URL                                          = var.NEXTAUTH_URL
 }
 
 # the role that all lambda's are utilising,
@@ -71,20 +74,48 @@ module "gp_practices_bucket" {
   environment             = var.environment
 }
 
-# clinic data bucket
-module "clinic_data_bucket" {
-  source                  = "./modules/s3"
-  bucket_name             = "gtms-clinic-create-or-update"
-  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  environment             = var.environment
-}
-
 module "user_accounts_bucket" {
   source                  = "./modules/s3"
   bucket_name             = "user-accounts-bucket"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
+
+# GTMS buckets for each JSON response header
+module "invited_participant_batch" {
+  source                  = "./modules/s3"
+  bucket_name             = "outbound-gtms-invited-participant-batch"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
+module "clinic_data_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-gtms-clinic-create-or-update"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+module "clinic_schedule_summary" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-gtms-clinic-schedule-summary"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
+module "gtms_appointment" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-gtms-appointment"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
+module "gtms_withdrawal" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-gtms-withdrawal"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+# End of GTMS buckets
 
 # Data Filter Gridall IMD
 module "data_filter_gridall_imd_lambda" {
@@ -649,6 +680,48 @@ module "user_accounts_lambda_trigger" {
   lambda_arn = module.user_accounts_lambda.lambda_arn
 }
 
+module "gtms_mesh_mailbox_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gtmsMeshMailboxLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "gtms_mesh_mailbox_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                = "${var.environment}",
+    MESH_SANDBOX               = "false",
+    MESH_URL                   = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
+    MESH_SHARED_KEY            = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
+    GTMS_MESH_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_mailbox_id.secret_string)["GTMS_MESH_MAILBOX_ID"],
+    GTMS_MESH_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_mailbox_password.secret_string)["GTMS_MESH_MAILBOX_PASSWORD"]
+  }
+}
+
+data "aws_secretsmanager_secret_version" "mesh_url" {
+  secret_id = "MESH_URL"
+}
+
+data "aws_secretsmanager_secret_version" "mesh_shared_key" {
+  secret_id = "MESH_SHARED_KEY_1"
+}
+
+data "aws_secretsmanager_secret_version" "gtms_mesh_mailbox_id" {
+  secret_id = "GTMS_MESH_MAILBOX_ID"
+}
+
+data "aws_secretsmanager_secret_version" "gtms_mesh_mailbox_password" {
+  secret_id = "GTMS_MESH_MAILBOX_PASSWORD"
+}
+
+module "gtms_mesh_mailbox_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gtms_mesh_mailbox_lambda.lambda_function_name
+  retention_days       = 14
+}
+  
 module "validate_clinic_data_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment

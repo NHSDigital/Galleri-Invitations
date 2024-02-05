@@ -1,0 +1,27 @@
+name: "Performance Test"
+description: "Runs Jmeter performance test against performance environment"
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Checkout code"
+      uses: actions/checkout@v4
+    - name: "Run Jmeter performance test against latest versions"
+      shell: bash
+      run: |
+        JMETER_VERSION="5.6.3"
+        curl https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-$JMETER_VERSION.tgz -o apache-jmeter.tgz
+        tar -xvzf apache-jmeter.tgz
+        ./apache-jmeter-$JMETER_VERSION/bin/jmeter --version
+        curl https://repo1.maven.org/maven2/kg/apc/cmdrunner/2.3/cmdrunner-2.3.jar -o apache-jmeter-$JMETER_VERSION/lib/cmdrunner-2.3.jar
+        curl https://repo1.maven.org/maven2/kg/apc/jmeter-plugins-manager/1.10/jmeter-plugins-manager-1.10.jar -o apache-jmeter-$JMETER_VERSION/lib/ext/jmeter-plugins-manager-1.10.jar
+        java -cp apache-jmeter-$JMETER_VERSION/lib/ext/jmeter-plugins-manager-1.10.jar org.jmeterplugins.repository.PluginManagerCMDInstaller
+        cd apache-jmeter-$JMETER_VERSION/bin
+        ./PluginsManagerCMD.sh install-for-jmx $GITHUB_WORKSPACE/scripts/test/perftest/NHS_Galleri_Perf_Test_v1.0.jmx
+        ./jmeter -n -t $GITHUB_WORKSPACE/scripts/test/perftest/NHS_Galleri_Perf_Test_v1.0.jmx -l $GITHUB_WORKSPACE/result.jtl
+        cat $GITHUB_WORKSPACE/result.jtl
+    - name: "Upload Performance Test Results"
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-test-result
+        path: result.jtl
