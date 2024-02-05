@@ -5,7 +5,6 @@
   "main": "validateClinicDataLambda.js",
   "author": "",
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.504.0",
     "jsonschema": "^1.4.1"
   }
 }
