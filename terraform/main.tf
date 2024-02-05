@@ -792,8 +792,8 @@ module "caas_feed_update_records_lambda_cloudwatch" {
 
 module "caas_feed_update_records_lambda_trigger" {
   source        = "./modules/lambda_trigger"
-  bucket_id     = module.caas_data_bucket.bucket_id
-  bucket_arn    = module.caas_data_bucket.bucket_arn
+  bucket_id     = module.test_bucket.bucket_id
+  bucket_arn    = module.test_bucket.bucket_arn
   lambda_arn    = module.caas_feed_update_records_lambda.lambda_arn
   filter_prefix = "validRecords/valid_records_update-"
 }

@@ -205,21 +205,27 @@ export function validateRecord(record) {
     return validationResults;
   }
 
+  if ((record.name_prefix !== "null" && !isValidNameFormat(record.name_prefix, 35, 2)) || (record.name_prefix === "")) {
+    validationResults.success = false;
+    validationResults.message = "Technical error - Name Prefix is missing";
+    return validationResults;
+  }
+
   // AC9 - Given Name not provided
-  if ((record.given_name !== "null" && !isValidNameFormat(record.given_name, 35)) || (record.given_name === "") || (record.given_name === "null")) {
+  if ((record.given_name !== "null" && !isValidNameFormat(record.given_name, 35, 2)) || (record.given_name === "")) {
     validationResults.success = false;
     validationResults.message = "Technical error - Given Name is missing";
     return validationResults;
   }
 
   // AC8 - Family Name not provided
-  if ((record.family_name !== "null" && !isValidNameFormat(record.family_name, 35)) || (record.family_name === "") || (record.family_name === "null")) {
+  if ((record.family_name !== "null" && !isValidNameFormat(record.family_name, 35, 2)) || (record.family_name === "")) {
     validationResults.success = false;
     validationResults.message = "Technical error - Family Name is missing";
     return validationResults;
   }
 
-  if ((record.other_given_names !== "null" && !isValidNameFormat(record.other_given_names, 100)) || (record.other_given_names === "") || (record.other_given_names === "null")) {
+  if ((record.other_given_names !== "null" && !isValidNameFormat(record.other_given_names, 100, 1)) || (record.other_given_names === "")) {
     validationResults.success = false;
     validationResults.message = "Technical error - Other given name is missing";
     return validationResults;
@@ -304,16 +310,26 @@ export function isValidNHSNumberFormat(nhsNumber) {
   return /^\d{10}$/.test(nhsNumber);
 }
 
-export function isValidNameFormat(given_name, limit) {
+export function isValidNameFormat(given_name, limit, flag) {
   //Check Valid name format
-  const isValidFormat = /^[a-zÀ-ú1-9 ]+$/gim.test(given_name);
+  const isValidFormat = /^[a-zÀ-ú0-9 ]+$/gim.test(given_name);
+  const otherNameValidFormat = /^[a-zÀ-ú0-9| ]+$/gim.test(given_name);
   if (given_name.split("").length > limit) {
     return false;
   }
-  if (!isValidFormat) {
-    return false; //Invalid format
+  if (flag === 1) {
+    if (!otherNameValidFormat) {
+      return false;
+    } else {
+      return true;
+    }
+  } else if (flag === 2) { //all other name checks
+    if (!isValidFormat) {
+      return false; //Invalid format
+    } else {
+      return true;
+    }
   }
-  return true;
 }
 
 export function isValidRemovalReasonCode(reasonCode) {
