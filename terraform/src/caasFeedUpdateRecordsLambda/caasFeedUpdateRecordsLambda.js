@@ -45,18 +45,18 @@ export const handler = async (event) => {
 
     if (uniqueRecordsToBatchProcess.length > 0){
       const recordsToUploadSettled = await Promise.allSettled(
-        uniqueRecordsToBatchProcess.map(async (record) => {
+        uniqueRecordsToBatchProcess.map(async (incomingUpdateData) => {
           // GIVEN the supplied NHS No. does exist in MPI, get the entire record from the table
           let tableRecord;
-          if(record.nhs_number) tableRecord = await lookUp(client, record.nhs_number, "Population", "nhs_number", "N", true);
+          if(incomingUpdateData.nhs_number) tableRecord = await lookUp(client, incomingUpdateData.nhs_number, "Population", "nhs_number", "N", true);
 
           if (tableRecord?.Items.length > 0){
-            return processingData(record, tableRecord.Items[0]);
+            return processingData(incomingUpdateData, tableRecord.Items[0]);
           } else {
             return {
-              rejectedRecordNhsNumber: record.nhs_number,
+              rejectedRecordNhsNumber: incomingUpdateData.nhs_number,
               rejected: true,
-              reason: `Rejecting record ${record.nhs_number}. Cannot update record as it doesn't exist in table`
+              reason: `Rejecting record ${incomingUpdateData.nhs_number}. Cannot update record as it doesn't exist in table`
             }
           }
         })
@@ -98,55 +98,78 @@ export const handler = async (event) => {
 // METHODS
 
 // takes incoming record and record from table and compares the two
-export const processingData = async (record, tableRecord) => {
-  if (record.superseded_by_nhs_number === 'null' || record.superseded_by_nhs_number == 0) { // superseded_by_nhs_number is a Number type thus 0 === null
-    return await updateRecord(record, tableRecord); // AC1, 2, 4
+export const processingData = async (incomingUpdateData, populationTableRecord) => {
+  if (incomingUpdateData.superseded_by_nhs_number === 'null' || incomingUpdateData.superseded_by_nhs_number == 0) { // superseded_by_nhs_number is a Number type thus 0 === null
+    return await updateRecord(incomingUpdateData, populationTableRecord); // AC1, 2, 4
   } else {
+    console.log('IN CORRECT LOGIC ')
+
+    const retainingPopulationTableRecord = await lookUp(client, incomingUpdateData.superseded_by_nhs_number, "Population", "nhs_number", "N", true);
+
+    if (retainingPopulationTableRecord.Items.length){
+      // This is the retained record. We now want to mark the tableRecord as closed by removing the LSOA and gp practice
+      // Don't think this is part of our ticket but confirm with Jonathan
+      // then we want to check if the
+      const retainingEpisodeRecord = await lookUp(client, retainingPopulationTableRecord.PersonId.S, "Episode", "Participant_Id", "S", true);
+      const supersedingEpisodeRecord = await lookUp(client, populationTableRecord.PersonId.S, "Episode", "Participant_Id", "S", true);
+
+      if (supersedingEpisodeRecord.Items.length) {
+        // replace the nhs number and superseded number to the superseded record
+        populationTableRecord.nhs_number =
+        populationTableRecord.superseded_by_nhs_number =
+        // set the retaining record to have an nhs number == superseding record
+        retainingPopulationTableRecord.nhs_number = incomingUpdateData.superseded_by_nhs_number
+        // clear retaining records superseding record
+        retainingPopulationTableRecord.superseded_by_nhs_number = '0'
+        // change participant ID for supersedingEpisodeRecord episode record to be the participant ID of the retainingEpisodeRecord record
+        // participant ID is a part of the PK so need to overwrite record
+        // need to take all the attributes for the supersedingEpisodeRecord
+
+        const updateSupersedingRecordNhsNo = ["nhs_number", "N", populationTableRecord.nhs_number]
+        const updateSupersedingRecordSupersedNo = ["superseded_by_nhs_number", "N", populationTableRecord.superseded_by_nhs_number]
+        const updateSupersedingRecord = await updateRecordInTable(
+          client, "Population", populationTableRecord.PersonId, "PersonId", populationTableRecord.LSOA_2011, "LsoaCode", updateSupersedingRecordNhsNo, updateSupersedingRecordSupersedNo
+          );
+
+        const updateRetainingRecordNhsNo = ["nhs_number", "N", retainingPopulationTableRecord.nhs_number]
+        const updateRetainingRecordSupersedNo = ["superseded_by_nhs_number", "N", retainingPopulationTableRecord.superseded_by_nhs_number]
+        const setRetainingRecord = await updateRecordInTable(
+          client, "Population", retainingPopulationTableRecord.PersonId, "PersonId", retainingPopulationTableRecord.LSOA_2011, "LsoaCode", updateRetainingRecordNhsNo, updateRetainingRecordSupersedNo
+          );
+
+        const successfullyFufilled = Promise.all(updateSupersedingRecord, setRetainingRecord)
+
+        if (successfullyFufilled.every(result => result.status == 200)){
+          return {
+            rejected: false
+          }
+        } else {
+          return {
+            rejectedRecordNhsNumber: populationTableRecord.nhs_number,
+            rejected: true,
+            reason: 'Unable to update or set retaining record or superseded record'
+          }
+        }
+      }
+      // apply update
+    }
+
+    // 447
     // superseded by NHS No. does not exist in the MPI
     // THEN replace NHS no. with the Superseded by NHS no
-    const checkSupersedeNoRecord = await lookUp(client, record.superseded_by_nhs_number, "Population", "nhs_number", "N", true);
-    // AND Superseded by NHS No. exists in the MPI (Superseded by NHS No from incoming update)
-    if (checkSupersedeNoRecord?.Items.length) {
-      record.nhs_number = record.superseded_by_nhs_number
+    if (!populationTableRecord.superseded_by_nhs_number) incomingUpdateData.nhs_number = incomingUpdateData.superseded_by_nhs_number
 
-      // merge new and existing record
-      await overwriteRecordInTable(client, "Population", record, tableRecord);
-      return {
-        rejected: false
-      }
+    // merge new and existing record
+    await overwriteRecordInTable(client, "Population", incomingUpdateData, populationTableRecord);
+    return {
+      rejected: false
     }
-
-    // associate everything from previous nhs number with the new nhs number
-    const { PersonId } = tableRecord
-    record.participant_id = PersonId.S
-    record.lsoa_2011 = getLsoa(record, client)
-
-    // check if a record exists in pop table for superseded nhs number
-    // checkSupersedeNoRecord = await lookUp(client, record.superseded_by_nhs_number, "Population", "nhs_number", "N", true);
-    if (checkSupersedeNoRecord?.Items.length){
-      //AC2b: Superseded NHS No - Merge Two records - One Open Episode (Superseded)
-      return "something"
-    }
-
-    // call episode table with record and tableRecord
-    // extract the old records personId
-
-  }
-  const supersedeNoTableRecord = await lookUp(client, record.superseded_by_nhs_number, "Population", "nhs_number", "N", true);
-
-  const retainedEpisodeRecord = await lookUp(client, tableRecord.PersonId.S, "Episode", "Participant_Id", "S", true);
-  const supersededEpisodeRecord = await lookUp(client, supersedeNoTableRecord.PersonId.S, "Episode", "Participant_Id", "S", true);
-
-  if (supersededEpisodeRecord.Items.length > 0){
-    // change the participant id for the record that exists for the superseded by number to be the participant id of the retained nhs number
-    await overwriteRecordInTable(client, "Episode", tableRecord.PersonId.S, record)
   }
 
-  record.nhs_number = record.superseded_by_nhs_number
-  record.superseded_by_nhs_number = "0"
+  incomingUpdateData.nhs_number = incomingUpdateData.superseded_by_nhs_number
+  incomingUpdateData.superseded_by_nhs_number = "0"
 
-  await overwriteRecordInTable(client, "Population", record, tableRecord);
-
+  await overwriteRecordInTable(client, "Population", incomingUpdateData, populationTableRecord);
 
 }
 
@@ -264,7 +287,6 @@ export async function updateRecordInTable(client, table, partitionKey, partition
     UpdateExpression: updateItemCommandUpdateExpression,
   };
 
-
   const command = new UpdateItemCommand(input);
   const response = await client.send(command);
   if ((response.$metadata.httpStatusCode) != 200){
@@ -283,18 +305,17 @@ export async function overwriteRecordInTable(client, table, newRecord, oldRecord
 }
 
 export async function deleteTableRecord(client, table, oldRecord) {
-  const {
-    PersonId,
-    LsoaCode
-  } = oldRecord
+  let input
 
-  const input =
-    {
-      Key: {
-        PersonId: {S: PersonId.S},
-        LsoaCode: {S: LsoaCode.S}
-      },
-      TableName: `${ENVIRONMENT}-${table}`
+    switch(table) {
+      case 'Population':
+        input = formatPopulationDeleteItem(table, newRecord)
+        break;
+      case 'Episode':
+        input = formatEpisodeDeleteItem(table, newRecord)
+        break;
+      default:
+        input = 'Table not recognised'
     }
 
   const command = new DeleteItemCommand(input);
@@ -303,57 +324,126 @@ export async function deleteTableRecord(client, table, oldRecord) {
   return response;
 }
 
-export async function putTableRecord(client, table, newRecord) {
-    // nhs_number: {N: newRecord.nhs_number}, -> 0
-    if (newRecord.nhs_number === "null") newRecord.nhs_number = "0"
-    // superseded_by_nhs_number: {N: newRecord.superseded_by_nhs_number}, -> 0
-    if (newRecord.superseded_by_nhs_number === "null") newRecord.superseded_by_nhs_number = "0"
-    // gender: {N: newRecord.gender}, -> -1
-    if (newRecord.gender === "null") newRecord.gender = "-1"
-    // telephone_number: {N: newRecord.telephone_number}, -> 0
-    if (newRecord.telephone_number === "null") newRecord.telephone_number = "0"
-    // mobile_number: {N: newRecord.mobile_number}, -> 0
-    if (newRecord.mobile_number === "null") newRecord.mobile_number = "0"
 
-    const input = {
-      Item: {
-        PersonId: {S: newRecord.participant_id},
-        LsoaCode: {S: newRecord.lsoa_2011},
-        participantId: {S: newRecord.participant_id},
-        nhs_number: {N: newRecord.nhs_number},
-        superseded_by_nhs_number: {N: newRecord.superseded_by_nhs_number},
-        primary_care_provider: {S: newRecord.primary_care_provider},
-        gp_connect: {S: newRecord.gp_connect},
-        name_prefix: {S: newRecord.name_prefix},
-        given_name: {S: newRecord.given_name},
-        other_given_names: {S: newRecord.other_given_names},
-        family_name: {S: newRecord.family_name},
-        date_of_birth: {S: newRecord.date_of_birth},
-        gender: {N: newRecord.gender},
-        address_line_1: {S: newRecord.address_line_1},
-        address_line_2: {S: newRecord.address_line_2},
-        address_line_3: {S: newRecord.address_line_3},
-        address_line_4: {S: newRecord.address_line_4},
-        address_line_5: {S: newRecord.address_line_5},
-        postcode: {S: newRecord.postcode},
-        reason_for_removal: {S: newRecord.reason_for_removal},
-        reason_for_removal_effective_from_date: {S: newRecord.reason_for_removal_effective_from_date},
-        responsible_icb: {S: newRecord.responsible_icb},
-        date_of_death: {S: newRecord.date_of_death},
-        telephone_number: {N: newRecord.telephone_number},
-        mobile_number: {N: newRecord.mobile_number},
-        email_address: {S: newRecord.email_address},
-        preferred_language: {S: newRecord.preferred_language},
-        is_interpreter_required: {BOOL: Boolean(newRecord.is_interpreter_required)},
-        action: {S: newRecord.action},
-      },
-      TableName: `${ENVIRONMENT}-${table}`
+function formatPopulationDeleteItem(table, record) {
+  const {
+    PersonId,
+    LsoaCode
+  } = record
+
+  const input = {
+    Key: {
+      PersonId: {S: PersonId.S},
+      LsoaCode: {S: LsoaCode.S}
+    },
+    TableName: `${ENVIRONMENT}-${table}`
+  };
+
+  return input;
+}
+
+function formatEpisodeDeleteItem(table, record) {
+  const {
+    Batch_Id,
+    Participant_Id
+  } = record
+
+  const input = {
+    Key: {
+      Batch_Id: {S: Batch_Id.S},
+      Participant_Id: {S: Participant_Id.S}
+    },
+    TableName: `${ENVIRONMENT}-${table}`
+  };
+
+  return input;
+}
+
+export async function putTableRecord(client, table, newRecord) {
+  let input
+
+    switch(table) {
+      case 'Population':
+        input = formatPopulationPutItem(table, newRecord)
+        break;
+      case 'Episode':
+        input = formatEpisodePutItem(table, newRecord)
+        break;
+      default:
+        input = 'Table not recognised'
     }
 
     const command = new PutItemCommand(input);
     const response = await client.send(command);
 
     return response;
+}
+
+function formatPopulationPutItem(table, newRecord){
+  // nhs_number: {N: newRecord.nhs_number}, -> 0
+  if (newRecord.nhs_number === "null") newRecord.nhs_number = "0"
+  // superseded_by_nhs_number: {N: newRecord.superseded_by_nhs_number}, -> 0
+  if (newRecord.superseded_by_nhs_number === "null") newRecord.superseded_by_nhs_number = "0"
+  // gender: {N: newRecord.gender}, -> -1
+  if (newRecord.gender === "null") newRecord.gender = "-1"
+  // telephone_number: {N: newRecord.telephone_number}, -> 0
+  if (newRecord.telephone_number === "null") newRecord.telephone_number = "0"
+  // mobile_number: {N: newRecord.mobile_number}, -> 0
+  if (newRecord.mobile_number === "null") newRecord.mobile_number = "0"
+
+  return {
+    Item: {
+      PersonId: {S: newRecord.participant_id},
+      LsoaCode: {S: newRecord.lsoa_2011},
+      participantId: {S: newRecord.participant_id},
+      nhs_number: {N: newRecord.nhs_number},
+      superseded_by_nhs_number: {N: newRecord.superseded_by_nhs_number},
+      primary_care_provider: {S: newRecord.primary_care_provider},
+      gp_connect: {S: newRecord.gp_connect},
+      name_prefix: {S: newRecord.name_prefix},
+      given_name: {S: newRecord.given_name},
+      other_given_names: {S: newRecord.other_given_names},
+      family_name: {S: newRecord.family_name},
+      date_of_birth: {S: newRecord.date_of_birth},
+      gender: {N: newRecord.gender},
+      address_line_1: {S: newRecord.address_line_1},
+      address_line_2: {S: newRecord.address_line_2},
+      address_line_3: {S: newRecord.address_line_3},
+      address_line_4: {S: newRecord.address_line_4},
+      address_line_5: {S: newRecord.address_line_5},
+      postcode: {S: newRecord.postcode},
+      reason_for_removal: {S: newRecord.reason_for_removal},
+      reason_for_removal_effective_from_date: {S: newRecord.reason_for_removal_effective_from_date},
+      responsible_icb: {S: newRecord.responsible_icb},
+      date_of_death: {S: newRecord.date_of_death},
+      telephone_number: {N: newRecord.telephone_number},
+      mobile_number: {N: newRecord.mobile_number},
+      email_address: {S: newRecord.email_address},
+      preferred_language: {S: newRecord.preferred_language},
+      is_interpreter_required: {BOOL: Boolean(newRecord.is_interpreter_required)},
+      action: {S: newRecord.action},
+    },
+    TableName: `${ENVIRONMENT}-${table}`
+  }
+}
+
+function formatEpisodePutItem(table, newRecord){
+
+  return {
+    Item: {
+      Batch_Id: {S: newRecord.Batch_Id},
+      Participant_Id: {S: newRecord.Participant_Id},
+      Episode_Created_By: {S: newRecord.Episode_Created_By},
+      Episode_Creation: {N: newRecord.Episode_Creation},
+      Episode_Event: {N: newRecord.Episode_Event},
+      Episode_Event_Updated: {S: newRecord.Episode_Event_Updated},
+      Episode_Status: {S: newRecord.Episode_Status},
+      Episode_Status_Updated: {S: newRecord.Episode_Status_Updated},
+      Gp_Practice_Code: {S: newRecord.Gp_Practice_Code},
+      LSOA: {S: newRecord.LSOA},
+    },
+    TableName: `${ENVIRONMENT}-${table}`
+  }
 }
 
 // returns LSOA using patient postcode or the LSOA from GP practice
