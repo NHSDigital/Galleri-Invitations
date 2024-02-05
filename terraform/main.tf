@@ -721,7 +721,7 @@ module "gtms_mesh_mailbox_lambda_cloudwatch" {
   lambda_function_name = module.gtms_mesh_mailbox_lambda.lambda_function_name
   retention_days       = 14
 }
-  
+
 module "validate_clinic_data_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
