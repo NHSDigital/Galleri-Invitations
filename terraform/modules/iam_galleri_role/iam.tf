@@ -315,7 +315,41 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
   })
 }
 
+# Policy required by validateClinicDataLambda
+# resource "aws_iam_policy" "iam_policy_for_validate_clinic_data_lambda" {
+#  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_validate_clinic_data_lambda_role"
+#  path        = "/"
+#  description = "AWS IAM Policy for pushing into S3 Bucket"
+#  policy = jsonencode(
+#    {
+#      "Statement" : [
+#        {
+#          "Action" : [
+#            "logs:CreateLogGroup",
+#            "logs:CreateLogStream",
+#            "logs:PutLogEvents"
+#          ],
+#          "Effect" : "Allow",
+#          "Resource" : "arn:aws:logs:*:*:*"
+#        },
+#        {
+#           "Sid" : "AllowS3Access",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "s3:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:s3:::gtms-clinic-create-or-update/*"
+#           ]
+#         }
+#      ],
+#      "Version" : "2012-10-17"
+#  })
+# }
+
+
 # Added GpPractice and Postcode to this policy as lambda role exceeded policy limit
+# Added validate CLinic Data to this policy as lambda role exceeded policy limit
 # Added UserAccounts to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
@@ -514,6 +548,12 @@ resource "aws_iam_role_policy_attachment" "clinic_information_lambda" {
 #  policy_arn = aws_iam_policy.gp_practice_loader_lambda.arn
 #}
 
+# Role exceeded quota for PoliciesPerRole: 10
+#resource "aws_iam_role_policy_attachment" "validate_clinic_data_lambda" {
+#  role       = aws_iam_role.galleri_lambda_role.name
+#  policy_arn = aws_iam_policy.validate_clinic_data_lambda.arn
+#}
+
 resource "aws_iam_role_policy_attachment" "participating_icb_list_lambda" {
   role       = aws_iam_role.galleri_lambda_role.name
   policy_arn = aws_iam_policy.participating_icb_list_lambda.arn
@@ -605,4 +645,3 @@ resource "aws_iam_role_policy_attachment" "api_gateway_logging_attach" {
 resource "aws_api_gateway_account" "account" {
   cloudwatch_role_arn = aws_iam_role.api_gateway_logging_role.arn
 }
-

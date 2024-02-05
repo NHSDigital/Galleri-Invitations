@@ -722,6 +722,36 @@ module "gtms_mesh_mailbox_lambda_cloudwatch" {
   retention_days       = 14
 }
 
+module "validate_clinic_data_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "validateClinicDataLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "validate_clinic_data_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "validate_clinic_data_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.validate_clinic_data_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+
+module "validate_clinic_data_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.clinic_data_bucket.bucket_id
+  bucket_arn    = module.clinic_data_bucket.bucket_arn
+  lambda_arn    = module.validate_clinic_data_lambda.lambda_arn
+  filter_prefix = "clinic_create_or_update_"
+}
+
 # Dynamodb tables
 module "sdrs_table" {
   source      = "./modules/dynamodb"
@@ -1051,4 +1081,3 @@ module "episode_table" {
     Environment = var.environment
   }
 }
-
