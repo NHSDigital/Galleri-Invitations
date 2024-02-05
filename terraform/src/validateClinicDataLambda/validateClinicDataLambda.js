@@ -91,10 +91,10 @@ export async function validateRecord(record, client) {
   const validation = validate(record, json);
   if (validation.valid) {
     // validate the JSON Schema
-    const postcodeValidation = await isPostcodeInGridall(client, record.ClinicCreateOrUpdate.Postcode);
+   const postcodeValidation = await isPostcodeInGridall(record.ClinicCreateOrUpdate.Postcode, client);
     if (postcodeValidation.hasOwnProperty("Item")) {
       // AC - not covered Postcode provided (if supplied)
-      const ICBValidation = postcodeValidation.Item.ICB;
+      const ICBValidation = postcodeValidation.Item.ICB.S ;
       if (!isValidICBCode(ICBValidation)) {
         // AC - not covered ICB code provided (if supplied)
         validationResults.success = false;
@@ -118,20 +118,23 @@ export async function validateRecord(record, client) {
   return validationResults;
 }
 
-export async function isPostcodeInGridall(client, Postcode) {
+export const isPostcodeInGridall = async(key, client) => {
   //AC - Check if Postcode exists in the Postcode DynamoDB Table
   const getParams = {
       "TableName": `${ENVIRONMENT}-Postcode`,
       "Key": {
-          "POSTCODE": Postcode
+          "POSTCODE": {
+              "S": key
+          }
       },
-      ProjectionExpression: "ICB"
+      "ConsistentRead": true,
+      "ProjectionExpression": "ICB"
   };
   const getCommand = new GetItemCommand(getParams);
   const response = await client.send(getCommand);
 
   return response;
-}
+};
 
 export function isValidICBCode(ICBCode) {
   // AC - check if it's one of the specified valid ICB codes

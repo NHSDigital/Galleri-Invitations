@@ -13,7 +13,7 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
       mockDynamoDbClient.resolves({
         Item: [],
       });
-      const postcodeValidation = await moduleapi.isPostcodeInGridall(mockDynamoDbClient, "NW1 2HC" );
+      const postcodeValidation = await moduleapi.isPostcodeInGridall("NW1 2HC", mockDynamoDbClient);
       expect(postcodeValidation.Item.length).toBe(0);
     });
 
@@ -25,7 +25,7 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
           }
         }
       });
-      const postcodeValidation = await moduleapi.isPostcodeInGridall(mockDynamoDbClient, "NW1 2HC" );
+      const postcodeValidation = await moduleapi.isPostcodeInGridall("NW1 2HC", mockDynamoDbClient);
       expect(postcodeValidation.Item.ICB.S).toBe("QNX");
     });
 
@@ -36,7 +36,9 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
       mockDynamoDbClient.resolves({
         "Item": {
-          "ICB": "QNX"
+          "ICB": {
+            "S": "QNX"
+          }
         }
       });
       const validationResult = await moduleapi.validateRecord(data[0], mockDynamoDbClient);
@@ -58,7 +60,7 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
     test('should return failure for an invalid ICB code', async() => {
       mockDynamoDbClient.resolves({
         "Item": {
-          "ICB": "01D"
+          "ICB": {S:"01D"}
         }
       });
       const validationResult = await moduleapi.validateRecord(data[1], mockDynamoDbClient);
