@@ -81,14 +81,6 @@ module "user_accounts_bucket" {
   environment             = var.environment
 }
 
-# clinic data bucket
-module "clinic_data_bucket" {
-  source                  = "./modules/s3"
-  bucket_name             = "inbound-gtms-clinic-create-or-update"
-  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  environment             = var.environment
-}
-
 # GTMS buckets for each JSON response header
 module "invited_participant_batch" {
   source                  = "./modules/s3"
