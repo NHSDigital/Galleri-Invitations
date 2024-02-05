@@ -239,7 +239,7 @@ export const generateParticipantID = async (dbClient) => {
     let found = UNSUCCESSFULL_REPSONSE;
     do {
       participantId = participantIdRandExp.gen();
-      found = await lookUp(dbClient, participantId, "Population", "participant_Id", "S", true);
+      found = await lookUp(dbClient, participantId, "Population", "Participant_Id", "S", true);
     } while (found !== SUCCESSFULL_REPSONSE && !participantIdStore.hasOwnProperty(participantId));
     participantIdStore.participantId = true;
     return participantId;
