@@ -95,6 +95,14 @@ module "clinic_data_bucket" {
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
+
+module "valid_clinic_data_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "valid-inbound-gtms-clinic-create-or-update"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
 module "clinic_schedule_summary" {
   source                  = "./modules/s3"
   bucket_name             = "inbound-gtms-clinic-schedule-summary"
@@ -816,8 +824,8 @@ module "gtms_upload_clinic_data_lambda_cloudwatch" {
 
 module "gtms_upload_clinic_data_lambda_trigger" {
   source        = "./modules/lambda_trigger"
-  bucket_id     = module.clinic_data_bucket.bucket_id
-  bucket_arn    = module.clinic_data_bucket.bucket_arn
+  bucket_id     = module.valid_clinic_data_bucket.bucket_id
+  bucket_arn    = module.valid_clinic_data_bucket.bucket_arn
   lambda_arn    = module.gtms_upload_clinic_data_lambda.lambda_arn
   filter_prefix = "validRecords/valid_records_add-"
 }
