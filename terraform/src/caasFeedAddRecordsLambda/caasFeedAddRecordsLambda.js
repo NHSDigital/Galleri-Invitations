@@ -239,7 +239,7 @@ export const generateParticipantID = async (dbClient) => {
     let found = UNSUCCESSFULL_REPSONSE;
     do {
       participantId = participantIdRandExp.gen();
-      found = await lookUp(dbClient, participantId, "Population", "Participant_Id", "S", true);
+      found = await lookUp(dbClient, participantId, "Population", "participantId", "S", true);
     } while (found !== SUCCESSFULL_REPSONSE && !participantIdStore.hasOwnProperty(participantId));
     participantIdStore.participantId = true;
     return participantId;
@@ -333,7 +333,6 @@ export const lookUp = async (dbClient, ...params) => {
     useIndex
   ] = params
 
-
   const ExpressionAttributeValuesKey = `:${attribute}`
   let expressionAttributeValuesObj = {}
   let expressionAttributeValuesNestObj = {}
@@ -349,7 +348,13 @@ export const lookUp = async (dbClient, ...params) => {
     TableName: `${ENVIRONMENT}-${table}`,
   };
 
-  if (useIndex) input.IndexName = `${attribute}-index`
+  if (useIndex){
+    if (attribute === 'participantId') {
+      input.IndexName = `Participant_Id-index`
+    } else {
+      input.IndexName = `${attribute}-index`
+    }
+  }
 
   const getCommand = new QueryCommand(input);
   const response = await dbClient.send(getCommand);
