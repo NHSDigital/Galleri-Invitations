@@ -91,7 +91,7 @@ export async function validateRecord(record, client) {
   const validation = validate(record, json);
   if (validation.valid) {
     // validate the JSON Schema
-   const postcodeValidation = await isPostcodeInGridall(record.ClinicCreateOrUpdate.Postcode, client);
+    const postcodeValidation = await isPostcodeInGridall(record.ClinicCreateOrUpdate.Postcode, client);
     if (postcodeValidation.hasOwnProperty("Item")) {
       // AC - not covered Postcode provided (if supplied)
       const ICBValidation = postcodeValidation.Item.ICB.S ;
