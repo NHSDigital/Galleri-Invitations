@@ -84,7 +84,7 @@ describe('validateCaasFeed function', () => {
   });
 
   test('should return failure for missing given name', () => {
-    const validationResult = validateRecord({ ...validRecord, given_name: "null" });
+    const validationResult = validateRecord({ ...validRecord, given_name: "" });
 
     expect(validationResult.success).toBe(false);
     expect(validationResult.message).toBe(
