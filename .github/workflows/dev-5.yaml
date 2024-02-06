@@ -161,7 +161,7 @@ jobs:
   data-stage: # Recommended maximum execution time is 10 minutes
     needs: [metadata, test-stage, build-stage]
     uses: ./.github/workflows/stage-4-load-data.yaml
-    if: needs.metadata.outputs.database_seeding == 'yes'
+    if: needs.metadata.outputs.database_seeding == 'yes' && needs.metadata.outputs.tf_action != 'destroy'
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
