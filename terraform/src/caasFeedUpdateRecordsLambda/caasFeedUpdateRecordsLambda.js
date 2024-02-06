@@ -102,62 +102,48 @@ export const processingData = async (incomingUpdateData, populationTableRecord) 
   if (incomingUpdateData.superseded_by_nhs_number === 'null' || incomingUpdateData.superseded_by_nhs_number == 0) { // superseded_by_nhs_number is a Number type thus 0 === null
     return await updateRecord(incomingUpdateData, populationTableRecord); // AC1, 2, 4
   } else {
-    console.log('IN CORRECT LOGIC ')
-
     const retainingPopulationTableRecord = await lookUp(client, incomingUpdateData.superseded_by_nhs_number, "Population", "nhs_number", "N", true);
 
     if (retainingPopulationTableRecord.Items.length){
       // This is the retained record. We now want to mark the tableRecord as closed by removing the LSOA and gp practice
-      // Don't think this is part of our ticket but confirm with Jonathan
       // then we want to check if the
       const retainingEpisodeRecord = await lookUp(client, retainingPopulationTableRecord.PersonId.S, "Episode", "Participant_Id", "S", true);
       const supersedingEpisodeRecord = await lookUp(client, populationTableRecord.PersonId.S, "Episode", "Participant_Id", "S", true);
 
-      if (supersedingEpisodeRecord.Items.length) {
+      if (retainingEpisodeRecord.Items.length || (retainingEpisodeRecord.Items.length == 0 && supersedingEpisodeRecord.Items.length == 0)) {
+        // update superseded number record with the update
         // replace the nhs number and superseded number to the superseded record
-        populationTableRecord.nhs_number =
-        populationTableRecord.superseded_by_nhs_number =
-        // set the retaining record to have an nhs number == superseding record
-        retainingPopulationTableRecord.nhs_number = incomingUpdateData.superseded_by_nhs_number
-        // clear retaining records superseding record
-        retainingPopulationTableRecord.superseded_by_nhs_number = '0'
-        // change participant ID for supersedingEpisodeRecord episode record to be the participant ID of the retainingEpisodeRecord record
-        // participant ID is a part of the PK so need to overwrite record
-        // need to take all the attributes for the supersedingEpisodeRecord
+        await overwriteRecordInTable(client, 'Population', incomingUpdateData, populationTableRecord)
 
-        const updateSupersedingRecordNhsNo = ["nhs_number", "N", populationTableRecord.nhs_number]
-        const updateSupersedingRecordSupersedNo = ["superseded_by_nhs_number", "N", populationTableRecord.superseded_by_nhs_number]
-        const updateSupersedingRecord = await updateRecordInTable(
-          client, "Population", populationTableRecord.PersonId, "PersonId", populationTableRecord.LSOA_2011, "LsoaCode", updateSupersedingRecordNhsNo, updateSupersedingRecordSupersedNo
-          );
+        return {
+          rejected: false
+        }
+      } else if (supersedingEpisodeRecord.Items.length) {
+        retainingPopulationTableRecord.nhs_number = populationTableRecord.nhs_number
+        retainingPopulationTableRecord.superseded_by_nhs_number = populationTableRecord.superseded_by_nhs_number
 
-        const updateRetainingRecordNhsNo = ["nhs_number", "N", retainingPopulationTableRecord.nhs_number]
-        const updateRetainingRecordSupersedNo = ["superseded_by_nhs_number", "N", retainingPopulationTableRecord.superseded_by_nhs_number]
-        const setRetainingRecord = await updateRecordInTable(
-          client, "Population", retainingPopulationTableRecord.PersonId, "PersonId", retainingPopulationTableRecord.LSOA_2011, "LsoaCode", updateRetainingRecordNhsNo, updateRetainingRecordSupersedNo
-          );
+        populationTableRecord.nhs_number = incomingUpdateData.superseded_by_nhs_number
+        populationTableRecord.superseded_by_nhs_number = '0'
 
-        const successfullyFufilled = Promise.all(updateSupersedingRecord, setRetainingRecord)
+        // update supersed
+        const updateNhsNumberInRecord = ["nhs_number", "N", populationTableRecord.nhs_number]
+        const updateSuperedNhsNumberInRecord = ["superseded_by_nhs_number", "N", populationTableRecord.superseded_by_nhs_number]
+        await updateRecordInTable(client, "Population", populationTableRecord.PersonId.S, "PersonId", populationTableRecord.LsoaCode.S, "LsoaCode", updateNhsNumberInRecord, updateSuperedNhsNumberInRecord);
+        // update retaining
+        await overwriteRecordInTable(client, 'Population', retainingPopulationTableRecord, populationTableRecord)
 
-        if (successfullyFufilled.every(result => result.status == 200)){
-          return {
-            rejected: false
-          }
-        } else {
-          return {
-            rejectedRecordNhsNumber: populationTableRecord.nhs_number,
-            rejected: true,
-            reason: 'Unable to update or set retaining record or superseded record'
-          }
+        return {
+          rejected: false
+        }
+      } else {
+        return {
+          rejectedRecordNhsNumber: record.nhs_number,
+          rejected: true,
+          reason: `Alert to third line support`
         }
       }
       // apply update
     }
-
-    // 447
-    // superseded by NHS No. does not exist in the MPI
-    // THEN replace NHS no. with the Superseded by NHS no
-    if (!populationTableRecord.superseded_by_nhs_number) incomingUpdateData.nhs_number = incomingUpdateData.superseded_by_nhs_number
 
     // merge new and existing record
     await overwriteRecordInTable(client, "Population", incomingUpdateData, populationTableRecord);
@@ -165,12 +151,6 @@ export const processingData = async (incomingUpdateData, populationTableRecord) 
       rejected: false
     }
   }
-
-  incomingUpdateData.nhs_number = incomingUpdateData.superseded_by_nhs_number
-  incomingUpdateData.superseded_by_nhs_number = "0"
-
-  await overwriteRecordInTable(client, "Population", incomingUpdateData, populationTableRecord);
-
 }
 
 const updateRecord = async (record, recordFromTable) => {
@@ -427,8 +407,7 @@ function formatPopulationPutItem(table, newRecord){
   }
 }
 
-function formatEpisodePutItem(table, newRecord){
-
+function formatEpisodePutItem(table, newRecord) {
   return {
     Item: {
       Batch_Id: {S: newRecord.Batch_Id},
