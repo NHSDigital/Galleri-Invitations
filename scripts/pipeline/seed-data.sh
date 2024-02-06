@@ -30,7 +30,7 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
-  if [ $environment_type == "dev" || "test " ]; then
+  if [[ $environment_type == "dev" || "test" ]]; then
     sed -i "s/ENVIRONMENT/$environment/g" $GITHUB_WORKSPACE/scripts/test_data/destructible_environments/lsoa.json
     aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/lsoa.json
   fi
@@ -92,7 +92,7 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
-  if [ $environment_type == "dev" || "test " ]; then
+  if [[ $environment_type == "dev" || "test" ]]; then
     sed -i "s/ENVIRONMENT/$environment/g" $GITHUB_WORKSPACE/scripts/test_data/destructible_environments/population*.json
     aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/population1.json
     aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/population2.json
