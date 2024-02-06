@@ -36,7 +36,7 @@ function main() {
   fi
   NONPROD_LSOA_DATA_COUNT=$(aws dynamodb scan --table-name $environment-UniqueLsoa --select "COUNT" | jq -r ".Count")
   if [[ $? -eq 0 ]] && [[ $NONPROD_LSOA_DATA_COUNT =~ ^[0-9]+$ ]]; then
-    if (($NONPROD_LSOA_DATA_COUNT < 17741)); then
+    if (($NONPROD_LSOA_DATA_COUNT < 10)); then
       echo Initiating upload of LSOA subset data to database
       mkdir nonprod-unique-lsoa-data
       aws s3 cp s3://galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
@@ -101,7 +101,7 @@ function main() {
   fi
   POPULATION_COUNT=$(aws dynamodb scan --table-name $environment-Population --select "COUNT" | jq -r ".Count")
   if [[ $? -eq 0 ]] && [[ $POPULATION_COUNT =~ ^[0-9]+$ ]]; then
-    if (($POPULATION_COUNT < 1)); then
+    if (($POPULATION_COUNT < 100)); then
       echo Initiating upload of dummy Population data to database
       mkdir nonprod-population-data
       aws s3 cp s3://galleri-test-data/non_prod_participant_data/ ./nonprod-population-data --recursive
