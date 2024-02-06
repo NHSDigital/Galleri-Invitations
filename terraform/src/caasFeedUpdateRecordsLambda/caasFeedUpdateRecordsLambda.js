@@ -36,13 +36,6 @@ export const handler = async (event) => {
       duplicateRecordsToIndividuallyProcess
     ] = filterUniqueEntries(records);
 
-    // get record from pop table for nhs number
-    // get record from pop table for superseded
-    // check episode record for nhs number
-    // check episode record for superseded
-    // nhs number record has episode? Update nhs number record
-    // superseded record has episode? Set this episode record to point to nhs record. Update nhs number record
-
     if (uniqueRecordsToBatchProcess.length > 0){
       const recordsToUploadSettled = await Promise.allSettled(
         uniqueRecordsToBatchProcess.map(async (incomingUpdateData) => {
@@ -99,20 +92,16 @@ export const handler = async (event) => {
 
 // takes incoming record and record from table and compares the two
 export const processingData = async (incomingUpdateData, populationTableRecord) => {
-  if (incomingUpdateData.superseded_by_nhs_number === 'null' || incomingUpdateData.superseded_by_nhs_number == 0) { // superseded_by_nhs_number is a Number type thus 0 === null
+  if (incomingUpdateData.superseded_by_nhs_number === 'null' || incomingUpdateData.superseded_by_nhs_number == 0) {
     return await updateRecord(incomingUpdateData, populationTableRecord); // AC1, 2, 4
   } else {
     const retainingPopulationTableRecord = await lookUp(client, incomingUpdateData.superseded_by_nhs_number, "Population", "nhs_number", "N", true);
 
     if (retainingPopulationTableRecord.Items.length){
-      // This is the retained record. We now want to mark the tableRecord as closed by removing the LSOA and gp practice
-      // then we want to check if the
       const retainingEpisodeRecord = await lookUp(client, retainingPopulationTableRecord.PersonId.S, "Episode", "Participant_Id", "S", true);
       const supersedingEpisodeRecord = await lookUp(client, populationTableRecord.PersonId.S, "Episode", "Participant_Id", "S", true);
 
       if (retainingEpisodeRecord.Items.length || (retainingEpisodeRecord.Items.length == 0 && supersedingEpisodeRecord.Items.length == 0)) {
-        // update superseded number record with the update
-        // replace the nhs number and superseded number to the superseded record
         await overwriteRecordInTable(client, 'Population', incomingUpdateData, populationTableRecord)
 
         return {
@@ -142,7 +131,6 @@ export const processingData = async (incomingUpdateData, populationTableRecord) 
           reason: `Alert to third line support`
         }
       }
-      // apply update
     }
 
     // merge new and existing record
@@ -303,7 +291,6 @@ export async function deleteTableRecord(client, table, oldRecord) {
 
   return response;
 }
-
 
 function formatPopulationDeleteItem(table, record) {
   const {

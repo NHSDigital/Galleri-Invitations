@@ -6,16 +6,16 @@ import * as fs from "fs";
 import path from "path";
 
 import {
-  readCsvFromS3, // done
-  pushCsvToS3, // done
-  parseCsvToArray, // done
-  filterUniqueEntries, // done
-  lookUp, // done
-  getItemFromTable, // done
-  generateCsvString, // done
-  putTableRecord, // done
-  deleteTableRecord, // done
-  overwriteRecordInTable //
+  readCsvFromS3,
+  pushCsvToS3,
+  parseCsvToArray,
+  filterUniqueEntries,
+  lookUp,
+  getItemFromTable,
+  generateCsvString,
+  putTableRecord,
+  deleteTableRecord,
+  overwriteRecordInTable
 } from '../../caasFeedUpdateRecordsLambda/caasFeedUpdateRecordsLambda';
 
 describe("readCsvFromS3", () => {
