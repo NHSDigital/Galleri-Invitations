@@ -67,7 +67,10 @@ export const handler = async (event, context) => {
       let RequestItems = {};
       RequestItems[`${ENVIRONMENT}-PhlebotomySite`] = [create];
       console.log(Array.isArray(createArr));
-      const command = new BatchWriteItemCommand(RequestItems);
+      console.log(JSON.stringify(RequestItems));
+      const command = new BatchWriteItemCommand({
+        "RequestItems": RequestItems
+      });
       // const command = new BatchWriteItemCommand({
       //   RequestItems: createArr
       // });
@@ -138,25 +141,25 @@ function createPhlebotomySite(site) {
     PutRequest: {
       Item: {
         'ClinicId': {
-          S: `${site.ClinicID}`
+          S: `${site.ClinicCreateOrUpdate.ClinicID}`
         },
         'ODSCode': {
-          S: `${site.ODSCode}`
+          S: `${site.ClinicCreateOrUpdate.ODSCode}`
         },
         'ICBCode': {
-          S: `${site.ICBCode}`
+          S: `${site.ClinicCreateOrUpdate.ICBCode}`
         },
         'ClinicName': {
-          S: `${site.ClinicName}`
+          S: `${site.ClinicCreateOrUpdate.ClinicName}`
         },
         'Address': {
-          S: `${site.Address}`
+          S: `${site.ClinicCreateOrUpdate.Address}`
         },
         'Postcode': {
-          S: `${site.Postcode}`
+          S: `${site.ClinicCreateOrUpdate.Postcode}`
         },
         'Directions': {
-          S: `${site.Directions}`
+          S: `${site.ClinicCreateOrUpdate.Directions}`
         },
         'TargetFillToPercentage': {
           N: `50`
