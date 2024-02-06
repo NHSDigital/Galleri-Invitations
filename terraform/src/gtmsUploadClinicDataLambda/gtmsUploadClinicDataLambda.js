@@ -3,7 +3,7 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { DynamoDBClient, GetItemCommand, ScanCommand, } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, GetItemCommand, ScanCommand, BatchWriteItemCommand } from "@aws-sdk/client-dynamodb";
 
 const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
@@ -37,15 +37,43 @@ export const handler = async (event, context) => {
       `${ENVIRONMENT}-PhlebotomySite`,
       client
     );
-    const itemList = result.items
-
-    for (const element of itemList) {
-      // if (js.ClinicCreateOrUpdate.ClinicID === element.ClinicId){
-      if ("BH48C920" === element.ClinicId.S) {
-        console.log(true);
-      }
+    // console.log(result.Items);
+    console.log(js);
+    const value = await checkPhlebotomy(result.Items, js, 'ClinicCreateOrUpdate', 'ClinicID');
+    console.log(value);
+    if (value) {
+      //update
+    } else {
+      //add
+      const create = await createPhlebotomySite(js);
+      console.log(create);
+      //{
+      //   PutRequest: {
+      //     Item: {
+      //       ClinicId: [Object],
+      //       ODSCode: [Object],
+      //       ICBCode: [Object],
+      //       ClinicName: [Object],
+      //       Address: [Object],
+      //       Postcode: [Object],
+      //       Directions: [Object],
+      //       TargetFillToPercentage: [Object]
+      //      }
+      //   }
+      // }
+      console.log(typeof create);
+      const createArr = [create];
+      console.log(createArr);
+      let RequestItems = {};
+      RequestItems[`${ENVIRONMENT}-PhlebotomySite`] = [create];
+      console.log(Array.isArray(createArr));
+      const command = new BatchWriteItemCommand(RequestItems);
+      // const command = new BatchWriteItemCommand({
+      //   RequestItems: createArr
+      // });
+      const response = await client.send(command);
+      console.log(response);
     }
-
 
   } catch (error) {
     console.error("Error occurred:", error);
@@ -79,4 +107,63 @@ export async function getItemsFromTable(table, client) {
   );
 
   return response;
+}
+
+//cycle through the json returned and compare to each phlebotomy site
+function checkPhlebotomy(loopedArr, arr, key, item) {
+  // console.log('abdul args');
+  // console.log(...arguments);
+  // console.log('abdul args');
+  for (const element of loopedArr) {
+    // console.log('arr.ClinicCreateOrUpdate.ClinicID')
+    // console.log(arr);
+    // console.log(arr.ClinicCreateOrUpdate.ClinicID);
+    // console.log('element.clinicID');
+    // console.log('elemet = ', JSON.stringify(element));
+    // console.log(element['ClinicId']);
+    // console.log(element['ClinicId']['S']);
+    // if (js.ClinicCreateOrUpdate.ClinicID === element.ClinicId.S){
+    if (arr.ClinicCreateOrUpdate.ClinicID === element['ClinicId']['S']) {
+      return true; // update
+    } else {
+      return false;
+      // const value = await createPhlebotomySite(js.ClinicCreateOrUpdate);
+      // console.log(value);
+    }
+  }
+}
+
+function createPhlebotomySite(site) {
+  const item = {
+    PutRequest: {
+      Item: {
+        'ClinicId': {
+          S: `${site.ClinicID}`
+        },
+        'ODSCode': {
+          S: `${site.ODSCode}`
+        },
+        'ICBCode': {
+          S: `${site.ICBCode}`
+        },
+        'ClinicName': {
+          S: `${site.ClinicName}`
+        },
+        'Address': {
+          S: `${site.Address}`
+        },
+        'Postcode': {
+          S: `${site.Postcode}`
+        },
+        'Directions': {
+          S: `${site.Directions}`
+        },
+        'TargetFillToPercentage': {
+          N: `50`
+        }
+      }
+    }
+  }
+
+  return Promise.resolve(item)
 }
