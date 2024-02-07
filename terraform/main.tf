@@ -80,7 +80,7 @@ module "clinic_data_bucket" {
 }
 
 # clinic data bucket
-module "clinic_data_capacity_bucket" {
+module "clinic_capacity_bucket" {
   source                  = "./modules/s3"
   bucket_name             = "gtms-clinic-schedule-summary"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
