@@ -3,7 +3,13 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { DynamoDBClient, GetItemCommand, ScanCommand, BatchWriteItemCommand } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBClient,
+  GetItemCommand,
+  ScanCommand,
+  BatchWriteItemCommand,
+  UpdateItemCommand
+} from "@aws-sdk/client-dynamodb";
 
 const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
@@ -43,6 +49,57 @@ export const handler = async (event, context) => {
     console.log(value);
     if (value) {
       //update
+
+      const params = {
+        "Key": {
+          "ClinicId": {
+            "S": js["ClinicCreateOrUpdate"]["ClinicID"],
+          },
+          "ClinicName": {
+            "S": js["ClinicCreateOrUpdate"]["ClinicName"],
+          }
+        },
+        ExpressionAttributeNames: {
+          "#ODSCode": "ODSCode",
+          "#ICBCode": "ICBCode",
+          "#Address": "Address",
+          "#Postcode": "PostCode",
+          "#Directions": "Directions",
+        },
+        ExpressionAttributeValues: {
+          ":ODSCode_new": {
+            "S": js['ClinicCreateOrUpdate']['ODSCode'],
+          },
+          ":ICBCode_new": {
+            "S": js['ClinicCreateOrUpdate']['ICBCode'],
+          },
+          ":Address_new": {
+            "S": js['ClinicCreateOrUpdate']['Address'],
+          },
+          ":Postcode_new": {
+            "S": js['ClinicCreateOrUpdate']['Postcode'],
+          },
+          ":Directions_new": {
+            "S": js['ClinicCreateOrUpdate']['Directions'],
+          },
+        },
+
+        TableName: `${ENVIRONMENT}-PhlebotomySite`,
+        UpdateExpression: "SET #ODSCode = :ODSCode_new, #ICBCode = :ICBCode_new,  #Address = :Address_new, #Postcode = :Postcode_new, #Directions = :Directions_new"
+
+      };
+      console.log(JSON.stringify(params));
+      const command = new UpdateItemCommand(params);
+      console.log(JSON.stringify(command));
+      const response = await client.send(command);
+      console.log(response);
+      return response;
+
+
+
+
+
+
     } else {
       //add
       const create = await createPhlebotomySite(js);
@@ -126,7 +183,7 @@ function checkPhlebotomy(loopedArr, arr, key, item) {
     // console.log(element['ClinicId']);
     // console.log(element['ClinicId']['S']);
     // if (js.ClinicCreateOrUpdate.ClinicID === element.ClinicId.S){
-    if (arr.ClinicCreateOrUpdate.ClinicID === element['ClinicId']['S']) {
+    if (arr[key][item] === element['ClinicId']['S']) {
       return true; // update
     } else {
       return false;
