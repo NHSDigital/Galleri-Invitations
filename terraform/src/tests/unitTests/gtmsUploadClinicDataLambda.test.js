@@ -9,7 +9,8 @@ import path from 'path';
 import {
   readCsvFromS3,
   getItemsFromTable,
-  checkPhlebotomy
+  checkPhlebotomy,
+  createPhlebotomySite
 } from '../../gtmsUploadClinicDataLambda/gtmsUploadClinicDataLambda.js';
 
 describe("readCsvFromS3", () => {
@@ -131,4 +132,24 @@ describe('checkPhlebotomy', () => {
     expect(val).toEqual(false);
   });
 
+});
+
+describe('createPhlebotomySite', () => {
+  const meshResponsePass = {
+    "ClinicCreateOrUpdate":
+    {
+      "ClinicID": "CF78U818",
+      "ODSCode": "1234",
+      "ICBCode": "OPM",
+      "ClinicName": "Phlebotomy clinic 34",
+      "Address": "test address dynamo put",
+      "Postcode": "BH17 7DT",
+      "Directions": "These will contain directions to the site"
+    }
+  }
+  test('Should compare values to be true', async () => {
+    const val = await createPhlebotomySite(meshResponsePass);
+    const expectedVal = { "PutRequest": { "Item": { "Address": { "S": "test address dynamo put" }, "ClinicId": { "S": "CF78U818" }, "ClinicName": { "S": "Phlebotomy clinic 34" }, "Directions": { "S": "These will contain directions to the site" }, "ICBCode": { "S": "OPM" }, "ODSCode": { "S": "1234" }, "Postcode": { "S": "BH17 7DT" }, "TargetFillToPercentage": { "N": "50" } } } }
+    expect(val).toEqual(expectedVal);
+  });
 });
