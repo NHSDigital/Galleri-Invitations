@@ -11,18 +11,18 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
     test('ClinicID not in DynamoDB', async ()=>{
       mockDynamoDbClient.resolves({
-        Items: [],
+        metadata: [],
       });
-      const clinicValidation = await moduleapi.isClinicIDvalid(mockDynamoDbClient, "NJ22I636");
-      expect(clinicValidation).toBe(false);
+      const clinicValidation = await moduleapi.isClinicIDvalid("NJ22I636", mockDynamoDbClient);
+      expect(clinicValidation.hasOwnProperty("Items")).toBe(false);
     });
 
     test('ClinicID not in DynamoDB', async ()=>{
       mockDynamoDbClient.resolves({
         Items: ["NJ22I636"],
       });
-      const clinicValidation = await moduleapi.isClinicIDvalid(mockDynamoDbClient, "NJ22I636" );
-      expect(clinicValidation).toBe(true);
+      const clinicValidation = await moduleapi.isClinicIDvalid("NJ22I636", mockDynamoDbClient );
+      expect(clinicValidation.hasOwnProperty("Items")).toBe(true);
     });
 
   })
@@ -40,7 +40,7 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
     test('should return failure for an invalid ClinicID', async() => {
 
       mockDynamoDbClient.resolves({
-        Items: [],
+        metadata: [],
       });
       const validationResult = await moduleapi.validateRecord(data[0], mockDynamoDbClient);
       expect(validationResult.success).toBe(false);

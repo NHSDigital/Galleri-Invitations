@@ -4,8 +4,8 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
-import { Validator, validate } from "jsonschema";
-import ClinicSchemaGTMS from "../validateClinicDataLambda/clinic-schema.json";
+import { validate } from "jsonschema";
+import ClinicSchemaGTMS from "./clinic-schema.json" assert { type: "json" };
 
 const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
@@ -19,7 +19,7 @@ export const handler = async (event) => {
   try {
     const jsonString = await readFromS3(bucket, key, s3);
 
-    const validationResult = validateRecord(jsonString);
+    const validationResult = await validateRecord(JSON.parse(jsonString), client);
     console.log(`Finished validating object ${key} in bucket ${bucket}`);
     console.log('----------------------------------------------------------------');
 
@@ -29,9 +29,9 @@ export const handler = async (event) => {
       console.log(`Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${bucket}`);
 
       // Valid Records Arrangement
-      if (validationResults.success) {
-      // Deposit to S3 bucket
-      await pushToS3(bucket, `validRecords/valid_records_add-${timeNow}.csv`, jsonString, s3);
+      if (validationResult.success) {
+        // Deposit to S3 bucket
+        await pushToS3(bucket, `validRecords/valid_records_add-${timeNow}.csv`, jsonString, s3);
       }
       else {
         await pushToS3(bucket, `invalidRecords/invalid_records-${timeNow}.csv`, jsonString, s3);
@@ -93,9 +93,9 @@ export async function validateRecord(record, client) {
   let count = 0;
 
   while ( count < numberOfClinics ){
-    const clinicValidation = await isClinicIDvalid(client, record.ClinicScheduleSummary.ClinicScheduleSummary[count].ClinicID);
+    const clinicValidation = await isClinicIDvalid(record.ClinicScheduleSummary.ClinicScheduleSummary[count].ClinicID, client);
 
-    if(clinicValidation){
+    if(clinicValidation.hasOwnProperty("Items")){
       const validation = validate(record, ClinicSchemaGTMS);
       if (!validation.valid) {    // validate the JSON Schema
         validationResults.success = false;
@@ -114,27 +114,20 @@ export async function validateRecord(record, client) {
   return validationResults;
 }
 
-export async function isClinicIDvalid(client, clinicID) {
-  //AC - Check if ClinicID exists in the ClinicID DynamoDB Table
-
+export async function isClinicIDvalid(record, client) {
   const input = {
     ExpressionAttributeValues: {
-      ":clinicID": {
-        S: `${clinicID}`,
+      ":ClinicId": {
+        S: `${record}`,
       },
     },
-    KeyConditionExpression: "ClinicId = :clinicID",
-    ProjectionExpression: "ClinicId",
+    KeyConditionExpression: "ClinicId = :ClinicId",
+    ProjectionExpression: "ClinicName",
     TableName: `${ENVIRONMENT}-PhlebotomySite`,
   };
 
   const command = new QueryCommand(input);
   const response = await client.send(command);
 
-  if (!response.Items.length) { // if response is empty, no matching ClinicID
-    console.log("ClinicID does not exist in PhlebotomySite DynamoDB Table:", clinicID);
-    return false;
-  }
-  console.log("ClinicID exists in PhlebotomySite DynamoDB Table:", clinicID);
-  return true;
+  return response;
 }
