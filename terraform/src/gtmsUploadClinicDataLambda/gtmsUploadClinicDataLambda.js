@@ -1,11 +1,9 @@
 import {
   GetObjectCommand,
-  PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
 import {
   DynamoDBClient,
-  GetItemCommand,
   ScanCommand,
   BatchWriteItemCommand,
   UpdateItemCommand
@@ -20,125 +18,34 @@ export const handler = async (event, context) => {
   const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
   try {
-    // console.log(event);
     const csvString = await readCsvFromS3(bucket, key, s3);
-    console.log(csvString);
-    console.log(typeof csvString);
     const js = JSON.parse(csvString);
-    console.log(typeof js); //obj
-    console.log(js); //
-    // {
-    //   ClinicCreateOrUpdate: {
-    //     ClinicID: 'C1C-A1A',
-    //     ODSCode: 'Y888888',
-    //     ICBCode: 'QNX',
-    //     ClinicName: 'GRAIL Test Clinic',
-    //     Address: '210 Euston Rd, London NW1 2DA',
-    //     Postcode: 'BD22 0AG',
-    //     Directions: 'Closest London Underground station is Euston Square.'
-    //   }
-    // }
-
     const result = await getItemsFromTable(
       `${ENVIRONMENT}-PhlebotomySite`,
       client
     );
-    // console.log(result.Items);
-    console.log(js);
     const value = await checkPhlebotomy(result.Items, js, 'ClinicCreateOrUpdate', 'ClinicID');
-    console.log(value);
     if (value) {
       //update
-
-      const params = {
-        "Key": {
-          "ClinicId": {
-            "S": js["ClinicCreateOrUpdate"]["ClinicID"],
-          },
-          "ClinicName": {
-            "S": js["ClinicCreateOrUpdate"]["ClinicName"],
-          }
-        },
-        ExpressionAttributeNames: {
-          "#ODSCode": "ODSCode",
-          "#ICBCode": "ICBCode",
-          "#Address": "Address",
-          "#Postcode": "PostCode",
-          "#Directions": "Directions",
-        },
-        ExpressionAttributeValues: {
-          ":ODSCode_new": {
-            "S": js['ClinicCreateOrUpdate']['ODSCode'],
-          },
-          ":ICBCode_new": {
-            "S": js['ClinicCreateOrUpdate']['ICBCode'],
-          },
-          ":Address_new": {
-            "S": js['ClinicCreateOrUpdate']['Address'],
-          },
-          ":Postcode_new": {
-            "S": js['ClinicCreateOrUpdate']['Postcode'],
-          },
-          ":Directions_new": {
-            "S": js['ClinicCreateOrUpdate']['Directions'],
-          },
-        },
-
-        TableName: `${ENVIRONMENT}-PhlebotomySite`,
-        UpdateExpression: "SET #ODSCode = :ODSCode_new, #ICBCode = :ICBCode_new,  #Address = :Address_new, #Postcode = :Postcode_new, #Directions = :Directions_new"
-
-      };
-      console.log(JSON.stringify(params));
-      const command = new UpdateItemCommand(params);
-      console.log(JSON.stringify(command));
-      const response = await client.send(command);
-      console.log(response);
-      return response;
-
-
-
-
-
-
+      saveObjToPhlebotomyTable(js, ENVIRONMENT, client);
     } else {
       //add
       const create = await createPhlebotomySite(js);
-      console.log(create);
-      //{
-      //   PutRequest: {
-      //     Item: {
-      //       ClinicId: [Object],
-      //       ODSCode: [Object],
-      //       ICBCode: [Object],
-      //       ClinicName: [Object],
-      //       Address: [Object],
-      //       Postcode: [Object],
-      //       Directions: [Object],
-      //       TargetFillToPercentage: [Object]
-      //      }
-      //   }
-      // }
-      console.log(typeof create);
-      const createArr = [create];
-      console.log(createArr);
       let RequestItems = {};
       RequestItems[`${ENVIRONMENT}-PhlebotomySite`] = [create];
-      console.log(Array.isArray(createArr));
-      console.log(JSON.stringify(RequestItems));
       const command = new BatchWriteItemCommand({
         "RequestItems": RequestItems
       });
-      // const command = new BatchWriteItemCommand({
-      //   RequestItems: createArr
-      // });
       const response = await client.send(command);
-      console.log(response);
+      if (response.$metadata.httpStatusCode !== 200) {
+        console.error(`Error inserted item: ${JSON.stringify(js)}`);
+      } else {
+        console.log(`Successfully inserted item: ${JSON.stringify(js)}`);
+      }
     }
-
   } catch (error) {
     console.error("Error occurred:", error);
   }
-
 };
 
 // METHODS
@@ -150,7 +57,6 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
         Key: key,
       })
     );
-
     return response.Body.transformToString();
   } catch (err) {
     console.log(`Failed to read from ${bucketName}/${key}`);
@@ -170,7 +76,7 @@ export async function getItemsFromTable(table, client) {
 }
 
 //cycle through the json returned and compare to each phlebotomy site
-function checkPhlebotomy(loopedArr, arr, key, item) {
+export const checkPhlebotomy = async (loopedArr, arr, key, item) => {
   // console.log('abdul args');
   // console.log(...arguments);
   // console.log('abdul args');
@@ -183,6 +89,7 @@ function checkPhlebotomy(loopedArr, arr, key, item) {
     // console.log(element['ClinicId']);
     // console.log(element['ClinicId']['S']);
     // if (js.ClinicCreateOrUpdate.ClinicID === element.ClinicId.S){
+    console.log(element['ClinicId']['S']);
     if (arr[key][item] === element['ClinicId']['S']) {
       return true; // update
     } else {
@@ -191,9 +98,9 @@ function checkPhlebotomy(loopedArr, arr, key, item) {
       // console.log(value);
     }
   }
-}
+};
 
-function createPhlebotomySite(site) {
+export const createPhlebotomySite = (site) => {
   const item = {
     PutRequest: {
       Item: {
@@ -223,7 +130,63 @@ function createPhlebotomySite(site) {
         }
       }
     }
-  }
+  };
 
-  return Promise.resolve(item)
-}
+  return Promise.resolve(item);
+};
+
+
+export const saveObjToPhlebotomyTable = async (MeshObj, environment, client) => {
+
+  const params = {
+    "Key": {
+      "ClinicId": {
+        "S": MeshObj["ClinicCreateOrUpdate"]["ClinicID"],
+      },
+      "ClinicName": {
+        "S": MeshObj["ClinicCreateOrUpdate"]["ClinicName"],
+      }
+    },
+    ExpressionAttributeNames: {
+      "#ODSCode": "ODSCode",
+      "#ICBCode": "ICBCode",
+      "#Address": "Address",
+      "#Postcode": "PostCode",
+      "#Directions": "Directions",
+    },
+    ExpressionAttributeValues: {
+      ":ODSCode_new": {
+        "S": MeshObj['ClinicCreateOrUpdate']['ODSCode'],
+      },
+      ":ICBCode_new": {
+        "S": MeshObj['ClinicCreateOrUpdate']['ICBCode'],
+      },
+      ":Address_new": {
+        "S": MeshObj['ClinicCreateOrUpdate']['Address'],
+      },
+      ":Postcode_new": {
+        "S": MeshObj['ClinicCreateOrUpdate']['Postcode'],
+      },
+      ":Directions_new": {
+        "S": MeshObj['ClinicCreateOrUpdate']['Directions'],
+      },
+    },
+    TableName: `${environment}-PhlebotomySite`,
+    UpdateExpression: "SET #ODSCode = :ODSCode_new, #ICBCode = :ICBCode_new,  #Address = :Address_new, #Postcode = :Postcode_new, #Directions = :Directions_new"
+  };
+  // console.log(JSON.stringify(params));
+  const command = new UpdateItemCommand(params);
+  // console.log(JSON.stringify(command));
+  try {
+    const response = await client.send(command);
+    if (response.$metadata.httpStatusCode !== 200) {
+      console.error(`Error updating item: ${JSON.stringify(MeshObj)}`);
+      return false;
+    } else {
+      console.log(`Successfully updated item: ${JSON.stringify(MeshObj)}`);
+      return true;
+    }
+  } catch (error) {
+    console.log(`Error: ${error}`);
+  }
+};
