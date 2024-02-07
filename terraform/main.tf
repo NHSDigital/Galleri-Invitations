@@ -970,8 +970,7 @@ module "population_table" {
   secondary_write_capacity = null
   secondary_read_capacity  = null
   environment              = var.environment
-  non_key_attributes       = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
-  projection_type          = "INCLUDE"
+  projection_type          = "ALL"
   attributes = [{
     name = "PersonId"
     type = "S"
