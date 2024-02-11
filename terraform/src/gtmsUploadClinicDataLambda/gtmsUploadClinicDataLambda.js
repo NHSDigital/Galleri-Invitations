@@ -77,25 +77,12 @@ export async function getItemsFromTable(table, client) {
 
 //cycle through the json returned and compare to each phlebotomy site
 export const checkPhlebotomy = async (loopedArr, arr, key, item) => {
-  // console.log('abdul args');
-  // console.log(...arguments);
-  // console.log('abdul args');
   for (const element of loopedArr) {
-    // console.log('arr.ClinicCreateOrUpdate.ClinicID')
-    // console.log(arr);
-    // console.log(arr.ClinicCreateOrUpdate.ClinicID);
-    // console.log('element.clinicID');
-    // console.log('elemet = ', JSON.stringify(element));
-    // console.log(element['ClinicId']);
-    // console.log(element['ClinicId']['S']);
-    // if (js.ClinicCreateOrUpdate.ClinicID === element.ClinicId.S){
     console.log(element['ClinicId']['S']);
     if (arr[key][item] === element['ClinicId']['S']) {
       return true; // update
     } else {
       return false;
-      // const value = await createPhlebotomySite(js.ClinicCreateOrUpdate);
-      // console.log(value);
     }
   }
 };
@@ -174,9 +161,8 @@ export const saveObjToPhlebotomyTable = async (MeshObj, environment, client) => 
     TableName: `${environment}-PhlebotomySite`,
     UpdateExpression: "SET #ODSCode = :ODSCode_new, #ICBCode = :ICBCode_new,  #Address = :Address_new, #Postcode = :Postcode_new, #Directions = :Directions_new"
   };
-  // console.log(JSON.stringify(params));
+
   const command = new UpdateItemCommand(params);
-  // console.log(JSON.stringify(command));
   try {
     const response = await client.send(command);
     if (response.$metadata.httpStatusCode !== 200) {
@@ -187,6 +173,6 @@ export const saveObjToPhlebotomyTable = async (MeshObj, environment, client) => 
       return true;
     }
   } catch (error) {
-    console.log(`Error: ${error}`);
+    console.error(`Error: ${error}`);
   }
 };
