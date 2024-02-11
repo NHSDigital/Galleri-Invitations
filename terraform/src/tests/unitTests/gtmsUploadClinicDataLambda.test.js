@@ -20,7 +20,7 @@ describe("readCsvFromS3", () => {
   });
 
   test("Failed response when error occurs getting file from bucket", async () => {
-    const logSpy = jest.spyOn(global.console, 'log');
+    const logSpy = jest.spyOn(global.console, 'error');
     const errorStr = 'Error: Mocked error';
     const errorMsg = new Error(errorStr)
     const mockClient = {
@@ -40,6 +40,7 @@ describe("readCsvFromS3", () => {
     expect(logSpy).toHaveBeenCalledWith("Failed to read from bucketName/key");
 
   });
+
   test("return string built from csv file", async () => {
     const mockS3Client = mockClient(new S3Client({}));
     const stream = sdkStreamMixin(fs.createReadStream(path.resolve(__dirname, './testData/chunk_1.csv')))
