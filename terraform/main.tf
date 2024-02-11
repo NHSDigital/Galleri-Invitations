@@ -716,7 +716,7 @@ module "gtms_upload_clinic_capacity_data_lambda" {
 module "gtms_upload_clinic_capacity_data_cloudwatch" {
   source               = "./modules/cloudwatch"
   environment          = var.environment
-  lambda_function_name = module.gtms_upload_clinic_capacity_data.lambda_function_name
+  lambda_function_name = module.gtms_upload_clinic_capacity_data_lambda.lambda_function_name
   retention_days       = 14
 }
 
@@ -724,7 +724,7 @@ module "gtms_upload_clinic_capacity_data_trigger" {
   source        = "./modules/lambda_trigger"
   bucket_id     = module.valid_clinic_schedule_summary_bucket.bucket_id
   bucket_arn    = module.valid_clinic_schedule_summary_bucket.bucket_arn
-  lambda_arn    = module.gtms_upload_clinic_capacity_data.lambda_arn
+  lambda_arn    = module.gtms_upload_clinic_capacity_data_lambda.lambda_arn
   filter_prefix = "validRecords/valid_records_add-"
 }
 

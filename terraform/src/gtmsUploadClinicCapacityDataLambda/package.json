@@ -1,0 +1,12 @@
+{
+  "name": "gtmsUploadClinicCapacityDataLambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "gtmsUploadClinicCapacityDataLambda.js",
+  "author": "",
+  "dependencies": {
+    "csv-parser": "^3.0.0",
+    "dayjs": "^1.11.10",
+    "stream": "^0.0.2"
+  }
+}
