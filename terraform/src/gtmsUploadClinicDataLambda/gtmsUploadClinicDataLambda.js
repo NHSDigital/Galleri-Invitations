@@ -59,7 +59,7 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
     );
     return response.Body.transformToString();
   } catch (err) {
-    console.log(`Failed to read from ${bucketName}/${key}`);
+    console.error(`Failed to read from ${bucketName}/${key}`);
     throw err;
   }
 };
