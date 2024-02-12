@@ -693,6 +693,8 @@ module "poll_mesh_mailbox_lambda" {
     MESH_RECEIVER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_password.secret_string)["MESH_RECEIVER_MAILBOX_PASSWORD"]
   }
 }
+
+module "create_invitation_batch_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
