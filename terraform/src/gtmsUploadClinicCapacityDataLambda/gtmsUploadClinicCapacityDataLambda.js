@@ -1,5 +1,6 @@
 import {
   GetObjectCommand,
+  PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
 import {
@@ -23,23 +24,34 @@ export const handler = async (event, context) => {
     const js = JSON.parse(csvString);
     console.log(JSON.stringify(js));
 
-    console.log(js['ClinicScheduleSummary'][0]['Schedule'][0]['WeekCommencingDate']);
-    const dt = dayjs(js['ClinicScheduleSummary'][0]['Schedule'][0]['WeekCommencingDate']);
-    const formatted = dt.format("DD MMMM YYYY");
-    console.log(formatted);
+    // console.log(js['ClinicScheduleSummary'][0]['Schedule'][0]['WeekCommencingDate']);
+    // const dt = dayjs(js['ClinicScheduleSummary'][0]['Schedule'][0]['WeekCommencingDate']);
+    // const formatted = dt.format("DD MMMM YYYY");
+    // console.log(formatted);
     const result = await getItemsFromTable(
       `${ENVIRONMENT}-PhlebotomySite`,
       client
     );
     // console.log(JSON.stringify(result['Items'][0]));
+    console.log('here');
     const value = await checkPhlebotomy(result.Items, js, 'ClinicScheduleSummary', 'ClinicID');
     console.log(value);
-    if (value[0]) {
+    if (value[0] === true || value === true) {
       //update
       const params = saveObjToPhlebotomyTable(js, ENVIRONMENT, client, value[1], value[2]);
       console.log(JSON.stringify(params));
     } else {
+      const dateTime = new Date(Date.now()).toISOString();
       //reject record, push to s3 failedRecords folder
+      let response = await (pushCsvToS3(
+        `${ENVIRONMENT}-valid-inbound-gtms-clinic-schedule-summary`,
+        `invalidData/invalidRecord_${dateTime}.json`,
+        csvString,
+        s3
+      ));
+      if (response.$metadata.httpStatusCode !== 200) {
+        console.error("Error uploading item ");
+      }
     }
     // console.log(JSON.stringify(result['Items']));
 
@@ -64,6 +76,22 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
   }
 };
 
+export const pushCsvToS3 = async (bucketName, key, body, client) => {
+  try {
+    const response = await client.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+        Body: body,
+      })
+    );
+    console.log(`Successfully pushed to ${bucketName}/${key}`);
+    return response;
+  } catch (err) {
+    console.log("Failed: ", err);
+    throw err;
+  }
+};
 
 export async function getItemsFromTable(table, client) {
   const response = await client.send(
@@ -78,8 +106,7 @@ export async function getItemsFromTable(table, client) {
 export const checkPhlebotomy = async (loopedArr, arr, key, item) => {
   for (const element of loopedArr) {
     console.log(element['ClinicId']['S']);
-    if (arr[key][0][item] === element['ClinicId']['S']) {
-
+    if (arr?.[key]?.[0]?.[item] === element['ClinicId']['S']) {
       console.log(`ClinicName matched: ${element['ClinicName']['S']}`);
       // console.log(element['WeekCommencingDate']['M']);
       return [true, element['ClinicName']['S'], element['WeekCommencingDate']['M']]; // update
@@ -109,13 +136,9 @@ export const saveObjToPhlebotomyTable = async (MeshObj, environment, client, cli
       }
     },
     ExpressionAttributeNames: {
-      "#Availability": "Availability",
       "#WeekCommencingDate": "WeekCommencingDate",
     },
     ExpressionAttributeValues: {
-      ":availability_new": {
-        "S": MeshObj['ClinicScheduleSummary'][0]['Schedule'][0]['Availability'],
-      },
       ":WeekCommencingDate_new": {
         "M": {
           ...commencingDateObj
@@ -123,27 +146,30 @@ export const saveObjToPhlebotomyTable = async (MeshObj, environment, client, cli
       }
     },
     TableName: `${environment}-PhlebotomySite`,
-    UpdateExpression: "SET #Availability = :availability_new, #WeekCommencingDate = :WeekCommencingDate"
+    UpdateExpression: "SET #WeekCommencingDate = :WeekCommencingDate_new"
   };
 
   console.log(JSON.stringify(params));
-  return params;
+  // return params;
   // console.log(JSON.stringify(commencingDateObj));
   // return commencingDateObj;
 
-  // const command = new UpdateItemCommand(params);
-  // try {
-  //   const response = await client.send(command);
-  //   if (response.$metadata.httpStatusCode !== 200) {
-  //     console.error(`Error updating item: ${JSON.stringify(MeshObj)}`);
-  //     return false;
-  //   } else {
-  //     console.log(`Successfully updated item: ${JSON.stringify(MeshObj)}`);
-  //     return true;
-  //   }
-  // } catch (error) {
-  //   console.error(`Error: ${error}`);
-  // }
+  const command = new UpdateItemCommand(params);
+  console.log(JSON.stringify(command));
+  try {
+    const response = await client.send(command);
+    console.log(response);
+    if (response.$metadata.httpStatusCode !== 200) {
+      console.error(`Error updating item: ${JSON.stringify(MeshObj)}`);
+      return false;
+    } else {
+      console.log(`Successfully updated item: ${JSON.stringify(MeshObj)}`);
+      return true;
+    }
+  } catch (error) {
+    console.error(`Error: ${error}`);
+  }
+  return params;
 };
 
 

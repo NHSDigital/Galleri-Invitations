@@ -827,7 +827,12 @@ module "phlebotomy_site_table" {
       name      = "ClinicIdPostcodeIndex"
       hash_key  = "ClinicId"
       range_key = "Postcode"
-    }
+    },
+    {
+      name      = "ClinicId-index"
+      hash_key  = "ClinicId"
+      range_key = null
+    },
   ]
   tags = {
     Name        = "Dynamodb Table Phlebotomy Site"
