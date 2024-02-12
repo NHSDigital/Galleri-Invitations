@@ -101,3 +101,108 @@ describe("pushCsvToS3", () => {
     expect(logSpy).toHaveBeenCalledWith('Failed: Error: Failed to push to S3');
   });
 })
+
+describe('checkPhlebotomy', () => {
+  const meshResponseFail = {
+    "ClinicScheduleSummary": [
+      {
+        "ClinicID": "C1C-A1A",
+        "Schedule": [
+          {
+            "WeekCommencingDate": "2023-09-04T00:00:00.000Z",
+            "Availability": 5
+          }
+        ]
+      }
+    ]
+  }
+
+  const meshResponsePass = {
+    "ClinicScheduleSummary": [
+      {
+        "ClinicID": "CF78U818",
+        "Schedule": [
+          {
+            "WeekCommencingDate": "2023-09-04T00:00:00.000Z",
+            "Availability": 5
+          }
+        ]
+      }
+    ]
+  }
+
+  const phlebotomyArr =
+    [
+      {
+        "Address": {
+          "S": "test address dynamo put"
+        },
+        "Availability": {
+          "N": "267"
+        },
+        "Directions": {
+          "S": "These will contain directions to the site"
+        },
+        "ODSCode": {
+          "S": "M40666"
+        },
+        "ClinicId": {
+          "S": "CF78U818"
+        },
+        "InvitesSent": {
+          "N": "133"
+        },
+        "ICBCode": {
+          "S": "QVV"
+        },
+        "LastSelectedRange": {
+          "N": "1"
+        },
+        "TargetFillToPercentage": {
+          "N": "50"
+        },
+        "PostCode": {
+          "S": "BH17 7DT"
+        },
+        "PrevInviteDate": {
+          "S": "Saturday 20 January 2024"
+        },
+        "ClinicName": {
+          "S": "Phlebotomy clinic 34"
+        },
+        "WeekCommencingDate": {
+          "M": {
+            "19 February 2024": {
+              "N": "19"
+            },
+            "25 March 2024": {
+              "N": "54"
+            },
+            "4 March 2024": {
+              "N": "14"
+            },
+            "18 March 2024": {
+              "N": "19"
+            },
+            "11 March 2024": {
+              "N": "71"
+            },
+            "26 February 2024": {
+              "N": "90"
+            }
+          }
+        }
+      }
+    ]
+
+  test('Should compare values to be true', async () => {
+    const val = await checkPhlebotomy(phlebotomyArr, meshResponsePass, 'ClinicScheduleSummary', 'ClinicID');
+    expect(val).toEqual([true, "Phlebotomy clinic 34", { "11 March 2024": { "N": "71" }, "18 March 2024": { "N": "19" }, "19 February 2024": { "N": "19" }, "25 March 2024": { "N": "54" }, "26 February 2024": { "N": "90" }, "4 March 2024": { "N": "14" } }]);
+  });
+
+  test('Should compare values to be true', async () => {
+    const val = await checkPhlebotomy(phlebotomyArr, meshResponseFail, 'ClinicScheduleSummary', 'ClinicID');
+    expect(val).toEqual(false);
+  });
+
+});
