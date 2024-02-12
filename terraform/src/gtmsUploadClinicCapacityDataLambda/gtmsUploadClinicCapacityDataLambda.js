@@ -88,7 +88,7 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
     console.log(`Successfully pushed to ${bucketName}/${key}`);
     return response;
   } catch (err) {
-    console.log("Failed: ", err);
+    console.log(`Failed: ${err}`);
     throw err;
   }
 };
@@ -121,7 +121,7 @@ export const saveObjToPhlebotomyTable = async (MeshObj, environment, client, cli
   // console.log(datesAppend);
   const commencingDateObj = {
     [formatedDate]: {
-      "N": MeshObj['ClinicScheduleSummary'][0]['Schedule'][0]['Availability'],
+      "N": String(MeshObj['ClinicScheduleSummary'][0]['Schedule'][0]['Availability']),
     }, ...datesAppend
   };
 
@@ -136,7 +136,7 @@ export const saveObjToPhlebotomyTable = async (MeshObj, environment, client, cli
       }
     },
     ExpressionAttributeNames: {
-      "#WeekCommencingDate": "WeekCommencingDate",
+      "#WEEK_COMMENCING_DATE": "WeekCommencingDate",
     },
     ExpressionAttributeValues: {
       ":WeekCommencingDate_new": {
@@ -146,7 +146,7 @@ export const saveObjToPhlebotomyTable = async (MeshObj, environment, client, cli
       }
     },
     TableName: `${environment}-PhlebotomySite`,
-    UpdateExpression: "SET #WeekCommencingDate = :WeekCommencingDate_new"
+    UpdateExpression: "SET #WEEK_COMMENCING_DATE = :WeekCommencingDate_new"
   };
 
   console.log(JSON.stringify(params));
@@ -158,11 +158,13 @@ export const saveObjToPhlebotomyTable = async (MeshObj, environment, client, cli
   console.log(JSON.stringify(command));
   try {
     const response = await client.send(command);
-    console.log(response);
+    console.log(JSON.stringify(response));
     if (response.$metadata.httpStatusCode !== 200) {
+      console.log('inside if');
       console.error(`Error updating item: ${JSON.stringify(MeshObj)}`);
       return false;
     } else {
+      console.log('inside else');
       console.log(`Successfully updated item: ${JSON.stringify(MeshObj)}`);
       return true;
     }
