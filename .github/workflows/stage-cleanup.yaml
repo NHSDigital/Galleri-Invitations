@@ -1,4 +1,4 @@
-name: "Acceptance stage"
+name: "Clean up stage"
 
 on:
   workflow_call:
@@ -13,14 +13,6 @@ on:
         type: string
       build_epoch:
         description: "Build epoch, set by the CI/CD pipeline workflow"
-        required: true
-        type: string
-      nodejs_version:
-        description: "Node.js version, set by the CI/CD pipeline workflow"
-        required: true
-        type: string
-      python_version:
-        description: "Python version, set by the CI/CD pipeline workflow"
         required: true
         type: string
       terraform_version:
@@ -45,16 +37,7 @@ on:
         type: string
       tf_action:
         description: "Terraform action to be performed against target environment"
-        default: apply
-        type: string
-        required: false
-      database_seeding:
-        description: "Determines if the database requires data being added"
-        type: string
-        required: false
-      test:
-        description: "If the tests should be run or not"
-        default: "no"
+        default: destroy
         type: string
         required: false
 
@@ -69,7 +52,7 @@ env:
   tf-action: ${{ inputs.tf_action }}
 
 jobs:
-  run-tests:
+  environment-teardown:
     permissions:
       id-token: write # This is required for aws oidc connection
       contents: read # This is required for actions/checkout
@@ -81,12 +64,20 @@ jobs:
         with:
           ref: "${{ env.invitations-branch }}"
           fetch-depth: 0 # Full history is needed to scan all commits
-
-      - name: "Test Backend"
-        if: inputs.test == 'yes'
-        uses: ./.github/actions/api-testing
+      - name: Install dependency
+        run: |
+          pip install boto3
+          pip install rstr
+          pip install random_word
+      - name: "Environment teardown"
+        uses: ./.github/actions/terraform
         with:
           role-to-assume: ${{ env.role-to-assume }}
           aws-region: ${{ env.aws-region }}
+          aws-bucket-name: ${{ env.aws-bucket-name }}
+          aws-bucket-key-name: ${{ env.aws-bucket-key-name }}
           environment: ${{ env.environment }}
-        timeout-minutes: 30
+          invitations-branch: ${{ env.invitations-branch }}
+          frontend-branch: ${{ env.frontend-branch }}
+          tf-action: ${{ env.tf-action }}
+        timeout-minutes: 15

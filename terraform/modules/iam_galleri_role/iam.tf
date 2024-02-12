@@ -422,6 +422,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           "Resource" : [
             "arn:aws:s3:::galleri-clinic-data/*",
             "arn:aws:s3:::galleri-clinic-capacity/*"
+            "arn:aws:s3:::${var.environment}-outbound-gtms-invited-participant-batch/*",
           ]
         },
       ],

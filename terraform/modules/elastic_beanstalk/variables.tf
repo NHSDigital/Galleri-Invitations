@@ -92,3 +92,26 @@ variable "NEXT_PUBLIC_TARGET_PERCENTAGE" {
 variable "NEXT_PUBLIC_GENERATE_INVITES" {
 
 }
+
+variable "USERS" {
+  description = "A list of users who can access the system via local login"
+}
+
+variable "CIS2_ID" {
+
+}
+
+variable "CIS2_SECRET" {
+  default = "Change_Me"
+
+}
+
+variable "NEXTAUTH_SECRET" {
+  default = "Change_Me"
+
+}
+
+variable "NEXTAUTH_URL" {
+
+
+}

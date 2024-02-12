@@ -21,3 +21,7 @@ variable "batch_size" {
 variable "maximum_batching_window_in_seconds" {
   default = 10
 }
+
+variable "filter_event_name" {
+  default = "MODIFY"
+}

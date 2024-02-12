@@ -121,4 +121,5 @@ runs:
         npm install --prefix src/userAccountsLambda
         npm install --prefix src/validateClinicDataLambda
         npm install --prefix src/validateClinicCapacityLambda
+        npm install --prefix src/createInvitationBatchLambda
         terraform ${{ env.tf-action }} -auto-approve -input=false -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars
