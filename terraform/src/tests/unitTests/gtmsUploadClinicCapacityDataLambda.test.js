@@ -9,6 +9,7 @@ import path from 'path';
 import {
   readCsvFromS3,
   pushCsvToS3,
+  checkPhlebotomy,
 } from '../../gtmsUploadClinicCapacityDataLambda/gtmsUploadClinicCapacityDataLambda.js';
 
 describe("readCsvFromS3", () => {
