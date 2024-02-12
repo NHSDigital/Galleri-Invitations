@@ -86,7 +86,7 @@ module "caas_data_bucket" {
   environment             = var.environment
 }
 
-module "test_bucket" {
+module "validated_records_bucket" {
   source                  = "./modules/s3"
   bucket_name             = "galleri-processed-caas-data"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
@@ -763,8 +763,8 @@ module "caas_feed_add_records_lambda_cloudwatch" {
 
 module "caas_feed_add_records_lambda_trigger" {
   source        = "./modules/lambda_trigger"
-  bucket_id     = module.test_bucket.bucket_id
-  bucket_arn    = module.test_bucket.bucket_arn
+  bucket_id     = module.validated_records_bucket.bucket_id
+  bucket_arn    = module.validated_records_bucket.bucket_arn
   lambda_arn    = module.caas_feed_add_records_lambda.lambda_arn
   filter_prefix = "validRecords/valid_records_add-"
 }
@@ -792,49 +792,13 @@ module "caas_feed_update_records_lambda_cloudwatch" {
 
 module "caas_feed_update_records_lambda_trigger" {
   source        = "./modules/lambda_trigger"
-  bucket_id     = module.test_bucket.bucket_id
-  bucket_arn    = module.test_bucket.bucket_arn
+  bucket_id     = module.validated_records_bucket.bucket_id
+  bucket_arn    = module.validated_records_bucket.bucket_arn
   lambda_arn    = module.caas_feed_update_records_lambda.lambda_arn
   filter_prefix = "validRecords/valid_records_update-"
 }
 
 # Dynamodb tables
-module "sdrs_table" {
-  source      = "./modules/dynamodb"
-  table_name  = "Sdrs"
-  hash_key    = "NhsNumber"
-  range_key   = "GivenName"
-  environment = var.environment
-  attributes = [{
-    name = "NhsNumber"
-    type = "N"
-    },
-    {
-      name = "GivenName"
-      type = "S"
-    },
-    {
-      name = "TelephoneNumberMobile"
-      type = "S"
-    },
-    {
-      name = "EmailAddressHome"
-      type = "S"
-    }
-  ]
-  global_secondary_index = [
-    {
-      name      = "EmailPhoneIndex"
-      hash_key  = "EmailAddressHome"
-      range_key = "TelephoneNumberMobile"
-    }
-  ]
-  tags = {
-    Name        = "Dynamodb Table Sdrs"
-    Environment = var.environment
-  }
-}
-
 module "participating_icb_table" {
   source      = "./modules/dynamodb"
   table_name  = "ParticipatingIcb"
