@@ -5,9 +5,8 @@ import {
 } from "@aws-sdk/client-s3";
 import {
   DynamoDBClient,
-  ScanCommand,
-  BatchWriteItemCommand,
-  UpdateItemCommand
+  UpdateItemCommand,
+  QueryCommand,
 } from "@aws-sdk/client-dynamodb";
 import dayjs from "dayjs";
 
@@ -24,19 +23,11 @@ export const handler = async (event, context) => {
     const js = JSON.parse(csvString);
     console.log(JSON.stringify(js));
 
-    // console.log(js['ClinicScheduleSummary'][0]['Schedule'][0]['WeekCommencingDate']);
-    // const dt = dayjs(js['ClinicScheduleSummary'][0]['Schedule'][0]['WeekCommencingDate']);
-    // const formatted = dt.format("DD MMMM YYYY");
-    // console.log(formatted);
-    const result = await getItemsFromTable(
-      `${ENVIRONMENT}-PhlebotomySite`,
-      client
-    );
-    // console.log(JSON.stringify(result['Items'][0]));
-    console.log('here');
+    const result = await getItemsFromTable(`PhlebotomySite`, client, js['ClinicScheduleSummary'][0]['ClinicID']);
     const value = await checkPhlebotomy(result.Items, js, 'ClinicScheduleSummary', 'ClinicID');
-    console.log(value);
-    if (value[0] === true || value === true) {
+    console.log(`Clinic matched ${JSON.stringify(value['items'])}`);
+
+    if (value[0] || value) {
       //update
       const params = saveObjToPhlebotomyTable(js, ENVIRONMENT, client, value[1], value[2]);
       console.log(JSON.stringify(params));
@@ -53,8 +44,7 @@ export const handler = async (event, context) => {
         console.error("Error uploading item ");
       }
     }
-    // console.log(JSON.stringify(result['Items']));
-
+    console.log(JSON.stringify(result['Items']));
   } catch (error) {
     console.error("Error occurred:", error);
   }
@@ -93,13 +83,21 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
   }
 };
 
-export async function getItemsFromTable(table, client) {
-  const response = await client.send(
-    new ScanCommand({
-      TableName: table,
-    })
-  );
+export async function getItemsFromTable(table, client, key) {
 
+  const params = {
+    ExpressionAttributeValues: {
+      ":ClinicId": {
+        S: `${key}`,
+      },
+    },
+    KeyConditionExpression: "ClinicId = :ClinicId",
+    TableName: `${ENVIRONMENT}-${table}`,
+    IndexName: "ClinicId-index",
+  };
+
+  const command = new QueryCommand(params);
+  const response = await client.send(command);
   return response;
 }
 
@@ -125,7 +123,6 @@ export const saveObjToPhlebotomyTable = async (MeshObj, environment, client, cli
     }, ...datesAppend
   };
 
-
   const params = {
     "Key": {
       "ClinicId": {
@@ -149,22 +146,14 @@ export const saveObjToPhlebotomyTable = async (MeshObj, environment, client, cli
     UpdateExpression: "SET #WEEK_COMMENCING_DATE = :WeekCommencingDate_new"
   };
 
-  console.log(JSON.stringify(params));
-  // return params;
-  // console.log(JSON.stringify(commencingDateObj));
-  // return commencingDateObj;
-
   const command = new UpdateItemCommand(params);
-  console.log(JSON.stringify(command));
   try {
     const response = await client.send(command);
     console.log(JSON.stringify(response));
     if (response.$metadata.httpStatusCode !== 200) {
-      console.log('inside if');
       console.error(`Error updating item: ${JSON.stringify(MeshObj)}`);
       return false;
     } else {
-      console.log('inside else');
       console.log(`Successfully updated item: ${JSON.stringify(MeshObj)}`);
       return true;
     }
@@ -173,71 +162,3 @@ export const saveObjToPhlebotomyTable = async (MeshObj, environment, client, cli
   }
   return params;
 };
-
-
-
-
-// [
-//   {
-//       "Address": {
-//           "S": "test address dynamo put"
-//       },
-//       "Availability": {
-//           "N": "267"
-//       },
-//       "Directions": {
-//           "S": "These will contain directions to the site"
-//       },
-//       "ODSCode": {
-//           "S": "M40666"
-//       },
-//       "ClinicId": {
-//           "S": "CF78U818"
-//       },
-//       "InvitesSent": {
-//           "N": "133"
-//       },
-//       "ICBCode": {
-//           "S": "QVV"
-//       },
-//       "LastSelectedRange": {
-//           "N": "1"
-//       },
-//       "TargetFillToPercentage": {
-//           "N": "50"
-//       },
-//       "PostCode": {
-//           "S": "BH17 7DT"
-//       },
-//       "PrevInviteDate": {
-//           "S": "Saturday 20 January 2024"
-//       },
-//       "ClinicName": {
-//           "S": "Phlebotomy clinic 34"
-//       },
-//       "WeekCommencingDate": {
-//           "M": {
-//               "19 February 2024": {
-//                   "N": "19"
-//               },
-//               "25 March 2024": {
-//                   "N": "54"
-//               },
-//               "4 March 2024": {
-//                   "N": "14"
-//               },
-//               "18 March 2024": {
-//                   "N": "19"
-//               },
-//               "11 March 2024": {
-//                   "N": "71"
-//               },
-//               "26 February 2024": {
-//                   "N": "90"
-//               }
-//           }
-//       }
-//   }
-// ]
-
-

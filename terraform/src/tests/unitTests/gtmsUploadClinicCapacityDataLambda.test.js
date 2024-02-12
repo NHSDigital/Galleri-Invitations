@@ -10,6 +10,7 @@ import {
   pushCsvToS3,
   checkPhlebotomy,
   saveObjToPhlebotomyTable,
+  getItemsFromTable,
 } from '../../gtmsUploadClinicCapacityDataLambda/gtmsUploadClinicCapacityDataLambda.js';
 
 describe("readCsvFromS3", () => {
@@ -101,7 +102,7 @@ describe("pushCsvToS3", () => {
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith('Failed: Error: Failed to push to S3');
   });
-})
+});
 
 describe('checkPhlebotomy', () => {
   const meshResponseFail = {
@@ -246,4 +247,31 @@ describe('saveObjToPhlebotomyTable', () => {
     const result = await saveObjToPhlebotomyTable(meshResponsePass, environment, mockDynamodbClient);
     expect(result).toBe(false);
   });
-})
+});
+
+describe('getItemsFromTable', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+  test('successfully retrieve item', async () => {
+    const meshResponsePass = {
+      "ClinicScheduleSummary": [
+        {
+          "ClinicID": "CF78U818",
+          "Schedule": [
+            {
+              "WeekCommencingDate": "2023-09-04T00:00:00.000Z",
+              "Availability": 5
+            }
+          ]
+        }
+      ]
+    }
+    const mockS3Client = mockClient(new S3Client({}));
+    mockS3Client.resolves({
+      items: "test",
+    });
+    const value = await getItemsFromTable(`PhlebotomySite`, mockS3Client, meshResponsePass['ClinicScheduleSummary'][0]['ClinicID']);
+    expect(value).toEqual({ "items": "test" });
+  });
+});
