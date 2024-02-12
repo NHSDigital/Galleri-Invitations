@@ -10,6 +10,7 @@ import {
   readCsvFromS3,
   pushCsvToS3,
   checkPhlebotomy,
+  saveObjToPhlebotomyTable,
 } from '../../gtmsUploadClinicCapacityDataLambda/gtmsUploadClinicCapacityDataLambda.js';
 
 describe("readCsvFromS3", () => {
@@ -207,3 +208,43 @@ describe('checkPhlebotomy', () => {
   });
 
 });
+
+describe('saveObjToPhlebotomyTable', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const meshResponsePass = {
+    "ClinicScheduleSummary": [
+      {
+        "ClinicID": "CF78U818",
+        "Schedule": [
+          {
+            "WeekCommencingDate": "2023-09-04T00:00:00.000Z",
+            "Availability": 5
+          }
+        ]
+      }
+    ]
+  }
+
+  test('successfully push to dynamodb', async () => {
+    const mockDynamodbClient = mockClient(new S3Client({}));
+    const environment = "dev-1"
+    mockDynamodbClient.resolves({
+      $metadata: { httpStatusCode: 200 }
+    });
+    const result = await saveObjToPhlebotomyTable(meshResponsePass, environment, mockDynamodbClient);
+    expect(result).toBe(true)
+  });
+
+  test('Failed to push to dynamodb', async () => {
+    const mockDynamodbClient = mockClient(new S3Client({}));
+    const environment = "dev-1"
+    mockDynamodbClient.resolves({
+      $metadata: { httpStatusCode: 400 },
+    });
+    const result = await saveObjToPhlebotomyTable(meshResponsePass, environment, mockDynamodbClient);
+    expect(result).toBe(false);
+  });
+})
