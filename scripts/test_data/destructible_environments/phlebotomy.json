@@ -1,5 +1,5 @@
 {
-  "ENVIRONMENT-PhlebotomySite": [
+  "dev-5-PhlebotomySite": [
     {
       "PutRequest": {
         "Item": {
@@ -55,6 +55,70 @@
           "InvitesSent": { "N": "190" },
           "TargetFillToPercentage": { "N": "50" },
           "LastSelectedRange": { "N": "1" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "ClinicId": {
+            "S": "QA61A770"
+          },
+          "ClinicName": {
+            "S": "Phlebotomy clinic 73"
+          },
+          "Address": {
+            "S": "73 banned Avenue ,             Rivendell LU3 3SR"
+          },
+          "Availability": {
+            "N": "409"
+          },
+          "Directions": {
+            "S": "These will contain directions to the site"
+          },
+          "ICBCode": {
+            "S": "QH8"
+          },
+          "InvitesSent": {
+            "N": "204"
+          },
+          "LastSelectedRange": {
+            "N": "1"
+          },
+          "ODSCode": {
+            "S": "N49123"
+          },
+          "PostCode": {
+            "S": "LU3 3SR"
+          },
+          "PrevInviteDate": {
+            "S": "Saturday 23 December 2023"
+          },
+          "TargetFillToPercentage": {
+            "N": "50"
+          },
+          "WeekCommencingDate": {
+            "M": {
+              "13 February 2024": {
+                "N": "95"
+              },
+              "20 February 2024": {
+                "N": "67"
+              },
+              "23 January 2024": {
+                "N": "52"
+              },
+              "27 February 2024": {
+                "N": "83"
+              },
+              "30 January 2024": {
+                "N": "78"
+              },
+              "6 February 2024": {
+                "N": "34"
+              }
+            }
+          }
         }
       }
     }

@@ -33,6 +33,9 @@ function main() {
   if [[ $environment_type == "dev" || "test" ]]; then
     sed -i "s/ENVIRONMENT/$environment/g" $GITHUB_WORKSPACE/scripts/test_data/destructible_environments/lsoa.json
     aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/lsoa.json
+    # LSOA table needs a minimum of 1MB of data for lambda to function, hence as a workaround populating table with cut down CSV file in addition to lsoa json
+    aws s3 cp s3://galleri-ons-data/lsoa_data/destructible_environments/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
+    python $PWD/scripts/pipeline/nonprod_unique_lsoa_load/nonprod_unique_lsoa_load.py
   fi
   NONPROD_LSOA_DATA_COUNT=$(aws dynamodb scan --table-name $environment-UniqueLsoa --select "COUNT" | jq -r ".Count")
   if [[ $? -eq 0 ]] && [[ $NONPROD_LSOA_DATA_COUNT =~ ^[0-9]+$ ]]; then
