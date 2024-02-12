@@ -1,22 +1,47 @@
-name: "Performance Test 1"
+name: "DEV 6 Manual Deploy"
 
 # The total recommended execution time for the "CI/CD Pull Request" workflow is around 20 minutes.
 
 on:
-  pull_request:
-    types: [closed]
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      invitations_branch:
+        description: "This is the branch/tag of Galleri-Invitations be deployed to the DEV environment"
+        required: true
+      frontend_branch:
+        description: "This is the branch/tag of the Galleri frontend to be deployed to the DEV environment"
+        required: true
+      database_seeding:
+        description: "Determines if the seeding scripts are run to populate the database"
+        required: true
+        type: choice
+        default: "yes"
+        options:
+          - "yes"
+          - "no"
+      tf_action:
+        type: choice
+        description: Terraform action to be carried out against DEV environment
+        required: true
+        default: apply
+        options:
+          - apply
+          - destroy
+      test:
+        type: choice
+        description: Should tests be run?
+        required: true
+        default: "yes"
+        options:
+          - "yes"
+          - "no"
 
 jobs:
   metadata:
     runs-on: ubuntu-latest
     timeout-minutes: 1
     env:
-      environment: "performance"
-      version_bump: "MINOR"
-      database_seeding: "yes"
-      test: "no"
+      environment: "dev-6"
     outputs:
       build_datetime_london: ${{ steps.variables.outputs.build_datetime_london }}
       build_datetime: ${{ steps.variables.outputs.build_datetime }}
@@ -31,8 +56,8 @@ jobs:
       invitations_branch: ${{ github.event.inputs.invitations_branch }}
       frontend_branch: ${{ github.event.inputs.invitations_branch }}
       database_seeding: ${{ github.event.inputs.database_seeding }}
+      tf_action: ${{ github.event.inputs.tf_action }}
       test: ${{ github.event.inputs.test }}
-      version_bump: ${{ env.version_bump }}
     steps:
       - name: "print environment name"
         run: |
@@ -40,9 +65,6 @@ jobs:
           echo environment is: ${{ env.environment }}
           echo seed database: ${{ github.event.inputs.database_seeding }}
           echo run tests: ${{ github.event.inputs.test }}
-          echo terraform action: ${{ github.event.inputs.tf_action }}
-          echo frontend branch: ${{ github.event.inputs.frontend_branch }}
-          echo invitations_branch: ${{ github.event.inputs.invitations_branch }}
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
@@ -59,7 +81,7 @@ jobs:
           echo "python_version=$(grep python .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
-          echo "environment=performance" >> $GITHUB_OUTPUT
+          echo "environment=dev-6" >> $GITHUB_OUTPUT
       - name: "Check if pull request exists for this branch"
         id: pr_exists
         env:
@@ -86,7 +108,6 @@ jobs:
           export VERSION="${{ steps.variables.outputs.version }}"
           export DOES_PULL_REQUEST_EXIST="${{ steps.pr_exists.outputs.does_pull_request_exist }}"
           make list-variables
-
   commit-stage: # Recommended maximum execution time is 2 minutes
     needs: [metadata]
     uses: ./.github/workflows/stage-1-commit.yaml
@@ -115,7 +136,11 @@ jobs:
     secrets: inherit
 
   build-stage: # Recommended maximum execution time is 10 minutes
-    needs: [metadata, test-stage]
+    needs: [
+        metadata,
+        test-stage,
+        # build-stage
+      ]
     uses: ./.github/workflows/stage-3-build.yaml
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
@@ -128,6 +153,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       invitations_branch: "${{ github.event.inputs.invitations_branch }}"
       frontend_branch: "${{ github.event.inputs.frontend_branch }}"
+      tf_action: "${{ github.event.inputs.tf_action }}"
     secrets: inherit
 
   data-stage: # Recommended maximum execution time is 10 minutes
@@ -158,11 +184,4 @@ jobs:
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
-    secrets: inherit
-
-  performance-stage:
-    needs: [metadata, build-stage, data-stage]
-    uses: ./.github/workflows/stage-6-performance.yaml
-    with:
-      version_bump: "${{ needs.metadata.outputs.version_bump }}"
     secrets: inherit

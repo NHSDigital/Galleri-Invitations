@@ -1,0 +1,9 @@
+{
+  "name": "createInvitationBatchLambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "createInvitationBatchLambda.js",
+  "author": "",
+  "dependencies": {
+  }
+}

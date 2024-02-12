@@ -40,6 +40,9 @@ module "galleri_invitations_screen" {
   NEXT_PUBLIC_PUT_TARGET_PERCENTAGE                     = module.target_fill_to_percentage_put_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_TARGET_PERCENTAGE                         = module.target_fill_to_percentage_get_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_GENERATE_INVITES                          = module.generate_invites_api_gateway.rest_api_galleri_id
+  USERS                                                 = var.USERS
+  CIS2_ID                                               = var.CIS2_ID
+  NEXTAUTH_URL                                          = var.NEXTAUTH_URL
 }
 
 # the role that all lambda's are utilising,
@@ -89,6 +92,13 @@ module "caas_data_bucket" {
 module "validated_records_bucket" {
   source                  = "./modules/s3"
   bucket_name             = "galleri-processed-caas-data"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
+module "invited_participant_batch" {
+  source                  = "./modules/s3"
+  bucket_name             = "outbound-gtms-invited-participant-batch"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
@@ -595,6 +605,13 @@ module "gp_practices_loader_cloudwatch" {
   retention_days       = 14
 }
 
+module "gp_practices_loader_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.gp_practices_bucket.bucket_id
+  bucket_arn = module.gp_practices_bucket.bucket_arn
+  lambda_arn = module.gp_practices_loader_lambda.lambda_arn
+}
+
 # Create Episode Records
 module "create_episode_record_lambda" {
   source               = "./modules/lambda"
@@ -674,6 +691,73 @@ module "poll_mesh_mailbox_lambda" {
     MESH_SENDER_MAILBOX_PASSWORD   = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_password.secret_string)["MESH_SENDER_MAILBOX_PASSWORD"],
     MESH_RECEIVER_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_id.secret_string)["MESH_RECEIVER_MAILBOX_ID"],
     MESH_RECEIVER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_password.secret_string)["MESH_RECEIVER_MAILBOX_PASSWORD"]
+  }
+}
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "createInvitationBatchLambda"
+  lambda_timeout       = 900
+  memory_size          = 1024
+  lambda_s3_object_key = "create_invitation_batch_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "create_invitation_batch_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.create_invitation_batch_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "create_invitation_batch_dynamodb_stream" {
+  source                             = "./modules/dynamodb_stream"
+  enabled                            = true
+  event_source_arn                   = module.episode_table.dynamodb_stream_arn
+  function_name                      = module.create_invitation_batch_lambda.lambda_function_name
+  starting_position                  = "LATEST"
+  batch_size                         = 200
+  maximum_batching_window_in_seconds = 300
+  filter_event_name                  = "INSERT"
+}
+
+# Dynamodb tables
+module "sdrs_table" {
+  source      = "./modules/dynamodb"
+  table_name  = "Sdrs"
+  hash_key    = "NhsNumber"
+  range_key   = "GivenName"
+  environment = var.environment
+  attributes = [{
+    name = "NhsNumber"
+    type = "N"
+    },
+    {
+      name = "GivenName"
+      type = "S"
+    },
+    {
+      name = "TelephoneNumberMobile"
+      type = "S"
+    },
+    {
+      name = "EmailAddressHome"
+      type = "S"
+    }
+  ]
+  global_secondary_index = [
+    {
+      name      = "EmailPhoneIndex"
+      hash_key  = "EmailAddressHome"
+      range_key = "TelephoneNumberMobile"
+    }
+  ]
+  tags = {
+    Name        = "Dynamodb Table Sdrs"
+    Environment = var.environment
   }
 }
 
@@ -1087,6 +1171,8 @@ ITEM
 module "episode_table" {
   source                   = "./modules/dynamodb"
   billing_mode             = "PROVISIONED"
+  stream_enabled           = true
+  stream_view_type         = "NEW_IMAGE"
   table_name               = "Episode"
   hash_key                 = "Batch_Id"
   range_key                = "Participant_Id"
