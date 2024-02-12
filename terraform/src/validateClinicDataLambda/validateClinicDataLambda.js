@@ -18,7 +18,7 @@ export const handler = async (event) => {
 
   try {
     const jsonString = await readFromS3(bucket, key, s3);
-    const validationResults = await validateRecord(JSON.parse(jsonString),client); //need parse as s3 resolves as string
+    const validationResults = await validateRecord(JSON.parse(jsonString), client); //need parse as s3 resolves as string
 
     console.log(`Finished validating object ${key} in bucket ${bucket}`);
     console.log('----------------------------------------------------------------');
@@ -31,10 +31,10 @@ export const handler = async (event) => {
     // Valid Records Arrangement
     if (validationResults.success) {
       // Deposit to S3 bucket
-      await pushToS3(bucket, `validRecords/valid_records_add-${timeNow}.json`, jsonString, s3);
+      await pushToS3(`${ENVIRONMENT}-valid-inbound-gtms-clinic-create-or-update`, `validRecords/valid_records_add-${timeNow}.json`, jsonString, s3);
     }
     else {
-      await pushToS3(bucket, `invalidRecords/invalid_records-${timeNow}.json`, jsonString, s3);
+      await pushToS3(`${ENVIRONMENT}-valid-inbound-gtms-clinic-create-or-update`, `invalidRecords/invalid_records-${timeNow}.json`, jsonString, s3);
       console.warn("PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Data BELOW:\n" + validationResult.errors, null, 2);
     }
     return `Finished validating object ${key} in bucket ${bucket}`;
@@ -94,7 +94,7 @@ export async function validateRecord(record, client) {
     const postcodeValidation = await isPostcodeInGridall(record.ClinicCreateOrUpdate.Postcode, client);
     if (postcodeValidation.hasOwnProperty("Item")) {
       // AC - not covered Postcode provided (if supplied)
-      const ICBValidation = postcodeValidation.Item.ICB.S ;
+      const ICBValidation = postcodeValidation.Item.ICB.S;
       if (!isValidICBCode(ICBValidation)) {
         // AC - not covered ICB code provided (if supplied)
         validationResults.success = false;
@@ -118,17 +118,17 @@ export async function validateRecord(record, client) {
   return validationResults;
 }
 
-export const isPostcodeInGridall = async(key, client) => {
+export const isPostcodeInGridall = async (key, client) => {
   //AC - Check if Postcode exists in the Postcode DynamoDB Table
   const getParams = {
-      "TableName": `${ENVIRONMENT}-Postcode`,
-      "Key": {
-          "POSTCODE": {
-              "S": key
-          }
-      },
-      "ConsistentRead": true,
-      "ProjectionExpression": "ICB"
+    "TableName": `${ENVIRONMENT}-Postcode`,
+    "Key": {
+      "POSTCODE": {
+        "S": key
+      }
+    },
+    "ConsistentRead": true,
+    "ProjectionExpression": "ICB"
   };
   const getCommand = new GetItemCommand(getParams);
   const response = await client.send(getCommand);
