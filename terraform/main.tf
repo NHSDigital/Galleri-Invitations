@@ -809,6 +809,8 @@ module "phlebotomy_site_table" {
   hash_key    = "ClinicId"
   range_key   = "ClinicName"
   environment = var.environment
+  non_key_attributes       = ["WeekCommencingDate"]
+  projection_type          = "INCLUDE"
   attributes = [{
     name = "ClinicId"
     type = "S"
