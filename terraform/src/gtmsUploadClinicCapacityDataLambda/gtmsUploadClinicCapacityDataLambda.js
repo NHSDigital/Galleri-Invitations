@@ -26,6 +26,7 @@ export const handler = async (event, context) => {
     const result = await getItemsFromTable(`PhlebotomySite`, client, js['ClinicScheduleSummary'][0]['ClinicID']);
     console.log(`fetched items: ${JSON.stringify(result)}`);
     if (Object.keys(result.Items).length === 0) {
+      console.log(`Entry JSON did not match any ClinicIds in PhlebotomySite table`);
       const dateTime = new Date(Date.now()).toISOString();
       //reject record, push to s3 failedRecords folder
       let response = await (pushCsvToS3(
@@ -40,7 +41,7 @@ export const handler = async (event, context) => {
     }
     else {
       const value = await checkPhlebotomy(result.Items, js, 'ClinicScheduleSummary', 'ClinicID');
-      if (value[0] || value) {
+      if (value[0]) {
         //update
         const params = await saveObjToPhlebotomyTable(js, ENVIRONMENT, client, value[1], value[2]);
         console.log(`Success: ${params}`);
