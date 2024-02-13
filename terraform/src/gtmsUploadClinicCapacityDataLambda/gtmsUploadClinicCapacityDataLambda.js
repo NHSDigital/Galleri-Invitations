@@ -117,7 +117,7 @@ export async function getItemsFromTable(table, client, key) {
 
 export const checkPhlebotomy = async (loopedArr, arr, key, item) => {
   for (const element of loopedArr) {
-    if (arr?.[key]?.[0]?.[item] === element?.['ClinicId']?.['S']) {
+    if (arr?.[key]?.[0]?.[item] === element['ClinicId']['S']) {
       console.log(`ClinicName matched: ${element['ClinicName']['S']}`);
       return [true, element['ClinicName']['S'], element['WeekCommencingDate']['M']]; // update
     } else {
