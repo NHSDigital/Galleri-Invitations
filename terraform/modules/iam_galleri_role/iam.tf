@@ -318,6 +318,9 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Policy required by validateClinicDataLambda
 # resource "aws_iam_policy" "iam_policy_for_validate_clinic_data_lambda" {
 #  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_validate_clinic_data_lambda_role"
+# Policy required by validateCaasFeedLambda
+# resource "aws_iam_policy" "iam_policy_for_validate_caas_feed_lambda" {
+#  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_validate_caas_feed_lambda_role"
 #  path        = "/"
 #  description = "AWS IAM Policy for pushing into S3 Bucket"
 #  policy = jsonencode(
@@ -340,6 +343,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 #           ],
 #           "Resource" : [
 #             "arn:aws:s3:::gtms-clinic-create-or-update/*"
+#             "arn:aws:s3:::galleri-caas-data/*"
 #           ]
 #         }
 #      ],
@@ -350,6 +354,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 
 # Added GpPractice and Postcode to this policy as lambda role exceeded policy limit
 # Added validate CLinic Data to this policy as lambda role exceeded policy limit
+# Added validate Caas Feed to this policy as lambda role exceeded policy limit
 # Added UserAccounts to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
@@ -388,6 +393,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "s3:*"
           ],
           "Resource" : [
+            "arn:aws:s3:::${var.environment}-galleri-caas-data/*",
             "arn:aws:s3:::${var.environment}-outbound-gtms-invited-participant-batch/*",
             "arn:aws:s3:::${var.environment}-inbound-gtms-clinic-create-or-update/*",
             "arn:aws:s3:::${var.environment}-inbound-gtms-clinic-schedule-summary/*",
@@ -409,7 +415,14 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:GTMS_MESH_MAILBOX_ID*",
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:GTMS_MESH_MAILBOX_PASSWORD*",
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:GTMS_MESH_CERT*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_KEY*"
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_KEY*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_ID*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_PASSWORD*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_ID*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_PASSWORD*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_KEY*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_CERT*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_CERT*"
           ]
         },
         {
@@ -553,6 +566,9 @@ resource "aws_iam_role_policy_attachment" "clinic_information_lambda" {
 #resource "aws_iam_role_policy_attachment" "validate_clinic_data_lambda" {
 #  role       = aws_iam_role.galleri_lambda_role.name
 #  policy_arn = aws_iam_policy.validate_clinic_data_lambda.arn
+#resource "aws_iam_role_policy_attachment" "validate_caas_feed_lambda" {
+#  role       = aws_iam_role.galleri_lambda_role.name
+#  policy_arn = aws_iam_policy.validate_caas_feed_lambda.arn
 #}
 
 resource "aws_iam_role_policy_attachment" "participating_icb_list_lambda" {
@@ -598,6 +614,11 @@ resource "aws_iam_role_policy_attachment" "generate_invites_policy" {
 # resource "aws_iam_role_policy_attachment" "create_episode_record_policy" {
 #   role       = aws_iam_role.galleri_lambda_role.name
 #   policy_arn = aws_iam_policy.iam_policy_for_create_episode_record_lambda.arn
+# }
+
+# resource "aws_iam_role_policy_attachment" "secrets_lambda_policy" {
+#   role       = aws_iam_role.github-oidc-invitations-role.name
+#   policy_arn = aws_iam_policy.iam_policy_for_participants_in_lsoa_lambda.arn
 # }
 
 resource "aws_iam_role" "api_gateway_logging_role" {

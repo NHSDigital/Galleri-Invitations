@@ -27,6 +27,7 @@
     "csv-stringify": "^6.4.4",
     "jsonschema": "^1.4.1",
     "loglevel": "^1.8.1",
-    "nhs-mesh-client": "^1.0.8"
+    "nhs-mesh-client": "^1.0.8",
+    "randexp": "^0.5.3"
   }
 }
