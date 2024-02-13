@@ -21,17 +21,11 @@ export const handler = async (event, context) => {
   try {
     const csvString = await readCsvFromS3(bucket, key, s3);
     const js = JSON.parse(csvString);
-    console.log(JSON.stringify(js));
+    console.log(`Entry JSON: ${JSON.stringify(js)}`);
 
     const result = await getItemsFromTable(`PhlebotomySite`, client, js['ClinicScheduleSummary'][0]['ClinicID']);
-    const value = await checkPhlebotomy(result.Items, js, 'ClinicScheduleSummary', 'ClinicID');
-    console.log(`Clinic matched ${JSON.stringify(value['items'])}`);
-
-    if (value[0] || value) {
-      //update
-      const params = saveObjToPhlebotomyTable(js, ENVIRONMENT, client, value[1], value[2]);
-      console.log(JSON.stringify(params));
-    } else {
+    console.log(`fetched items: ${JSON.stringify(result)}`);
+    if (Object.keys(result.Items).length === 0) {
       const dateTime = new Date(Date.now()).toISOString();
       //reject record, push to s3 failedRecords folder
       let response = await (pushCsvToS3(
@@ -44,7 +38,27 @@ export const handler = async (event, context) => {
         console.error("Error uploading item ");
       }
     }
-    console.log(JSON.stringify(result['Items']));
+    else {
+      const value = await checkPhlebotomy(result.Items, js, 'ClinicScheduleSummary', 'ClinicID');
+      if (value[0] || value) {
+        //update
+        const params = await saveObjToPhlebotomyTable(js, ENVIRONMENT, client, value[1], value[2]);
+        console.log(`Success: ${params}`);
+      } else {
+        const dateTime = new Date(Date.now()).toISOString();
+        //reject record, push to s3 failedRecords folder
+        let response = await (pushCsvToS3(
+          `${ENVIRONMENT}-valid-inbound-gtms-clinic-schedule-summary`,
+          `invalidData/invalidRecord_${dateTime}.json`,
+          csvString,
+          s3
+        ));
+        if (response.$metadata.httpStatusCode !== 200) {
+          console.error("Error uploading item ");
+        }
+        console.log(JSON.stringify(result['Items']));
+      }
+    }
   } catch (error) {
     console.error("Error occurred:", error);
   }
@@ -103,10 +117,8 @@ export async function getItemsFromTable(table, client, key) {
 
 export const checkPhlebotomy = async (loopedArr, arr, key, item) => {
   for (const element of loopedArr) {
-    console.log(element['ClinicId']['S']);
-    if (arr?.[key]?.[0]?.[item] === element['ClinicId']['S']) {
+    if (arr?.[key]?.[0]?.[item] === element?.['ClinicId']?.['S']) {
       console.log(`ClinicName matched: ${element['ClinicName']['S']}`);
-      // console.log(element['WeekCommencingDate']['M']);
       return [true, element['ClinicName']['S'], element['WeekCommencingDate']['M']]; // update
     } else {
       return false; //reject record from mesh
@@ -116,7 +128,6 @@ export const checkPhlebotomy = async (loopedArr, arr, key, item) => {
 
 export const saveObjToPhlebotomyTable = async (MeshObj, environment, client, clinicName, datesAppend) => {
   const formatedDate = dayjs(MeshObj['ClinicScheduleSummary'][0]['Schedule'][0]['WeekCommencingDate']).format("DD MMMM YYYY");
-  // console.log(datesAppend);
   const commencingDateObj = {
     [formatedDate]: {
       "N": String(MeshObj['ClinicScheduleSummary'][0]['Schedule'][0]['Availability']),
@@ -147,18 +158,17 @@ export const saveObjToPhlebotomyTable = async (MeshObj, environment, client, cli
   };
 
   const command = new UpdateItemCommand(params);
+  console.log(`request to be sent: ${JSON.stringify(command)}`);
   try {
     const response = await client.send(command);
-    console.log(JSON.stringify(response));
     if (response.$metadata.httpStatusCode !== 200) {
       console.error(`Error updating item: ${JSON.stringify(MeshObj)}`);
       return false;
     } else {
-      console.log(`Successfully updated item: ${JSON.stringify(MeshObj)}`);
+      console.log(`Successfully updated Clinic with item: ${JSON.stringify(MeshObj)}`);
       return true;
     }
   } catch (error) {
     console.error(`Error: ${error}`);
   }
-  return params;
 };
