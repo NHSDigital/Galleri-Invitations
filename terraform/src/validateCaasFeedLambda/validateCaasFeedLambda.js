@@ -275,14 +275,6 @@ export function validateRecord(record) {
     return validationResults;
   }
 
-  // Commented out for now as BA are waiting to confirm the AC and the test data provided does not contain the field
-  // AC11 - The supplied invalid flag field does not contain a valid value ('True' or False) - await spec outcome and revisit AC
-  // if (record.invalid_flag !== 'True' && record.invalid_flag !== 'False') {
-  //   validationResults.success = false;
-  //   validationResults.message = 'Technical error - The Invalid Flag received does not contain a valid value';
-  //   return validationResults;
-  // }
-
   // Potential AC - Reason for Removal Business Effective From Date is an invalid format
   if (
     record.reason_for_removal_effective_from_date !== "null" &&
