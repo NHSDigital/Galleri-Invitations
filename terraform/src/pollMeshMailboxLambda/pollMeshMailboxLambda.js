@@ -35,7 +35,7 @@ export const handler = async (event, context) => {
   const finalMsgArr = [];
   try {
     console.log('healthy test');
-    let healthy = await run();
+    let healthy = await getHealthStatusCode();
     if (healthy === 200) {
       console.log(`Status ${healthy}`);
       let messageArr = await getMessageArray(); //return arr of message ids
@@ -73,7 +73,7 @@ export const handler = async (event, context) => {
 
 //FUNCTIONS
 //Read in MESH data
-async function run() {
+async function getHealthStatusCode() {
   try {
     let healthCheck = await handShake({
       url: CONFIG.url,
