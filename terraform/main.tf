@@ -783,22 +783,6 @@ module "gtms_mesh_mailbox_lambda" {
   }
 }
 
-data "aws_secretsmanager_secret_version" "mesh_url" {
-  secret_id = "MESH_URL"
-}
-
-data "aws_secretsmanager_secret_version" "mesh_shared_key" {
-  secret_id = "MESH_SHARED_KEY_1"
-}
-
-data "aws_secretsmanager_secret_version" "gtms_mesh_mailbox_id" {
-  secret_id = "GTMS_MESH_MAILBOX_ID"
-}
-
-data "aws_secretsmanager_secret_version" "gtms_mesh_mailbox_password" {
-  secret_id = "GTMS_MESH_MAILBOX_PASSWORD"
-}
-
 module "gtms_mesh_mailbox_lambda_cloudwatch" {
   source               = "./modules/cloudwatch"
   environment          = var.environment
@@ -928,6 +912,14 @@ data "aws_secretsmanager_secret_version" "mesh_receiver_mailbox_id" {
 
 data "aws_secretsmanager_secret_version" "mesh_receiver_mailbox_password" {
   secret_id = "MESH_RECEIVER_MAILBOX_PASSWORD"
+}
+
+data "aws_secretsmanager_secret_version" "gtms_mesh_mailbox_id" {
+  secret_id = "GTMS_MESH_MAILBOX_ID"
+}
+
+data "aws_secretsmanager_secret_version" "gtms_mesh_mailbox_password" {
+  secret_id = "GTMS_MESH_MAILBOX_PASSWORD"
 }
 #END of MESH keys
 
