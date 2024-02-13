@@ -38,27 +38,25 @@ export const getSecret = async (secretName, client) => {
 //generator function yields chunkSegment when desired size is reached + header
 export const chunking = function* (itr, size, header) {
   let chunkSegment = [header];
-  let tempStr = header;
+  let generatedString = header;
   for (const val of itr) {
-    tempStr += "\n";
-    tempStr += val;
+    generatedString += "\n";
+    generatedString += val;
     chunkSegment.push(val);
     if (chunkSegment.length === size) {
-      yield tempStr;
+      yield generatedString;
       chunkSegment = [header];
-      tempStr = header;
+      generatedString = header;
     }
   }
-  if (chunkSegment.length) yield tempStr;
+  if (chunkSegment.length) yield generatedString;
 };
 
 //Allows upload of string from chunks to be uploaded to S3
 export async function multipleUpload(chunk, client, environment) {
-  let count = 0;
   const dateTime = new Date(Date.now()).toISOString();
   return Promise.all(
     chunk.map(async (x, index) => {
-      count++;
       const filename = `mesh_chunk_data_${index}_${dateTime}`;
       let response = await (pushCsvToS3(
         `${environment}-galleri-caas-data`,
