@@ -11,18 +11,22 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
     test('Postcode not in Gridall', async ()=>{
       mockDynamoDbClient.resolves({
-        Items: [],
+        Item: [],
       });
-      const postcodeValidation = await moduleapi.isPostcodeInGridall(mockDynamoDbClient, "NW1 2HC" );
-      expect(postcodeValidation).toBe(false);
+      const postcodeValidation = await moduleapi.isPostcodeInGridall("NW1 2HC", mockDynamoDbClient);
+      expect(postcodeValidation.Item.length).toBe(0);
     });
 
     test('Postcode in Gridall', async ()=>{
       mockDynamoDbClient.resolves({
-        Items: ["NW1 2HC"],
+        "Item": {
+          "ICB": {
+            "S": "QNX"
+          }
+        }
       });
-      const postcodeValidation = await moduleapi.isPostcodeInGridall(mockDynamoDbClient, "NW1 2HC" );
-      expect(postcodeValidation).toBe(true);
+      const postcodeValidation = await moduleapi.isPostcodeInGridall("NW1 2HC", mockDynamoDbClient);
+      expect(postcodeValidation.Item.ICB.S).toBe("QNX");
     });
 
   })
@@ -31,7 +35,11 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
     test('should return success for a valid record', async() => {
 
       mockDynamoDbClient.resolves({
-        Items: ["SO42 7BZ"],
+        "Item": {
+          "ICB": {
+            "S": "QNX"
+          }
+        }
       });
       const validationResult = await moduleapi.validateRecord(data[0], mockDynamoDbClient);
       expect(validationResult.success).toBe(true);
@@ -40,7 +48,7 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
     test('should return failure for an invalid post code', async() => {
 
       mockDynamoDbClient.resolves({
-        Items: [],
+        metadata: [],
       });
       const validationResult = await moduleapi.validateRecord(data[0], mockDynamoDbClient);
       expect(validationResult.success).toBe(false);
@@ -51,7 +59,9 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
     test('should return failure for an invalid ICB code', async() => {
       mockDynamoDbClient.resolves({
-        Items: ["SO42 7BZ"],
+        "Item": {
+          "ICB": {S:"01D"}
+        }
       });
       const validationResult = await moduleapi.validateRecord(data[1], mockDynamoDbClient);
 

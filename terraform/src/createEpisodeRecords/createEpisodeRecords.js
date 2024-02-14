@@ -97,7 +97,7 @@ export const lookupParticipantId = async (participantId, table, dbClient) => {
     KeyConditionExpression: "Participant_Id = :participant",
     ProjectionExpression: "Participant_Id",
     TableName: `${ENVIRONMENT}-${table}`,
-    IndexName: "ParticipantId-index",
+    IndexName: "Participant_Id-index",
   };
 
   const command = new QueryCommand(input);
