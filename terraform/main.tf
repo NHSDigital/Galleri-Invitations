@@ -53,6 +53,14 @@ module "iam_galleri_lambda_role" {
   environment = var.environment
 }
 
+# This is the module which will run the invitations frontend in S3
+# further development is needed but storing progress on this module for post-mvp
+# module "frontend-invitations" {
+#   source      = "./modules/cloudfront"
+#   name        = "invitations-frontend"
+#   environment = var.environment
+# }
+
 module "s3_bucket" {
   source                  = "./modules/s3"
   bucket_name             = var.bucket_name
