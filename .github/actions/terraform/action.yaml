@@ -124,4 +124,5 @@ runs:
         npm install --prefix src/caasFeedAddRecordsLambda
         npm install --prefix src/caasFeedUpdateRecordsLambda
         npm install --prefix src/createInvitationBatchLambda
+        npm install --prefix src/getUserRoleLambda
         terraform ${{ env.tf-action }} -auto-approve -input=false -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars
