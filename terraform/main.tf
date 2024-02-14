@@ -733,7 +733,7 @@ module "user_accounts_lambda_trigger" {
   bucket_arn = module.user_accounts_bucket.bucket_arn
   lambda_arn = module.user_accounts_lambda.lambda_arn
 }
-    
+
 module "poll_mesh_mailbox_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
@@ -873,8 +873,8 @@ module "gtms_upload_clinic_data_lambda_trigger" {
   lambda_arn    = module.gtms_upload_clinic_data_lambda.lambda_arn
   filter_prefix = "validRecords/valid_records_add-"
 }
-   
-# GTMS validate clinic capacity    
+
+# GTMS validate clinic capacity
 module "validate_clinic_capacity_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment

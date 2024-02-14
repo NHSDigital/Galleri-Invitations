@@ -118,7 +118,7 @@ runs:
         npm install --prefix src/calculateNumberToInviteLambda
         npm install --prefix src/generateInvitesTriggerLambda
         npm install --prefix src/gpPracticesLoaderLambda
-        npm install --prefix src/userAccountsLambda        
+        npm install --prefix src/userAccountsLambda
         npm install --prefix src/pollMeshMailboxLambda
         npm install --prefix src/validateCaasFeedLambda
         npm install --prefix src/caasFeedAddRecordsLambda
