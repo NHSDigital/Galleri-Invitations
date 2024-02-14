@@ -1,0 +1,76 @@
+[
+    {
+    "ClinicCreateOrUpdate": {
+        "ClinicID": "C1C-A1A",
+        "ODSCode": "Y888888",
+        "ICBCode": "QNX",
+        "ClinicName": "GRAIL Test Clinic",
+        "Address": "210 Euston Rd, London NW1 2DA",
+        "Postcode": "SO42 7BZ",
+        "Directions": "Closest London Underground station is Euston Square."
+    }
+},
+{
+    "ClinicCreateOrUpdate": {
+        "ClinicID": "C1C-A1A",
+        "ODSCode": "Y888888",
+        "ICBCode": "01D",
+        "ClinicName": "GRAIL Test Clinic",
+        "Address": "210 Euston Rd, London NW1 2DA",
+        "Postcode": "NW1 2DA",
+        "Directions": "Closest London Underground station is Euston Square."
+    }
+},
+{
+    "ClinicCreateOrUpdate": {
+        "ClinicID": "aC1C-A1A",
+        "ODSCode": "Y888888",
+        "ICBCode": "01D",
+        "ClinicName": "GRAIL Test Clinic",
+        "Address": "210 Euston Rd, London NW1 2DA",
+        "Postcode": "NW1 2DA",
+        "Directions": "Closest London Underground station is Euston Square."
+    }
+},
+{
+    "ClinicCreateOrUpdate": {
+        "ClinicID": "C1C-A1A",
+        "ODSCode": "333333Y888888",
+        "ICBCode": "01D",
+        "ClinicName": "GRAIL Test Clinic",
+        "Address": "210 Euston Rd, London NW1 2DA",
+        "Postcode": "NW1 2DA",
+        "Directions": "Closest London Underground station is Euston Square."
+    }
+},
+{
+    "ClinicCreateOrUpdate": {
+        "ClinicID": "C1C-A1A",
+        "ODSCode": "Y888888",
+        "ICBCode": "01D",
+        "Address": "210 Euston Rd, London NW1 2DA",
+        "Postcode": "NW1 2DA",
+        "Directions": "Closest London Underground station is Euston Square."
+    }
+},
+{
+    "ClinicCreateOrUpdate": {
+        "ClinicID": "C1C-A1A",
+        "ODSCode": "Y888888",
+        "ICBCode": "01D",
+        "ClinicName": "GRAIL Test Clinic",
+        "Postcode": "NW1 2DA",
+        "Directions": "Closest London Underground station is Euston Square."
+    }
+},
+{
+    "ClinicCreateOrUpdate": {
+        "ClinicID": "C1C-A1A",
+        "ODSCode": "Y888888",
+        "ICBCode": "01D",
+        "ClinicName": "GRAIL Test Clinic",
+        "Address": "210 Euston Rd, London NW1 2DA",
+        "Postcode": "NW1 2DA"
+    }
+}
+]
