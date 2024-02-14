@@ -1,5 +1,3 @@
 # environment name
 environment = "dev-1"
-variable "dns_zone" {
-  description = "dev-1"
-}
+dns_zone    = "dev-1"

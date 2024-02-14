@@ -1,5 +1,2 @@
-# environment name
 environment = "dev-5"
-variable "dns_zone" {
-  description = "dev-5"
-}
+dns_zone    = "dev-5"
