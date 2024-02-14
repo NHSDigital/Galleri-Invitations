@@ -23,8 +23,12 @@ const ENVIRONMENT = process.env.ENVIRONMENT
 // Lambda Entry Point
 export const handler = async (event) => {
 
-  const bucket = event.Records[0].s3.bucket.name;
-  const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
+  // const bucket = event.Records[0].s3.bucket.name;
+  // const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
+  // console.log(`Triggered by object ${key} in bucket ${bucket}`);
+
+  const bucket = 'dev-2-galleri-caas-data'
+  const key = 'validRecords/valid_records_update-table_ data_ update.csv'
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
   try {
@@ -58,25 +62,26 @@ export const handler = async (event) => {
       const filteredRejectedRecords = recordsToUploadSettled.filter((record) => { return !record?.rejected });
 
       console.log('----------------------------------------------------------------');
+      console.log("filteredRejectedRecords = ", filteredRejectedRecords)
 
-      if (filteredRejectedRecords) {
-        const timeNow = Date.now();
-        const fileName = `validRecords/rejectedRecords/update/rejectedRecords-${timeNow}.csv`
-        console.log(`${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-${bucket}/${fileName}`);
-        // Generate the CSV format
-        const rejectedRecordsString = generateCsvString(
-          `nhs_number,rejected,reason`,
-          filteredRejectedRecords
-        );
+      // if (filteredRejectedRecords) {
+      //   const timeNow = Date.now();
+      //   const fileName = `validRecords/rejectedRecords/update/rejectedRecords-${timeNow}.csv`
+      //   console.log(`${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-${bucket}/${fileName}`);
+      //   // Generate the CSV format
+      //   const rejectedRecordsString = generateCsvString(
+      //     `nhs_number,rejected,reason`,
+      //     filteredRejectedRecords
+      //   );
 
-        // Deposit to S3 bucket
-        await pushCsvToS3(
-          `${bucket}`,
-          `${fileName}`,
-          rejectedRecordsString,
-          s3
-        );
-      }
+      //   // Deposit to S3 bucket
+      //   await pushCsvToS3(
+      //     `${bucket}`,
+      //     `${fileName}`,
+      //     rejectedRecordsString,
+      //     s3
+      //   );
+      // }
     }
   }
   catch (error) {
@@ -124,50 +129,41 @@ export const processingData = async (incomingUpdateData, populationTableRecord) 
           rejected: false
         }
       } else if (supersedingEpisodeRecord.Items.length) {
+        console.log('HERE')
+        // console.log(`incomingUpdateData = ${JSON.stringify(incomingUpdateData, null, 2)}`)
+        // console.log(`Original retainingPopulationTableRecord = ${JSON.stringify(retainingPopulationTableRecord.Items[0], null, 2)}`)
+        // console.log(`Original populationTableRecord = ${JSON.stringify(populationTableRecord, null, 2)}`)
         // New code - check if works
-        // Taken the supersed data items apart from its Primary Key and moved them to the retaining record and upload to table
-        const swappedDataPayload = { ...populationTableRecord }
-        swappedDataPayload.PersonId = retainingPopulationTableRecord.PersonId
-        swappedDataPayload.LsoaCode = retainingPopulationTableRecord.LsoaCode
-        swappedDataPayload.participantId = retainingPopulationTableRecord.participantId
-        // change the personId and LsoaCode from the retaining record to be the supersed
-        await overwriteRecordInTable(client, 'Population', swappedDataPayload, retainingPopulationTableRecord)
+        // await overwriteRecordInTable(client, 'Population', incomingUpdateData, populationTableRecord)
 
-        // take the update payload and apply it to the supersed record
-        await overwriteRecordInTable(client, 'Population', incomingUpdateData, populationTableRecord)
-        // END
-        // // swap all the items except the PersonId
+        // keep personId, participantId and lsoa_2011 from retaining and combine with supersed
+        const recordNewSupersed = {
+          ...populationTableRecord,
+          PersonId : retainingPopulationTableRecord.Items[0].PersonId ,
+          participantId : retainingPopulationTableRecord.Items[0].participantId,
+          lsoa_2011: retainingPopulationTableRecord.Items[0].LsoaCode,
+        }
 
-        // // The supersed record has an open Episode record
-        // // move the data from the retaining record to the supersed record
-        // const retainingPopulationTableRecordSwap = retainingPopulationTableRecord.Items[0]
-        // retainingPopulationTableRecordSwap.nhs_number = populationTableRecord.nhs_number
-        // retainingPopulationTableRecordSwap.superseded_by_nhs_number = populationTableRecord.superseded_by_nhs_number
+        // keep personId, participantId and lsoa_2011 from supersed and combine with retained
+        const recordNewRetaining = {
+          ...retainingPopulationTableRecord.Items[0],
+          PersonId : populationTableRecord.PersonId ,
+          participantId : populationTableRecord.participantId,
+          lsoa_2011: populationTableRecord.LsoaCode,
+        }
 
-        // retainingPopulationTableRecordSwap['lsoa_2011'] = retainingPopulationTableRecordSwap['LsoaCode'];
-        // delete retainingPopulationTableRecordSwap['LsoaCode'];
+        // delete old supersed
+        const deleteOldSupersed = await deleteTableRecord(client, 'Population', populationTableRecord);
 
-        // for (const property in retainingPopulationTableRecordSwap) {
-        //   retainingPopulationTableRecordSwap[property] = retainingPopulationTableRecordSwap[property][Object.keys(retainingPopulationTableRecordSwap[property])[0]];
-        // }
+        // delete old retained
+        const deleteOldRetaining = await deleteTableRecord(client, 'Population', retainingPopulationTableRecord.Items[0]);
 
-        // populationTableRecord.nhs_number = incomingUpdateData.superseded_by_nhs_number
-        // populationTableRecord.superseded_by_nhs_number = '0'
 
-        // // update supersed
-        // const updateNhsNumberInRecord = ["nhs_number", "N", populationTableRecord.nhs_number]
-        // const updateSuperedNhsNumberInRecord = ["superseded_by_nhs_number", "N", populationTableRecord.superseded_by_nhs_number]
-        // await updateRecordInTable(client, "Population", populationTableRecord.PersonId.S, "PersonId", populationTableRecord.LsoaCode.S, "LsoaCode", updateNhsNumberInRecord, updateSuperedNhsNumberInRecord);
-        // // update retaining
-        // incomingUpdateData["PersonId"] = retainingPopulationTableRecordSwap.PersonId
-        // incomingUpdateData["lsoa_2011"] = retainingPopulationTableRecordSwap.lsoa_2011
-        // incomingUpdateData["participant_id"] = retainingPopulationTableRecordSwap.PersonId
+        // create new supersed
+        const createNewSupered = await putTableRecord(client, 'Population', recordNewSupersed);
 
-        // const overwriteItem = {
-        //   PersonId: {S: retainingPopulationTableRecordSwap.PersonId},
-        //   LsoaCode: {S: retainingPopulationTableRecordSwap.lsoa_2011}
-        // }
-        // await overwriteRecordInTable(client, 'Population', incomingUpdateData, overwriteItem)
+        // create new retaining
+        const createNewRetaining = await putTableRecord(client, 'Population', recordNewRetaining);
 
         return {
           rejected: false
@@ -378,6 +374,7 @@ function formatEpisodeDeleteItem(table, record) {
 }
 
 export async function putTableRecord(client, table, newRecord) {
+  console.log(`newRecord = ${JSON.stringify(newRecord)}`)
   let input
   console.log(`Adding record ${newRecord.PersonId} to table ${table}`)
   switch(table) {
@@ -390,6 +387,8 @@ export async function putTableRecord(client, table, newRecord) {
     default:
       input = 'Table not recognised'
   }
+
+  // console.log(`formatted record to pop into table ${JSON.stringify(input, null, 2)}`)
 
   const command = new PutItemCommand(input);
   const response = await client.send(command);
