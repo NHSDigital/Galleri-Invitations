@@ -82,22 +82,6 @@ module "gp_practices_bucket" {
   environment             = var.environment
 }
 
-# clinic data bucket
-module "clinic_data_bucket" {
-  source                  = "./modules/s3"
-  bucket_name             = "galleri-clinic-data"
-  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  environment             = var.environment
-}
-
-# clinic capacity bucket
-module "clinic_schedule_summary" {
-  source                  = "./modules/s3"
-  bucket_name             = "inbound-gtms-clinic-schedule-summary"
-  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  environment             = var.environment
-}
-
 module "user_accounts_bucket" {
   source                  = "./modules/s3"
   bucket_name             = "user-accounts-bucket"
