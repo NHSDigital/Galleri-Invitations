@@ -82,10 +82,10 @@ module "clinic_data_bucket" {
   environment             = var.environment
 }
 
-# clinic data bucket
-module "clinic_capacity_bucket" {
+# clinic capacity bucket
+module "clinic_schedule_summary" {
   source                  = "./modules/s3"
-  bucket_name             = "gtms-clinic-schedule-summary"
+  bucket_name             = "inbound-gtms-clinic-schedule-summary"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
@@ -728,8 +728,8 @@ module "validate_clinic_capacity_lambda_cloudwatch" {
 
 module "validate_clinic_capacity_lambda_trigger" {
   source        = "./modules/lambda_trigger"
-  bucket_id     = module.clinic_capacity_bucket.bucket_id
-  bucket_arn    = module.clinic_capacity_bucket.bucket_arn
+  bucket_id     = module.clinic_schedule_summary.bucket_id
+  bucket_arn    = module.clinic_schedule_summary.bucket_arn
   lambda_arn    = module.validate_clinic_capacity_lambda.lambda_arn
   filter_prefix = "clinic-schedule-summary"
 }
