@@ -88,6 +88,20 @@ module "invited_participant_batch" {
   environment             = var.environment
 }
 
+module "gtms_appointment" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-gtms-appointment"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
+module "gtms_appointment_validated" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-gtms-appointment-validated"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
 # Data Filter Gridall IMD
 module "data_filter_gridall_imd_lambda" {
   source               = "./modules/lambda"
@@ -656,6 +670,35 @@ module "user_accounts_lambda_trigger" {
   bucket_id  = module.user_accounts_bucket.bucket_id
   bucket_arn = module.user_accounts_bucket.bucket_arn
   lambda_arn = module.user_accounts_lambda.lambda_arn
+}
+
+# GTMS Validate Appointment Lambda
+module "validate_gtms_appointment_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "validateGtmsAppointmentLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "validate_gtms_appointment_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "validate_gtms_appointment_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.validate_gtms_appointment_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "validate_gtms_appointment_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.gtms_appointment.bucket_id
+  bucket_arn    = module.gtms_appointment.bucket_arn
+  lambda_arn    = module.validate_gtms_appointment_lambda.lambda_arn
 }
 
 # Create GTMS Invitation Batch
