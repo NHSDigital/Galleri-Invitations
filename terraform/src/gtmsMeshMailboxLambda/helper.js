@@ -40,7 +40,7 @@ export const getSecret = async (secretName, client) => {
  * Establish connection with MESH
  * @params handshake to be replaced with handShake fn
  */
-export const run = async (CONFIG, handshake) => {
+export const getHealthStatusCode = async (CONFIG, handshake) => {
 
   try {
     const healthCheck = await handshake({

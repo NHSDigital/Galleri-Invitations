@@ -31,10 +31,10 @@ export const handler = async (event) => {
     // Valid Records Arrangement
     if (validationResults.success) {
       // Deposit to S3 bucket
-      await pushToS3(`${ENVIRONMENT}-valid-inbound-gtms-clinic-create-or-update`, `validRecords/valid_records_add-${timeNow}.json`, jsonString, s3);
+      await pushToS3(`${ENVIRONMENT}-processed-inbound-gtms-clinic-create-or-update`, `validRecords/valid_records_add-${timeNow}.json`, jsonString, s3);
     }
     else {
-      await pushToS3(`${ENVIRONMENT}-valid-inbound-gtms-clinic-create-or-update`, `invalidRecords/invalid_records-${timeNow}.json`, jsonString, s3);
+      await pushToS3(`${ENVIRONMENT}-processed-inbound-gtms-clinic-create-or-update`, `invalidRecords/invalid_records-${timeNow}.json`, jsonString, s3);
       console.warn("PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Data BELOW:\n" + validationResult.errors, null, 2);
     }
     return `Finished validating object ${key} in bucket ${bucket}`;

@@ -38,7 +38,7 @@ export const handler = async (event, context) => {
       });
       const response = await client.send(command);
       if (response.$metadata.httpStatusCode !== 200) {
-        console.error(`Error inserted item: ${JSON.stringify(js)}`);
+        console.error(`Failed to insert item: ${JSON.stringify(js)}`);
       } else {
         console.log(`Successfully inserted item: ${JSON.stringify(js)}`);
       }

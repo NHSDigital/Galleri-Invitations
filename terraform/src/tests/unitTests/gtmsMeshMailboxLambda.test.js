@@ -1,7 +1,7 @@
 import { processMessage } from "../../gtmsMeshMailboxLambda/gtmsMeshMailboxLambda";
 import { mockClient } from "aws-sdk-client-mock";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { pushCsvToS3, getSecret, run, getMessageArray, markRead, readMsg } from "../../gtmsMeshMailboxLambda/helper";
+import { pushCsvToS3, getSecret, getHealthStatusCode, getMessageArray, markRead, readMsg } from "../../gtmsMeshMailboxLambda/helper";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { handShake, getMessageCount, markAsRead, readMessage } from "nhs-mesh-client";
 
@@ -202,7 +202,7 @@ describe("processMessage", () => {
   })
 })
 
-describe("run", () => {
+describe("getHeathStatusCode", () => {
   const mockConfig = {
     url: "example",
     mailboxID: "example",
@@ -210,10 +210,10 @@ describe("run", () => {
     sharedKey: "example",
     agent: "example"
   };
-  test('test run', async () => {
+  test('test getHealthStatusCode', async () => {
     const logSpy = jest.spyOn(global.console, "log");
     //pass in mocked handShake function from globally mocked nhs-mesh-client module
-    const result = await run(mockConfig, handShake);
+    const result = await getHealthStatusCode(mockConfig, handShake);
     console.log(`result: ${result}`);
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
@@ -221,11 +221,11 @@ describe("run", () => {
     expect(result).toBe("Handshake successful, status 200");
   })
 
-  test('test run failure', async () => {
+  test('test getHealthStatusCode failure', async () => {
     handShake.mockRejectedValue("ERROR: Request 'handShake' completed but responded with incorrect status");
     const logSpy = jest.spyOn(global.console, "log");
     try {
-      const result = await run(mockConfig, handShake);
+      const result = await getHealthStatusCode(mockConfig, handShake);
       console.log(`result: ${result}`);
     } catch (err) {
       console.log(err);

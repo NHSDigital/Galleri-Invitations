@@ -1,5 +1,5 @@
 //IMPORTS
-import { getSecret, pushCsvToS3, run, getMessageArray, markRead, readMsg } from "./helper.js"
+import { getSecret, pushCsvToS3, getHealthStatusCode, getMessageArray, markRead, readMsg } from "./helper.js"
 import { handShake, loadConfig, getMessageCount, readMessage, markAsRead } from "nhs-mesh-client";
 import { S3Client } from '@aws-sdk/client-s3';
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
@@ -36,7 +36,7 @@ export const handler = async (event, context) => {
 
   try {
     console.log('Establishing connection');
-    let healthy = await run(CONFIG, HANDSHAKE);
+    let healthy = await getHealthStatusCode(CONFIG, HANDSHAKE);
     if (healthy === 200) {
       console.log(`Status: ${healthy}`);
       let messageArr = await getMessageArray(CONFIG, MSG_COUNT); //return arr of message ids
