@@ -695,10 +695,10 @@ module "validate_gtms_appointment_lambda_cloudwatch" {
 }
 
 module "validate_gtms_appointment_lambda_trigger" {
-  source        = "./modules/lambda_trigger"
-  bucket_id     = module.gtms_appointment.bucket_id
-  bucket_arn    = module.gtms_appointment.bucket_arn
-  lambda_arn    = module.validate_gtms_appointment_lambda.lambda_arn
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.gtms_appointment.bucket_id
+  bucket_arn = module.gtms_appointment.bucket_arn
+  lambda_arn = module.validate_gtms_appointment_lambda.lambda_arn
 }
 
 # Create GTMS Invitation Batch
