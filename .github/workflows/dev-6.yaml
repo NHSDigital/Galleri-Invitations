@@ -53,6 +53,7 @@ jobs:
       version: ${{ steps.variables.outputs.version }}
       does_pull_request_exist: ${{ steps.pr_exists.outputs.does_pull_request_exist }}
       environment: ${{ env.environment }}
+      environment_type: ${{ steps.variables.outputs.environment_type }}
       invitations_branch: ${{ github.event.inputs.invitations_branch }}
       frontend_branch: ${{ github.event.inputs.invitations_branch }}
       database_seeding: ${{ github.event.inputs.database_seeding }}
@@ -82,6 +83,7 @@ jobs:
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
           echo "environment=dev-6" >> $GITHUB_OUTPUT
+          echo "environment_type=$(echo '${{ env.environment }}' | cut -f1 -d'-')" >> $GITHUB_OUTPUT
       - name: "Check if pull request exists for this branch"
         id: pr_exists
         env:
@@ -159,7 +161,7 @@ jobs:
   data-stage: # Recommended maximum execution time is 10 minutes
     needs: [metadata, test-stage, build-stage]
     uses: ./.github/workflows/stage-4-load-data.yaml
-    if: needs.metadata.outputs.database_seeding == 'yes'
+    if: needs.metadata.outputs.database_seeding == 'yes' && needs.metadata.outputs.tf_action != 'destroy'
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
@@ -168,7 +170,8 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
-      environment: ${{ needs.metadata.outputs.environment }}
+      environment: "${{ needs.metadata.outputs.environment }}"
+      environment_type: "${{ needs.metadata.outputs.environment_type }}"
     secrets: inherit
 
   acceptance-stage: # Recommended maximum execution time is 10 minutes

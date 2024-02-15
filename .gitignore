@@ -31,11 +31,13 @@ override.tf.json
 # example: *tfplan*
 
 # Ignore CLI configuration files
+.terraform*
 .terraformrc
 terraform.rc
 
 # python directories
 **/__pycache__
+venv
 
 # node modules
 node_modules

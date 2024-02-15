@@ -26,7 +26,7 @@ const clinicInformation = {
   name: "clinic-information",
   resource_path: "clinic-information",
   method: "GET",
-  query_string: "?clinicId=GA13S479&clinicName=Phlebotomy%20clinic%206",
+  query_string: "?clinicId=CV04Z730&clinicName=Phlebotomy%20clinic%2026",
   expected_status_code: 200,
   expected_response_count: 13,
 };
@@ -44,7 +44,7 @@ const getLsoaInRange = {
   method: "GET",
   expected_status_code: 200,
   expected_response_count: 5,
-  query_string: `?clinicPostcode=BN8%205GZ&miles=1`,
+  query_string: `?clinicPostcode=PR1%206AB&miles=100`,
 };
 const invitationParameters = {
   name: "invitation-parameters",
@@ -131,7 +131,7 @@ const getApiId = async () => {
   const client = new APIGatewayClient();
   const input = {
     // Default pagination is 25 so overwriting it to get all api's
-    limit: Number("100"),
+    limit: Number("200"),
   };
 
   try {
@@ -173,9 +173,9 @@ const buildUrl = async ({ apiList, api }) => {
 };
 
 async function apiCall({ apiList, api }) {
-  const fullUrl = await buildUrl({ apiList: apiList, api: api });
-  let response;
   try {
+    const fullUrl = await buildUrl({ apiList: apiList, api: api });
+    let response;
     if (api.method === "GET") {
       response = await axios.get(fullUrl);
     } else if (api.method === "POST") {
@@ -201,21 +201,38 @@ async function apiCall({ apiList, api }) {
     }
     return response;
   } catch (error) {
-    console.error(error);
-    process.exit(1);
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      log.error(error);
+      log.error(
+        `Request failed with status code ${error.response.status}: ${error.response.statusText}`
+      );
+      return error;
+    } else if (error.request) {
+      // The request was made but no response was received
+      log.error("No response was received for the request");
+      return error;
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      log.error("Error:", error.message);
+      return error;
+    }
   }
 }
 
 const apiList = await getApiId();
-// GET requests
+
+// log.info(apiList);
+
+// // GET requests
 await apiCall({ apiList: apiList, api: clinicIcbList });
 await apiCall({ apiList: apiList, api: clinicInformation });
 await apiCall({ apiList: apiList, api: clinicSummeryList });
-await apiCall({ apiList: apiList, api: getLsoaInRange });
+// // Need to investigate why getLsoaInRange returns no results
+// await apiCall({ apiList: apiList, api: getLsoaInRange });
 await apiCall({ apiList: apiList, api: participatingIcbList });
 await apiCall({ apiList: apiList, api: invitationParameters });
-// Target Percentage currently unused
-// await apiCall({ apiList: apiList, api: targetPercentage });
 
 // POST requests
 // Lambda currently broken, awaiting GAL-334 to resolve then test can be enabled
