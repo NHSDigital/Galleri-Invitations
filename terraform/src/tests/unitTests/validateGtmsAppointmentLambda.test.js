@@ -1,5 +1,5 @@
 import { mockClient } from "aws-sdk-client-mock";
-import { AWS } from "aws-sdk-mock";
+import AWS from "aws-sdk-mock";
 import { S3Client } from "@aws-sdk/client-s3";
 import {
   pushS3,
@@ -7,10 +7,6 @@ import {
 } from "../../validateGtmsAppointmentLambda/validateGtmsAppointmentLambda.js";
 
 describe("S3 Operations", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   test("Failed response when error occurs getting file to bucket", async () => {
     const logSpy = jest.spyOn(global.console, "log");
     const errorMsg = new Error("Mocked error");
@@ -61,14 +57,20 @@ describe("S3 Operations", () => {
   });
 
   beforeEach(() => {
+    jest.clearAllMocks();
+
     AWS.mock("S3", "getObject", (params, callback) => {
       // Provide a mocked response for getObject
-      callback(null, { Body: "mocked data" });
+      callback(null, { Body: "mocked CSV data" });
     });
 
     AWS.mock("S3", "putObject", (params, callback) => {
       // Provide a mocked response for putObject
       callback(null, "mocked response");
     });
+  });
+
+  afterEach(() => {
+    AWS.restore("S3");
   });
 });
