@@ -30,7 +30,7 @@ export const handler = async (event, context) => {
       const dateTime = new Date(Date.now()).toISOString();
       //reject record, push to s3 failedRecords folder
       let response = await (pushCsvToS3(
-        `${ENVIRONMENT}-valid-inbound-gtms-clinic-schedule-summary`,
+        `${ENVIRONMENT}-processed-inbound-gtms-clinic-schedule-summary`,
         `invalidData/invalidRecord_${dateTime}.json`,
         csvString,
         s3
@@ -49,7 +49,7 @@ export const handler = async (event, context) => {
         const dateTime = new Date(Date.now()).toISOString();
         //reject record, push to s3 failedRecords folder
         let response = await (pushCsvToS3(
-          `${ENVIRONMENT}-valid-inbound-gtms-clinic-schedule-summary`,
+          `${ENVIRONMENT}-processed-inbound-gtms-clinic-schedule-summary`,
           `invalidData/invalidRecord_${dateTime}.json`,
           csvString,
           s3
