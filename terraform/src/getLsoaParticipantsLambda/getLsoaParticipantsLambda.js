@@ -113,10 +113,11 @@ export async function getEligiblePopulation(lsoaList, client) {
 
       response.forEach((person) => {
         if (
-          person?.Invited?.S == "false" &&
-          person?.identified_to_be_invited.BOOL == false &&
-          person?.date_of_death?.S == "NULL" &&
-          person?.removal_date?.S == "NULL"
+          person?.Invited?.S == "false" ||
+          person?.identified_to_be_invited.BOOL == false ||
+          person?.date_of_death?.S == "NULL" ||
+          person?.removal_date?.S == "NULL" ||
+          person?.superseded_by_nhs_number?.N == 0
         ) {
           populationArray.push({
             personId: person?.PersonId.S,
