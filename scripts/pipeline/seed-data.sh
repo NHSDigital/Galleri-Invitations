@@ -29,8 +29,7 @@ function main() {
   fi
 
   echo "--------------------------------------------------------------"
-  set -x
-  echo $environment_type
+
   if [[ $environment_type == "dev" || $environment_type == "test" ]]; then
     sed -i "s/ENVIRONMENT/$environment/g" $GITHUB_WORKSPACE/scripts/test_data/destructible_environments/lsoa.json
     aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/lsoa.json
@@ -56,10 +55,10 @@ function main() {
   else
     echo "Error: Failed to retrieve count from DynamoDB table or invalid count received"
   fi
-  set +x
+
   echo "--------------------------------------------------------------"
 
-  if [[ $environment_type == "dev" || "test" ]]; then
+  if [[ $environment_type == "dev" || $environment_type == "test" ]]; then
     sed -i "s/ENVIRONMENT/$environment/g" $GITHUB_WORKSPACE/scripts/test_data/destructible_environments/phlebotomy.json
     aws dynamodb batch-write-item --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/phlebotomy.json
   fi
@@ -97,7 +96,7 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
-  if [[ $environment_type == "dev" || "test" ]]; then
+  if [[ $environment_type == "dev" || $environment_type == "test" ]]; then
     sed -i "s/ENVIRONMENT/$environment/g" $GITHUB_WORKSPACE/scripts/test_data/destructible_environments/population*.json
     aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/population1.json
     aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/population2.json
