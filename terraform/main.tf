@@ -133,7 +133,7 @@ module "clinic_schedule_summary" {
   environment             = var.environment
 }
 
-module "valid_clinic_schedule_summary_bucket" {
+module "processed_clinic_schedule_summary_bucket" {
   source                  = "./modules/s3"
   bucket_name             = "processed-inbound-gtms-clinic-schedule-summary"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
