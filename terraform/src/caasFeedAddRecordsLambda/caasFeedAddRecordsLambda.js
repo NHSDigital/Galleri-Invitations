@@ -333,7 +333,6 @@ export const lookUp = async (dbClient, ...params) => {
     useIndex
   ] = params
 
-
   const ExpressionAttributeValuesKey = `:${attribute}`
   let expressionAttributeValuesObj = {}
   let expressionAttributeValuesNestObj = {}
@@ -349,7 +348,13 @@ export const lookUp = async (dbClient, ...params) => {
     TableName: `${ENVIRONMENT}-${table}`,
   };
 
-  if (useIndex) input.IndexName = `${attribute}-index`
+  if (useIndex){
+    if (attribute === 'participantId') {
+      input.IndexName = `Participant_Id-index`
+    } else {
+      input.IndexName = `${attribute}-index`
+    }
+  }
 
   const getCommand = new QueryCommand(input);
   const response = await dbClient.send(getCommand);

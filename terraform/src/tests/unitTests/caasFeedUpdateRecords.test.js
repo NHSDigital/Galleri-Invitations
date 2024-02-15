@@ -293,9 +293,6 @@ describe('filterUniqueEntries', () => {
 
 describe('lookUp', () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
-  const SUCCESSFULL_REPSONSE = 200
-  const UNSUCCESSFULL_REPSONSE = 400
-
 
   test('should return successful response if item does not exist from query', async () => {
     mockDynamoDbClient.resolves({

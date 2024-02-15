@@ -1,6 +1,6 @@
 {
   "transformIgnorePatterns": [
-    "node_modules/(?!(string-width|strip-ansi|ansi-regex|test-json-import)/)"
+    "node_modules/(?!(string-width|strip-ansi|ansi-regex|test-json-import|nhs-mesh-client)/)"
   ],
   "collectCoverage": true,
   "collectCoverageFrom": [

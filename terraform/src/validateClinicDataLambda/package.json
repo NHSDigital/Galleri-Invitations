@@ -1,0 +1,10 @@
+{
+  "name": "validateClinicDataLambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "validateClinicDataLambda.js",
+  "author": "",
+  "dependencies": {
+    "jsonschema": "^1.4.1"
+  }
+}

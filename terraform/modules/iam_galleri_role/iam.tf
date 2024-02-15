@@ -315,6 +315,9 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
   })
 }
 
+# Policy required by validateClinicDataLambda
+# resource "aws_iam_policy" "iam_policy_for_validate_clinic_data_lambda" {
+#  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_validate_clinic_data_lambda_role"
 # Policy required by validateCaasFeedLambda
 # resource "aws_iam_policy" "iam_policy_for_validate_caas_feed_lambda" {
 #  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_validate_caas_feed_lambda_role"
@@ -339,6 +342,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 #             "s3:*"
 #           ],
 #           "Resource" : [
+#             "arn:aws:s3:::gtms-clinic-create-or-update/*"
 #             "arn:aws:s3:::galleri-caas-data/*"
 #           ]
 #         }
@@ -349,6 +353,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 
 
 # Added GpPractice and Postcode to this policy as lambda role exceeded policy limit
+# Added validate CLinic Data to this policy as lambda role exceeded policy limit
 # Added validate Caas Feed to this policy as lambda role exceeded policy limit
 # Added UserAccounts to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
@@ -377,7 +382,8 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population/*/*",
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GpPractice",
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Postcode",
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-UserAccounts"
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-UserAccounts",
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite",
           ]
         },
         {
@@ -387,7 +393,13 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "s3:*"
           ],
           "Resource" : [
-            "arn:aws:s3:::${var.environment}-galleri-caas-data/*"
+            "arn:aws:s3:::${var.environment}-galleri-caas-data/*",
+            "arn:aws:s3:::${var.environment}-outbound-gtms-invited-participant-batch/*",
+            "arn:aws:s3:::${var.environment}-processed-inbound-gtms-clinic-create-or-update",
+            "arn:aws:s3:::${var.environment}-inbound-gtms-clinic-create-or-update/*",
+            "arn:aws:s3:::${var.environment}-inbound-gtms-clinic-schedule-summary/*",
+            "arn:aws:s3:::${var.environment}-inbound-gtms-appointment/*",
+            "arn:aws:s3:::${var.environment}-inbound-gtms-withdrawal/*",
           ]
         },
         {
@@ -401,13 +413,16 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           "Resource" : [
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_URL*",
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SHARED_KEY_1*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:GTMS_MESH_MAILBOX_ID*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:GTMS_MESH_MAILBOX_PASSWORD*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:GTMS_MESH_CERT*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_KEY*",
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_ID*",
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_PASSWORD*",
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_ID*",
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_PASSWORD*",
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_KEY*",
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_CERT*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_KEY*",
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_CERT*"
           ]
         },
@@ -549,6 +564,9 @@ resource "aws_iam_role_policy_attachment" "clinic_information_lambda" {
 #}
 
 # Role exceeded quota for PoliciesPerRole: 10
+#resource "aws_iam_role_policy_attachment" "validate_clinic_data_lambda" {
+#  role       = aws_iam_role.galleri_lambda_role.name
+#  policy_arn = aws_iam_policy.validate_clinic_data_lambda.arn
 #resource "aws_iam_role_policy_attachment" "validate_caas_feed_lambda" {
 #  role       = aws_iam_role.galleri_lambda_role.name
 #  policy_arn = aws_iam_policy.validate_caas_feed_lambda.arn
@@ -650,4 +668,3 @@ resource "aws_iam_role_policy_attachment" "api_gateway_logging_attach" {
 resource "aws_api_gateway_account" "account" {
   cloudwatch_role_arn = aws_iam_role.api_gateway_logging_role.arn
 }
-

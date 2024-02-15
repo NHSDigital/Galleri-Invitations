@@ -16,4 +16,22 @@ variable "frontend_repo_location" {
   default     = "/home/runner/work/Galleri-Invitations/Galleri-Invitations/Galleri-Frontend"
 }
 
-# variable "aws_account_number" {}
+variable "USERS" {
+  default = null
+}
+
+variable "CIS2_ID" {
+  default = null
+}
+
+variable "CIS2_SECRET" {
+  default = null
+}
+
+variable "NEXTAUTH_SECRET" {
+  default = null
+}
+
+variable "NEXTAUTH_URL" {
+  default = null
+}

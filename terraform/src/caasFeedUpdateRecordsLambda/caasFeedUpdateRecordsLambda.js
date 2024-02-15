@@ -181,10 +181,7 @@ export const processingData = async (incomingUpdateData, populationTableRecord) 
 }
 
 const updateRecord = async (record, recordFromTable) => {
-  const {
-    PersonId,
-    LsoaCode
-  } = recordFromTable
+  const { PersonId } = recordFromTable
 
   if (record.date_of_death !== recordFromTable.date_of_death) { // AC1a and AC1b
     const episodeRecord = await lookUp(client, PersonId.S, "Episode", "Participant_Id", "S", true);
@@ -193,7 +190,7 @@ const updateRecord = async (record, recordFromTable) => {
       const batchId = episodeRecord.Items[0].Batch_Id.S
       const participantId = episodeRecord.Items[0].Participant_Id.S
 
-      const updateEpisodeRecord = ["Episode_Status", "S", "Closed"]
+      const updateEpisodeRecord = ["Episode_Status", "S", "Deceased"]
       await updateRecordInTable(client, "Episode", batchId, "Batch_Id", participantId, "Participant_Id", updateEpisodeRecord);
     } else {
       console.log('No open Episode record')

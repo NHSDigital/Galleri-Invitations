@@ -1,0 +1,234 @@
+{
+  "ENVIRONMENT-UniqueLsoa": [
+    {
+      "PutRequest": {
+        "Item": {
+          "LOCAL_AUT_ORG": { "S": "611" },
+          "NHS_ENG_REGION": { "S": "Y61" },
+          "SUB_ICB": { "S": "" },
+          "CANCER_REGISTRY": { "S": "Y0401" },
+          "LSOA_2011": { "S": "E01015698" },
+          "MSOA_2011": { "S": "E02003274" },
+          "CANCER_ALLIANCE": { "S": "E56000023" },
+          "ICB": { "S": "QHG" },
+          "OA_2021": { "S": "E00079415" },
+          "LSOA_2021": { "S": "E01015698" },
+          "MSOA_2021": { "S": "E02003274" },
+          "IMD_RANK": { "N": "4875" },
+          "IMD_DECILE": { "N": "2" },
+          "LSOA_NAME": { "S": "Luton 017A" },
+          "AVG_EASTING": { "S": "508447" },
+          "AVG_NORTHING": { "S": "0222116" },
+          "MODERATOR": { "S": "0.531" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "LOCAL_AUT_ORG": { "S": "611" },
+          "NHS_ENG_REGION": { "S": "Y61" },
+          "SUB_ICB": { "S": "" },
+          "CANCER_REGISTRY": { "S": "Y0401" },
+          "LSOA_2011": { "S": "E01015699" },
+          "MSOA_2011": { "S": "E02003274" },
+          "CANCER_ALLIANCE": { "S": "E56000023" },
+          "ICB": { "S": "QHG" },
+          "OA_2021": { "S": "E00079393" },
+          "LSOA_2021": { "S": "E01015699" },
+          "MSOA_2021": { "S": "E02003274" },
+          "IMD_RANK": { "N": "3948" },
+          "IMD_DECILE": { "N": "2" },
+          "LSOA_NAME": { "S": "Luton 017B" },
+          "AVG_EASTING": { "S": "508590" },
+          "AVG_NORTHING": { "S": "0221867" },
+          "MODERATOR": { "S": "0.362" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "LOCAL_AUT_ORG": { "S": "611" },
+          "NHS_ENG_REGION": { "S": "Y61" },
+          "SUB_ICB": { "S": "" },
+          "CANCER_REGISTRY": { "S": "Y0401" },
+          "LSOA_2011": { "S": "E01015700" },
+          "MSOA_2011": { "S": "E02003267" },
+          "CANCER_ALLIANCE": { "S": "E56000023" },
+          "ICB": { "S": "QHG" },
+          "OA_2021": { "S": "E00173663" },
+          "LSOA_2021": { "S": "E01015700" },
+          "MSOA_2021": { "S": "E02003267" },
+          "IMD_RANK": { "N": "14025" },
+          "IMD_DECILE": { "N": "5" },
+          "LSOA_NAME": { "S": "Luton 010A" },
+          "AVG_EASTING": { "S": "508508" },
+          "AVG_NORTHING": { "S": "0222855" },
+          "MODERATOR": { "S": "0.803" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "LOCAL_AUT_ORG": { "S": "611" },
+          "NHS_ENG_REGION": { "S": "Y61" },
+          "SUB_ICB": { "S": "" },
+          "CANCER_REGISTRY": { "S": "Y0401" },
+          "LSOA_2011": { "S": "E01015701" },
+          "MSOA_2011": { "S": "E02003267" },
+          "CANCER_ALLIANCE": { "S": "E56000023" },
+          "ICB": { "S": "QHG" },
+          "OA_2021": { "S": "E00079421" },
+          "LSOA_2021": { "S": "E01015701" },
+          "MSOA_2021": { "S": "E02003267" },
+          "IMD_RANK": { "N": "8677" },
+          "IMD_DECILE": { "N": "3" },
+          "LSOA_NAME": { "S": "Luton 010B" },
+          "AVG_EASTING": { "S": "507875" },
+          "AVG_NORTHING": { "S": "0222862" },
+          "MODERATOR": { "S": "0.503" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "LOCAL_AUT_ORG": { "S": "611" },
+          "NHS_ENG_REGION": { "S": "Y61" },
+          "SUB_ICB": { "S": "" },
+          "CANCER_REGISTRY": { "S": "Y0401" },
+          "LSOA_2011": { "S": "E01015702" },
+          "MSOA_2011": { "S": "E02003274" },
+          "CANCER_ALLIANCE": { "S": "E56000023" },
+          "ICB": { "S": "QHG" },
+          "OA_2021": { "S": "E00173281" },
+          "LSOA_2021": { "S": "E01015702" },
+          "MSOA_2021": { "S": "E02003274" },
+          "IMD_RANK": { "N": "7059" },
+          "IMD_DECILE": { "N": "3" },
+          "LSOA_NAME": { "S": "Luton 017C" },
+          "AVG_EASTING": { "S": "508256" },
+          "AVG_NORTHING": { "S": "0222519" },
+          "MODERATOR": { "S": "0.613" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "LOCAL_AUT_ORG": { "S": "905" },
+          "NHS_ENG_REGION": { "S": "Y58" },
+          "SUB_ICB": { "S": "" },
+          "CANCER_REGISTRY": { "S": "Y1001" },
+          "LSOA_2011": { "S": "E01029018" },
+          "MSOA_2011": { "S": "E02006052" },
+          "CANCER_ALLIANCE": { "S": "E56000015" },
+          "ICB": { "S": "QSL" },
+          "OA_2021": { "S": "E00147785" },
+          "LSOA_2021": { "S": "E01029018" },
+          "MSOA_2021": { "S": "E02006052" },
+          "IMD_RANK": { "N": "20836" },
+          "IMD_DECILE": { "N": "7" },
+          "LSOA_NAME": { "S": "Mendip 006A" },
+          "AVG_EASTING": { "S": "362803" },
+          "AVG_NORTHING": { "S": "0149794" },
+          "MODERATOR": { "S": "1.128" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "LOCAL_AUT_ORG": { "S": "905" },
+          "NHS_ENG_REGION": { "S": "Y58" },
+          "SUB_ICB": { "S": "" },
+          "CANCER_REGISTRY": { "S": "Y1001" },
+          "LSOA_2011": { "S": "E01029019" },
+          "MSOA_2011": { "S": "E02006059" },
+          "CANCER_ALLIANCE": { "S": "E56000015" },
+          "ICB": { "S": "QSL" },
+          "OA_2021": { "S": "E00147791" },
+          "LSOA_2021": { "S": "E01029019" },
+          "MSOA_2021": { "S": "E02006059" },
+          "IMD_RANK": { "N": "22120" },
+          "IMD_DECILE": { "N": "7" },
+          "LSOA_NAME": { "S": "Mendip 013A" },
+          "AVG_EASTING": { "S": "353701" },
+          "AVG_NORTHING": { "S": "0135073" },
+          "MODERATOR": { "S": "1.230" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "LOCAL_AUT_ORG": { "S": "905" },
+          "NHS_ENG_REGION": { "S": "Y58" },
+          "SUB_ICB": { "S": "" },
+          "CANCER_REGISTRY": { "S": "Y1001" },
+          "LSOA_2011": { "S": "E01029020" },
+          "MSOA_2011": { "S": "E02006056" },
+          "CANCER_ALLIANCE": { "S": "E56000015" },
+          "ICB": { "S": "QSL" },
+          "OA_2021": { "S": "E00147800" },
+          "LSOA_2021": { "S": "E01029020" },
+          "MSOA_2021": { "S": "E02006056" },
+          "IMD_RANK": { "N": "17294" },
+          "IMD_DECILE": { "N": "6" },
+          "LSOA_NAME": { "S": "Mendip 010A" },
+          "AVG_EASTING": { "S": "367469" },
+          "AVG_NORTHING": { "S": "0146611" },
+          "MODERATOR": { "S": "1.000" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "LOCAL_AUT_ORG": { "S": "905" },
+          "NHS_ENG_REGION": { "S": "Y58" },
+          "SUB_ICB": { "S": "" },
+          "CANCER_REGISTRY": { "S": "Y1001" },
+          "LSOA_2011": { "S": "E01029021" },
+          "MSOA_2011": { "S": "E02006056" },
+          "CANCER_ALLIANCE": { "S": "E56000015" },
+          "ICB": { "S": "QSL" },
+          "OA_2021": { "S": "E00147804" },
+          "LSOA_2021": { "S": "E01029021" },
+          "MSOA_2021": { "S": "E02006056" },
+          "IMD_RANK": { "N": "18976" },
+          "IMD_DECILE": { "N": "6" },
+          "LSOA_NAME": { "S": "Mendip 010B" },
+          "AVG_EASTING": { "S": "365616" },
+          "AVG_NORTHING": { "S": "0143704" },
+          "MODERATOR": { "S": "1.172" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "LOCAL_AUT_ORG": { "S": "905" },
+          "NHS_ENG_REGION": { "S": "Y58" },
+          "SUB_ICB": { "S": "" },
+          "CANCER_REGISTRY": { "S": "Y1001" },
+          "LSOA_2011": { "S": "E01029022" },
+          "MSOA_2011": { "S": "E02006047" },
+          "CANCER_ALLIANCE": { "S": "E56000015" },
+          "ICB": { "S": "QSL" },
+          "OA_2021": { "S": "E00147806" },
+          "LSOA_2021": { "S": "E01029022" },
+          "MSOA_2021": { "S": "E02006047" },
+          "IMD_RANK": { "N": "27701" },
+          "IMD_DECILE": { "N": "9" },
+          "LSOA_NAME": { "S": "Mendip 001A" },
+          "AVG_EASTING": { "S": "380426" },
+          "AVG_NORTHING": { "S": "0153670" },
+          "MODERATOR": { "S": "1.206" }
+        }
+      }
+    }
+  ]
+}

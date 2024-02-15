@@ -54,7 +54,7 @@ on:
         required: false
       test:
         description: "If the tests should be run or not"
-        default: "false"
+        default: "no"
         type: string
         required: false
 
@@ -83,7 +83,7 @@ jobs:
           fetch-depth: 0 # Full history is needed to scan all commits
 
       - name: "Test Backend"
-        if: inputs.test == 'true'
+        if: inputs.test == 'yes'
         uses: ./.github/actions/api-testing
         with:
           role-to-assume: ${{ env.role-to-assume }}
