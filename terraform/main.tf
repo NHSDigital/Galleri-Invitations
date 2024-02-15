@@ -53,6 +53,14 @@ module "iam_galleri_lambda_role" {
   environment = var.environment
 }
 
+# This is the module which will run the invitations frontend in S3
+# further development is needed but storing progress on this module for post-mvp
+# module "frontend-invitations" {
+#   source      = "./modules/cloudfront"
+#   name        = "invitations-frontend"
+#   environment = var.environment
+# }
+
 module "s3_bucket" {
   source                  = "./modules/s3"
   bucket_name             = var.bucket_name
@@ -81,6 +89,22 @@ module "user_accounts_bucket" {
   environment             = var.environment
 }
 
+# GTMS buckets for each JSON response header
+module "caas_data_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "galleri-caas-data"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
+module "validated_records_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "galleri-processed-caas-data"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
+# CaaS MESH data bucket
 module "invited_participant_batch" {
   source                  = "./modules/s3"
   bucket_name             = "outbound-gtms-invited-participant-batch"
@@ -88,12 +112,48 @@ module "invited_participant_batch" {
   environment             = var.environment
 }
 
-module "valid_clinic_schedule_summary_bucket" {
+module "clinic_data_bucket" {
   source                  = "./modules/s3"
-  bucket_name             = "valid-inbound-gtms-clinic-schedule-summary"
+  bucket_name             = "inbound-gtms-clinic-create-or-update"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
+
+module "processed_clinic_data_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "processed-inbound-gtms-clinic-create-or-update"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
+module "clinic_schedule_summary" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-gtms-clinic-schedule-summary"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
+module "valid_clinic_schedule_summary_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "processed-inbound-gtms-clinic-schedule-summary"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
+module "gtms_appointment" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-gtms-appointment"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
+module "gtms_withdrawal" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-gtms-withdrawal"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+# End of GTMS buckets
 
 # Data Filter Gridall IMD
 module "data_filter_gridall_imd_lambda" {
@@ -665,7 +725,27 @@ module "user_accounts_lambda_trigger" {
   lambda_arn = module.user_accounts_lambda.lambda_arn
 }
 
-# Create GTMS Invitation Batch
+module "poll_mesh_mailbox_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "pollMeshMailboxLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "poll_mesh_mailbox_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                    = "${var.environment}",
+    MESH_SANDBOX                   = "false",
+    MESH_URL                       = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
+    MESH_SHARED_KEY                = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
+    MESH_SENDER_MAILBOX_ID         = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_id.secret_string)["MESH_SENDER_MAILBOX_ID"],
+    MESH_SENDER_MAILBOX_PASSWORD   = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_password.secret_string)["MESH_SENDER_MAILBOX_PASSWORD"],
+    MESH_RECEIVER_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_id.secret_string)["MESH_RECEIVER_MAILBOX_ID"],
+    MESH_RECEIVER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_password.secret_string)["MESH_RECEIVER_MAILBOX_PASSWORD"]
+  }
+}
+
 module "create_invitation_batch_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
@@ -698,6 +778,93 @@ module "create_invitation_batch_dynamodb_stream" {
   filter_event_name                  = "INSERT"
 }
 
+# GTMS MESH lambda
+module "gtms_mesh_mailbox_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gtmsMeshMailboxLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "gtms_mesh_mailbox_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                = "${var.environment}",
+    MESH_SANDBOX               = "false",
+    MESH_URL                   = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
+    MESH_SHARED_KEY            = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
+    GTMS_MESH_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_mailbox_id.secret_string)["GTMS_MESH_MAILBOX_ID"],
+    GTMS_MESH_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_mailbox_password.secret_string)["GTMS_MESH_MAILBOX_PASSWORD"]
+  }
+}
+
+module "gtms_mesh_mailbox_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gtms_mesh_mailbox_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+# GTMS Validate clinic Lambda
+module "validate_clinic_data_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "validateClinicDataLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "validate_clinic_data_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "validate_clinic_data_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.validate_clinic_data_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "validate_clinic_data_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.clinic_data_bucket.bucket_id
+  bucket_arn    = module.clinic_data_bucket.bucket_arn
+  lambda_arn    = module.validate_clinic_data_lambda.lambda_arn
+  filter_prefix = "clinic_create_or_update_"
+}
+
+# GTMS upload clinic data
+module "gtms_upload_clinic_data_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gtmsUploadClinicDataLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "gtms_upload_clinic_data_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "gtms_upload_clinic_data_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gtms_upload_clinic_data_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "gtms_upload_clinic_data_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.processed_clinic_data_bucket.bucket_id
+  bucket_arn    = module.processed_clinic_data_bucket.bucket_arn
+  lambda_arn    = module.gtms_upload_clinic_data_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_add-"
+}
+
 # GTMS upload clinic data
 module "gtms_upload_clinic_capacity_data_lambda" {
   source               = "./modules/lambda"
@@ -722,8 +889,8 @@ module "gtms_upload_clinic_capacity_data_cloudwatch" {
 
 module "gtms_upload_clinic_capacity_data_trigger" {
   source        = "./modules/lambda_trigger"
-  bucket_id     = module.valid_clinic_schedule_summary_bucket.bucket_id
-  bucket_arn    = module.valid_clinic_schedule_summary_bucket.bucket_arn
+  bucket_id     = module.processed_clinic_schedule_summary_bucket.bucket_id
+  bucket_arn    = module.processed_clinic_schedule_summary_bucket.bucket_arn
   lambda_arn    = module.gtms_upload_clinic_capacity_data_lambda.lambda_arn
   filter_prefix = "validRecords/valid_records_add-"
 }
@@ -766,6 +933,136 @@ module "sdrs_table" {
   }
 }
 
+#MESH keys
+
+data "aws_secretsmanager_secret_version" "mesh_url" {
+  secret_id = "MESH_URL"
+}
+
+data "aws_secretsmanager_secret_version" "mesh_shared_key" {
+  secret_id = "MESH_SHARED_KEY_1"
+}
+
+data "aws_secretsmanager_secret_version" "mesh_sender_mailbox_id" {
+  secret_id = "MESH_SENDER_MAILBOX_ID"
+}
+
+data "aws_secretsmanager_secret_version" "mesh_sender_mailbox_password" {
+  secret_id = "MESH_SENDER_MAILBOX_PASSWORD"
+}
+
+data "aws_secretsmanager_secret_version" "mesh_receiver_mailbox_id" {
+  secret_id = "MESH_RECEIVER_MAILBOX_ID"
+}
+
+data "aws_secretsmanager_secret_version" "mesh_receiver_mailbox_password" {
+  secret_id = "MESH_RECEIVER_MAILBOX_PASSWORD"
+}
+
+data "aws_secretsmanager_secret_version" "gtms_mesh_mailbox_id" {
+  secret_id = "GTMS_MESH_MAILBOX_ID"
+}
+
+data "aws_secretsmanager_secret_version" "gtms_mesh_mailbox_password" {
+  secret_id = "GTMS_MESH_MAILBOX_PASSWORD"
+}
+#END of MESH keys
+
+module "poll_mesh_mailbox_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.poll_mesh_mailbox_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "validate_caas_feed_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "validateCaasFeedLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "validate_caas_feed_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "validate_caas_feed_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.validate_caas_feed_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "validate_caas_feed_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.caas_data_bucket.bucket_id
+  bucket_arn    = module.caas_data_bucket.bucket_arn
+  lambda_arn    = module.validate_caas_feed_lambda.lambda_arn
+  filter_prefix = "mesh_chunk_data_"
+}
+
+module "caas_feed_add_records_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "caasFeedAddRecordsLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "caas_feed_add_records_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "caas_feed_add_records_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.caas_feed_add_records_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "caas_feed_add_records_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.validated_records_bucket.bucket_id
+  bucket_arn    = module.validated_records_bucket.bucket_arn
+  lambda_arn    = module.caas_feed_add_records_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_add-"
+}
+
+module "caas_feed_update_records_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "caasFeedUpdateRecordsLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "caas_feed_update_records_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "caas_feed_update_records_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.caas_feed_update_records_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "caas_feed_update_records_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.validated_records_bucket.bucket_id
+  bucket_arn    = module.validated_records_bucket.bucket_arn
+  lambda_arn    = module.caas_feed_update_records_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_update-"
+}
+
+# Dynamodb tables
 module "participating_icb_table" {
   source      = "./modules/dynamodb"
   table_name  = "ParticipatingIcb"
@@ -908,7 +1205,7 @@ module "population_table" {
   secondary_write_capacity = null
   secondary_read_capacity  = null
   environment              = var.environment
-  non_key_attributes       = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited"]
+  non_key_attributes       = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
   projection_type          = "INCLUDE"
   attributes = [{
     name = "PersonId"
@@ -921,6 +1218,18 @@ module "population_table" {
     {
       name = "Batch_Id"
       type = "S"
+    },
+    {
+      name = "participantId"
+      type = "S"
+    },
+    {
+      name = "nhs_number"
+      type = "N"
+    },
+    {
+      name = "superseded_by_nhs_number"
+      type = "N"
     }
   ]
   global_secondary_index = [
@@ -932,6 +1241,21 @@ module "population_table" {
     {
       name      = "BatchId-index"
       hash_key  = "Batch_Id"
+      range_key = null
+    },
+    {
+      name      = "Participant_Id-index"
+      hash_key  = "participantId"
+      range_key = null
+    },
+    {
+      name      = "nhs_number-index"
+      hash_key  = "nhs_number"
+      range_key = null
+    },
+    {
+      name      = "superseded_by_nhs_number-index"
+      hash_key  = "superseded_by_nhs_number"
       range_key = null
     }
   ]
@@ -1057,7 +1381,7 @@ module "episode_table" {
   ]
   global_secondary_index = [
     {
-      name      = "ParticipantId-index"
+      name      = "Participant_Id-index"
       hash_key  = "Participant_Id"
       range_key = null
     }
@@ -1067,4 +1391,3 @@ module "episode_table" {
     Environment = var.environment
   }
 }
-

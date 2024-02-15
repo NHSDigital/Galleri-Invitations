@@ -119,6 +119,13 @@ runs:
         npm install --prefix src/generateInvitesTriggerLambda
         npm install --prefix src/gpPracticesLoaderLambda
         npm install --prefix src/userAccountsLambda
+        npm install --prefix src/pollMeshMailboxLambda
+        npm install --prefix src/validateCaasFeedLambda
+        npm install --prefix src/caasFeedAddRecordsLambda
+        npm install --prefix src/caasFeedUpdateRecordsLambda
         npm install --prefix src/createInvitationBatchLambda
+        npm install --prefix src/gtmsMeshMailboxLambda
+        npm install --prefix src/validateClinicDataLambda
+        npm install --prefix src/gtmsUploadClinicDataLambda
         npm install --prefix src/gtmsUploadClinicCapacityDataLambda
         terraform ${{ env.tf-action }} -auto-approve -input=false -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars
