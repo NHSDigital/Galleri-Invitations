@@ -1,4 +1,5 @@
 import { mockClient } from "aws-sdk-client-mock";
+import { AWS } from "aws-sdk-mock";
 import { S3Client } from "@aws-sdk/client-s3";
 import {
   pushS3,
