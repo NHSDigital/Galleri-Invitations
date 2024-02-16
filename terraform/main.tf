@@ -45,6 +45,12 @@ module "galleri_invitations_screen" {
   NEXTAUTH_URL                                          = var.NEXTAUTH_URL
 }
 
+# Deploy validation container provided by FHIR team
+module "fhir_validation" {
+  source     = "./modules/ecs"
+  subnet_ids = module.vpc.subnet_ids
+}
+
 # the role that all lambda's are utilising,
 # we will replace this with individual roles in a future ticket
 module "iam_galleri_lambda_role" {
