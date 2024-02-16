@@ -103,6 +103,6 @@ resource "aws_ecs_service" "fhir_validator_service" {
   network_configuration {
     subnets          = var.subnet_ids
     assign_public_ip = true
-    security_groups  = [security_groups.ecs_security_group.id]
+    security_groups  = [aws_security_group.ecs_security_group.id]
   }
 }
