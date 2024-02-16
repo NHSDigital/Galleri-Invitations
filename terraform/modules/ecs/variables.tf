@@ -16,3 +16,7 @@ variable "image" {
 variable "subnet_ids" {
   description = "an array of subnets to pass in, requires at least one subnet"
 }
+
+variable "environment" {
+  
+}

@@ -47,8 +47,9 @@ module "galleri_invitations_screen" {
 
 # Deploy validation container provided by FHIR team
 module "fhir_validation" {
-  source     = "./modules/ecs"
-  subnet_ids = module.vpc.subnet_ids
+  source      = "./modules/ecs"
+  subnet_ids  = module.vpc.subnet_ids
+  environment = var.environment
 }
 
 # the role that all lambda's are utilising,

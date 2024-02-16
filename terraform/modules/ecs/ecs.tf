@@ -1,5 +1,5 @@
 resource "aws_ecs_cluster" "cluster" {
-  name = var.name
+  name = "${var.environment}-${var.name}"
 }
 
 resource "aws_ecs_task_definition" "fhir_validator" {
@@ -39,7 +39,7 @@ resource "aws_ecs_task_definition" "fhir_validator" {
 }
 
 resource "aws_iam_role" "ecs_task_execution_role" {
-  name = var.task_name
+  name = "${var.environment}-${var.name}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -62,8 +62,35 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
 }
 
 resource "security_groups" "ecs_security_group" {
-  name = var.name
+  name = "${var.environment}-${var.name}"
 
+  description = "Security group for Elastic Container Service"
+  vpc_id      = var.vpc_id
+
+  tags = {
+    Name = "${var.environment}-${var.name}"
+  }
+}
+
+# allow inbound http traffic
+resource "aws_vpc_security_group_ingress_rule" "http" {
+  security_group_id = aws_security_group.ecs_security_group.id
+
+  from_port   = 80
+  to_port     = 80
+  ip_protocol = "tcp"
+  cidr_ipv4   = "0.0.0.0/0"
+}
+
+# Allow all outbound traffic.
+resource "aws_security_group_rule" "local_egress" {
+  security_group_id = aws_security_group.ecs_security_group.id
+
+  type      = "egress"
+  from_port = 0
+  to_port   = 0
+  protocol  = "-1"
+  self      = true
 }
 
 resource "aws_ecs_service" "fhir_validator_service" {
