@@ -657,12 +657,12 @@ module "gp_practices_loader_cloudwatch" {
   retention_days       = 14
 }
 
-module "gp_practices_loader_lambda_trigger" {
-  source     = "./modules/lambda_trigger"
-  bucket_id  = module.gp_practices_bucket.bucket_id
-  bucket_arn = module.gp_practices_bucket.bucket_arn
-  lambda_arn = module.gp_practices_loader_lambda.lambda_arn
-}
+# module "gp_practices_loader_lambda_trigger" {
+#   source     = "./modules/lambda_trigger"
+#   bucket_id  = module.gp_practices_bucket.bucket_id
+#   bucket_arn = module.gp_practices_bucket.bucket_arn
+#   lambda_arn = module.gp_practices_loader_lambda.lambda_arn
+# }
 
 # Create Episode Records
 module "create_episode_record_lambda" {
@@ -718,12 +718,12 @@ module "user_accounts_cloudwatch" {
   retention_days       = 14
 }
 
-module "user_accounts_lambda_trigger" {
-  source     = "./modules/lambda_trigger"
-  bucket_id  = module.user_accounts_bucket.bucket_id
-  bucket_arn = module.user_accounts_bucket.bucket_arn
-  lambda_arn = module.user_accounts_lambda.lambda_arn
-}
+# module "user_accounts_lambda_trigger" {
+#   source     = "./modules/lambda_trigger"
+#   bucket_id  = module.user_accounts_bucket.bucket_id
+#   bucket_arn = module.user_accounts_bucket.bucket_arn
+#   lambda_arn = module.user_accounts_lambda.lambda_arn
+# }
 
 module "poll_mesh_mailbox_lambda" {
   source               = "./modules/lambda"
@@ -1031,13 +1031,13 @@ module "caas_feed_add_records_lambda_cloudwatch" {
   retention_days       = 14
 }
 
-module "caas_feed_add_records_lambda_trigger" {
-  source        = "./modules/lambda_trigger"
-  bucket_id     = module.validated_records_bucket.bucket_id
-  bucket_arn    = module.validated_records_bucket.bucket_arn
-  lambda_arn    = module.caas_feed_add_records_lambda.lambda_arn
-  filter_prefix = "validRecords/valid_records_add-"
-}
+# module "caas_feed_add_records_lambda_trigger" {
+#   source        = "./modules/lambda_trigger"
+#   bucket_id     = module.validated_records_bucket.bucket_id
+#   bucket_arn    = module.validated_records_bucket.bucket_arn
+#   lambda_arn    = module.caas_feed_add_records_lambda.lambda_arn
+#   filter_prefix = "validRecords/valid_records_add-"
+# }
 
 module "caas_feed_update_records_lambda" {
   source               = "./modules/lambda"
@@ -1060,13 +1060,13 @@ module "caas_feed_update_records_lambda_cloudwatch" {
   retention_days       = 14
 }
 
-module "caas_feed_update_records_lambda_trigger" {
-  source        = "./modules/lambda_trigger"
-  bucket_id     = module.validated_records_bucket.bucket_id
-  bucket_arn    = module.validated_records_bucket.bucket_arn
-  lambda_arn    = module.caas_feed_update_records_lambda.lambda_arn
-  filter_prefix = "validRecords/valid_records_update-"
-}
+# module "caas_feed_update_records_lambda_trigger" {
+#   source        = "./modules/lambda_trigger"
+#   bucket_id     = module.validated_records_bucket.bucket_id
+#   bucket_arn    = module.validated_records_bucket.bucket_arn
+#   lambda_arn    = module.caas_feed_update_records_lambda.lambda_arn
+#   filter_prefix = "validRecords/valid_records_update-"
+# }
 
 # Dynamodb tables
 module "participating_icb_table" {
