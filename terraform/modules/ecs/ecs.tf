@@ -61,7 +61,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-resource "security_groups" "ecs_security_group" {
+resource "aws_security_group" "ecs_security_group" {
   name = "${var.environment}-${var.name}"
 
   description = "Security group for Elastic Container Service"

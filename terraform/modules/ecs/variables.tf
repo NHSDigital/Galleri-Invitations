@@ -20,3 +20,7 @@ variable "subnet_ids" {
 variable "environment" {
 
 }
+
+variable "vpc_id" {
+
+}
