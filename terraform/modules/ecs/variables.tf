@@ -18,5 +18,5 @@ variable "subnet_ids" {
 }
 
 variable "environment" {
-  
+
 }
