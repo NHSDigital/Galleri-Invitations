@@ -61,6 +61,11 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+resource "security_groups" "ecs_security_group" {
+  name = var.name
+
+}
+
 resource "aws_ecs_service" "fhir_validator_service" {
   name            = var.task_name
   cluster         = aws_ecs_cluster.cluster.id
@@ -71,12 +76,6 @@ resource "aws_ecs_service" "fhir_validator_service" {
   network_configuration {
     subnets          = var.subnet_ids
     assign_public_ip = true
-    security_groups  = ["your-security-group-id"] # Replace with your security group ID
+    security_groups  = [security_groups.ecs_security_group.id]
   }
-
-  #   network_configuration {
-  #     subnets          = ["your-subnet-id1", "your-subnet-id2"] # Replace with your subnet IDs
-  #     assign_public_ip = true
-  #     security_groups  = ["your-security-group-id"] # Replace with your security group ID
-  #   }
 }
