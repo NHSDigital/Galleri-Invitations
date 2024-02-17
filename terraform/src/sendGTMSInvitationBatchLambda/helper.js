@@ -4,22 +4,22 @@ import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-sec
 
 // This config will be used by the each of the following functions to define
 // The mailboxes we will be using and the content of messages.
-const config = await loadConfig({
-  logLevel: "DEBUG",
-  url: "https://msg.intspineservices.nhs.uk",
-  sharedKey: process.env.MESH_SHARED_KEY,
-  sandbox: "false",
-  senderCert: process.env.MESH_SENDER_CERT_LOCATION,
-  senderKey: process.env.MESH_SENDER_KEY_LOCATION,
-  senderMailboxID: process.env.MESH_SENDER_MAILBOX_ID,
-  senderMailboxPassword: process.env.MESH_SENDER_MAILBOX_PASSWORD,
-  receiverCert: process.env.MESH_RECEIVER_CERT_LOCATION,
-  receiverKey: process.env.MESH_RECEIVER_KEY_LOCATION,
-  receiverMailboxID: process.env.MESH_RECEIVER_MAILBOX_ID,
-  receiverMailboxPassword: process.env.MESH_RECEIVER_MAILBOX_PASSWORD,
-});
+// const config = await loadConfig({
+//   logLevel: "DEBUG",
+//   url: "https://msg.intspineservices.nhs.uk",
+//   sharedKey: process.env.MESH_SHARED_KEY,
+//   sandbox: "false",
+//   senderCert: process.env.MESH_SENDER_CERT_LOCATION,
+//   senderKey: process.env.MESH_SENDER_KEY_LOCATION,
+//   senderMailboxID: process.env.MESH_SENDER_MAILBOX_ID,
+//   senderMailboxPassword: process.env.MESH_SENDER_MAILBOX_PASSWORD,
+//   receiverCert: process.env.MESH_RECEIVER_CERT_LOCATION,
+//   receiverKey: process.env.MESH_RECEIVER_KEY_LOCATION,
+//   receiverMailboxID: process.env.MESH_RECEIVER_MAILBOX_ID,
+//   receiverMailboxPassword: process.env.MESH_RECEIVER_MAILBOX_PASSWORD,
+// });
 
-log.setLevel(log.levels[config.logLevel]);
+// log.setLevel(log.levels[config.logLevel]);
 
 // The following functions are setup to satisfy the conformance
 // Testing that each mesh application is required to go though.
