@@ -1,6 +1,10 @@
 import { getSecret, pushToS3 } from "./helper.js"
 import { handShake, loadConfig, sendMessage, readMessage } from "nhs-mesh-client";
-import { S3Client } from '@aws-sdk/client-s3';
+import {
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client
+} from '@aws-sdk/client-s3';
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 
 //VARIABLES
