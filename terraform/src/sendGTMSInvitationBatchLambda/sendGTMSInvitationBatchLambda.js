@@ -38,7 +38,8 @@ export const handler = async (event, context) => {
     receiverMailboxPassword: process.env.MESH_RECEIVER_MAILBOX_PASSWORD,
     workFlowId: "API-GTMS-INVITATION_BATCH_TEST",
   });
-
+  const KEY_PREFIX = "invitation_batch_";
+  const timestamp = (new Date(Date.now())).toISOString();
 
   try {
     const JSONMsgStr = await getJSONFromS3(bucket, key, s3);
@@ -48,7 +49,7 @@ export const handler = async (event, context) => {
     console.log("Type pf JSONMsg", typeof JSONMsgObj);
     console.log("JSON OBJECT", JSONMsgObj);
 
-    // await sendUncompressed(JSONMsg);
+    await sendUncompressed(CONFIG, JSONMsgObj, `${KEY_PREFIX}${timestamp}.json`, handShake, sendMessage);
     // await sendToS3();
 
   } catch (error) {
@@ -77,9 +78,9 @@ async function getJSONFromS3(bucketName, key, client) {
 }
 
 //Send Message based on the MailBox ID from the config
-async function sendUncompressed(config, msg, filename) {
+async function sendUncompressed(config, msg, filename, performHandshake, dispatchMessage) {
   try {
-    let healthCheck = await handShake({
+    let healthCheck = await performHandshake({
       url: config.url,
       mailboxID: config.senderMailboxID,
       mailboxPassword: config.senderMailboxPassword,
@@ -92,7 +93,7 @@ async function sendUncompressed(config, msg, filename) {
       process.exit(1);
     }
 
-    let message = await sendMessage({
+    let message = await dispatchMessage({
       url: config.url,
       mailboxID: config.senderMailboxID,
       mailboxPassword: config.senderMailboxPassword,
@@ -107,6 +108,9 @@ async function sendUncompressed(config, msg, filename) {
     if (message.status != 202) {
       log.error(`Create Message Failed: ${message.status}`);
       process.exit(1);
+    } else {
+      console.log("SENT MESSAGE RESPONSE", message)
+      return message;
     }
   } catch (error) {
     log.error("An error occurred:", error.message);
@@ -115,9 +119,9 @@ async function sendUncompressed(config, msg, filename) {
 }
 
 //Reads message data based on message ID
-async function readMsg(msgID) {
+async function readMsg(msgID, retrieveMessage) {
   try {
-    let messages = await readMessage({
+    let messages = await retrieveMessage({
       url: CONFIG.url,
       mailboxID: CONFIG.senderMailboxID,
       mailboxPassword: CONFIG.senderMailboxPassword,
@@ -144,6 +148,22 @@ export const getSecret = async (secretName, client) => {
   } catch (error) {
     console.log("Failed: ", error);
     throw error;
+  }
+}
+
+export const markRead = async (CONFIG, marked, msgID) => {
+  try {
+    let markMsg = await marked({
+      url: CONFIG.url,
+      mailboxID: CONFIG.receiverMailboxID,
+      mailboxPassword: CONFIG.receiverMailboxPassword,
+      sharedKey: CONFIG.sharedKey,
+      message: msgID,
+      agent: CONFIG.receiverAgent,
+    });
+    return markMsg;
+  } catch (error) {
+    console.error(`Error occurred: ${error}`);
   }
 }
 
