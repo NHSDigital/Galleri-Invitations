@@ -19,31 +19,31 @@ module "vpc" {
 }
 
 # Deploy frontend in elastic beanstalk
-module "galleri_invitations_screen" {
-  source                                                = "./modules/elastic_beanstalk"
-  name                                                  = "gallery-invitations"
-  description                                           = "The frontend for interacting with the invitations system"
-  frontend_repo_location                                = var.frontend_repo_location
-  environment                                           = var.environment
-  vpc_id                                                = module.vpc.vpc_id
-  subnet_1                                              = module.vpc.subnet_ids[0]
-  subnet_2                                              = module.vpc.subnet_ids[1]
-  NEXT_PUBLIC_CALCULATE_NUM_TO_INVITE                   = module.calculate_number_to_invite_api_gateway.rest_api_galleri_id
-  NEXT_PUBLIC_CLINIC_ICB_LIST                           = module.clinic_icb_list_api_gateway.rest_api_galleri_id
-  NEXT_PUBLIC_CLINIC_INFORMATION                        = module.clinic_information_api_gateway.rest_api_galleri_id
-  NEXT_PUBLIC_CLINIC_SUMMARY_LIST                       = module.clinic_summary_list_api_gateway.rest_api_galleri_id
-  NEXT_PUBLIC_GET_LSOA_IN_RANGE                         = module.lsoa_in_range_api_gateway.rest_api_galleri_id
-  NEXT_PUBLIC_INVITATION_PARAMETERS                     = module.invitation_parameters_api_gateway.rest_api_galleri_id
-  NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_FORECAST_UPTAKE = module.invitation_parameters_put_forecast_uptake_api_gateway.rest_api_galleri_id
-  NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_QUINTILES       = module.invitation_parameters_put_quintiles_api_gateway.rest_api_galleri_id
-  NEXT_PUBLIC_PARTICIPATING_ICB_LIST                    = module.participating_icb_list_api_gateway.rest_api_galleri_id
-  NEXT_PUBLIC_PUT_TARGET_PERCENTAGE                     = module.target_fill_to_percentage_put_api_gateway.rest_api_galleri_id
-  NEXT_PUBLIC_TARGET_PERCENTAGE                         = module.target_fill_to_percentage_get_api_gateway.rest_api_galleri_id
-  NEXT_PUBLIC_GENERATE_INVITES                          = module.generate_invites_api_gateway.rest_api_galleri_id
-  USERS                                                 = var.USERS
-  CIS2_ID                                               = var.CIS2_ID
-  NEXTAUTH_URL                                          = var.NEXTAUTH_URL
-}
+# module "galleri_invitations_screen" {
+#   source                                                = "./modules/elastic_beanstalk"
+#   name                                                  = "gallery-invitations"
+#   description                                           = "The frontend for interacting with the invitations system"
+#   frontend_repo_location                                = var.frontend_repo_location
+#   environment                                           = var.environment
+#   vpc_id                                                = module.vpc.vpc_id
+#   subnet_1                                              = module.vpc.subnet_ids[0]
+#   subnet_2                                              = module.vpc.subnet_ids[1]
+#   NEXT_PUBLIC_CALCULATE_NUM_TO_INVITE                   = module.calculate_number_to_invite_api_gateway.rest_api_galleri_id
+#   NEXT_PUBLIC_CLINIC_ICB_LIST                           = module.clinic_icb_list_api_gateway.rest_api_galleri_id
+#   NEXT_PUBLIC_CLINIC_INFORMATION                        = module.clinic_information_api_gateway.rest_api_galleri_id
+#   NEXT_PUBLIC_CLINIC_SUMMARY_LIST                       = module.clinic_summary_list_api_gateway.rest_api_galleri_id
+#   NEXT_PUBLIC_GET_LSOA_IN_RANGE                         = module.lsoa_in_range_api_gateway.rest_api_galleri_id
+#   NEXT_PUBLIC_INVITATION_PARAMETERS                     = module.invitation_parameters_api_gateway.rest_api_galleri_id
+#   NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_FORECAST_UPTAKE = module.invitation_parameters_put_forecast_uptake_api_gateway.rest_api_galleri_id
+#   NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_QUINTILES       = module.invitation_parameters_put_quintiles_api_gateway.rest_api_galleri_id
+#   NEXT_PUBLIC_PARTICIPATING_ICB_LIST                    = module.participating_icb_list_api_gateway.rest_api_galleri_id
+#   NEXT_PUBLIC_PUT_TARGET_PERCENTAGE                     = module.target_fill_to_percentage_put_api_gateway.rest_api_galleri_id
+#   NEXT_PUBLIC_TARGET_PERCENTAGE                         = module.target_fill_to_percentage_get_api_gateway.rest_api_galleri_id
+#   NEXT_PUBLIC_GENERATE_INVITES                          = module.generate_invites_api_gateway.rest_api_galleri_id
+#   USERS                                                 = var.USERS
+#   CIS2_ID                                               = var.CIS2_ID
+#   NEXTAUTH_URL                                          = var.NEXTAUTH_URL
+# }
 
 # the role that all lambda's are utilising,
 # we will replace this with individual roles in a future ticket
