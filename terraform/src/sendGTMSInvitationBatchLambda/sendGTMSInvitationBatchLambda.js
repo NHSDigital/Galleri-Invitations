@@ -40,8 +40,11 @@ export const handler = async (event, context) => {
 
 
   try {
-    const JSONMsg = await getJSONFromS3(bucket, key, s3);
-    console.log("JSON Message", JSONMsg);
+    const [JSONMsgStr, JSONMsgObj] = await getJSONFromS3(bucket, key, s3);
+    console.log("Type pf JSONMsgStr", typeof (JSONMsgStr));
+    console.log("Type pf JSONMsgObj", typeof (JSONMsgObj));
+    console.log("JSON Message String", JSONMsgStr);
+    console.log("JSON Message Object", JSONMsgObj);
     // await sendUncompressed(JSONMsg);
     // await sendToS3();
 
@@ -63,7 +66,7 @@ async function getJSONFromS3(bucketName, key, client) {
       })
     );
     console.log("RESPONSE", response);
-    return response.Body.transformToString();
+    return [response.Body.transformToString(), JSON.parse(response.Body.transformToString())];
   } catch (err) {
     console.log("Failed: ", err);
     throw err;
