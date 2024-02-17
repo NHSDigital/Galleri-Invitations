@@ -62,11 +62,7 @@ async function getJSONFromS3(bucketName, key, client) {
         Key: key,
       })
     );
-    console.log(response.Body);
-    console.log(typeof (response.Body));
-    console.log(response.Body.transformToString());
-
-
+    console.log("RESPONSE", response);
     return response.Body.transformToString();
   } catch (err) {
     console.log("Failed: ", err);
