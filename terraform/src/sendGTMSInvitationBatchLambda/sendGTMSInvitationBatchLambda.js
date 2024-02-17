@@ -36,6 +36,7 @@ export const handler = async (event, context) => {
     receiverKey: MESH_RECEIVER_KEY,
     receiverMailboxID: process.env.MESH_RECEIVER_MAILBOX_ID,
     receiverMailboxPassword: process.env.MESH_RECEIVER_MAILBOX_PASSWORD,
+    workFlowId: "API-GTMS-INVITATION_BATCH_TEST",
   });
 
 
@@ -64,7 +65,7 @@ async function getJSONFromS3(bucketName, key, client) {
       })
     );
     console.log("RESPONSE", response);
-    return JSON.parse(response.Body.transformToString());
+    return response.Body.transformToString();
   } catch (err) {
     console.log("Failed: ", err);
     throw err;
@@ -72,7 +73,7 @@ async function getJSONFromS3(bucketName, key, client) {
 }
 
 //Send Message based on the MailBox ID from the config
-async function sendUncompressed(msg) {
+async function sendUncompressed(config, msg, filename) {
   try {
     let healthCheck = await handShake({
       url: config.url,
@@ -95,6 +96,8 @@ async function sendUncompressed(msg) {
       message: msg,
       mailboxTarget: config.receiverMailboxID,
       agent: config.senderAgent,
+      workFlowId: config.workFlowId,
+      fileName: filename,
     });
 
     if (message.status != 202) {
