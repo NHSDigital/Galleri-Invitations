@@ -1,11 +1,11 @@
-import { getSecret, pushToS3 } from "./helper.js"
+// import { getSecret, pushToS3 } from "./helper.js"
 import { handShake, loadConfig, sendMessage, readMessage } from "nhs-mesh-client";
 import {
   GetObjectCommand,
   PutObjectCommand,
   S3Client
 } from '@aws-sdk/client-s3';
-import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
+import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 
 //VARIABLES
 const smClient = new SecretsManagerClient({ region: "eu-west-2" });
@@ -41,6 +41,7 @@ export const handler = async (event, context) => {
 
   try {
     const JSONMsg = await getJSONFromS3(bucket, key, s3);
+    console.log("JSON Message", JSONMsg);
     // await sendUncompressed(JSONMsg);
     // await sendToS3();
 
@@ -123,6 +124,22 @@ async function readMsg(msgID) {
     return messages.data;
   } catch (error) {
     console.error("Error occurred:", error);
+  }
+}
+
+//Return 'Secret value' from secrets manager by passing in 'Secret name'
+export const getSecret = async (secretName, client) => {
+  try {
+    const response = await client.send(
+      new GetSecretValueCommand({
+        SecretId: secretName
+      })
+    );
+    console.log(`Retrieved value successfully ${secretName}`);
+    return response.SecretString;
+  } catch (error) {
+    console.log("Failed: ", error);
+    throw error;
   }
 }
 
