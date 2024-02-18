@@ -111,7 +111,9 @@ export const pushJsonToS3 = async (client, bucketName, key, jsonArr) => {
       })
     );
     console.log(`Finished pushing object key ${key} to bucket ${bucketName}`);
-    return response.Body.statusCode;
+    console.log("PUSH JSON TO S3 RESPONSE : ", response);
+
+    return response.$metadata.httpStatusCode
   } catch (err) {
     console.error("Error pushing to S3: ", err);
     throw err;
@@ -146,6 +148,7 @@ async function sendUncompressed(config, msg, filename, performHandshake, dispatc
       mailboxPassword: config.senderMailboxPassword,
       sharedKey: config.sharedKey,
       agent: config.senderAgent,
+      workFlowId: config.workFlowId,
     });
 
     if (healthCheck.status != 200) {
@@ -169,7 +172,7 @@ async function sendUncompressed(config, msg, filename, performHandshake, dispatc
       log.error(`Create Message Failed: ${message.status}`);
       process.exit(1);
     } else {
-      console.log("SENT MESSAGE RESPONSE", message)
+      // console.log("SENT MESSAGE RESPONSE", message);
       return message.data.message_id;
     }
   } catch (error) {
