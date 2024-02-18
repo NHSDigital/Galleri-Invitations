@@ -68,7 +68,7 @@ export const handler = async (event, context) => {
     // If both conditions are True, push the sent object to SENT Bucket and delete the fetched
     // object from the outbound bucket
     if (preSendMsgObjectLength === postReceiveMsgObjectLength && postReceiveReadMsgStatus === 200) {
-      const pushJsonToS3Status = await pushJsonToS3(s3, SENT_BUCKET, `${KEY_PREFIX}${timestamp}.json`, postReceiveMsgObject);
+      const pushJsonToS3Status = await pushJsonToS3(s3, SENT_BUCKET, `sent-${KEY_PREFIX}${timestamp}.json`, postReceiveMsgObject);
       if (pushJsonToS3Status === 200) {
         await deleteObjectFromS3(bucket, key, s3);
         return;
@@ -126,7 +126,7 @@ async function deleteObjectFromS3(bucketName, objectKey, client) {
     const response = await client.send(
       new DeleteObjectCommand({
         Bucket: bucketName,
-        Key: key,
+        Key: objectKey,
       })
     );
     console.log(`Object "${objectKey}" deleted successfully from bucket "${bucketName}".`);
@@ -141,6 +141,7 @@ async function deleteObjectFromS3(bucketName, objectKey, client) {
 
 //Send Message based on the MailBox ID from the config
 async function sendUncompressed(config, msg, filename, performHandshake, dispatchMessage) {
+  console.log(`Sending ${filename} to GTMS Mailbox`);
   try {
     let healthCheck = await performHandshake({
       url: config.url,
@@ -172,7 +173,7 @@ async function sendUncompressed(config, msg, filename, performHandshake, dispatc
       log.error(`Create Message Failed: ${message.status}`);
       process.exit(1);
     } else {
-      // console.log("SENT MESSAGE RESPONSE", message);
+      console.log(`Successfully sent ${filename} to GTMS mailbox`);
       return message.data.message_id;
     }
   } catch (error) {
