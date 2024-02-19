@@ -38,42 +38,15 @@ export const handler = async (event, context) => {
     receiverKey: MESH_RECEIVER_KEY,
     receiverMailboxID: process.env.MESH_RECEIVER_MAILBOX_ID,
     receiverMailboxPassword: process.env.MESH_RECEIVER_MAILBOX_PASSWORD,
-    workFlowId: "API-GTMS-INVITATION-BATCH-TEST",
   });
   const KEY_PREFIX = "invitation_batch_";
   const timestamp = (new Date(Date.now())).toISOString();
 
   try {
-    const JSONMsgStr = await getJSONFromS3(bucket, key, s3);
-    const JSONMsgObj = JSON.parse(JSONMsgStr);
-    const preSendMsgObjectLength = JSONMsgObj.length;
-
-    console.log("Type of JSONMsgOnj", typeof JSONMsgObj);//DEBUG
-    console.log("JSON OBJECT", JSONMsgObj);//DEBUG
-    console.log("PRESEND JSON OBJECT LENGTH", preSendMsgObjectLength);//DEBUG
-
-    //returns Message ID of Message sent to Mesh Mailbox
-    const sentMsgID = await sendUncompressed(CONFIG, JSONMsgObj, `${KEY_PREFIX}${timestamp}.json`, handShake, sendMessage);
-
-    //Reads the Message from the receiver Mailbox and returns received message status, data and headers
-    const postReceiveReadMsg = await readMsg(CONFIG, sentMsgID, readMessage);
-
-    const postReceiveReadMsgStatus = postReceiveReadMsg.status;
-    const postReceiveMsgObject = postReceiveReadMsg.data;
-    const postReceiveMsgObjectLength = postReceiveReadMsg.data.length;
-    console.log("POST RECEIVED JSON OBJECT LENGTH", postReceiveMsgObjectLength);//DEBUG
-
-    // Checking if Message has been received on the receiver Mailbox and if the
-    // total number of records sent is equal to prior.
-    // If both conditions are True, push the sent object to SENT Bucket and delete the fetched
-    // object from the outbound bucket
-    if (preSendMsgObjectLength === postReceiveMsgObjectLength && postReceiveReadMsgStatus === 200) {
-      const pushJsonToS3Status = await pushJsonToS3(s3, SENT_BUCKET, `sent-${KEY_PREFIX}${timestamp}.json`, postReceiveMsgObject);
-      if (pushJsonToS3Status === 200) {
-        await deleteObjectFromS3(bucket, key, s3);
-        return;
-      }
-    }
+    const JSONMsgObj = await retrieveAndParseJSON(bucket, key, s3);
+    const { preSendMsgObjectLength, sentMsgID } = await sendMessageToMesh(KEY_PREFIX, timestamp, CONFIG, JSONMsgObj);
+    const { postReceiveReadMsgStatus, postReceiveMsgObject } = await readMeshMessage(CONFIG, sentMsgID);
+    await handleReceivedMessage(KEY_PREFIX, timestamp, preSendMsgObjectLength, postReceiveMsgObject, postReceiveReadMsgStatus, bucket, key, s3);
   } catch (error) {
     console.error("Error occurred:", error);
   }
@@ -82,8 +55,44 @@ export const handler = async (event, context) => {
 
 //FUNCTIONS
 
-//Get JSON File from the bucket
-async function getJSONFromS3(bucketName, key, client) {
+// Retrieve and Parse the JSON file
+export const retrieveAndParseJSON = async (bucket, key, client) => {
+  const JSONMsgStr = await getJSONFromS3(bucket, key, client);
+  return JSON.parse(JSONMsgStr);
+};
+
+// Send Message to Mesh Mailbox, returns the length of the object prior and sent Message ID
+export const sendMessageToMesh = async (KEY_PREFIX, timestamp, CONFIG, JSONMsgObj) => {
+  const { length: preSendMsgObjectLength } = JSONMsgObj;
+  const sentMsgID = await sendUncompressed(CONFIG, JSONMsgObj, `${KEY_PREFIX}${timestamp}.json`, handShake, sendMessage);
+  console.log("PRESEND JSON OBJECT LENGTH", preSendMsgObjectLength)
+  return { preSendMsgObjectLength, sentMsgID };
+};
+
+
+//Read the message after sending it to Mesh Mailbox
+export const readMeshMessage = async (CONFIG, sentMsgID) => {
+  const { status: postReceiveReadMsgStatus, data: postReceiveMsgObject } = await readMsg(CONFIG, sentMsgID, readMessage);
+  console.log("POST RECEIVED JSON OBJECT LENGTH", postReceiveMsgObject.length);
+  return { postReceiveReadMsgStatus, postReceiveMsgObject };
+};
+
+// Checking if Message has been received on the receiver Mailbox and if the
+// total number of records sent is equal to prior.
+// If both conditions are True, push the sent object to SENT Bucket and delete the fetched
+// object from the outbound bucket
+export const handleReceivedMessage = async (KEY_PREFIX, timestamp, preSendMsgObjectLength, postReceiveMsgObject, postReceiveReadMsgStatus, bucket, key, client) => {
+  if (preSendMsgObjectLength === postReceiveMsgObject.length && postReceiveReadMsgStatus === 200) {
+    const pushJsonToS3Status = await pushJsonToS3(s3, SENT_BUCKET, `sent-${KEY_PREFIX}${timestamp}.json`, postReceiveMsgObject);
+    if (pushJsonToS3Status === 200) {
+      await deleteObjectFromS3(bucket, key, client);
+    }
+  }
+};
+
+
+// Get JSON File from the bucket
+export async function getJSONFromS3(bucketName, key, client) {
   console.log(`Getting object key ${key} from bucket ${bucketName}`);
   try {
     const response = await client.send(
@@ -99,7 +108,7 @@ async function getJSONFromS3(bucketName, key, client) {
     throw err;
   }
 }
-
+// PUSH JSON File to an S3 bucket
 export const pushJsonToS3 = async (client, bucketName, key, jsonArr) => {
   console.log(`Pushing object key ${key} to bucket ${bucketName}`);
   try {
@@ -111,8 +120,6 @@ export const pushJsonToS3 = async (client, bucketName, key, jsonArr) => {
       })
     );
     console.log(`Finished pushing object key ${key} to bucket ${bucketName}`);
-    console.log("PUSH JSON TO S3 RESPONSE : ", response);
-
     return response.$metadata.httpStatusCode
   } catch (err) {
     console.error("Error pushing to S3: ", err);
@@ -120,8 +127,8 @@ export const pushJsonToS3 = async (client, bucketName, key, jsonArr) => {
   }
 };
 
-// Function to delete an object from an S3 bucket
-async function deleteObjectFromS3(bucketName, objectKey, client) {
+// Delete an object from an S3 bucket
+export async function deleteObjectFromS3(bucketName, objectKey, client) {
   try {
     const response = await client.send(
       new DeleteObjectCommand({
@@ -130,7 +137,6 @@ async function deleteObjectFromS3(bucketName, objectKey, client) {
       })
     );
     console.log(`Object "${objectKey}" deleted successfully from bucket "${bucketName}".`);
-    console.log("RESPONSE", response);
     return response.$metadata.httpStatusCode;
   } catch (err) {
     console.error(`Error deleting object "${objectKey}" from bucket "${bucketName}":`, err);
@@ -140,7 +146,7 @@ async function deleteObjectFromS3(bucketName, objectKey, client) {
 
 
 //Send Message based on the MailBox ID from the config
-async function sendUncompressed(config, msg, filename, performHandshake, dispatchMessage) {
+export async function sendUncompressed(config, msg, filename, performHandshake, dispatchMessage) {
   console.log(`Sending ${filename} to GTMS Mailbox`);
   try {
     let healthCheck = await performHandshake({
@@ -152,7 +158,7 @@ async function sendUncompressed(config, msg, filename, performHandshake, dispatc
     });
 
     if (healthCheck.status != 200) {
-      log.error(`Health Check Failed: ${healthCheck}`);
+      console.error(`Health Check Failed: ${healthCheck}`);
       process.exit(1);
     }
 
@@ -169,20 +175,20 @@ async function sendUncompressed(config, msg, filename, performHandshake, dispatc
     });
 
     if (message.status != 202) {
-      log.error(`Create Message Failed: ${message.status}`);
-      process.exit(1);
+      console.error(`Create Message Failed: ${message.status}`);
+      // process.exit(1);
     } else {
       console.log(`Successfully sent ${filename} to GTMS mailbox`);
       return message.data.message_id;
     }
   } catch (error) {
-    log.error("An error occurred:", error.message);
+    console.error("An error occurred:", error.message);
     process.exit(1);
   }
 }
 
 //Reads message data based on message ID
-async function readMsg(config, msgID, retrieveMessage) {
+export async function readMsg(config, msgID, retrieveMessage) {
   try {
     let messages = await retrieveMessage({
       url: config.url,
@@ -209,28 +215,12 @@ export const getSecret = async (secretName, client) => {
     console.log(`Retrieved value successfully ${secretName}`);
     return response.SecretString;
   } catch (error) {
-    console.log("Failed: ", error);
+    console.log(`Failed: ${error}`);
     throw error;
   }
 }
 
-export const markRead = async (CONFIG, marked, msgID) => {
-  try {
-    let markMsg = await marked({
-      url: CONFIG.url,
-      mailboxID: CONFIG.receiverMailboxID,
-      mailboxPassword: CONFIG.receiverMailboxPassword,
-      sharedKey: CONFIG.sharedKey,
-      message: msgID,
-      agent: CONFIG.receiverAgent,
-    });
-    return markMsg;
-  } catch (error) {
-    console.error(`Error occurred: ${error}`);
-  }
-}
-
-async function readSecret(secretName, client) {
+export async function readSecret(secretName, client) {
   return Buffer.from(
     await getSecret(secretName, client),
     "base64"
