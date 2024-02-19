@@ -119,7 +119,7 @@ export async function getItemsFromTable(table, client, key) {
   return response;
 }
 
-export const checkPhlebotomy = async (payload, arr, key, item) => {
+const checkPhlebotomy = async (payload, arr) => {
   if (payload?.['ClinicID'] === arr['ClinicId']['S']) {
     console.log(`ClinicName matched: ${payload?.['ClinicID']}`);
     return [true, arr['ClinicName']['S']]; // update

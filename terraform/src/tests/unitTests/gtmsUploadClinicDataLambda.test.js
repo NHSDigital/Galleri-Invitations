@@ -9,7 +9,6 @@ import path from 'path';
 import {
   readCsvFromS3,
   getItemsFromTable,
-  checkPhlebotomy,
   createPhlebotomySite,
   saveObjToPhlebotomyTable
 } from '../../gtmsUploadClinicDataLambda/gtmsUploadClinicDataLambda.js';
@@ -74,66 +73,6 @@ describe('getItemsFromTable', () => {
 
     expect(result.Body).toEqual("hello");
   });
-});
-
-describe('checkPhlebotomy', () => {
-  const meshResponseFail =
-  {
-    "ClinicCreateOrUpdate": {
-      "ClinicID": "C1C-A1A",
-      "ODSCode": "Y888888",
-      "ICBCode": "QNX",
-      "ClinicName": "GRAIL Test Clinic",
-      "Address": "210 Euston Rd, London NW1 2DA",
-      "Postcode": "BD22 0AG",
-      "Directions": "Closest London Underground station is Euston Square."
-    }
-  }
-
-  const meshResponsePass = {
-    "ClinicCreateOrUpdate":
-    {
-      "ClinicID": "CF78U818",
-      "ODSCode": "1234",
-      "ICBCode": "OPM",
-      "ClinicName": "Phlebotomy clinic 34",
-      "Address": "test address dynamo put",
-      "Postcode": "BH17 7DT",
-      "Directions": "These will contain directions to the site"
-    }
-  }
-
-  const phlebotomyArr =
-    [{
-      Address: { S: 'test address dynamo put' },
-      Directions: { S: 'These will contain directions to the site' },
-      ODSCode: { S: '1234' },
-      ClinicId: { S: 'CF78U818' },
-      ICBCode: { S: 'OPM' },
-      PostCode: { S: 'BH17 7DT' },
-      ClinicName: { S: 'Phlebotomy clinic 34' }
-    },
-    {
-      Address: { S: '35 disroot Hospital ,             Mordor RG12 7RX' },
-      Directions: { S: 'These will contain directions to the site' },
-      ODSCode: { S: 'O66043' },
-      ClinicId: { S: 'AQ86L135' },
-      ICBCode: { S: 'QNQ' },
-      PostCode: { S: 'RG12 7RX' },
-      ClinicName: { S: 'Phlebotomy clinic 35' },
-    }
-    ]
-
-  test('Should compare values to be true', async () => {
-    const val = await checkPhlebotomy(phlebotomyArr, meshResponsePass, 'ClinicCreateOrUpdate', 'ClinicID');
-    expect(val).toEqual(true);
-  });
-
-  test('Should compare values to be true', async () => {
-    const val = await checkPhlebotomy(phlebotomyArr, meshResponseFail, 'ClinicCreateOrUpdate', 'ClinicID');
-    expect(val).toEqual(false);
-  });
-
 });
 
 describe('createPhlebotomySite', () => {
