@@ -121,7 +121,7 @@ export async function getItemsFromTable(table, client, key) {
 
 const checkPhlebotomy = async (payload, arr) => {
   if (payload?.['ClinicID'] === arr['ClinicId']['S']) {
-    console.log(`ClinicName matched: ${payload?.['ClinicID']}`);
+    console.log(`Clinic ID matched: ${payload?.['ClinicID']}`);
     return [true, arr['ClinicName']['S']]; // update
   } else {
     return false; //reject record from mesh
