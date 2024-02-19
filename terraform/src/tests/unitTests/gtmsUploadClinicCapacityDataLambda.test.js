@@ -1,16 +1,16 @@
 import { mockClient } from 'aws-sdk-client-mock';
 import { S3Client } from '@aws-sdk/client-s3';
 import { sdkStreamMixin } from '@aws-sdk/util-stream-node';
+import { DynamoDBClient, UpdateItemCommand } from '@aws-sdk/client-dynamodb';
 
 import * as fs from 'fs';
 import path from 'path';
 
 import {
   readCsvFromS3,
-  pushCsvToS3,
-  checkPhlebotomy,
-  saveObjToPhlebotomyTable,
   getItemsFromTable,
+  createPhlebotomySite,
+  saveObjToPhlebotomyTable
 } from '../../gtmsUploadClinicCapacityDataLambda/gtmsUploadClinicCapacityDataLambda.js';
 
 describe("readCsvFromS3", () => {
@@ -58,155 +58,21 @@ describe("readCsvFromS3", () => {
   });
 });
 
-describe("pushCsvToS3", () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+describe('getItemsFromTable', () => {
+  const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
-  test("Successful response from sending file to bucket", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
-    const mockS3Client = mockClient(new S3Client({}));
-    mockS3Client.resolves({
-      $metadata: { httpStatusCode: 200 },
+  test('should mock call to dynamoDb successfully', async () => {
+    mockDynamoDbClient.resolves({
+      $metadata: {
+        httpStatusCode: 200
+      },
+      Body: "hello"
     });
-    const result = await pushCsvToS3(
-      "galleri-caas-data",
-      "test.csv",
-      "arr",
-      mockS3Client
-    );
 
-    expect(logSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith(`Successfully pushed to galleri-caas-data/test.csv`);
-    expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
+    const result = await getItemsFromTable('table', mockDynamoDbClient, 'key');
+
+    expect(result.Body).toEqual("hello");
   });
-
-  test("Failure when depositing to S3", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
-    const errorMsg = new Error("Failed to push to S3");
-    const mockS3Client = {
-      send: jest.fn().mockRejectedValue(errorMsg),
-    };
-    try {
-      await pushCsvToS3(
-        "galleri-caas-data",
-        "test.csv",
-        "arr",
-        mockS3Client
-      );
-    } catch (err) {
-      expect(err.message).toBe("Failed to push to S3");
-    }
-    expect(logSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith('Failed: Error: Failed to push to S3');
-  });
-});
-
-describe('checkPhlebotomy', () => {
-  const meshResponseFail = {
-    "ClinicScheduleSummary": [
-      {
-        "ClinicID": "C1C-A1A",
-        "Schedule": [
-          {
-            "WeekCommencingDate": "2023-09-04T00:00:00.000Z",
-            "Availability": 5
-          }
-        ]
-      }
-    ]
-  }
-
-  const meshResponsePass = {
-    "ClinicScheduleSummary": [
-      {
-        "ClinicID": "CF78U818",
-        "Schedule": [
-          {
-            "WeekCommencingDate": "2023-09-04T00:00:00.000Z",
-            "Availability": 5
-          }
-        ]
-      }
-    ]
-  }
-
-  const phlebotomyArr =
-    [
-      {
-        "Address": {
-          "S": "test address dynamo put"
-        },
-        "Availability": {
-          "N": "267"
-        },
-        "Directions": {
-          "S": "These will contain directions to the site"
-        },
-        "ODSCode": {
-          "S": "M40666"
-        },
-        "ClinicId": {
-          "S": "CF78U818"
-        },
-        "InvitesSent": {
-          "N": "133"
-        },
-        "ICBCode": {
-          "S": "QVV"
-        },
-        "LastSelectedRange": {
-          "N": "1"
-        },
-        "TargetFillToPercentage": {
-          "N": "50"
-        },
-        "PostCode": {
-          "S": "BH17 7DT"
-        },
-        "PrevInviteDate": {
-          "S": "Saturday 20 January 2024"
-        },
-        "ClinicName": {
-          "S": "Phlebotomy clinic 34"
-        },
-        "WeekCommencingDate": {
-          "M": {
-            "19 February 2024": {
-              "N": "19"
-            },
-            "25 March 2024": {
-              "N": "54"
-            },
-            "4 March 2024": {
-              "N": "14"
-            },
-            "18 March 2024": {
-              "N": "19"
-            },
-            "11 March 2024": {
-              "N": "71"
-            },
-            "26 February 2024": {
-              "N": "90"
-            }
-          }
-        }
-      }
-    ]
-
-  test('Should compare values to be true', async () => {
-    const val = await checkPhlebotomy(phlebotomyArr, meshResponsePass, 'ClinicScheduleSummary', 'ClinicID');
-    expect(val).toEqual([true, "Phlebotomy clinic 34", { "11 March 2024": { "N": "71" }, "18 March 2024": { "N": "19" }, "19 February 2024": { "N": "19" }, "25 March 2024": { "N": "54" }, "26 February 2024": { "N": "90" }, "4 March 2024": { "N": "14" } }]);
-  });
-
-  test('Should compare values to be true', async () => {
-    const val = await checkPhlebotomy(phlebotomyArr, meshResponseFail, 'ClinicScheduleSummary', 'ClinicID');
-    expect(val).toEqual(false);
-  });
-
 });
 
 describe('saveObjToPhlebotomyTable', () => {
@@ -215,63 +81,55 @@ describe('saveObjToPhlebotomyTable', () => {
   });
 
   const meshResponsePass = {
-    "ClinicScheduleSummary": [
+    "ClinicID": "CJ74G234",
+    "Schedule": [
       {
-        "ClinicID": "CF78U818",
-        "Schedule": [
-          {
-            "WeekCommencingDate": "2023-09-04T00:00:00.000Z",
-            "Availability": 5
-          }
-        ]
+        "WeekCommencingDate": "2024-02-19",
+        "Availability": 5
+      },
+      {
+        "WeekCommencingDate": "2024-02-12",
+        "Availability": 5
+      },
+      {
+        "WeekCommencingDate": "2024-02-05",
+        "Availability": 0
+      },
+      {
+        "WeekCommencingDate": "2024-01-29",
+        "Availability": 8
+      },
+      {
+        "WeekCommencingDate": "2024-01-22",
+        "Availability": 5
+      },
+      {
+        "WeekCommencingDate": "2024-01-15",
+        "Availability": 9
       }
     ]
-  }
+  };
 
   test('successfully push to dynamodb', async () => {
     const mockDynamodbClient = mockClient(new S3Client({}));
-    const environment = "dev-1"
+    const environment = "dev-1";
+    const clinicName = "test_clinic";
     mockDynamodbClient.resolves({
       $metadata: { httpStatusCode: 200 }
     });
-    const result = await saveObjToPhlebotomyTable(meshResponsePass, environment, mockDynamodbClient);
+    const result = await saveObjToPhlebotomyTable(meshResponsePass, environment, mockDynamodbClient, clinicName);
     expect(result).toBe(true)
   });
 
   test('Failed to push to dynamodb', async () => {
     const mockDynamodbClient = mockClient(new S3Client({}));
-    const environment = "dev-1"
+    const environment = "dev-1";
+    const clinicName = "test_clinic";
     mockDynamodbClient.resolves({
       $metadata: { httpStatusCode: 400 },
     });
-    const result = await saveObjToPhlebotomyTable(meshResponsePass, environment, mockDynamodbClient);
+    const result = await saveObjToPhlebotomyTable(meshResponsePass, environment, mockDynamodbClient, clinicName);
     expect(result).toBe(false);
   });
-});
+})
 
-describe('getItemsFromTable', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-  test('successfully retrieve item', async () => {
-    const meshResponsePass = {
-      "ClinicScheduleSummary": [
-        {
-          "ClinicID": "CF78U818",
-          "Schedule": [
-            {
-              "WeekCommencingDate": "2023-09-04T00:00:00.000Z",
-              "Availability": 5
-            }
-          ]
-        }
-      ]
-    }
-    const mockS3Client = mockClient(new S3Client({}));
-    mockS3Client.resolves({
-      items: "test",
-    });
-    const value = await getItemsFromTable(`PhlebotomySite`, mockS3Client, meshResponsePass['ClinicScheduleSummary'][0]['ClinicID']);
-    expect(value).toEqual({ "items": "test" });
-  });
-});
