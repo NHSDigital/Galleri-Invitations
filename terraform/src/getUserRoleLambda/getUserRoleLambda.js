@@ -10,7 +10,7 @@ exports.handler = async (event) => {
   const params = {
     TableName: `${environment}-UserAccounts`,
     Key: {
-      uuid: { S: uuid },
+      UUID: { S: uuid },
     },
   };
 
