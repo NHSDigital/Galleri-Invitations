@@ -1101,13 +1101,11 @@ module "gp_practice_table" {
 }
 
 module "phlebotomy_site_table" {
-  source             = "./modules/dynamodb"
-  table_name         = "PhlebotomySite"
-  hash_key           = "ClinicId"
-  range_key          = "ClinicName"
-  environment        = var.environment
-  non_key_attributes = ["WeekCommencingDate"]
-  projection_type    = "INCLUDE"
+  source      = "./modules/dynamodb"
+  table_name  = "PhlebotomySite"
+  hash_key    = "ClinicId"
+  range_key   = "ClinicName"
+  environment = var.environment
   attributes = [{
     name = "ClinicId"
     type = "S"
@@ -1128,9 +1126,11 @@ module "phlebotomy_site_table" {
       range_key = "Postcode"
     },
     {
-      name      = "ClinicId-index"
-      hash_key  = "ClinicId"
-      range_key = null
+      name               = "ClinicId-index"
+      hash_key           = "ClinicId"
+      range_key          = null,
+      non_key_attributes = ["WeekCommencingDate"]
+      projection_type    = "INCLUDE"
     },
   ]
   tags = {
