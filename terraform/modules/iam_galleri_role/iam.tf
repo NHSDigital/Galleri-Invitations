@@ -356,6 +356,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added validate CLinic Data to this policy as lambda role exceeded policy limit
 # Added validate Caas Feed to this policy as lambda role exceeded policy limit
 # Added UserAccounts to this policy as lambda role exceeded policy limit
+# Added gtms upload clinic capacity data to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
   path        = "/"
