@@ -19,31 +19,31 @@ module "vpc" {
 }
 
 # Deploy frontend in elastic beanstalk
-# module "galleri_invitations_screen" {
-#   source                                                = "./modules/elastic_beanstalk"
-#   name                                                  = "gallery-invitations"
-#   description                                           = "The frontend for interacting with the invitations system"
-#   frontend_repo_location                                = var.frontend_repo_location
-#   environment                                           = var.environment
-#   vpc_id                                                = module.vpc.vpc_id
-#   subnet_1                                              = module.vpc.subnet_ids[0]
-#   subnet_2                                              = module.vpc.subnet_ids[1]
-#   NEXT_PUBLIC_CALCULATE_NUM_TO_INVITE                   = module.calculate_number_to_invite_api_gateway.rest_api_galleri_id
-#   NEXT_PUBLIC_CLINIC_ICB_LIST                           = module.clinic_icb_list_api_gateway.rest_api_galleri_id
-#   NEXT_PUBLIC_CLINIC_INFORMATION                        = module.clinic_information_api_gateway.rest_api_galleri_id
-#   NEXT_PUBLIC_CLINIC_SUMMARY_LIST                       = module.clinic_summary_list_api_gateway.rest_api_galleri_id
-#   NEXT_PUBLIC_GET_LSOA_IN_RANGE                         = module.lsoa_in_range_api_gateway.rest_api_galleri_id
-#   NEXT_PUBLIC_INVITATION_PARAMETERS                     = module.invitation_parameters_api_gateway.rest_api_galleri_id
-#   NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_FORECAST_UPTAKE = module.invitation_parameters_put_forecast_uptake_api_gateway.rest_api_galleri_id
-#   NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_QUINTILES       = module.invitation_parameters_put_quintiles_api_gateway.rest_api_galleri_id
-#   NEXT_PUBLIC_PARTICIPATING_ICB_LIST                    = module.participating_icb_list_api_gateway.rest_api_galleri_id
-#   NEXT_PUBLIC_PUT_TARGET_PERCENTAGE                     = module.target_fill_to_percentage_put_api_gateway.rest_api_galleri_id
-#   NEXT_PUBLIC_TARGET_PERCENTAGE                         = module.target_fill_to_percentage_get_api_gateway.rest_api_galleri_id
-#   NEXT_PUBLIC_GENERATE_INVITES                          = module.generate_invites_api_gateway.rest_api_galleri_id
-#   USERS                                                 = var.USERS
-#   CIS2_ID                                               = var.CIS2_ID
-#   NEXTAUTH_URL                                          = var.NEXTAUTH_URL
-# }
+module "galleri_invitations_screen" {
+  source                                                = "./modules/elastic_beanstalk"
+  name                                                  = "gallery-invitations"
+  description                                           = "The frontend for interacting with the invitations system"
+  frontend_repo_location                                = var.frontend_repo_location
+  environment                                           = var.environment
+  vpc_id                                                = module.vpc.vpc_id
+  subnet_1                                              = module.vpc.subnet_ids[0]
+  subnet_2                                              = module.vpc.subnet_ids[1]
+  NEXT_PUBLIC_CALCULATE_NUM_TO_INVITE                   = module.calculate_number_to_invite_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_CLINIC_ICB_LIST                           = module.clinic_icb_list_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_CLINIC_INFORMATION                        = module.clinic_information_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_CLINIC_SUMMARY_LIST                       = module.clinic_summary_list_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_GET_LSOA_IN_RANGE                         = module.lsoa_in_range_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_INVITATION_PARAMETERS                     = module.invitation_parameters_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_FORECAST_UPTAKE = module.invitation_parameters_put_forecast_uptake_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_QUINTILES       = module.invitation_parameters_put_quintiles_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_PARTICIPATING_ICB_LIST                    = module.participating_icb_list_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_PUT_TARGET_PERCENTAGE                     = module.target_fill_to_percentage_put_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_TARGET_PERCENTAGE                         = module.target_fill_to_percentage_get_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_GENERATE_INVITES                          = module.generate_invites_api_gateway.rest_api_galleri_id
+  USERS                                                 = var.USERS
+  CIS2_ID                                               = var.CIS2_ID
+  NEXTAUTH_URL                                          = var.NEXTAUTH_URL
+}
 
 # the role that all lambda's are utilising,
 # we will replace this with individual roles in a future ticket
@@ -75,19 +75,19 @@ module "test_data_bucket" {
   environment             = var.environment
 }
 
-# module "gp_practices_bucket" {
-#   source                  = "./modules/s3"
-#   bucket_name             = "gp-practices-bucket"
-#   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-#   environment             = var.environment
-# }
+module "gp_practices_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "gp-practices-bucket"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
 
-# module "user_accounts_bucket" {
-#   source                  = "./modules/s3"
-#   bucket_name             = "user-accounts-bucket"
-#   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-#   environment             = var.environment
-# }
+module "user_accounts_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "user-accounts-bucket"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
 
 # GTMS buckets for each JSON response header
 module "caas_data_bucket" {
@@ -97,12 +97,12 @@ module "caas_data_bucket" {
   environment             = var.environment
 }
 
-# module "validated_records_bucket" {
-#   source                  = "./modules/s3"
-#   bucket_name             = "galleri-processed-caas-data"
-#   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-#   environment             = var.environment
-# }
+module "validated_records_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "galleri-processed-caas-data"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
 
 # CaaS MESH data bucket
 module "invited_participant_batch" {
@@ -140,12 +140,12 @@ module "gtms_appointment" {
   environment             = var.environment
 }
 
-# module "gtms_withdrawal" {
-#   source                  = "./modules/s3"
-#   bucket_name             = "inbound-gtms-withdrawal"
-#   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-#   environment             = var.environment
-# }
+module "gtms_withdrawal" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-gtms-withdrawal"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
 
 module "gtms_invited_participant_batch" {
   source                  = "./modules/s3"
@@ -657,12 +657,12 @@ module "gp_practices_loader_cloudwatch" {
   retention_days       = 14
 }
 
-# module "gp_practices_loader_lambda_trigger" {
-#   source     = "./modules/lambda_trigger"
-#   bucket_id  = module.gp_practices_bucket.bucket_id
-#   bucket_arn = module.gp_practices_bucket.bucket_arn
-#   lambda_arn = module.gp_practices_loader_lambda.lambda_arn
-# }
+module "gp_practices_loader_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.gp_practices_bucket.bucket_id
+  bucket_arn = module.gp_practices_bucket.bucket_arn
+  lambda_arn = module.gp_practices_loader_lambda.lambda_arn
+}
 
 # Create Episode Records
 module "create_episode_record_lambda" {
@@ -718,12 +718,12 @@ module "user_accounts_cloudwatch" {
   retention_days       = 14
 }
 
-# module "user_accounts_lambda_trigger" {
-#   source     = "./modules/lambda_trigger"
-#   bucket_id  = module.user_accounts_bucket.bucket_id
-#   bucket_arn = module.user_accounts_bucket.bucket_arn
-#   lambda_arn = module.user_accounts_lambda.lambda_arn
-# }
+module "user_accounts_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.user_accounts_bucket.bucket_id
+  bucket_arn = module.user_accounts_bucket.bucket_arn
+  lambda_arn = module.user_accounts_lambda.lambda_arn
+}
 
 module "poll_mesh_mailbox_lambda" {
   source               = "./modules/lambda"
@@ -1031,13 +1031,13 @@ module "caas_feed_add_records_lambda_cloudwatch" {
   retention_days       = 14
 }
 
-# module "caas_feed_add_records_lambda_trigger" {
-#   source        = "./modules/lambda_trigger"
-#   bucket_id     = module.validated_records_bucket.bucket_id
-#   bucket_arn    = module.validated_records_bucket.bucket_arn
-#   lambda_arn    = module.caas_feed_add_records_lambda.lambda_arn
-#   filter_prefix = "validRecords/valid_records_add-"
-# }
+module "caas_feed_add_records_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.validated_records_bucket.bucket_id
+  bucket_arn    = module.validated_records_bucket.bucket_arn
+  lambda_arn    = module.caas_feed_add_records_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_add-"
+}
 
 module "caas_feed_update_records_lambda" {
   source               = "./modules/lambda"
@@ -1060,13 +1060,13 @@ module "caas_feed_update_records_lambda_cloudwatch" {
   retention_days       = 14
 }
 
-# module "caas_feed_update_records_lambda_trigger" {
-#   source        = "./modules/lambda_trigger"
-#   bucket_id     = module.validated_records_bucket.bucket_id
-#   bucket_arn    = module.validated_records_bucket.bucket_arn
-#   lambda_arn    = module.caas_feed_update_records_lambda.lambda_arn
-#   filter_prefix = "validRecords/valid_records_update-"
-# }
+module "caas_feed_update_records_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.validated_records_bucket.bucket_id
+  bucket_arn    = module.validated_records_bucket.bucket_arn
+  lambda_arn    = module.caas_feed_update_records_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_update-"
+}
 
 # Dynamodb tables
 module "participating_icb_table" {
