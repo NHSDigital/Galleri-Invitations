@@ -22,10 +22,10 @@ export const handler = async (event, context) => {
 
   //inside handler so they do not need to be mocked globally
   //retrieve secrets into lambda, certificates required to connect to MESH
-  const MESH_SENDER_CERT = await readSecret("MESH_SENDER_CERT", smClient);
-  const MESH_SENDER_KEY = await readSecret("MESH_SENDER_KEY", smClient);
-  const MESH_RECEIVER_CERT = await readSecret("MESH_RECEIVER_CERT", smClient);
-  const MESH_RECEIVER_KEY = await readSecret("MESH_RECEIVER_KEY", smClient);
+  const MESH_SENDER_CERT = await readSecret(getSecret, "MESH_SENDER_CERT", smClient);
+  const MESH_SENDER_KEY = await readSecret(getSecret, "MESH_SENDER_KEY", smClient);
+  const MESH_RECEIVER_CERT = await readSecret(getSecret, "MESH_RECEIVER_CERT", smClient);
+  const MESH_RECEIVER_KEY = await readSecret(getSecret, "MESH_RECEIVER_KEY", smClient);
   const CONFIG = await loadConfig({
     url: "https://msg.intspineservices.nhs.uk", //can leave as non-secret
     sharedKey: process.env.MESH_SHARED_KEY,
@@ -43,10 +43,10 @@ export const handler = async (event, context) => {
   const timestamp = (new Date(Date.now())).toISOString();
 
   try {
-    const JSONMsgObj = await retrieveAndParseJSON(bucket, key, s3);
-    const { preSendMsgObjectLength, sentMsgID } = await sendMessageToMesh(KEY_PREFIX, timestamp, CONFIG, JSONMsgObj);
-    const { postReceiveReadMsgStatus, postReceiveMsgObject } = await readMeshMessage(CONFIG, sentMsgID);
-    await handleReceivedMessage(KEY_PREFIX, timestamp, preSendMsgObjectLength, postReceiveMsgObject, postReceiveReadMsgStatus, bucket, key, s3);
+    const JSONMsgObj = await retrieveAndParseJSON(getJSONFromS3, bucket, key, s3);
+    const { preSendMsgObjectLength, sentMsgID } = await sendMessageToMesh(sendUncompressed, KEY_PREFIX, timestamp, CONFIG, JSONMsgObj);
+    const { postReceiveReadMsgStatus, postReceiveMsgObject } = await readMeshMessage(readMsg, CONFIG, sentMsgID);
+    await handleReceivedMessage(pushJsonToS3, deleteObjectFromS3, KEY_PREFIX, timestamp, preSendMsgObjectLength, postReceiveMsgObject, postReceiveReadMsgStatus, bucket, key, s3);
   } catch (error) {
     console.error("Error occurred:", error);
   }
@@ -56,23 +56,23 @@ export const handler = async (event, context) => {
 //FUNCTIONS
 
 // Retrieve and Parse the JSON file
-export const retrieveAndParseJSON = async (bucket, key, client) => {
-  const JSONMsgStr = await getJSONFromS3(bucket, key, client);
+export const retrieveAndParseJSON = async (getJSONFunc, bucket, key, client) => {
+  const JSONMsgStr = await getJSONFunc(bucket, key, client);
   return JSON.parse(JSONMsgStr);
 };
 
 // Send Message to Mesh Mailbox, returns the length of the object prior and sent Message ID
-export const sendMessageToMesh = async (KEY_PREFIX, timestamp, CONFIG, JSONMsgObj) => {
+export const sendMessageToMesh = async (sendFunc, KEY_PREFIX, timestamp, CONFIG, JSONMsgObj) => {
   const { length: preSendMsgObjectLength } = JSONMsgObj;
-  const sentMsgID = await sendUncompressed(CONFIG, JSONMsgObj, `${KEY_PREFIX}${timestamp}.json`, handShake, sendMessage);
+  const sentMsgID = await sendFunc(CONFIG, JSONMsgObj, `${KEY_PREFIX}${timestamp}.json`, handShake, sendMessage);
   console.log("PRESEND JSON OBJECT LENGTH", preSendMsgObjectLength)
   return { preSendMsgObjectLength, sentMsgID };
 };
 
 
 //Read the message after sending it to Mesh Mailbox
-export const readMeshMessage = async (CONFIG, sentMsgID) => {
-  const { status: postReceiveReadMsgStatus, data: postReceiveMsgObject } = await readMsg(CONFIG, sentMsgID, readMessage);
+export const readMeshMessage = async (readMsgFunc, CONFIG, sentMsgID) => {
+  const { status: postReceiveReadMsgStatus, data: postReceiveMsgObject } = await readMsgFunc(CONFIG, sentMsgID, readMessage);
   console.log("POST RECEIVED JSON OBJECT LENGTH", postReceiveMsgObject.length);
   return { postReceiveReadMsgStatus, postReceiveMsgObject };
 };
@@ -81,11 +81,11 @@ export const readMeshMessage = async (CONFIG, sentMsgID) => {
 // total number of records sent is equal to prior.
 // If both conditions are True, push the sent object to SENT Bucket and delete the fetched
 // object from the outbound bucket
-export const handleReceivedMessage = async (KEY_PREFIX, timestamp, preSendMsgObjectLength, postReceiveMsgObject, postReceiveReadMsgStatus, bucket, key, client) => {
+export const handleReceivedMessage = async (pushJsonFunc, deleteObjectFunc, KEY_PREFIX, timestamp, preSendMsgObjectLength, postReceiveMsgObject, postReceiveReadMsgStatus, bucket, key, client) => {
   if (preSendMsgObjectLength === postReceiveMsgObject.length && postReceiveReadMsgStatus === 200) {
-    const pushJsonToS3Status = await pushJsonToS3(s3, SENT_BUCKET, `sent-${KEY_PREFIX}${timestamp}.json`, postReceiveMsgObject);
+    const pushJsonToS3Status = await pushJsonFunc(client, SENT_BUCKET, `sent-${KEY_PREFIX}${timestamp}.json`, postReceiveMsgObject);
     if (pushJsonToS3Status === 200) {
-      await deleteObjectFromS3(bucket, key, client);
+      await deleteObjectFunc(bucket, key, client);
     }
   }
 };
@@ -220,9 +220,9 @@ export const getSecret = async (secretName, client) => {
   }
 }
 
-export async function readSecret(secretName, client) {
+export async function readSecret(fetchSecret, secretName, client) {
   return Buffer.from(
-    await getSecret(secretName, client),
+    await fetchSecret(secretName, client),
     "base64"
   ).toString("utf8");
 }
