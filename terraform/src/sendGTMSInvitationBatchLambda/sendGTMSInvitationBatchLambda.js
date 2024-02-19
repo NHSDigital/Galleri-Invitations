@@ -38,7 +38,7 @@ export const handler = async (event, context) => {
     receiverKey: MESH_RECEIVER_KEY,
     receiverMailboxID: process.env.MESH_RECEIVER_MAILBOX_ID,
     receiverMailboxPassword: process.env.MESH_RECEIVER_MAILBOX_PASSWORD,
-    workFlowId: "API-GTMS-INVITATION_BATCH_TEST",
+    workFlowId: "API-GTMS-INVITATION-BATCH-TEST",
   });
   const KEY_PREFIX = "invitation_batch_";
   const timestamp = (new Date(Date.now())).toISOString();
@@ -149,7 +149,6 @@ async function sendUncompressed(config, msg, filename, performHandshake, dispatc
       mailboxPassword: config.senderMailboxPassword,
       sharedKey: config.sharedKey,
       agent: config.senderAgent,
-      workFlowId: config.workFlowId,
     });
 
     if (healthCheck.status != 200) {
@@ -165,7 +164,7 @@ async function sendUncompressed(config, msg, filename, performHandshake, dispatc
       message: msg,
       mailboxTarget: config.receiverMailboxID,
       agent: config.senderAgent,
-      workFlowId: config.workFlowId,
+      workFlowId: "API-GTMS-INVITATION-BATCH-TEST",
       fileName: filename,
     });
 
