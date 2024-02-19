@@ -131,7 +131,7 @@ async function deleteObjectFromS3(bucketName, objectKey, client) {
     );
     console.log(`Object "${objectKey}" deleted successfully from bucket "${bucketName}".`);
     console.log("RESPONSE", response);
-    return response.Body.statusCode;
+    return response.$metadata.httpStatusCode;
   } catch (err) {
     console.error(`Error deleting object "${objectKey}" from bucket "${bucketName}":`, err);
     throw err;
