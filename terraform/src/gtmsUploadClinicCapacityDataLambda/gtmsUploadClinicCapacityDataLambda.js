@@ -33,7 +33,7 @@ export const handler = async (event, context) => {
         let response = await (pushCsvToS3(
           bucket,
           `invalidData/invalidRecord_${dateTime}.json`,
-          csvString,
+          JSON.stringify(wrappedElement),
           s3
         ));
         if (response.$metadata.httpStatusCode !== 200) {
@@ -52,7 +52,7 @@ export const handler = async (event, context) => {
           let response = await (pushCsvToS3(
             bucket,
             `invalidData/invalidRecord_${dateTime}.json`,
-            csvString,
+            JSON.stringify(wrappedElement),
             s3
           ));
           if (response.$metadata.httpStatusCode !== 200) {
@@ -121,7 +121,7 @@ export async function getItemsFromTable(table, client, key) {
 
 const checkPhlebotomy = async (payload, arr) => {
   if (payload?.['ClinicID'] === arr['ClinicId']['S']) {
-    console.log(`Clinic ID matched: ${payload?.['ClinicID']}`);
+    console.log(`ClinicName matched: ${payload?.['ClinicID']}`);
     return [true, arr['ClinicName']['S']]; // update
   } else {
     return false; //reject record from mesh
