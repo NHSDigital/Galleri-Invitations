@@ -14,7 +14,7 @@ exports.handler = async (event) => {
     },
   };
 
-  console.log(uuid);
+  console.log("UUID from query string parameters is: ", uuid);
 
   try {
     const command = new GetItemCommand(params);
