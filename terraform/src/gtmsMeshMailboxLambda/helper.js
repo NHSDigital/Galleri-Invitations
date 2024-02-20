@@ -112,7 +112,7 @@ export const readMsg = async (CONFIG, readingMsg, msgID) => {
       messageID: msgID,
       agent: CONFIG.receiverAgent,
     });
-    return messages.data;
+    return messages;
   } catch (error) {
     console.error("Error occurred:", error);
   }
