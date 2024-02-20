@@ -37,22 +37,26 @@ export const handler = async (event, context) => {
   try {
     console.log('Establishing connection');
     let healthy = await getHealthStatusCode(CONFIG, HANDSHAKE);
+    let keepProcessing = true;
     if (healthy === 200) {
       console.log(`Status: ${healthy}`);
-      let messageArr = await getMessageArray(CONFIG, MSG_COUNT); //return arr of message ids
-      console.log(`messageArr: ${messageArr}`);
-      if (messageArr.length > 0) {
-        for (const element of messageArr) {
-          let message = await readMsg(CONFIG, READING_MSG, element); //returns messages based on id, iteratively from message list arr
-          console.log(`message workflow: `, message.headers['mex-workflowid']);
-          const response = await processMessage(message.data, ENVIRONMENT, clientS3);
-          if (response.$metadata.httpStatusCode === 200) {
-            const confirmation = await markRead(CONFIG, MARKED, element);
-            console.log(`${confirmation.status} ${confirmation.statusText}`);
-          };
+
+      while (keepProcessing) {
+        let messageArr = await getMessageArray(CONFIG, MSG_COUNT); //return arr of message ids
+        console.log(`messageArr: ${messageArr}`);
+        if (messageArr.length > 0) {
+          for (const element of messageArr) {
+            let message = await readMsg(CONFIG, READING_MSG, element); //returns messages based on id, iteratively from message list arr
+            const response = await processMessage(message, ENVIRONMENT, clientS3);
+            if (response.$metadata.httpStatusCode === 200) {
+              const confirmation = await markRead(CONFIG, MARKED, element);
+              console.log(`${confirmation.status} ${confirmation.statusText}`);
+            };
+          }
+        } else {
+          console.log("No messages to process");
+          keepProcessing = false;
         }
-      } else {
-        console.log("No messages to process");
       }
     }
   } catch (error) {
@@ -77,45 +81,45 @@ export async function readSecret(secretName, client) {
  */
 export async function processMessage(message, environment, S3client, timestamp) {
   const dateTime = timestamp || new Date(Date.now()).toISOString()
-  if (message?.['headers']['mex-workflowid'] === 'GTMS_CLINIC') {
+  if (message?.['headers']?.['mex-workflowid'] === 'GTMS_CLINIC') {
     //Deposit to S3, ClinicCreateOrUpdate
     const confirmation = await pushCsvToS3(
       `${environment}-inbound-gtms-clinic-create-or-update`,
       `clinic_create_or_update_${dateTime}.json`,
-      JSON.stringify(message),
+      JSON.stringify(message['data']),
       S3client
     );
     return confirmation;
   }
 
-  if (message?.['headers']['mex-workflowid'] === 'GTMS_CLINIC_SCHEDULE') {
+  if (message?.['headers']?.['mex-workflowid'] === 'GTMS_CLINIC_SCHEDULE') {
     //Deposit to S3, ClinicScheduleSummary
     const confirmation = await pushCsvToS3(
       `${environment}-inbound-gtms-clinic-schedule-summary`,
       `clinic_schedule_summary_${dateTime}.json`,
-      JSON.stringify(message),
+      JSON.stringify(message['data']),
       S3client
     );
     return confirmation;
   }
 
-  if (message?.['headers']['mex-workflowid'] === 'GTMS_APPOINTMENT') {
+  if (message?.['headers']?.['mex-workflowid'] === 'GTMS_APPOINTMENT') {
     //Deposit to S3, Appointment
     const confirmation = await pushCsvToS3(
       `${environment}-inbound-gtms-appointment`,
       `appointment_${dateTime}.json`,
-      JSON.stringify(message),
+      JSON.stringify(message['data']),
       S3client
     );
     return confirmation;
   }
 
-  if (message?.['headers']['mex-workflowid'] === 'GTMS_WITHDRAW') {
+  if (message?.['headers']?.['mex-workflowid'] === 'GTMS_WITHDRAW') {
     //Deposit to S3, Withdrawal
     const confirmation = await pushCsvToS3(
       `${environment}-inbound-gtms-withdrawal`,
       `withdrawal_${dateTime}.json`,
-      JSON.stringify(message),
+      JSON.stringify(message['data']),
       S3client
     );
     return confirmation;
