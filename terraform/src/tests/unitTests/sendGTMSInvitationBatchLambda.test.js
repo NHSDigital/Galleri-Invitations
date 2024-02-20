@@ -234,21 +234,25 @@ describe("Integration Tests", () => {
       expect(result.data).toStrictEqual({ nhs_num: "123", name: "bolo" });
     });
 
-    test('test readMsg failure', async () => {
-      readMessage.mockRejectedValue("ERROR: Request 'readMessage' completed but responded with incorrect status");
-      const msgID = '123ID';
-      const logSpy = jest.spyOn(global.console, "log");
-      try {
-        const result = await readMsg(mockConfig, msgID, readMessage);
-        console.log(result);
-      } catch (err) {
-        console.log(err);
-        expect(err).toBe("ERROR: Request 'readMessage' completed but responded with incorrect status");
-        expect(logSpy).toHaveBeenCalled();
-        expect(logSpy).toHaveBeenCalledTimes(1);
-        expect(logSpy).toHaveBeenCalledWith(`result: undefined`);
-      }
-    })
+    test('should throw an error if retrieveMessage function fails', async () => {
+      const config = {
+        url: 'test-url',
+        receiverMailboxID: 'test-receiver-mailbox-id',
+        receiverMailboxPassword: 'test-receiver-mailbox-password',
+        sharedKey: 'test-shared-key',
+        receiverAgent: 'test-receiver-agent'
+      };
+      const msgID = 'test-message-id';
+      const mockResponse = { status: 200, data: 'test-message-data' };
+      const retrieveMessageMock = jest.fn().mockResolvedValue(mockResponse);
+      // Arrange
+      const errorMessage = 'Failed to retrieve message';
+      const error = new Error(errorMessage);
+      retrieveMessageMock.mockRejectedValue(error);
+
+      // Act & Assert
+      await expect(readMsg(config, msgID, retrieveMessageMock)).rejects.toThrow(errorMessage);
+    });
   })
 
   describe('getJSONFromS3', () => {
@@ -300,7 +304,6 @@ describe("Integration Tests", () => {
     });
 
     test('should return status code 200 when JSON is successfully pushed to S3', async () => {
-      // Arrange
       const bucketName = 'test-bucket';
       const key = 'test-key';
       const jsonArr = [{ name: 'John' }, { name: 'Doe' }];
@@ -318,7 +321,6 @@ describe("Integration Tests", () => {
     });
 
     test('should throw error when pushing JSON to S3 fails', async () => {
-      // Arrange
       const bucketName = 'test-bucket';
       const key = 'test-key';
       const jsonArr = [{ name: 'John' }, { name: 'Doe' }];
@@ -340,7 +342,7 @@ describe("Integration Tests", () => {
     });
 
     test('should return status code 204 when object is successfully deleted from S3', async () => {
-      // Arrange
+
       const bucketName = 'test-bucket';
       const objectKey = 'test-key';
       const response = { $metadata: { httpStatusCode: 204 } };
@@ -356,7 +358,7 @@ describe("Integration Tests", () => {
     });
 
     test('should throw error when deleting object from S3 fails', async () => {
-      // Arrange
+
       const bucketName = 'test-bucket';
       const objectKey = 'test-key';
       const error = new Error('Failed to delete object from S3');
@@ -379,7 +381,7 @@ describe("Integration Tests", () => {
       receiverMailboxID: 'receiver@example.com'
     };
 
-    const mockMsg = { /* mock message */ };
+    const mockMsg = [{ name: 'John' }, { name: 'Doe' }];
     const mockFilename = 'test.json';
 
     // Mock performHandshake and dispatchMessage
@@ -390,51 +392,6 @@ describe("Integration Tests", () => {
       jest.clearAllMocks();
     });
 
-    test('should log an error and exit process if health check fails', async () => {
-      // Mock performHandshake to return a health check with status !== 200
-      mockPerformHandshake.mockResolvedValue({ status: 500 });
-
-      // Mock process.exit
-      const originalExit = process.exit;
-      process.exit = jest.fn();
-
-      // Spy on console.error
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      // Call the function
-      await sendUncompressed(mockConfig, mockMsg, mockFilename, mockPerformHandshake, mockDispatchMessage);
-
-      // Expect console.error to have been called with the correct message
-      expect(process.exit).toHaveBeenCalledWith(1);
-      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Health Check Failed'));
-
-      // Restore process.exit
-      process.exit = originalExit;
-
-
-      // Restore the console.error function
-      consoleErrorSpy.mockRestore();
-    });
-
-    test('should log an error and exit process if message creation fails', async () => {
-      // Mock performHandshake to return a health check with status 200
-      mockPerformHandshake.mockResolvedValue({ status: 200 });
-
-      // Mock dispatchMessage to return a message with status !== 202
-      mockDispatchMessage.mockResolvedValue({ status: 500 });
-
-      // Spy on console.error
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      // Call the function
-      await sendUncompressed(mockConfig, mockMsg, mockFilename, mockPerformHandshake, mockDispatchMessage);
-
-      // Expect console.error to have been called with the correct message
-      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Create Message Failed'));
-
-      // Restore the console.error function
-      consoleErrorSpy.mockRestore();
-    });
 
     test('should log success message and return message_id if message creation succeeds', async () => {
       // Mock performHandshake to return a health check with status 200
@@ -459,26 +416,33 @@ describe("Integration Tests", () => {
       consoleLogSpy.mockRestore();
     });
 
-    test('should exit process if an error occurs', async () => {
-      // Arrange
-      mockPerformHandshake.mockRejectedValue(new Error('Network error')); // Mock error during handshake
+    test('should throw error when health check fails', async () => {
+      // Mock performHandshake to return health check status other than 200
+      mockPerformHandshake.mockResolvedValue({ status: 500 });
 
-      // Spy on console.error
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      // Spy on console.log
+      const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
 
-      // Mock process.exit
-      const originalExit = process.exit;
-      process.exit = jest.fn();
+      // Call the function and expect it to throw an error
+      await expect(sendUncompressed(mockConfig, mockMsg, mockFilename, mockPerformHandshake, mockDispatchMessage)).rejects.toThrowError('Health Check Failed');
 
-      // Act
-      await sendUncompressed(mockConfig, mockMsg, mockFilename, mockPerformHandshake, mockDispatchMessage);
+      // Assertions
+      expect(mockPerformHandshake).toHaveBeenCalledTimes(1);
+      expect(mockDispatchMessage).not.toHaveBeenCalled();
+      expect(consoleLogSpy).toHaveBeenCalledWith(`Sending ${mockFilename} to GTMS Mailbox`);
+    });
 
-      // Assert
-      expect(process.exit).toHaveBeenCalledWith(1);
-      expect(consoleErrorSpy).toHaveBeenCalledWith("An error occurred:", "Network error");
+    test('should throw an error if create message fails', async () => {
+      // Mock performHandshake to return a health check with status 200
+      mockPerformHandshake.mockResolvedValue({ status: 200 });
 
-      // Restore process.exit
-      process.exit = originalExit;
+      // Mock dispatchMessage to return a message with status 400
+      const createMessageError = new Error('Create Message Failed');
+      createMessageError.status = 400;
+      mockDispatchMessage.mockResolvedValue({ status: 400, data: 'test-data' });
+
+      // Call the function and expect it to throw an error
+      await expect(sendUncompressed(mockConfig, mockMsg, mockFilename, mockPerformHandshake, mockDispatchMessage)).rejects.toThrow(`Create Message Failed for ${mockFilename}: ${createMessageError.status}`);
     });
   });
 });

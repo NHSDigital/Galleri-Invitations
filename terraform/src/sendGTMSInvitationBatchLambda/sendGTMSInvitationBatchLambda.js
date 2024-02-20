@@ -158,8 +158,7 @@ export async function sendUncompressed(config, msg, filename, performHandshake, 
     });
 
     if (healthCheck.status != 200) {
-      console.error(`Health Check Failed: ${healthCheck}`);
-      process.exit(1);
+      throw new Error(`Health Check Failed: ${healthCheck}`);
     }
 
     let message = await dispatchMessage({
@@ -175,15 +174,13 @@ export async function sendUncompressed(config, msg, filename, performHandshake, 
     });
 
     if (message.status != 202) {
-      console.error(`Create Message Failed: ${message.status}`);
-      // process.exit(1);
+      throw new Error(`Create Message Failed for ${filename}: ${message.status}`);
     } else {
       console.log(`Successfully sent ${filename} to GTMS mailbox`);
       return message.data.message_id;
     }
   } catch (error) {
-    console.error("An error occurred:", error.message);
-    process.exit(1);
+    throw error;
   }
 }
 
@@ -200,7 +197,7 @@ export async function readMsg(config, msgID, retrieveMessage) {
     });
     return messages;
   } catch (error) {
-    console.error("Error occurred:", error);
+    throw error;
   }
 }
 
