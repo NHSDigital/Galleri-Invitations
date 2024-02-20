@@ -1,5 +1,5 @@
-const { DynamoDBClient, GetItemCommand } = require("@aws-sdk/client-dynamodb");
-const { unmarshall } = require("@aws-sdk/util-dynamodb");
+import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 
 const dynamoDBClient = new DynamoDBClient({ region: "eu-west-2" });
 const environment = process.env.ENVIRONMENT;
@@ -14,11 +14,14 @@ exports.handler = async (event) => {
     },
   };
 
+  console.log(uuid);
+
   try {
     const command = new GetItemCommand(params);
     const data = await dynamoDBClient.send(command);
 
     if (!data.Item) {
+      console.error("User not found");
       return {
         statusCode: 404,
         body: JSON.stringify({ message: "User not found" }),
