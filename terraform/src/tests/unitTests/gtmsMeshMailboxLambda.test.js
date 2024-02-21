@@ -132,7 +132,7 @@ describe("processMessage", () => {
     const result = await processMessage(clinicData, environment, mockS3Client, workflows, 29012024);
     console.log(result);
     expect(logSpy).toHaveBeenCalled();
-    // expect(logSpy).toHaveBeenCalledTimes(2);
+    expect(logSpy).toHaveBeenCalledTimes(2);
     expect(logSpy).toHaveBeenNthCalledWith(1, `Successfully pushed to dev-1-inbound-gtms-clinic-create-or-update/clinic_create_or_update_29012024.json`);
     expect(logSpy).toHaveBeenNthCalledWith(2, { "$metadata": { "httpStatusCode": 200 } });
   })
