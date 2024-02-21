@@ -1,4 +1,4 @@
-import { DynamoDBClient, BatchWriteItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, BatchWriteItemCommand, QueryCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
 
 const client = new DynamoDBClient({ region: "eu-west-2" });
 const ENVIRONMENT = process.env.ENVIRONMENT;
@@ -31,8 +31,14 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient){
   const episodeRecordsUpload = await Promise.allSettled(
     incomingRecordsArr.map(async (record) => {
       if (record.dynamodb.OldImage.identified_to_be_invited.BOOL === false && record.dynamodb.NewImage.identified_to_be_invited.BOOL) {
-        if (await lookupParticipantId(record.dynamodb.NewImage.participantId.S, "Episode", dbClient)){
-          return createEpisodeRecord(record.dynamodb.NewImage);
+        if (await lookupParticipantId(record.dynamodb.NewImage.participantId.S, "Episode", dbClient)) {
+          const episodeRecord = createEpisodeRecord(record.dynamodb.NewImage);
+          const addEpisodeRecordResponse = addEpisodeRecord("Episode", episodeRecord);
+          if (addEpisodeRecordResponse.$metadata.httpStatusCode === 200){
+            return Promise.resolve("Successfully added")
+          } else {
+            return Promise.reject(`Unable to add record ${record.dynamodb.NewImage.participantId.S}`)
+          }
         } else {
           console.log("RECORD ALREADY EXISTS")
           return Promise.reject("Not new record");
@@ -46,44 +52,55 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient){
 
 function createEpisodeRecord(record){
   const createTime = String(Date.now())
-  const item = {
-    PutRequest: {
-      Item: {
-        'Batch_Id': {
-          S: `${record.Batch_Id.S}`
-        },
-        'Participant_Id': {
-          S: `${record.participantId.S}`
-        },
-        'LSOA': {
-          S: `${record.LsoaCode.S}`
-        },
-        'Gp_Practice_Code': {
-          S: `${record.gpPracticeCode.S}`
-        },
-        'Episode_Created_By': {
-          S: `UserName` // need to pull in username when able to access
-        },
-        'Episode_Creation': {
-          S: createTime
-        },
-        'Episode_Status_Updated': {
-          S: createTime
-        },
-        'Episode_Status': {
-          S: `Open`
-        },
-        'Episode_Event': {
-          S: `Invited`
-        },
-        'Episode_Event_Updated': {
-          S: createTime
-        }
+  const item =
+   {
+      'Batch_Id': {
+        S: `${record.Batch_Id.S}`
+      },
+      'Participant_Id': {
+        S: `${record.participantId.S}`
+      },
+      'LSOA': {
+        S: `${record.LsoaCode.S}`
+      },
+      'Gp_Practice_Code': {
+        S: `${record.gpPracticeCode.S}`
+      },
+      'Episode_Created_By': {
+        S: `UserName` // need to pull in username when able to access
+      },
+      'Episode_Creation': {
+        S: createTime
+      },
+      'Episode_Status_Updated': {
+        S: createTime
+      },
+      'Episode_Status': {
+        S: `Open`
+      },
+      'Episode_Event': {
+        S: `Invited`
+      },
+      'Episode_Event_Updated': {
+        S: createTime
       }
     }
-  }
 
   return Promise.resolve(item)
+}
+
+async function addEpisodeRecord(table, item) {
+  const input = {
+    TableName: `${ENVIRONMENT}-${table}`,
+    Item: item,
+    ConditionExpression: "attribute_not_exists(Batch_Id)",
+
+    ReturnValuesOnConditionCheckFailure: "ALL_OLD",
+  };
+  const command = new PutItemCommand(input);
+  const response = await client.send(command);
+
+  return response;
 }
 
 // look into episode table and see if there exists a participant
