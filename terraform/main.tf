@@ -795,10 +795,10 @@ module "gtms_mesh_mailbox_lambda" {
     MESH_SHARED_KEY            = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
     GTMS_MESH_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_mailbox_id.secret_string)["GTMS_MESH_MAILBOX_ID"],
     GTMS_MESH_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_mailbox_password.secret_string)["GTMS_MESH_MAILBOX_PASSWORD"],
-    CLINIC_WORKFLOW = "GTMS_CLINIC",
-    CLINIC_SCHEDULE_WORKFLOW = "GTMS_CLINIC_SCHEDULE",
-    APPOINTMENT_WORKFLOW = "GTMS_APPOINTMENT",
-    WITHDRAW_WORKFLOW = "GTMS_WITHDRAW",
+    CLINIC_WORKFLOW            = "GTMS_CLINIC",
+    CLINIC_SCHEDULE_WORKFLOW   = "GTMS_CLINIC_SCHEDULE",
+    APPOINTMENT_WORKFLOW       = "GTMS_APPOINTMENT",
+    WITHDRAW_WORKFLOW          = "GTMS_WITHDRAW",
   }
 }
 
