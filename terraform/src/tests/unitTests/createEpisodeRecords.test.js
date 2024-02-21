@@ -10,7 +10,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 describe("processIncomingRecords", () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
-   test("record has not changed", async () => {
+  test("record has not changed", async () => {
     mockDynamoDbClient.resolves({
       $metadata: {
         httpStatusCode: 200,

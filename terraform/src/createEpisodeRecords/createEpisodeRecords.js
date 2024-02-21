@@ -49,7 +49,7 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient){
 function createEpisodeRecord(record){
   const createTime = String(Date.now())
   const item =
-   {
+    {
       'Batch_Id': {
         S: `${record.Batch_Id.S}`
       },
