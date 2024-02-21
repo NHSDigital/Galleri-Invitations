@@ -8,22 +8,17 @@ const UNSUCCESSFUL_RESPONSE = 400;
 */
 export const handler = async (event) => {
   const changedRecords = event.Records;
-  const chunkSize = 25;
   console.log("Amount of modified records", changedRecords.length);
 
   const episodeRecordsUpload = await processIncomingRecords(changedRecords, client);
 
-  const filteredRecords = episodeRecordsUpload.filter(record => record.status !== "rejected")
-  let responseArray;
-  console.log(`Number of records that were not rejected = ${filteredRecords.length}`)
-  if (filteredRecords.every( element => element.value !== UNSUCCESSFUL_RESPONSE)){
-    const sendRequest = await loopThroughRecords(filteredRecords, chunkSize, client)
-    responseArray = await Promise.allSettled(sendRequest)
+  const filteredRecords = episodeRecordsUpload.filter(record => record.status !== "fulfilled")
+
+  if (filteredRecords.length > 0){
+    console.warn("Some Records did not update properly")
+  } else {
+    return `The episode records have been successfully created.`
   }
-  if (responseArray.status == "rejected"){
-    return new Error(`The episode records have not been successfully created.`)
-  }
-  return `The episode records have been successfully created.`
 };
 
 // METHODS
@@ -33,18 +28,19 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient){
       if (record.dynamodb.OldImage.identified_to_be_invited.BOOL === false && record.dynamodb.NewImage.identified_to_be_invited.BOOL) {
         if (await lookupParticipantId(record.dynamodb.NewImage.participantId.S, "Episode", dbClient)) {
           const episodeRecord = createEpisodeRecord(record.dynamodb.NewImage);
-          const addEpisodeRecordResponse = addEpisodeRecord("Episode", episodeRecord);
+          const addEpisodeRecordResponse = await addEpisodeRecord("Episode", episodeRecord);
           if (addEpisodeRecordResponse.$metadata.httpStatusCode === 200){
             return Promise.resolve("Successfully added")
           } else {
-            return Promise.reject(`Unable to add record ${record.dynamodb.NewImage.participantId.S}`)
+            return Promise.reject(`Unable to add record ${record.dynamodb.OldImage.participantId.S}`)
           }
         } else {
-          console.log("RECORD ALREADY EXISTS")
-          return Promise.reject("Not new record");
+          console.warn("RECORD ALREADY EXISTS")
+          return Promise.reject(`Record ${record.dynamodb.OldImage.participantId.S} is not a new record`);
         }
       }
-      return Promise.reject("Record has not been modified");
+      console.warn("RECORD HAS NOT BEEN MODIFIED")
+      return Promise.reject(`Record ${record.dynamodb.OldImage.participantId.S} has not been modified`);
     })
   )
   return episodeRecordsUpload
@@ -86,7 +82,7 @@ function createEpisodeRecord(record){
       }
     }
 
-  return Promise.resolve(item)
+  return item;
 }
 
 async function addEpisodeRecord(table, item) {
@@ -125,40 +121,3 @@ export const lookupParticipantId = async (participantId, table, dbClient) => {
   console.log("Duplicate exists")
   return false;
 };
-
-export async function loopThroughRecords(episodeRecordsUpload, chunkSize, dbClient) {
-  console.log(`Number of records to push to db = ${episodeRecordsUpload.length}`)
-  const sendRequest = [];
-  if (episodeRecordsUpload.length === 0) return sendRequest; // handle edge case
-
-  for (let i = 0; i < episodeRecordsUpload.length; chunkSize) {
-    if ((episodeRecordsUpload.length - i) < chunkSize){ // remaining chunk
-      const batch = episodeRecordsUpload.splice(i, episodeRecordsUpload.length - i);
-      console.log("Writing remainder")
-      sendRequest.push(await batchWriteToDynamo(dbClient, `Episode`, batch));
-      return sendRequest;
-    }
-    const batch = episodeRecordsUpload.splice(i, chunkSize);
-    console.log("Writing to dynamo")
-    sendRequest.push(await batchWriteToDynamo(dbClient, `Episode`, batch));
-  }
-  return sendRequest
-}
-
-export async function batchWriteToDynamo(dbClient, table, uploadBatch){
-  // split out array
-  const filterUploadBatch = uploadBatch.map(record => record.value);
-
-  if (filterUploadBatch.length !== 0) {
-    let requestItemsObject = {};
-    requestItemsObject[`${ENVIRONMENT}-${table}`] = filterUploadBatch;
-
-    const command = new BatchWriteItemCommand({
-      RequestItems: requestItemsObject
-    });
-
-    const response = await dbClient.send(command);
-    return response.$metadata.httpStatusCode;
-  }
-  return UNSUCCESSFUL_RESPONSE;
-}
