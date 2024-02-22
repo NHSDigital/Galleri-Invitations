@@ -236,6 +236,37 @@ const updateRecord = async (record, recordFromTable) => {
     record.lsoa_2011 = lsoaCheck;
   }
 
+  if (recordFromTable.reason_for_removal !== "DEA" && record.reason_for_removal === "DEA") {
+    // check if episode record exists
+    const episodeRecordCheck = await lookUp(client, recordFromTable.PersonId.S , "Episode", "Participant_Id", "S", true);
+    if (episodeRecordCheck.Items[0].length > 0) {
+      const episodeRecord = episodeRecordCheck.Items[0];
+      const batchId = episodeRecord.Batch_Id.S
+      const participantId = episodeRecord.Participant_Id.S
+
+      const timeNow = Date.now();
+
+      const updateEpisodeEvent = ["Episode_Event", "S", "Deceased"]
+      const updateEpisodeEventUpdated = ["Episode_Event_Updated", "N", String(timeNow)]
+      const updateEpisodeStatus = ["Episode_Status", "S", "Closed"]
+      const updateEpisodeEventDescription = ["Episode_Event_Description", "S", "NULL"]
+      const updateEpisodeEventNotes = ["Episode_Event_Notes", "S", "NULL"]
+      const updateEpisodeEventUpdatedBy = ["Episode_Event_Updated_By", "S", "CaaS"]
+      const updateEpisodeStatusUpdated = ["Episode_Status_Updated", "N", String(timeNow)]
+
+      await updateRecordInTable(client, "Episode", batchId, "Batch_Id", participantId, "Participant_Id",
+        updateEpisodeEvent,
+        updateEpisodeEventUpdated,
+        updateEpisodeStatus,
+        updateEpisodeEventDescription,
+        updateEpisodeEventNotes,
+        updateEpisodeEventUpdatedBy,
+        updateEpisodeStatusUpdated
+      );
+    }
+
+  }
+
   await overwriteRecordInTable(client, "Population", record, recordFromTable);
   return {
     rejected: false
