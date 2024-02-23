@@ -1161,7 +1161,7 @@ module "population_table" {
   secondary_write_capacity = null
   secondary_read_capacity  = null
   environment              = var.environment
-  projection_type    = "ALL"
+  projection_type          = "ALL"
   attributes = [{
     name = "PersonId"
     type = "S"
