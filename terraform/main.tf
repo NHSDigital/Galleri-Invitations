@@ -689,6 +689,38 @@ module "create_episode_record_dynamodb_stream" {
   maximum_batching_window_in_seconds = 300
 }
 
+# Add Episode History
+module "add_episode_history_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "addEpisodeHistoryLambda"
+  lambda_timeout       = 900
+  memory_size          = 1024
+  lambda_s3_object_key = "add_episode_history.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "add_episode_history_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.add_episode_history_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "add_episode_history_dynamodb_stream" {
+  source                             = "./modules/dynamodb_stream"
+  enabled                            = true
+  event_source_arn                   = module.episode_history_table.dynamodb_stream_arn
+  function_name                      = module.add_episode_history_lambda.lambda_function_name
+  starting_position                  = "LATEST"
+  batch_size                         = 200
+  maximum_batching_window_in_seconds = 30
+}
+
 # User Accounts Lambda
 module "user_accounts_lambda" {
   source               = "./modules/lambda"
@@ -1344,6 +1376,28 @@ module "episode_table" {
   ]
   tags = {
     Name        = "Dynamodb Table Episode"
+    Environment = var.environment
+  }
+}
+
+module "episode_history_table" {
+  source           = "./modules/dynamodb"
+  billing_mode     = "PROVISIONED"
+  stream_enabled   = true
+  stream_view_type = "NEW_AND_OLD_IMAGES"
+  table_name       = "EpisodeHistory"
+  hash_key         = "Participant_Id"
+  read_capacity    = 10
+  write_capacity   = 10
+  environment      = var.environment
+  attributes = [
+    {
+      name = "Participant_Id"
+      type = "S"
+    }
+  ]
+  tags = {
+    Name        = "Dynamodb Table Episode History"
     Environment = var.environment
   }
 }
