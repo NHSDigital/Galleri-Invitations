@@ -117,6 +117,7 @@ runs:
         npm install --prefix src/getLsoaParticipantsLambda
         npm install --prefix src/calculateNumberToInviteLambda
         npm install --prefix src/generateInvitesTriggerLambda
+        npm install --prefix src/createEpisodeRecordsLambda
         npm install --prefix src/gpPracticesLoaderLambda
         npm install --prefix src/userAccountsLambda
         npm install --prefix src/pollMeshMailboxLambda

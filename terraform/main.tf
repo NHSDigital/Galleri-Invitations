@@ -663,7 +663,7 @@ module "create_episode_record_lambda" {
   environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "createEpisodeRecords"
+  lambda_function_name = "createEpisodeRecordsLambda"
   lambda_timeout       = 900
   memory_size          = 1024
   lambda_s3_object_key = "create_episode_record.zip"

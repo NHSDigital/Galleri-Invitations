@@ -1,8 +1,8 @@
 {
-  "name": "createEpisodeRecords",
+  "name": "createEpisodeRecordsLambda",
   "version": "1.0.0",
   "type": "module",
-  "main": "createEpisodeRecords.js",
+  "main": "createEpisodeRecordsLambda.js",
   "author": "",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.398.0"

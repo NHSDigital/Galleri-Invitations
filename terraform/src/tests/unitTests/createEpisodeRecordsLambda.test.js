@@ -3,7 +3,7 @@ import {
   lookupParticipantId,
   loopThroughRecords,
   batchWriteToDynamo,
-} from "../../createEpisodeRecords/createEpisodeRecords";
+} from "../../createEpisodeRecordsLambda/createEpisodeRecordsLambda";
 import { mockClient } from "aws-sdk-client-mock";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 
