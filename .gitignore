@@ -37,6 +37,7 @@ terraform.rc
 
 # python directories
 **/__pycache__
+venv
 
 # node modules
 node_modules
