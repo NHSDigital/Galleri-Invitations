@@ -12,6 +12,7 @@ import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-sec
 const smClient = new SecretsManagerClient({ region: "eu-west-2" });
 const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
+const WORKFLOW_ID = process.env.WORKFLOW_ID;
 const SENT_BUCKET = `${ENVIRONMENT}-sent-gtms-invited-participant-batch`;
 
 //HANDLER
@@ -169,7 +170,7 @@ export async function sendUncompressed(config, msg, filename, performHandshake, 
       message: msg,
       mailboxTarget: config.receiverMailboxID,
       agent: config.senderAgent,
-      workFlowId: "API-GTMS-INVITATION-BATCH-TEST",
+      workFlowId: WORKFLOW_ID,
       fileName: filename,
     });
 

@@ -878,6 +878,7 @@ module "send_GTMS_invitation_batch_lambda" {
   environment_vars = {
     ENVIRONMENT                    = "${var.environment}",
     MESH_SANDBOX                   = "false",
+    WORKFLOW_ID                    = "API-GTMS-INVITATION-BATCH-TEST",
     MESH_URL                       = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
     MESH_SHARED_KEY                = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
     MESH_SENDER_MAILBOX_ID         = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_id.secret_string)["MESH_SENDER_MAILBOX_ID"],
