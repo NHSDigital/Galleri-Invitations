@@ -423,7 +423,9 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_PASSWORD*",
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_KEY*",
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_CERT*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_CERT*"
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_CERT*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:CAAS_MESH_MAILBOX_ID*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:CAAS_MESH_MAILBOX_PASSWORD*",
           ]
         },
         {
