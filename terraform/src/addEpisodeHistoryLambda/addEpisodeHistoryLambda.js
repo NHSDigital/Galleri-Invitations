@@ -25,23 +25,22 @@ export const handler = async (event) => {
 export async function processIncomingRecords(incomingRecordsArr, dbClient){
   const episodeRecordsUpload = await Promise.allSettled(
     incomingRecordsArr.map(async (record) => {
-      if (record.dynamodb.OldImage.identified_to_be_invited.BOOL === false && record.dynamodb.NewImage.identified_to_be_invited.BOOL) {
-        if (await lookupParticipantId(record.dynamodb.NewImage.participantId.S, "Episode", dbClient)) {
-          const episodeRecord = createEpisodeRecord(record.dynamodb.NewImage);
-          const addEpisodeRecordResponse = await addEpisodeRecord("Episode", episodeRecord);
-          if (addEpisodeRecordResponse.$metadata.httpStatusCode === 200){
-            return Promise.resolve("Successfully added")
-          } else {
-            return Promise.reject(`Unable to add record ${record.dynamodb.OldImage.participantId.S}`)
-          }
+      if (record.dynamodb.OldImage !== record.dynamodb.NewImage) {
+        // upload to episode history
+        // generate payload
+        const formatRecord = formatEpisodeHistoryRecord(record.dynamodb.NewImage)
+        // upload payload
+        const uploadRecord = uploadEpisodeHistroyRecord(formatRecord)
+        if (uploadRecord.$metadata.httpStatusCode === 200){
+          Promise.resolve(`Successfully added or updated participant ${record.dynamodb.NewImage.participantId.S} to Episode History table`)
         } else {
-          console.warn("RECORD ALREADY EXISTS")
-          return Promise.reject(`Record ${record.dynamodb.OldImage.participantId.S} is not a new record`);
+          Promise.reject(`An error occured trying to add ${record.dynamodb.NewImage.participantId.S} to Episode History table`)
         }
-      }
+      } else {
       console.warn("RECORD HAS NOT BEEN MODIFIED")
       return Promise.reject(`Record ${record.dynamodb.OldImage.participantId.S} has not been modified`);
-    })
+    }
+  })
   )
   return episodeRecordsUpload
 }
@@ -50,40 +49,35 @@ function createEpisodeRecord(record){
   const createTime = String(Date.now())
   const item =
     {
-      'Batch_Id': {
-        S: `${record.Batch_Id.S}`
-      },
       'Participant_Id': {
         S: `${record.participantId.S}`
       },
-      'LSOA': {
-        S: `${record.LsoaCode.S}`
+      'Episode_Event': {
+        S: `${record.Episode_Event.S}`
       },
-      'Gp_Practice_Code': {
-        S: `${record.gpPracticeCode.S}`
-      },
-      'Episode_Created_By': {
-        S: `UserName` // need to pull in username when able to access
-      },
-      'Episode_Creation': {
+      'Episode_Event_Updated': {
         S: createTime
+      },
+      'Episode_Event_Description': {
+        S: createTime
+      },
+      'Episode_Event_Notes': {
+        S: createTime
+      },
+      'Episode_Event_Updated_By': {
+        S: createTime
+      },
+      'Episode_Status': {
+        S: `${record.Episode_Status.S}`
       },
       'Episode_Status_Updated': {
         S: createTime
       },
-      'Episode_Status': {
-        S: `Open`
-      },
-      'Episode_Event': {
-        S: `Invited`
-      },
-      'Episode_Event_Updated': {
-        S: createTime
-      }
     }
 
   return item;
 }
+
 
 async function addEpisodeRecord(table, item) {
   const input = {

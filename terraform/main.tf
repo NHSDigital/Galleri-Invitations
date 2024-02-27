@@ -714,7 +714,7 @@ module "add_episode_history_cloudwatch" {
 module "add_episode_history_dynamodb_stream" {
   source                             = "./modules/dynamodb_stream"
   enabled                            = true
-  event_source_arn                   = module.episode_history_table.dynamodb_stream_arn
+  event_source_arn                   = module.episode_table.dynamodb_stream_arn
   function_name                      = module.add_episode_history_lambda.lambda_function_name
   starting_position                  = "LATEST"
   batch_size                         = 200
@@ -1193,8 +1193,8 @@ module "population_table" {
   secondary_write_capacity = null
   secondary_read_capacity  = null
   environment              = var.environment
-  non_key_attributes       = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
-  projection_type          = "INCLUDE"
+  # non_key_attributes       = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+  projection_type          = "ALL"
   attributes = [{
     name = "PersonId"
     type = "S"
