@@ -146,6 +146,13 @@ module "gtms_withdrawal" {
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
+
+module "gtms_invited_participant_batch" {
+  source                  = "./modules/s3"
+  bucket_name             = "sent-gtms-invited-participant-batch"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
 # End of GTMS buckets
 
 # Data Filter Gridall IMD
@@ -886,6 +893,43 @@ module "gtms_upload_clinic_data_lambda_trigger" {
   bucket_arn    = module.processed_clinic_data_bucket.bucket_arn
   lambda_arn    = module.gtms_upload_clinic_data_lambda.lambda_arn
   filter_prefix = "validRecords/valid_records_add-"
+}
+
+# Send Invitaion Batch to GTMS
+module "send_GTMS_invitation_batch_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "sendGTMSInvitationBatchLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "send_GTMS_invitation_batch_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                    = "${var.environment}",
+    MESH_SANDBOX                   = "false",
+    WORKFLOW_ID                    = "API-GTMS-INVITATION-BATCH-TEST",
+    MESH_URL                       = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
+    MESH_SHARED_KEY                = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
+    MESH_SENDER_MAILBOX_ID         = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_id.secret_string)["MESH_SENDER_MAILBOX_ID"],
+    MESH_SENDER_MAILBOX_PASSWORD   = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_password.secret_string)["MESH_SENDER_MAILBOX_PASSWORD"],
+    MESH_RECEIVER_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_id.secret_string)["MESH_RECEIVER_MAILBOX_ID"],
+    MESH_RECEIVER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_password.secret_string)["MESH_RECEIVER_MAILBOX_PASSWORD"]
+  }
+}
+
+module "send_GTMS_invitation_batch_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.send_GTMS_invitation_batch_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "send_GTMS_invitation_batch_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.invited_participant_batch.bucket_id
+  bucket_arn = module.invited_participant_batch.bucket_arn
+  lambda_arn = module.send_GTMS_invitation_batch_lambda.lambda_arn
 }
 
 
