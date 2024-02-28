@@ -57,9 +57,11 @@ export const getObjectKeys = async (client, bucket) => {
   while (isTruncated) {
     const { Contents, IsTruncated, NextContinuationToken } =
       await client.send(command);
-    const contentsList = Contents.map((c) => c.Key);
-    console.log("Bucket contents list: ", contentsList);
-    keys.push(...contentsList);
+    if (Contents) {
+      const contentsList = Contents.map((c) => c.Key);
+      console.log("Bucket contents list: ", contentsList);
+      keys.push(...contentsList);
+    }
     isTruncated = IsTruncated;
     command.input.ContinuationToken = NextContinuationToken;
   }
