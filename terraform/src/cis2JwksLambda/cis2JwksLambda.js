@@ -30,7 +30,7 @@ export const handler = async () => {
     console.log(`Returning CIS2 public key jwks: ${responseObject.body}`);
     return responseObject;
   } catch (err) {
-    console.error(`Error getting CIS2 public key jwks: ${err.message}`);
+    console.error(`Error getting CIS2 public key jwks: ${err}`);
     const responseObject = {};
     responseObject.statusCode = 500;
     responseObject.headers = {
@@ -46,6 +46,7 @@ export const handler = async () => {
 };
 
 export const getObjectKeys = async (client, bucket) => {
+  console.log("Getting object keys in bucket: ", bucket);
   const command = new ListObjectsV2Command({
     Bucket: bucket,
   });
@@ -57,14 +58,17 @@ export const getObjectKeys = async (client, bucket) => {
     const { Contents, IsTruncated, NextContinuationToken } =
       await client.send(command);
     const contentsList = Contents.map((c) => c.Key);
+    console.log("Bucket contents list: ", contentsList);
     keys.push(...contentsList);
     isTruncated = IsTruncated;
     command.input.ContinuationToken = NextContinuationToken;
   }
+  console.log("Object keys: ", keys);
   return keys;
 };
 
 export const getObjectString = async (client, bucket, key) => {
+  console.log("Getting object string for key: ", key);
   const command = new GetObjectCommand({
     Bucket: bucket,
     Key: key,
@@ -72,19 +76,23 @@ export const getObjectString = async (client, bucket, key) => {
 
   const response = await client.send(command);
   const str = await response.Body.transformToString();
+  console.log("Got object string for key: ", key);
   return str;
 };
 
 export const getObjectStrings = async (client, bucket, keys) => {
+  console.log("Getting object strings for keys: ", keys);
   const objectStrings = [];
   await Promise.allSettled(keys.map(async (key) => {
     const objectStr = await getObjectString(client, bucket, key);
     objectStrings.push(objectStr);
   }));
+  console.log("Got object strings for keys: ", keys);
   return objectStrings;
 };
 
 export const exportJwks = (keyIds, keyStrings) => {
+  console.log("Exporting jwks");
   const jwks = keyStrings.map((keyStr, index) => {
     const publicKey = createPublicKey(keyStr);
     const jwk = publicKey.export({ format: "jwk" });
@@ -93,5 +101,6 @@ export const exportJwks = (keyIds, keyStrings) => {
     jwk.use = "sig";
     return jwk;
   });
+  console.log("Exported jwks");
   return { "keys": jwks };
 };

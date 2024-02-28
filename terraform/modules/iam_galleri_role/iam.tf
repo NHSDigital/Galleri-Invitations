@@ -390,8 +390,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           "Sid" : "AllowS3Access",
           "Effect" : "Allow",
           "Action" : [
-            "s3:*",
-            "s3-object-lambda:*"
+            "s3:*"
           ],
           "Resource" : [
             "arn:aws:s3:::${var.environment}-galleri-caas-data/*",
@@ -402,6 +401,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:s3:::${var.environment}-inbound-gtms-appointment/*",
             "arn:aws:s3:::${var.environment}-inbound-gtms-withdrawal/*",
             "arn:aws:s3:::${var.environment}-cis2-public-keys-bucket/*",
+            "arn:aws:s3:::${var.environment}-cis2-public-keys-bucket",
           ]
         },
         {
