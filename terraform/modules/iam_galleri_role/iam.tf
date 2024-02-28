@@ -390,7 +390,8 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           "Sid" : "AllowS3Access",
           "Effect" : "Allow",
           "Action" : [
-            "s3:*"
+            "s3:*",
+            "s3-object-lambda:*"
           ],
           "Resource" : [
             "arn:aws:s3:::${var.environment}-galleri-caas-data/*",
