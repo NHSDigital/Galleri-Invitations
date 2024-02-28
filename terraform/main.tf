@@ -877,7 +877,7 @@ module "cis2_jwks_lambda" {
   lambda_s3_object_key = "cis2_jwks_lambda.zip"
   environment_vars = {
     ENVIRONMENT        = "${var.environment}",
-    PUBLIC_KEYS_BUCKET = module.cis2_public_keys_bucket.bucket_name
+    PUBLIC_KEYS_BUCKET = "${module.cis2_public_keys_bucket.bucket_id}"
   }
 }
 
