@@ -1,0 +1,9 @@
+{
+  "name": "cis2JwksLambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "cis2JwksLambda.js",
+  "author": "",
+  "dependencies": {
+  }
+}

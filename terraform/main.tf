@@ -89,6 +89,13 @@ module "user_accounts_bucket" {
   environment             = var.environment
 }
 
+module "cis2_public_keys_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "cis2-public-keys-bucket"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
 # GTMS buckets for each JSON response header
 module "caas_data_bucket" {
   source                  = "./modules/s3"
@@ -269,7 +276,7 @@ module "clinic_icb_list_api_gateway" {
 }
 
 
-# partisipating icb list
+# participating icb list
 module "participating_icb_list_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
@@ -856,6 +863,37 @@ module "gtms_upload_clinic_data_lambda_trigger" {
   bucket_arn    = module.processed_clinic_data_bucket.bucket_arn
   lambda_arn    = module.gtms_upload_clinic_data_lambda.lambda_arn
   filter_prefix = "validRecords/valid_records_add-"
+}
+
+# CIS2 public key jwks
+module "cis2_jwks_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "cis2JwksLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "cis2_jwks_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "cis2_jwks_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.cis2_jwks_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "cis2_jwks_api_gateway" {
+  source                 = "./modules/api-gateway"
+  environment            = var.environment
+  lambda_invoke_arn      = module.cis2_jwks_lambda.lambda_invoke_arn
+  path_part              = "cis2-jwks"
+  method_http_parameters = {}
+  lambda_function_name   = module.cis2_jwks_lambda.lambda_function_name
 }
 
 
