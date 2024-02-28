@@ -1,4 +1,5 @@
-import { DynamoDBClient, QueryCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
+import isEqual from 'lodash.isequal'
 
 const client = new DynamoDBClient({ region: "eu-west-2" });
 const ENVIRONMENT = process.env.ENVIRONMENT;
@@ -25,12 +26,15 @@ export const handler = async (event) => {
 export async function processIncomingRecords(incomingRecordsArr, dbClient){
   const episodeRecordsUpload = await Promise.allSettled(
     incomingRecordsArr.map(async (record) => {
-      if (record.dynamodb.OldImage !== record.dynamodb.NewImage) {
+      console.log(record)
+      if (!isEqual(record.dynamodb?.OldImage, record.dynamodb.NewImage)) {
         // upload to episode history
         // generate payload
         const formatRecord = formatEpisodeHistoryRecord(record.dynamodb.NewImage)
+        console.log("formatRecord")
+        console.log(formatRecord)
         // upload payload
-        const uploadRecord = uploadEpisodeHistroyRecord(formatRecord)
+        const uploadRecord = uploadEpisodeHistoryRecord(formatRecord, dbClient)
         if (uploadRecord.$metadata.httpStatusCode === 200){
           Promise.resolve(`Successfully added or updated participant ${record.dynamodb.NewImage.participantId.S} to Episode History table`)
         } else {
@@ -45,73 +49,66 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient){
   return episodeRecordsUpload
 }
 
-function createEpisodeRecord(record){
+function formatEpisodeHistoryRecord(record){
   const createTime = String(Date.now())
-  const item =
-    {
-      'Participant_Id': {
-        S: `${record.participantId.S}`
-      },
-      'Episode_Event': {
-        S: `${record.Episode_Event.S}`
-      },
-      'Episode_Event_Updated': {
-        S: createTime
-      },
-      'Episode_Event_Description': {
-        S: createTime
-      },
-      'Episode_Event_Notes': {
-        S: createTime
-      },
-      'Episode_Event_Updated_By': {
-        S: createTime
-      },
-      'Episode_Status': {
-        S: `${record.Episode_Status.S}`
-      },
-      'Episode_Status_Updated': {
-        S: createTime
-      },
-    }
 
-  return item;
+  const params = {
+  "Key": {
+    "Participant_Id": {
+        S: `${record.participantId.S}`
+    }
+  },
+  "ExpressionAttributeNames": {
+      "#EE": "Episode_Event",
+      "#EEU": "Episode_Event_Updated",
+      "#EED": "Episode_Event_Description",
+      "#EEN": "Episode_Event_Notes",
+      "#EEUB": "Episode_Event_Updated_By",
+      "#ES": "Episode_Status",
+      "#ESU": "Episode_Status_Updated",
+  },
+  "ExpressionAttributeValues": {
+      ":episode_event": {
+          S: `${record?.Episode_Event.S}`
+      },
+      ":episode_event_updated": {
+          N: createTime
+      },
+      ":episode_event_description": {
+          S: `${record?.Episode_Event_Description.S}`
+      },
+      ":episode_event_notes": {
+          S: `${record?.Episode_Event_Notes.S}`
+      },
+      ":episode_event_updated_by": {
+          S: `${record?.Episode_Event_Updated_By.S}`
+      },
+      ":episode_status": {
+          S: `${record?.Episode_Status.S}`
+      },
+      ":episode_status_updated": {
+          N: `${record?.Episode_Status_Updated.N}`
+      }
+  },
+  "TableName": `${environment}-EpisodeHistory`,
+  "UpdateExpression": `
+    set
+    #EE = :episode_event,
+    #EEU = :episode_event_updated,
+    #EED = :episode_event_description,
+    #EEN = :Episode_Event_Notes,
+    #EEUB = :Episode_Event_Updated_By,
+    #ES = :Episode_Status,
+    #ESU = :Episode_Status_Updated,`,
+  };
+
+  return params;
 }
 
+async function uploadEpisodeHistoryRecord(input) {
 
-async function addEpisodeRecord(table, item) {
-  const input = {
-    TableName: `${ENVIRONMENT}-${table}`,
-    Item: item,
-    ConditionExpression: "attribute_not_exists(Batch_Id)",
-
-    ReturnValuesOnConditionCheckFailure: "ALL_OLD",
-  };
-  const command = new PutItemCommand(input);
+  const command = new UpdateItemCommand(input);
   const response = await client.send(command);
 
   return response;
 }
-
-// look into episode table and see if there exists a participant
-export const lookupParticipantId = async (participantId, table, dbClient) => {
-  const input = {
-    ExpressionAttributeValues: {
-      ":participant": {
-        S: `${participantId}`,
-      },
-    },
-    KeyConditionExpression: "Participant_Id = :participant",
-    ProjectionExpression: "Participant_Id",
-    TableName: `${ENVIRONMENT}-${table}`,
-    IndexName: "Participant_Id-index",
-  };
-
-  const command = new QueryCommand(input);
-  const response = await dbClient.send(command);
-  if (!response.Items.length){ // if response is empty, no matching participantId
-    return true
-  }
-  console.log("Duplicate exists")
-  return false;
-};

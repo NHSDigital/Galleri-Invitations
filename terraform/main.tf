@@ -719,6 +719,7 @@ module "add_episode_history_dynamodb_stream" {
   starting_position                  = "LATEST"
   batch_size                         = 200
   maximum_batching_window_in_seconds = 30
+  filter_event_name                  = "INSERT"
 }
 
 # User Accounts Lambda
@@ -1347,7 +1348,7 @@ module "episode_table" {
   source                   = "./modules/dynamodb"
   billing_mode             = "PROVISIONED"
   stream_enabled           = true
-  stream_view_type         = "NEW_IMAGE"
+  stream_view_type         = "NEW_AND_OLD_IMAGES"
   table_name               = "Episode"
   hash_key                 = "Batch_Id"
   range_key                = "Participant_Id"
