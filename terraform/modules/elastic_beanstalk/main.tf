@@ -246,12 +246,14 @@ resource "aws_elastic_beanstalk_environment" "screens" {
       {
         "id" : "1",
         "name" : "dev",
+        "role" : "Invitation Planner",
         "email" : "dev@nhs.net",
         "password" : "Testing"
       },
       {
         "id" : "2",
         "name" : "test",
+        "role" : "Invitation Planner",
         "email" : "test@nhs.net",
         "password" : "Testing"
       },
