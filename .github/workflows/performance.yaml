@@ -7,6 +7,38 @@ on:
     types: [closed]
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      invitations_branch:
+        description: "This is the branch/tag of Galleri-Invitations be deployed to the Performance environment"
+        required: true
+      frontend_branch:
+        description: "This is the branch/tag of the Galleri frontend to be deployed to the Performance environment"
+        required: true
+      database_seeding:
+        description: "Determines if the seeding scripts are run to populate the database"
+        type: choice
+        required: true
+        default: "yes"
+        options:
+          - "yes"
+          - "no"
+      tf_action:
+        type: choice
+        description: Terraform action to be carried out against UAT environment
+        required: true
+        default: apply
+        options:
+          - apply
+          - destroy
+      test:
+        type: choice
+        description: Should tests be run?
+        required: true
+        default: "no"
+        options:
+          - "yes"
+          - "no"
 
 jobs:
   metadata:
