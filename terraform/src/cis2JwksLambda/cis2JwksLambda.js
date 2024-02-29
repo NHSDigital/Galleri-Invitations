@@ -7,6 +7,7 @@ import {
 import { createPublicKey } from "crypto";
 
 const client = new S3Client({});
+const JWK_EXTENSION = "json";
 
 export const handler = async () => {
   try {
@@ -14,7 +15,7 @@ export const handler = async () => {
     const bucket = process.env.PUBLIC_KEYS_BUCKET;
     const publicKeyIds = await getObjectKeys(client, bucket);
     const publicKeyStrings = await getObjectStrings(client, bucket, publicKeyIds);
-    const publicKeyJwks = exportJwks(publicKeyIds, publicKeyStrings);
+    const publicKeyJwks = exportJwks(publicKeyStrings);
 
     const responseObject = {};
     responseObject.statusCode = 200;
@@ -59,14 +60,21 @@ export const getObjectKeys = async (client, bucket) => {
       await client.send(command);
     if (Contents) {
       const contentsList = Contents.map((c) => c.Key);
-      console.log("Bucket contents list: ", contentsList);
       keys.push(...contentsList);
     }
     isTruncated = IsTruncated;
     command.input.ContinuationToken = NextContinuationToken;
   }
-  console.log("Object keys: ", keys);
-  return keys;
+
+  const filteredKeys = keys.filter(isJwk);
+
+  console.log("Object keys: ", filteredKeys);
+  return filteredKeys;
+};
+
+export const isJwk = (objectKey) => {
+  const keyElements = objectKey.split(".");
+  return keyElements.pop() === JWK_EXTENSION;
 };
 
 export const getObjectString = async (client, bucket, key) => {
@@ -93,16 +101,14 @@ export const getObjectStrings = async (client, bucket, keys) => {
   return objectStrings;
 };
 
-export const exportJwks = (keyIds, keyStrings) => {
+export const exportJwks = (keyStrings) => {
   console.log("Exporting jwks");
-  const jwks = keyStrings.map((keyStr, index) => {
-    const publicKey = createPublicKey(keyStr);
-    const jwk = publicKey.export({ format: "jwk" });
-    jwk.alg = "RS512";
-    jwk.kid = keyIds[index].split(".")[0];
-    jwk.use = "sig";
+  const jwkArray = keyStrings.map((keyStr) => {
+    const keyJson = JSON.parse(keyStr);
+    const jwk = keyJson.keys[0];
     return jwk;
   });
-  console.log("Exported jwks");
-  return { "keys": jwks };
+  const jwks = { "keys": jwkArray }
+  console.log("Exported jwks: ", jwks);
+  return jwks;
 };
