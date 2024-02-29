@@ -1347,3 +1347,25 @@ module "episode_table" {
     Environment = var.environment
   }
 }
+
+module "appointment_table" {
+    source                   = "./modules/dynamodb"
+  table_name               = "Appointments"
+  hash_key                 = "Participant_Id"
+  range_key                = "Appointment_Id"
+  environment              = var.environment
+  attributes = [
+    {
+      name = "Participant_Id"
+      type = "S"
+    },
+    {
+      name = "Appointment_Id"
+      type = "S"
+    }
+  ]
+  tags = {
+    Name        = "Dynamodb Table Appointments"
+    Environment = var.environment
+  }
+}
