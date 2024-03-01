@@ -16,32 +16,13 @@ export const handler = async () => {
     const publicKeyIds = await getObjectKeys(client, bucket);
     const publicKeyStrings = await getObjectStrings(client, bucket, publicKeyIds);
     const publicKeyJwks = exportJwks(publicKeyStrings);
-
-    const responseObject = {};
-    responseObject.statusCode = 200;
-    responseObject.headers = {
-      "Access-Control-Allow-Headers":
-        "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "OPTIONS,GET",
-    };
-    responseObject.isBase64Encoded = true;
-    responseObject.body = JSON.stringify(publicKeyJwks);
+    const responseObject = createResponse(200, publicKeyJwks);
 
     console.log(`Returning CIS2 public key jwks: ${responseObject.body}`);
     return responseObject;
   } catch (err) {
     console.error(`Error getting CIS2 public key jwks: ${err}`);
-    const responseObject = {};
-    responseObject.statusCode = 500;
-    responseObject.headers = {
-      "Access-Control-Allow-Headers":
-        "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "OPTIONS,GET",
-    };
-    responseObject.isBase64Encoded = true;
-    responseObject.body = JSON.stringify(err.message);
+    const responseObject = createResponse(500, err.message);
     return responseObject;
   }
 };
@@ -111,4 +92,18 @@ export const exportJwks = (keyStrings) => {
   const jwks = { "keys": jwkArray }
   console.log("Exported jwks: ", jwks);
   return jwks;
+};
+
+export const createResponse = (httpStatusCode, body) => {
+  const responseObject = {};
+    responseObject.statusCode = httpStatusCode;
+    responseObject.headers = {
+      "Access-Control-Allow-Headers":
+        "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "OPTIONS,GET",
+    };
+    responseObject.isBase64Encoded = true;
+    responseObject.body = typeof body === "object" ? JSON.stringify(body) : body;
+    return responseObject;
 };

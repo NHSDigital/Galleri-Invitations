@@ -89,9 +89,9 @@ module "user_accounts_bucket" {
   environment             = var.environment
 }
 
-module "cis2_public_keys_bucket" {
+module "gps_public_keys_bucket" {
   source                  = "./modules/s3"
-  bucket_name             = "cis2-public-keys-bucket"
+  bucket_name             = "gps-public-keys-bucket"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
@@ -865,36 +865,36 @@ module "gtms_upload_clinic_data_lambda_trigger" {
   filter_prefix = "validRecords/valid_records_add-"
 }
 
-# CIS2 public key jwks
-module "cis2_jwks_lambda" {
+# GPS public key jwks
+module "gps_jwks_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "cis2JwksLambda"
+  lambda_function_name = "gpsJwksLambda"
   lambda_timeout       = 100
   memory_size          = 1024
-  lambda_s3_object_key = "cis2_jwks_lambda.zip"
+  lambda_s3_object_key = "gps_jwks_lambda.zip"
   environment_vars = {
     ENVIRONMENT        = "${var.environment}",
-    PUBLIC_KEYS_BUCKET = "${module.cis2_public_keys_bucket.bucket_id}"
+    PUBLIC_KEYS_BUCKET = "${module.gps_public_keys_bucket.bucket_id}"
   }
 }
 
-module "cis2_jwks_cloudwatch" {
+module "gps_jwks_cloudwatch" {
   source               = "./modules/cloudwatch"
   environment          = var.environment
-  lambda_function_name = module.cis2_jwks_lambda.lambda_function_name
+  lambda_function_name = module.gps_jwks_lambda.lambda_function_name
   retention_days       = 14
 }
 
-module "cis2_jwks_api_gateway" {
+module "gps_jwks_api_gateway" {
   source                 = "./modules/api-gateway"
   environment            = var.environment
-  lambda_invoke_arn      = module.cis2_jwks_lambda.lambda_invoke_arn
-  path_part              = "cis2-jwks"
+  lambda_invoke_arn      = module.gps_jwks_lambda.lambda_invoke_arn
+  path_part              = "gps-jwks"
   method_http_parameters = {}
-  lambda_function_name   = module.cis2_jwks_lambda.lambda_function_name
+  lambda_function_name   = module.gps_jwks_lambda.lambda_function_name
 }
 
 

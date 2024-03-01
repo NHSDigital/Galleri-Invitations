@@ -1,8 +1,8 @@
 {
-  "name": "cis2JwksLambda",
+  "name": "gpsJwksLambda",
   "version": "1.0.0",
   "type": "module",
-  "main": "cis2JwksLambda.js",
+  "main": "gpsJwksLambda.js",
   "author": "",
   "dependencies": {
   }
