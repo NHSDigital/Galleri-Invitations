@@ -11,14 +11,14 @@ const JWK_EXTENSION = "json";
 
 export const handler = async () => {
   try {
-    console.log("Getting CIS2 public key jwks");
+    console.log("Getting GPS public key jwks");
     const bucket = process.env.PUBLIC_KEYS_BUCKET;
     const publicKeyIds = await getObjectKeys(client, bucket);
     const publicKeyStrings = await getObjectStrings(client, bucket, publicKeyIds);
     const publicKeyJwks = exportJwks(publicKeyStrings);
     const responseObject = createResponse(200, publicKeyJwks);
 
-    console.log(`Returning CIS2 public key jwks: ${responseObject.body}`);
+    console.log(`Returning GPS public key jwks: ${responseObject.body}`);
     return responseObject;
   } catch (err) {
     console.error(`Error getting CIS2 public key jwks: ${err}`);

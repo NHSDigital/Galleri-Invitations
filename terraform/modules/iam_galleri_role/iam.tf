@@ -400,8 +400,8 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:s3:::${var.environment}-inbound-gtms-clinic-schedule-summary/*",
             "arn:aws:s3:::${var.environment}-inbound-gtms-appointment/*",
             "arn:aws:s3:::${var.environment}-inbound-gtms-withdrawal/*",
-            "arn:aws:s3:::${var.environment}-cis2-public-keys-bucket/*",
-            "arn:aws:s3:::${var.environment}-cis2-public-keys-bucket",
+            "arn:aws:s3:::${var.environment}-gps-public-keys-bucket/*",
+            "arn:aws:s3:::${var.environment}-gps-public-keys-bucket",
           ]
         },
         {
