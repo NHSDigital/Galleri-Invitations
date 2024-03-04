@@ -21,7 +21,7 @@ export const handler = async () => {
     console.log(`Returning GPS public key jwks: ${responseObject.body}`);
     return responseObject;
   } catch (err) {
-    console.error(`Error getting CIS2 public key jwks: ${err}`);
+    console.error(`Error getting GPS public key jwks: ${err}`);
     const responseObject = createResponse(500, err.message);
     return responseObject;
   }

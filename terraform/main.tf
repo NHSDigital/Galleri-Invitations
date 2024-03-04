@@ -897,6 +897,41 @@ module "gps_jwks_api_gateway" {
   lambda_function_name   = module.gps_jwks_lambda.lambda_function_name
 }
 
+# CIS2 signed jwt
+module "cis2_signed_jwt" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "cis2SignedJwtLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "cis2_signed_jwt_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT             = "${var.environment}",
+    CIS2_CLIENT_ID          = "${var.CIS2_CLIENT_ID}",
+    CIS2_TOKEN_ENDPOINT_URL = "${var.CIS2_TOKEN_ENDPOINT_URL}",
+    CIS2_PUBLIC_KEY_ID      = "${var.CIS2_PUBLIC_KEY_ID}",
+    CIS2_KEY_NAME           = "${var.CIS2_KNAME}"
+  }
+}
+
+module "cis2_signed_jwt_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.cis2_signed_jwt.lambda_function_name
+  retention_days       = 14
+}
+
+module "cis2_signed_jwt_api_gateway" {
+  source                 = "./modules/api-gateway"
+  environment            = var.environment
+  lambda_invoke_arn      = module.cis2_signed_jwt.lambda_invoke_arn
+  path_part              = "cis2-signed-jwt"
+  method_http_parameters = {}
+  lambda_function_name   = module.cis2_signed_jwt.lambda_function_name
+}
+
 
 # Dynamodb tables
 module "sdrs_table" {
