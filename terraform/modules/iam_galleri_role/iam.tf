@@ -414,6 +414,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added validate Caas Feed to this policy as lambda role exceeded policy limit
 # Added Sending Invitaiton batch to GTMS to this plicy as lambda role exceeded policy limit
 # Added UserAccounts to this policy as lambda role exceeded policy limit
+# Added caasFeedDeleteRecords to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
   path        = "/"
@@ -442,6 +443,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Postcode",
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-UserAccounts",
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite",
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Appointments",
           ]
         },
         {
