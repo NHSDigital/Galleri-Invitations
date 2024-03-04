@@ -9,6 +9,8 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
+import { Readable } from "stream";
+import csv from "csv-parser";
 
 const s3 = new S3Client();
 const dbClient = new DynamoDBClient({
