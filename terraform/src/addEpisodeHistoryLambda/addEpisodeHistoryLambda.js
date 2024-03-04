@@ -26,23 +26,22 @@ export const handler = async (event) => {
 export async function processIncomingRecords(incomingRecordsArr, dbClient){
   const episodeRecordsUpload = await Promise.allSettled(
     incomingRecordsArr.map(async (record) => {
-      console.log(record)
-      if (!isEqual(record.dynamodb?.OldImage, record.dynamodb.NewImage)) {
-        // upload to episode history
+      const oldImage = record.dynamodb?.OldImage
+      const newImage = record.dynamodb.NewImage
+
+      if (!isEqual(oldImage, newImage)) {
         // generate payload
-        const formatRecord = formatEpisodeHistoryRecord(record.dynamodb.NewImage)
-        console.log("formatRecord")
-        console.log(formatRecord)
+        const formatRecord = formatEpisodeHistoryRecord(newImage)
         // upload payload
-        const uploadRecord = uploadEpisodeHistoryRecord(formatRecord, dbClient)
-        if (uploadRecord.$metadata.httpStatusCode === 200){
-          Promise.resolve(`Successfully added or updated participant ${record.dynamodb.NewImage.participantId.S} to Episode History table`)
+        const uploadRecord = await uploadEpisodeHistoryRecord(formatRecord, dbClient)
+        if (uploadRecord.$metadata.httpStatusCode == 200){
+          return Promise.resolve(`Successfully added or updated participant ${newImage.Participant_Id.S} to Episode History table`)
         } else {
-          Promise.reject(`An error occured trying to add ${record.dynamodb.NewImage.participantId.S} to Episode History table`)
+          return Promise.reject(`An error occured trying to add ${newImage.Participant_Id.S} to Episode History table`)
         }
       } else {
       console.warn("RECORD HAS NOT BEEN MODIFIED")
-      return Promise.reject(`Record ${record.dynamodb.OldImage.participantId.S} has not been modified`);
+      return Promise.reject(`Record ${oldImage.Participant_Id.S} has not been modified`);
     }
   })
   )
@@ -55,7 +54,7 @@ function formatEpisodeHistoryRecord(record){
   const params = {
   "Key": {
     "Participant_Id": {
-        S: `${record.participantId.S}`
+        S: `${record.Participant_Id.S}`
     }
   },
   "ExpressionAttributeNames": {
@@ -90,24 +89,16 @@ function formatEpisodeHistoryRecord(record){
           N: `${record?.Episode_Status_Updated.N}`
       }
   },
-  "TableName": `${environment}-EpisodeHistory`,
-  "UpdateExpression": `
-    set
-    #EE = :episode_event,
-    #EEU = :episode_event_updated,
-    #EED = :episode_event_description,
-    #EEN = :Episode_Event_Notes,
-    #EEUB = :Episode_Event_Updated_By,
-    #ES = :Episode_Status,
-    #ESU = :Episode_Status_Updated,`,
+  "TableName": `${ENVIRONMENT}-EpisodeHistory`,
+  "UpdateExpression": `set #EE = :episode_event, #EEU = :episode_event_updated, #EED = :episode_event_description, #EEN = :episode_event_notes, #EEUB = :episode_event_updated_by, #ES = :episode_status, #ESU = :episode_status_updated`,
   };
 
   return params;
 }
 
-async function uploadEpisodeHistoryRecord(input) {
+async function uploadEpisodeHistoryRecord(item, dbClient){
 
-  const command = new UpdateItemCommand(input);
+  const command = new UpdateItemCommand(item);
   const response = await client.send(command);
 
   return response;

@@ -687,6 +687,7 @@ module "create_episode_record_dynamodb_stream" {
   starting_position                  = "LATEST"
   batch_size                         = 200
   maximum_batching_window_in_seconds = 300
+  filter_event_name                  = ["MODIFY"]
 }
 
 # Add Episode History
@@ -719,7 +720,6 @@ module "add_episode_history_dynamodb_stream" {
   starting_position                  = "LATEST"
   batch_size                         = 200
   maximum_batching_window_in_seconds = 30
-  filter_event_name                  = "INSERT"
 }
 
 # User Accounts Lambda
@@ -801,7 +801,7 @@ module "create_invitation_batch_dynamodb_stream" {
   starting_position                  = "LATEST"
   batch_size                         = 200
   maximum_batching_window_in_seconds = 300
-  filter_event_name                  = "INSERT"
+  filter_event_name                  = ["INSERT"]
 }
 
 # GTMS MESH lambda
