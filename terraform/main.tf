@@ -75,19 +75,19 @@ module "test_data_bucket" {
   environment             = var.environment
 }
 
-#module "gp_practices_bucket" {
-#  source                  = "./modules/s3"
-#  bucket_name             = "gp-practices-bucket"
-#  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-#  environment             = var.environment
-#}
+module "gp_practices_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "gp-practices-bucket"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
 
-#module "user_accounts_bucket" {
-#  source                  = "./modules/s3"
-#  bucket_name             = "user-accounts-bucket"
-#  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-#  environment             = var.environment
-#}
+module "user_accounts_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "user-accounts-bucket"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
 
 module "gps_public_keys_bucket" {
   source                  = "./modules/s3"
@@ -97,12 +97,12 @@ module "gps_public_keys_bucket" {
 }
 
 # GTMS buckets for each JSON response header
-#module "caas_data_bucket" {
-#  source                  = "./modules/s3"
-#  bucket_name             = "galleri-caas-data"
-#  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-#  environment             = var.environment
-#}
+module "caas_data_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "galleri-caas-data"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
 
 module "validated_records_bucket" {
   source                  = "./modules/s3"
@@ -657,12 +657,12 @@ module "gp_practices_loader_cloudwatch" {
   retention_days       = 14
 }
 
-#module "gp_practices_loader_lambda_trigger" {
-#  source     = "./modules/lambda_trigger"
-#  bucket_id  = module.gp_practices_bucket.bucket_id
-#  bucket_arn = module.gp_practices_bucket.bucket_arn
-#  lambda_arn = module.gp_practices_loader_lambda.lambda_arn
-#}
+module "gp_practices_loader_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.gp_practices_bucket.bucket_id
+  bucket_arn = module.gp_practices_bucket.bucket_arn
+  lambda_arn = module.gp_practices_loader_lambda.lambda_arn
+}
 
 # Create Episode Records
 module "create_episode_record_lambda" {
@@ -718,12 +718,12 @@ module "user_accounts_cloudwatch" {
   retention_days       = 14
 }
 
-#module "user_accounts_lambda_trigger" {
-#  source     = "./modules/lambda_trigger"
-#  bucket_id  = module.user_accounts_bucket.bucket_id
-#  bucket_arn = module.user_accounts_bucket.bucket_arn
-#  lambda_arn = module.user_accounts_lambda.lambda_arn
-#}
+module "user_accounts_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.user_accounts_bucket.bucket_id
+  bucket_arn = module.user_accounts_bucket.bucket_arn
+  lambda_arn = module.user_accounts_lambda.lambda_arn
+}
 
 module "poll_mesh_mailbox_lambda" {
   source               = "./modules/lambda"
@@ -998,13 +998,13 @@ module "validate_caas_feed_lambda_cloudwatch" {
   retention_days       = 14
 }
 
-#module "validate_caas_feed_lambda_trigger" {
-#  source        = "./modules/lambda_trigger"
-#  bucket_id     = module.caas_data_bucket.bucket_id
-#  bucket_arn    = module.caas_data_bucket.bucket_arn
-#  lambda_arn    = module.validate_caas_feed_lambda.lambda_arn
-#  filter_prefix = "mesh_chunk_data_"
-#}
+module "validate_caas_feed_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.caas_data_bucket.bucket_id
+  bucket_arn    = module.caas_data_bucket.bucket_arn
+  lambda_arn    = module.validate_caas_feed_lambda.lambda_arn
+  filter_prefix = "mesh_chunk_data_"
+}
 
 module "caas_feed_add_records_lambda" {
   source               = "./modules/lambda"
@@ -1056,13 +1056,13 @@ module "caas_feed_update_records_lambda_cloudwatch" {
   retention_days       = 14
 }
 
-module "caas_feed_update_records_lambda_trigger" {
-  source        = "./modules/lambda_trigger"
-  bucket_id     = module.validated_records_bucket.bucket_id
-  bucket_arn    = module.validated_records_bucket.bucket_arn
-  lambda_arn    = module.caas_feed_update_records_lambda.lambda_arn
-  filter_prefix = "validRecords/valid_records_update-"
-}
+#module "caas_feed_update_records_lambda_trigger" {
+#  source        = "./modules/lambda_trigger"
+#  bucket_id     = module.validated_records_bucket.bucket_id
+#  bucket_arn    = module.validated_records_bucket.bucket_arn
+#  lambda_arn    = module.caas_feed_update_records_lambda.lambda_arn
+#  filter_prefix = "validRecords/valid_records_update-"
+#}
 
 # Dynamodb tables
 module "participating_icb_table" {

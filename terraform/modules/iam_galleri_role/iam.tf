@@ -380,9 +380,9 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           ],
           "Resource" : [
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population/*/*",
-            #            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GpPractice",
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Postcode",
-            #            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-UserAccounts",
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GpPractice",
+            "arn:aws:dynamodb:eu-west--2:136293001324:table/${var.environment}-Postcode",
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-UserAccounts",
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite",
           ]
         },
@@ -393,7 +393,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "s3:*"
           ],
           "Resource" : [
-            #            "arn:aws:s3:::${var.environment}-galleri-caas-data/*",
+            "arn:aws:s3:::${var.environment}-galleri-caas-data/*",
             "arn:aws:s3:::${var.environment}-outbound-gtms-invited-participant-batch/*",
             "arn:aws:s3:::${var.environment}-processed-inbound-gtms-clinic-create-or-update",
             "arn:aws:s3:::${var.environment}-inbound-gtms-clinic-create-or-update/*",
@@ -402,6 +402,8 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:s3:::${var.environment}-inbound-gtms-withdrawal/*",
             "arn:aws:s3:::${var.environment}-gps-public-keys-bucket/*",
             "arn:aws:s3:::${var.environment}-gps-public-keys-bucket",
+            "arn:aws:s3:::${var.environment}-gp-practices-bucket/*",
+
           ]
         },
         {
