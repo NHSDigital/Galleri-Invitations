@@ -246,17 +246,33 @@ resource "aws_elastic_beanstalk_environment" "screens" {
       {
         "id" : "1",
         "name" : "dev",
+        "role" : "Invitation Planner",
         "email" : "dev@nhs.net",
         "password" : "Testing"
       },
       {
         "id" : "2",
         "name" : "test",
+        "role" : "Invitation Planner",
         "email" : "test@nhs.net",
         "password" : "Testing"
       },
       {
         "id" : "3",
+        "name" : "dev_2",
+        "role" : "Referring Clinician",
+        "email" : "dev2@nhs.net",
+        "password" : "Testing"
+      },
+      {
+        "id" : "4",
+        "name" : "test_2",
+        "role" : "Referring Clinician",
+        "email" : "test2@nhs.net",
+        "password" : "Testing"
+      },
+      {
+        "id" : "5",
         "name" : "pen",
         "email" : "pen@nhs.net",
         "password" : "Testing"

@@ -1,0 +1,126 @@
+{
+  "ENVIRONMENT-PhlebotomySite": [
+    {
+      "PutRequest": {
+        "Item": {
+          "ClinicId": { "S": "UB77S836" },
+          "ClinicName": { "S": "Phlebotomy clinic 1" },
+          "Address": {
+            "S": "1 infelicity Street ,             Gondor MK42 9DJ"
+          },
+          "Directions": { "S": "These will contain directions to the site" },
+          "ICBCode": { "S": "QHG" },
+          "ODSCode": { "S": "M82641" },
+          "PostCode": { "S": "MK42 9DJ" },
+          "PrevInviteDate": { "S": "Thursday 11 January 2024" },
+          "WeekCommencingDate": {
+            "M": {
+              "15 February 2024": { "N": "47" },
+              "22 February 2024": { "N": "1" },
+              "29 February 2024": { "N": "45" },
+              "7 March 2024": { "N": "47" },
+              "14 March 2024": { "N": "100" },
+              "21 March 2024": { "N": "23" }
+            }
+          },
+          "Availability": { "N": "263" },
+          "InvitesSent": { "N": "131" },
+          "TargetFillToPercentage": { "N": "50" },
+          "LastSelectedRange": { "N": "1" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "ClinicId": { "S": "YB85A769" },
+          "ClinicName": { "S": "Phlebotomy clinic 2" },
+          "Address": { "S": "1 unangry Road ,             Gondor TA1 2PX" },
+          "Directions": { "S": "These will contain directions to the site" },
+          "ICBCode": { "S": "QSL" },
+          "ODSCode": { "S": "Z99609" },
+          "PostCode": { "S": "TA1 2PX" },
+          "PrevInviteDate": { "S": "Tuesday 16 January 2024" },
+          "WeekCommencingDate": {
+            "M": {
+              "15 February 2024": { "N": "80" },
+              "22 February 2024": { "N": "55" },
+              "29 February 2024": { "N": "59" },
+              "7 March 2024": { "N": "18" },
+              "14 March 2024": { "N": "87" },
+              "21 March 2024": { "N": "82" }
+            }
+          },
+          "Availability": { "N": "381" },
+          "InvitesSent": { "N": "190" },
+          "TargetFillToPercentage": { "N": "50" },
+          "LastSelectedRange": { "N": "1" }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "ClinicId": {
+            "S": "QA61A770"
+          },
+          "ClinicName": {
+            "S": "Phlebotomy clinic 73"
+          },
+          "Address": {
+            "S": "73 banned Avenue ,             Rivendell LU3 3SR"
+          },
+          "Availability": {
+            "N": "409"
+          },
+          "Directions": {
+            "S": "These will contain directions to the site"
+          },
+          "ICBCode": {
+            "S": "QH8"
+          },
+          "InvitesSent": {
+            "N": "204"
+          },
+          "LastSelectedRange": {
+            "N": "1"
+          },
+          "ODSCode": {
+            "S": "N49123"
+          },
+          "PostCode": {
+            "S": "LU3 3SR"
+          },
+          "PrevInviteDate": {
+            "S": "Saturday 23 December 2023"
+          },
+          "TargetFillToPercentage": {
+            "N": "50"
+          },
+          "WeekCommencingDate": {
+            "M": {
+              "13 February 2024": {
+                "N": "95"
+              },
+              "20 February 2024": {
+                "N": "67"
+              },
+              "23 January 2024": {
+                "N": "52"
+              },
+              "27 February 2024": {
+                "N": "83"
+              },
+              "30 January 2024": {
+                "N": "78"
+              },
+              "6 February 2024": {
+                "N": "34"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

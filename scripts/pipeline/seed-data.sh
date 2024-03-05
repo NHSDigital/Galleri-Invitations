@@ -30,9 +30,17 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
+  if [[ $environment_type == "dev" || $environment_type == "test" ]]; then
+    sed -i "s/ENVIRONMENT/$environment/g" $GITHUB_WORKSPACE/scripts/test_data/destructible_environments/lsoa.json
+    aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/lsoa.json
+    # LSOA table needs a minimum of 1MB of data for lambda to function, hence as a workaround populating table with cut down CSV file with uncurated padding records in addition to lSOA json with curated data.
+    mkdir nonprod-unique-lsoa-data
+    aws s3 cp s3://galleri-ons-data/lsoa_data/destructible_environments/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
+    python $PWD/scripts/pipeline/nonprod_unique_lsoa_load/nonprod_unique_lsoa_load.py
+  fi
   NONPROD_LSOA_DATA_COUNT=$(aws dynamodb scan --table-name $environment-UniqueLsoa --select "COUNT" | jq -r ".Count")
   if [[ $? -eq 0 ]] && [[ $NONPROD_LSOA_DATA_COUNT =~ ^[0-9]+$ ]]; then
-    if (($NONPROD_LSOA_DATA_COUNT < 17741)); then
+    if (($NONPROD_LSOA_DATA_COUNT < 10)); then
       echo Initiating upload of LSOA subset data to database
       mkdir nonprod-unique-lsoa-data
       aws s3 cp s3://galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
@@ -50,9 +58,13 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
+  if [[ $environment_type == "dev" || $environment_type == "test" ]]; then
+    sed -i "s/ENVIRONMENT/$environment/g" $GITHUB_WORKSPACE/scripts/test_data/destructible_environments/phlebotomy.json
+    aws dynamodb batch-write-item --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/phlebotomy.json
+  fi
   PHLEBOTOMY_CLINIC_DATA_COUNT=$(aws dynamodb scan --table-name $environment-PhlebotomySite --select "COUNT" | jq -r ".Count")
   if [[ $? -eq 0 ]] && [[ $PHLEBOTOMY_CLINIC_DATA_COUNT =~ ^[0-9]+$ ]]; then
-    if (($PHLEBOTOMY_CLINIC_DATA_COUNT < 100)); then
+    if (($PHLEBOTOMY_CLINIC_DATA_COUNT < 2)); then
       echo Uploading items to Phlebotomy clinic database
       python $PWD/scripts/pipeline/nonprod_phlebotomy_site_load/nonprod_phlebotomy_site_load.py
       echo Succefully uploaded Phlebotomy clinic data to database
@@ -84,9 +96,16 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
+  if [[ $environment_type == "dev" || $environment_type == "test" ]]; then
+    sed -i "s/ENVIRONMENT/$environment/g" $GITHUB_WORKSPACE/scripts/test_data/destructible_environments/population*.json
+    aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/population1.json
+    aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/population2.json
+    aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/population3.json
+    aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/population4.json
+  fi
   POPULATION_COUNT=$(aws dynamodb scan --table-name $environment-Population --select "COUNT" | jq -r ".Count")
   if [[ $? -eq 0 ]] && [[ $POPULATION_COUNT =~ ^[0-9]+$ ]]; then
-    if (($POPULATION_COUNT < 1)); then
+    if (($POPULATION_COUNT < 100)); then
       echo Initiating upload of dummy Population data to database
       mkdir nonprod-population-data
       aws s3 cp s3://galleri-test-data/non_prod_participant_data/ ./nonprod-population-data --recursive
