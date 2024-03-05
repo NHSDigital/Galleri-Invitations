@@ -23,7 +23,7 @@ export const handler = async (event) => {
 };
 
 // METHODS
-export async function processIncomingRecords(incomingRecordsArr, dbClient){
+async function processIncomingRecords(incomingRecordsArr, dbClient){
   const episodeRecordsUpload = await Promise.allSettled(
     incomingRecordsArr.map(async (record) => {
       const oldImage = record.dynamodb?.OldImage
@@ -48,7 +48,7 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient){
   return episodeRecordsUpload
 }
 
-function formatEpisodeHistoryRecord(record){
+export function formatEpisodeHistoryRecord(record){
   const createTime = String(Date.now())
 
   const params = {
@@ -96,10 +96,10 @@ function formatEpisodeHistoryRecord(record){
   return params;
 }
 
-async function uploadEpisodeHistoryRecord(item, dbClient){
+export async function uploadEpisodeHistoryRecord(item, dbClient){
 
   const command = new UpdateItemCommand(item);
-  const response = await client.send(command);
+  const response = await dbClient.send(command);
 
   return response;
 }
