@@ -124,6 +124,7 @@ runs:
         npm install --prefix src/caasFeedAddRecordsLambda
         npm install --prefix src/caasFeedUpdateRecordsLambda
         npm install --prefix src/createInvitationBatchLambda
+        npm install --prefix src/validateGtmsAppointmentLambda
         npm install --prefix src/getUserRoleLambda
         npm install --prefix src/gtmsMeshMailboxLambda
         npm install --prefix src/validateClinicDataLambda
