@@ -35,3 +35,7 @@ variable "NEXTAUTH_SECRET" {
 variable "NEXTAUTH_URL" {
   default = null
 }
+
+variable "invitations-hostname" {
+
+}

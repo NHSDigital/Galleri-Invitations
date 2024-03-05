@@ -301,6 +301,6 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "NEXTAUTH_URL"
-    value     = "http://localhost:3000/"
+    value     = "https://${var.environment}.${var.hostname}:3000/"
   }
 }
