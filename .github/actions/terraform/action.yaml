@@ -60,7 +60,7 @@ runs:
       shell: bash
       run: |
         cd ./terraform
-        terraform init -backend-config="bucket=${{ env.aws-bucket-name }}" -backend-config="key=${{ env.aws-bucket-key-name }}" -backend-config="region=${{ env.aws-region }}"
+        terraform init -backend-config="environment/${{ steps.environment-type.outputs.environment-type }}/${{ steps.environment-type.outputs.environment-type }}.s3.tfbackend"
 
     - name: Terraform workspace
       id: workspace

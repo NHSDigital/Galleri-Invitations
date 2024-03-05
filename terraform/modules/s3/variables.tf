@@ -12,3 +12,5 @@ variable "region" {
 variable "galleri_lambda_role_arn" {}
 
 variable "environment" {}
+
+variable "account_id" {}

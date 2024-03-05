@@ -13,7 +13,8 @@ variable "environment" {
 
 variable "frontend_repo_location" {
   description = "The location of the Galler-Frontend repo on the filesystem"
-  default     = "/home/runner/work/Galleri-Invitations/Galleri-Invitations/Galleri-Frontend"
+  # default     = "/home/runner/work/Galleri-Invitations/Galleri-Invitations/Galleri-Frontend"
+  default = "/home/umayr/develop/NHS/Galleri-Frontend"
 }
 
 variable "USERS" {
@@ -34,4 +35,8 @@ variable "NEXTAUTH_SECRET" {
 
 variable "NEXTAUTH_URL" {
   default = null
+}
+
+variable "account_id" {
+  description = "account id"
 }
