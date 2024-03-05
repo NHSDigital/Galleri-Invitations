@@ -11,7 +11,7 @@ jest.mock("nhs-mesh-client");
 handShake.mockResolvedValue({ status: "Handshake successful, status 200" });
 getMessageCount.mockResolvedValue({ data: { messages: "123ID", "approx_inbox_count": 1 } });
 markAsRead.mockResolvedValue('message cleared');
-readMessage.mockResolvedValue({ data: { nhs_num: "123", name: "bolo" } })
+readMessage.mockResolvedValue({ nhs_num: "123", name: "bolo" })
 
 describe("pushCsvToS3", () => {
   afterEach(() => {
@@ -104,23 +104,32 @@ describe("processMessage", () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
+  const workflows = {
+    "CLINIC_WORKFLOWID": "GTMS_CLINIC",
+    "CLINIC_SCHEDULE_WORKFLOWID": "GTMS_CLINIC_SCHEDULE",
+    "APPOINTMENT_WORKFLOWID": "GTMS_APPOINTMENT",
+    "WITHDRAW_WORKFLOWID": "GTMS_WITHDRAW",
+  }
 
   test("successfully identify clinicCreateOrUpdate, and push to S3", async () => {
     const logSpy = jest.spyOn(global.console, "log");
-
     const environment = 'dev-1';
     const mockS3Client = mockClient(new S3Client({}));
     mockS3Client.resolves({
       $metadata: { httpStatusCode: 200 },
     });
     const clinicData = {
+      "headers": {
+        "mex-workflowid": "GTMS_CLINIC",
+      },
       ClinicCreateOrUpdate: {
         ClinicName: 'GRAIL Test Clinic',
         Address: '210 Euston Rd, London NW1 2DA',
         Postcode: 'SO42 7BZ'
       }
     };
-    const result = await processMessage(clinicData, environment, mockS3Client, 29012024);
+
+    const result = await processMessage(clinicData, environment, mockS3Client, workflows, 29012024);
     console.log(result);
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(2);
@@ -136,7 +145,10 @@ describe("processMessage", () => {
     mockS3Client.resolves({
       $metadata: { httpStatusCode: 200 },
     });
-    const clinicData = {
+    const appointmentData = {
+      "headers": {
+        "mex-workflowid": "GTMS_APPOINTMENT",
+      },
       "Appointment": {
         "ParticipantID": "NHS-AB12-CD34",
         "AppointmentID": "00000000-0000-0000-0000-000000000000",
@@ -149,7 +161,7 @@ describe("processMessage", () => {
       }
     };
 
-    const result = await processMessage(clinicData, environment, mockS3Client, 29012024);
+    const result = await processMessage(appointmentData, environment, mockS3Client, workflows, 29012024);
     console.log(result);
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(2);
@@ -165,13 +177,16 @@ describe("processMessage", () => {
     mockS3Client.resolves({
       $metadata: { httpStatusCode: 200 },
     });
-    const clinicData = {
+    const clinicCapacityData = {
+      "headers": {
+        "mex-workflowid": "GTMS_CLINIC_SCHEDULE",
+      },
       "ClinicScheduleSummary": {
         "test_data": "example"
       }
     };
 
-    const result = await processMessage(clinicData, environment, mockS3Client, 29012024);
+    const result = await processMessage(clinicCapacityData, environment, mockS3Client, workflows, 29012024);
     console.log(result);
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(2);
@@ -187,13 +202,16 @@ describe("processMessage", () => {
     mockS3Client.resolves({
       $metadata: { httpStatusCode: 200 },
     });
-    const clinicData = {
+    const withdrawalData = {
+      "headers": {
+        "mex-workflowid": "GTMS_WITHDRAW",
+      },
       "Withdrawal": {
         "test_data": "example"
       }
     };
 
-    const result = await processMessage(clinicData, environment, mockS3Client, 29012024);
+    const result = await processMessage(withdrawalData, environment, mockS3Client, workflows, 29012024);
     console.log(result);
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(2);

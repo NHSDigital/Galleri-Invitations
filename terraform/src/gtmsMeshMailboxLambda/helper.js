@@ -71,6 +71,9 @@ export const getMessageArray = async (CONFIG, msgCount) => {
     })
     let messageList = messageCount.data.messages
     let inboxCount = messageCount.data.approx_inbox_count;
+    if (!inboxCount) {
+      inboxCount = 0;
+    }
     console.log(`Inbox contains ${inboxCount} messages`);
     return messageList;
   } catch (error) {
@@ -112,7 +115,7 @@ export const readMsg = async (CONFIG, readingMsg, msgID) => {
       messageID: msgID,
       agent: CONFIG.receiverAgent,
     });
-    return messages.data;
+    return messages;
   } catch (error) {
     console.error("Error occurred:", error);
   }
