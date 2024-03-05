@@ -1161,6 +1161,7 @@ module "population_table" {
   secondary_write_capacity = null
   secondary_read_capacity  = null
   environment              = var.environment
+  projection_type          = "ALL"
   attributes = [{
     name = "PersonId"
     type = "S"
@@ -1329,7 +1330,7 @@ module "episode_table" {
   secondary_write_capacity = 10
   secondary_read_capacity  = 10
   environment              = var.environment
-  projection_type          = "KEYS_ONLY"
+  projection_type          = "ALL"
   attributes = [
     {
       name = "Batch_Id"

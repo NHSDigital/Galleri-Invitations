@@ -164,14 +164,14 @@ export const processingData = async (incomingUpdateData, populationTableRecord) 
       }
       else {
         return {
-          rejectedRecordNhsNumber: record.nhs_number,
+          rejectedRecordNhsNumber: populationTableRecord.nhs_number,
           rejected: true,
           reason: `Alert to third line support`
         }
       }
     } else {
       return {
-        rejectedRecordNhsNumber: record.nhs_number,
+        rejectedRecordNhsNumber: populationTableRecord.nhs_number,
         rejected: true,
         reason: `Superseded Number present in update but record does not exist in our table. Alert to third line support`
       }
@@ -183,7 +183,7 @@ export const processingData = async (incomingUpdateData, populationTableRecord) 
 const updateRecord = async (record, recordFromTable) => {
   const { PersonId } = recordFromTable
 
-  if (record.date_of_death !== recordFromTable.date_of_death) { // AC1a and AC1b
+  if (record.date_of_death !== recordFromTable.date_of_death.S) { // AC1a and AC1b
     const episodeRecord = await lookUp(client, PersonId.S, "Episode", "Participant_Id", "S", true);
     // close open Episode record
     if (episodeRecord?.Items.length > 0) {
@@ -197,7 +197,7 @@ const updateRecord = async (record, recordFromTable) => {
     }
   }
 
-  if (record.primary_care_provider !== recordFromTable.primary_care_provider) { // AC2
+  if (record.primary_care_provider !== recordFromTable.primary_care_provider.S) { // AC2
     record.participant_id = PersonId.S;
 
     const lsoaCheck = await getLsoa(record, client);
@@ -222,7 +222,7 @@ const updateRecord = async (record, recordFromTable) => {
     }
   }
 
-  if (record.postcode !== recordFromTable.postcode) { //AC43
+  if (record.postcode !== recordFromTable.postcode.S) { //AC43
     record.participant_id = PersonId.S;
 
     const lsoaCheck = await getLsoa(record, client);
@@ -234,6 +234,37 @@ const updateRecord = async (record, recordFromTable) => {
       };
     }
     record.lsoa_2011 = lsoaCheck;
+  }
+
+  if (recordFromTable.reason_for_removal.S !== "DEA" && record.reason_for_removal === "DEA") {
+    // check if episode record exists
+    const episodeRecordCheck = await lookUp(client, recordFromTable.PersonId.S , "Episode", "Participant_Id", "S", true);
+    if (episodeRecordCheck.Items.length > 0) {
+      const episodeRecord = episodeRecordCheck.Items[0];
+      const batchId = episodeRecord.Batch_Id.S
+      const participantId = episodeRecord.Participant_Id.S
+
+      const timeNow = Date.now();
+
+      const updateEpisodeEvent = ["Episode_Event", "S", "Deceased"]
+      const updateEpisodeEventUpdated = ["Episode_Event_Updated", "N", String(timeNow)]
+      const updateEpisodeStatus = ["Episode_Status", "S", "Closed"]
+      const updateEpisodeEventDescription = ["Episode_Event_Description", "S", "NULL"]
+      const updateEpisodeEventNotes = ["Episode_Event_Notes", "S", "NULL"]
+      const updateEpisodeEventUpdatedBy = ["Episode_Event_Updated_By", "S", "CaaS"]
+      const updateEpisodeStatusUpdated = ["Episode_Status_Updated", "N", String(timeNow)]
+
+      await updateRecordInTable(client, "Episode", batchId, "Batch_Id", participantId, "Participant_Id",
+        updateEpisodeEvent,
+        updateEpisodeEventUpdated,
+        updateEpisodeStatus,
+        updateEpisodeEventDescription,
+        updateEpisodeEventNotes,
+        updateEpisodeEventUpdatedBy,
+        updateEpisodeStatusUpdated
+      );
+    }
+
   }
 
   await overwriteRecordInTable(client, "Population", record, recordFromTable);
@@ -589,7 +620,6 @@ export const lookUp = async (dbClient, ...params) => {
   expressionAttributeValuesNestObj[attributeType] = id
   expressionAttributeValuesObj[ExpressionAttributeValuesKey] = expressionAttributeValuesNestObj
 
-
   const input = {
     ExpressionAttributeValues: expressionAttributeValuesObj,
     KeyConditionExpression: `${attribute} = :${attribute}`,
@@ -598,9 +628,6 @@ export const lookUp = async (dbClient, ...params) => {
 
   if (useIndex) {
     input.IndexName = `${attribute}-index`;
-    if (table === 'Episode') {
-      input.ProjectionExpression = `Batch_Id, Participant_Id`;
-    }
   }
 
   const getCommand = new QueryCommand(input);
