@@ -89,7 +89,7 @@ module "user_accounts_bucket" {
   environment             = var.environment
 }
 
-# GTMS buckets for each JSON response header
+# CaaS MESH data bucket
 module "caas_data_bucket" {
   source                  = "./modules/s3"
   bucket_name             = "galleri-caas-data"
@@ -104,7 +104,14 @@ module "validated_records_bucket" {
   environment             = var.environment
 }
 
-# CaaS MESH data bucket
+# GTMS buckets for each JSON response header
+module "invalid_gtms_payload_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "invalid-gtms-payload"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
 module "invited_participant_batch" {
   source                  = "./modules/s3"
   bucket_name             = "outbound-gtms-invited-participant-batch"
@@ -832,7 +839,11 @@ module "gtms_mesh_mailbox_lambda" {
     MESH_URL                   = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
     MESH_SHARED_KEY            = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
     GTMS_MESH_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_mailbox_id.secret_string)["GTMS_MESH_MAILBOX_ID"],
-    GTMS_MESH_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_mailbox_password.secret_string)["GTMS_MESH_MAILBOX_PASSWORD"]
+    GTMS_MESH_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_mailbox_password.secret_string)["GTMS_MESH_MAILBOX_PASSWORD"],
+    CLINIC_WORKFLOW            = "GTMS_CLINIC",
+    CLINIC_SCHEDULE_WORKFLOW   = "GTMS_CLINIC_SCHEDULE",
+    APPOINTMENT_WORKFLOW       = "GTMS_APPOINTMENT",
+    WITHDRAW_WORKFLOW          = "GTMS_WITHDRAW",
   }
 }
 
