@@ -26,8 +26,8 @@ const CONFIG = await loadConfig({
   senderMailboxPassword: process.env.MESH_SENDER_MAILBOX_PASSWORD,
   receiverCert: MESH_RECEIVER_CERT,
   receiverKey: MESH_RECEIVER_KEY,
-  receiverMailboxID: process.env.MESH_RECEIVER_MAILBOX_ID,
-  receiverMailboxPassword: process.env.MESH_RECEIVER_MAILBOX_PASSWORD,
+  receiverMailboxID: process.env.CAAS_RECEIVER_MAILBOX_ID, // updated, before was set to test receiver mailbox id
+  receiverMailboxPassword: process.env.CAAS_RECEIVER_MAILBOX_PASSWORD, // updated, before was set to test receiver mailbox password
 });
 
 //HANDLER

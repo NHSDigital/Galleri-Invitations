@@ -342,8 +342,65 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 #             "s3:*"
 #           ],
 #           "Resource" : [
-#             "arn:aws:s3:::gtms-clinic-create-or-update/*"
-#             "arn:aws:s3:::galleri-caas-data/*"
+#             "arn:aws:s3:::${var.environment}-inbound-gtms-clinic-create-or-update/*",
+#             "arn:aws:s3:::${var.environment}-galleri-caas-data/*",
+#           ]
+#         }
+#      ],
+#      "Version" : "2012-10-17"
+#  })
+# }
+
+# # Policy required by sendGTMSInvitationBatchLambda
+# resource "aws_iam_policy" "iam_policy_for_send_gtms_invitation_batch_lambda" {
+#  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_send_gtms_invitation_batch_lambda_role"
+#  path        = "/"
+#  description = "AWS IAM Policy for allowing permission to work with S3 bucket and get secrets from Secrets manager"
+#  policy = jsonencode(
+#    {
+#      "Statement" : [
+#        {
+#          "Action" : [
+#            "logs:CreateLogGroup",
+#            "logs:CreateLogStream",
+#            "logs:PutLogEvents"
+#          ],
+#          "Effect" : "Allow",
+#          "Resource" : "arn:aws:logs:*:*:*"
+#        },
+#        {
+#           "Sid" : "AllowS3Access",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "s3:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:s3:::${var.environment}-outbound-gtms-invited-participant-batch/*",
+#             "arn:aws:s3:::${var.environment}-sent-gtms-invited-participant-batch",
+#           ]
+#         },
+#         {
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "secretsmanager:GetResourcePolicy",
+#             "secretsmanager:GetSecretValue",
+#             "secretsmanager:DescribeSecret",
+#             "secretsmanager:ListSecretVersionIds"
+#           ],
+#           "Resource" : [
+#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_URL*",
+#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SHARED_KEY_1*",
+#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:GTMS_MESH_MAILBOX_ID*",
+#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:GTMS_MESH_MAILBOX_PASSWORD*",
+#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:GTMS_MESH_CERT*",
+#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_KEY*",
+#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_ID*",
+#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_PASSWORD*",
+#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_ID*",
+#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_PASSWORD*",
+#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_KEY*",
+#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_CERT*",
+#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_CERT*"
 #           ]
 #         }
 #      ],
@@ -355,6 +412,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added GpPractice and Postcode to this policy as lambda role exceeded policy limit
 # Added validate CLinic Data to this policy as lambda role exceeded policy limit
 # Added validate Caas Feed to this policy as lambda role exceeded policy limit
+# Added Sending Invitaiton batch to GTMS to this plicy as lambda role exceeded policy limit
 # Added UserAccounts to this policy as lambda role exceeded policy limit
 # Added validateGtmsAppointment to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
@@ -402,6 +460,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:s3:::${var.environment}-inbound-gtms-clinic-create-or-update/*",
             "arn:aws:s3:::${var.environment}-inbound-gtms-clinic-schedule-summary/*",
             "arn:aws:s3:::${var.environment}-inbound-gtms-withdrawal/*",
+            "arn:aws:s3:::${var.environment}-sent-gtms-invited-participant-batch",
           ]
         },
         {
@@ -425,7 +484,9 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_PASSWORD*",
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_KEY*",
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_CERT*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_CERT*"
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_CERT*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:CAAS_MESH_MAILBOX_ID*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:CAAS_MESH_MAILBOX_PASSWORD*",
           ]
         },
         {
@@ -601,9 +662,15 @@ resource "aws_iam_role_policy_attachment" "clinic_information_lambda" {
 #resource "aws_iam_role_policy_attachment" "validate_clinic_data_lambda" {
 #  role       = aws_iam_role.galleri_lambda_role.name
 #  policy_arn = aws_iam_policy.validate_clinic_data_lambda.arn
+
 #resource "aws_iam_role_policy_attachment" "validate_caas_feed_lambda" {
 #  role       = aws_iam_role.galleri_lambda_role.name
-#  policy_arn = aws_iam_policy.validate_caas_feed_lambda.arn
+#  policy_arn = aws_iam_policy.iam_policy_for_validate_caas_feed_lambda.arn
+#}
+
+#resource "aws_iam_role_policy_attachment" "send_gtms_invitation_batch_lambda" {
+#  role       = aws_iam_role.galleri_lambda_role.name
+#  policy_arn = aws_iam_policy.iam_policy_for_send_gtms_invitation_batch_lambda.arn
 #}
 
 resource "aws_iam_role_policy_attachment" "participating_icb_list_lambda" {
