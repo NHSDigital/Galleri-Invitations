@@ -56,3 +56,7 @@ participating_icb.json
 Participating_ICBs.csv
 
 coverage
+
+#temporary
+src/sendGTMSInvitationBatchLambda/helper.js
+
