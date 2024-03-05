@@ -742,7 +742,9 @@ module "poll_mesh_mailbox_lambda" {
     MESH_SENDER_MAILBOX_ID         = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_id.secret_string)["MESH_SENDER_MAILBOX_ID"],
     MESH_SENDER_MAILBOX_PASSWORD   = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_password.secret_string)["MESH_SENDER_MAILBOX_PASSWORD"],
     MESH_RECEIVER_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_id.secret_string)["MESH_RECEIVER_MAILBOX_ID"],
-    MESH_RECEIVER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_password.secret_string)["MESH_RECEIVER_MAILBOX_PASSWORD"]
+    MESH_RECEIVER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_password.secret_string)["MESH_RECEIVER_MAILBOX_PASSWORD"],
+    CAAS_MESH_MAILBOX_ID           = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_id.secret_string)["CAAS_MESH_MAILBOX_ID"],
+    CAAS_MESH_MAILBOX_PASSWORD     = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_password.secret_string)["CAAS_MESH_MAILBOX_PASSWORD"]
   }
 }
 
@@ -1002,6 +1004,14 @@ data "aws_secretsmanager_secret_version" "gtms_mesh_mailbox_id" {
 
 data "aws_secretsmanager_secret_version" "gtms_mesh_mailbox_password" {
   secret_id = "GTMS_MESH_MAILBOX_PASSWORD"
+}
+
+data "aws_secretsmanager_secret_version" "caas_mesh_mailbox_id" {
+  secret_id = "CAAS_MESH_MAILBOX_ID"
+}
+
+data "aws_secretsmanager_secret_version" "caas_mesh_mailbox_password" {
+  secret_id = "CAAS_MESH_MAILBOX_PASSWORD"
 }
 #END of MESH keys
 
