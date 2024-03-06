@@ -1,10 +1,10 @@
-# Repository Templatee
+# Repository Template
 
 This is a repo containing the code for the Galleri Invitations Algorithm
 
 ## Table of Contents
 
-- [Repository Templatee](#repository-templatee)
+- [Repository Template](#repository-template)
   - [Table of Contents](#table-of-contents)
   - [Usage](#usage)
     - [Github Actions](#github-actions)
