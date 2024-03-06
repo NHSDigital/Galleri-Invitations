@@ -981,6 +981,26 @@ module "send_GTMS_invitation_batch_lambda_trigger" {
   lambda_arn = module.send_GTMS_invitation_batch_lambda.lambda_arn
 }
 
+module "gtms_status_update_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gtmsStatusUpdateLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "gtms_status_update_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "gtms_status_update_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gtms_status_update_lambda.lambda_function_name
+  retention_days       = 14
+}
 
 # Dynamodb tables
 module "sdrs_table" {
