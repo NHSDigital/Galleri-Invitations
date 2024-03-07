@@ -115,6 +115,8 @@ jobs:
         # build-stage
       ]
     uses: ./.github/workflows/stage-3-build.yaml
+    # env:
+    #   AWS_ACCOUNT_ID: "${{ secrets.UAT_AWS_ACCOUNT_ID }}"
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
@@ -127,6 +129,7 @@ jobs:
       invitations_branch: "${{ github.event.inputs.invitations_branch }}"
       frontend_branch: "${{ github.event.inputs.frontend_branch }}"
       tf_action: "${{ github.event.inputs.tf_action }}"
+      aws_account_id: "${{ secrets.UAT_AWS_ACCOUNT_ID }}"
     secrets: inherit
 
   data-stage: # Recommended maximum execution time is 10 minutes

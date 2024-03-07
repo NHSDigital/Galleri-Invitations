@@ -130,4 +130,4 @@ runs:
         npm install --prefix src/validateClinicDataLambda
         npm install --prefix src/gtmsUploadClinicDataLambda
         npm install --prefix src/sendGTMSInvitationBatchLambda
-        terraform ${{ env.tf-action }} -auto-approve -input=false -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars
+        terraform ${{ env.tf-action }} -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars

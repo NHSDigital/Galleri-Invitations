@@ -48,6 +48,9 @@ on:
         default: apply
         type: string
         required: false
+      aws_account_id:
+        type: string
+        required: true
 
 env:
   role-to-assume: ${{ vars.AWS_ROLE_ARN }}
@@ -58,6 +61,7 @@ env:
   frontend-branch: ${{ inputs.frontend_branch }}
   invitations-branch: ${{ inputs.invitations_branch }}
   tf-action: ${{ inputs.tf_action }}
+  AWS_ACCOUNT_ID: ${{ inputs.aws_account_id }}
 
 jobs:
   build:
@@ -91,6 +95,7 @@ jobs:
           TF_VAR_USERS: ${{ secrets.USERS }}
           TF_VAR_CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
           TF_VAR_NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}
         timeout-minutes: 15
 # name: "Build stage"
 

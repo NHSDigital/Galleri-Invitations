@@ -114,6 +114,7 @@ module "invalid_gtms_payload_bucket" {
   bucket_name             = "invalid-gtms-payload"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
+  account_id = var.account_id
 }
 
 module "invited_participant_batch" {
@@ -161,6 +162,7 @@ module "gtms_appointment_validated" {
   bucket_name             = "inbound-gtms-appointment-validated"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
+  account_id = var.account_id
 }
 module "gtms_withdrawal" {
   source                  = "./modules/s3"
@@ -175,6 +177,7 @@ module "gtms_invited_participant_batch" {
   bucket_name             = "sent-gtms-invited-participant-batch"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
+  account_id = var.account_id
 }
 # End of GTMS buckets
 
