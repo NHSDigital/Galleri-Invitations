@@ -1292,8 +1292,7 @@ module "population_table" {
   secondary_write_capacity = null
   secondary_read_capacity  = null
   environment              = var.environment
-  non_key_attributes       = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
-  projection_type          = "INCLUDE"
+  projection_type          = "ALL"
   attributes = [{
     name = "PersonId"
     type = "S"
@@ -1321,29 +1320,36 @@ module "population_table" {
   ]
   global_secondary_index = [
     {
-      name      = "LsoaCode-index"
-      hash_key  = "LsoaCode"
-      range_key = null
+      name               = "LsoaCode-index"
+      hash_key           = "LsoaCode"
+      range_key          = null
+      non_key_attributes = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+      projection_type    = "INCLUDE"
     },
     {
-      name      = "BatchId-index"
-      hash_key  = "Batch_Id"
-      range_key = null
+      name               = "BatchId-index"
+      hash_key           = "Batch_Id"
+      range_key          = null
+      non_key_attributes = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+      projection_type    = "INCLUDE"
     },
     {
-      name      = "Participant_Id-index"
-      hash_key  = "participantId"
-      range_key = null
+      name            = "Participant_Id-index"
+      hash_key        = "participantId"
+      range_key       = null
+      projection_type = "ALL"
     },
     {
-      name      = "nhs_number-index"
-      hash_key  = "nhs_number"
-      range_key = null
+      name            = "nhs_number-index"
+      hash_key        = "nhs_number"
+      range_key       = null
+      projection_type = "ALL"
     },
     {
-      name      = "superseded_by_nhs_number-index"
-      hash_key  = "superseded_by_nhs_number"
-      range_key = null
+      name            = "superseded_by_nhs_number-index"
+      hash_key        = "superseded_by_nhs_number"
+      range_key       = null
+      projection_type = "ALL"
     }
   ]
   tags = {
@@ -1455,7 +1461,7 @@ module "episode_table" {
   secondary_write_capacity = 10
   secondary_read_capacity  = 10
   environment              = var.environment
-  projection_type          = "KEYS_ONLY"
+  projection_type          = "ALL"
   attributes = [
     {
       name = "Batch_Id"
