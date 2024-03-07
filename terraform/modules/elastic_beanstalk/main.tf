@@ -3,11 +3,69 @@ locals {
   source_hash  = sha256(join("", [for f in local.source_files : filesha256("${var.frontend_repo_location}/${f}")]))
 }
 
+data "aws_route53_zone" "domain" {
+  name         = "${var.hostname}." # The domain name of the hosted zone, ensure it ends with a dot (.)
+  private_zone = false              # Set to true if you're querying a private hosted zone
+}
+
 data "archive_file" "screens" {
   type        = "zip"
   source_dir  = var.frontend_repo_location
   output_path = "${path.cwd}/src/${var.name}.zip"
 }
+
+# DNS setup
+
+resource "aws_route53_record" "screens" {
+  zone_id = data.aws_route53_zone.domain.id
+  name    = "${var.environment}.${var.hostname}" # The DNS name you want to use for your EB environment
+  type    = "A"
+
+  alias {
+    name                   = aws_elastic_beanstalk_environment.screens.cname
+    zone_id                = data.aws_route53_zone.domain.id
+    evaluate_target_health = true
+  }
+}
+
+resource "aws_acm_certificate" "my_cert" {
+  domain_name       = "${var.environment}.${var.hostname}"
+  validation_method = "DNS"
+
+  subject_alternative_names = ["www.${var.environment}.${var.hostname}"]
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "aws_route53_record" "cert_validation" {
+  # dvo = domain validation option
+  for_each = {
+    for dvo in aws_acm_certificate.my_cert.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  zone_id = data.aws_route53_zone.my_zone.zone_id
+  name    = each.value.name
+  type    = each.value.type
+  records = [each.value.record]
+  ttl     = 60
+}
+
+resource "aws_acm_certificate_validation" "my_cert" {
+  certificate_arn         = aws_acm_certificate.my_cert.arn
+  validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
+}
+
+# Elastic Beanstalk setup
 
 resource "aws_iam_role" "screens" {
   name = "${var.environment}-${var.name}-role"
@@ -130,6 +188,24 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     namespace = "aws:elb:listener:443"
     name      = "ListenerProtocol"
     value     = "HTTPS"
+  }
+
+  setting {
+    namespace = "aws:elb:listener:443"
+    name      = "InstancePort"
+    value     = "80"
+  }
+
+  setting {
+    namespace = "aws:elb:listener:443"
+    name      = "InstanceProtocol"
+    value     = "HTTP"
+  }
+
+  setting {
+    namespace = "aws:elb:listener:443"
+    name      = "SSLCertificateId"
+    value     = "arn:aws:acm:region:account-id:certificate/certificate-id" # Replace with your actual certificate ARN
   }
 
   setting {
