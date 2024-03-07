@@ -127,6 +127,12 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   version_label       = aws_elastic_beanstalk_application_version.screens.name
 
   setting {
+    namespace = "aws:elb:listener:443"
+    name      = "ListenerProtocol"
+    value     = "HTTPS"
+  }
+
+  setting {
     namespace = "aws:elasticbeanstalk:environment"
     name      = "EnvironmentType"
     value     = "SingleInstance"
@@ -301,6 +307,6 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "NEXTAUTH_URL"
-    value     = "https://${var.environment}.${var.hostname}:3000/"
+    value     = "http://localhost:3000/"
   }
 }
