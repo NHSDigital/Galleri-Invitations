@@ -10,12 +10,11 @@ import {
   pushCsvToS3,
   parseCsvToArray,
   filterUniqueEntries,
-  lookUp,
-  getItemFromTable,
+  getParticipantId,
+  hasAppointment,
   generateCsvString,
-  putTableRecord,
-  deleteTableRecord,
-  overwriteRecordInTable,
+  updatePopulationTable,
+  updateAppointmentTable,
 } from "../../caasFeedDeleteRecordsLambda/caasFeedDeleteRecordsLambda";
 
 describe("readCsvFromS3", () => {
@@ -291,140 +290,146 @@ describe("filterUniqueEntries", () => {
   });
 });
 
-// describe('lookUp', () => {
-//   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
+describe("getParticipantId", () => {
+  const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
-//   test('should return successful response if item does not exist from query', async () => {
-//     mockDynamoDbClient.resolves({
-//       $metadata: {
-//         httpStatusCode: 200
-//       },
-//       Items: ["I exist"]
-//     });
+  test("should successfully get participant ID from valid NHS number", async () => {
+    mockDynamoDbClient.resolves({
+      $metadata: {
+        httpStatusCode: 200,
+      },
+      Items: ["I exist"],
+    });
 
-//     const id = "ID-A";
-//     const table = "table-A";
-//     const attribute = "attribute-A";
-//     const attributeType = "Type-A";
+    const nhsNumber = "898923432";
+    const table = "table-A";
 
-//     const result = await lookUp(mockDynamoDbClient, id, table, attribute, attributeType);
+    const result = await getParticipantId(mockDynamoDbClient, nhsNumber, table);
 
-//     expect(result.Items).toEqual(["I exist"]);
-//   });
+    expect(result.Items).toEqual(["I exist"]);
+  });
 
-//   test('should return unsuccessful response if item does exist from query', async () => {
-//     mockDynamoDbClient.resolves({
-//       $metadata: {
-//         httpStatusCode: 200
-//       },
-//       Items: []
-//     });
+  test("should return unsuccessful response if item does exist from query", async () => {
+    mockDynamoDbClient.resolves({
+      $metadata: {
+        httpStatusCode: 200,
+      },
+      Items: [],
+    });
 
-//     const id = "ID-A";
-//     const table = "table-A";
-//     const attribute = "attribute-A";
-//     const attributeType = "Type-A";
+    const nhsNumber = "898923432";
+    const table = "table-A";
 
-//     const result = await lookUp(mockDynamoDbClient, id, table, attribute, attributeType);
+    const result = await getParticipantId(mockDynamoDbClient, nhsNumber, table);
 
-//     expect(result.Items).toEqual([]);
-//   });
-// })
+    expect(result.Items).toEqual([]);
+  });
+});
 
-// describe('getItemFromTable', () => {
-//   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
+describe("hasAppointment", () => {
+  const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
-//   test('should return successful response if item does not exist from query', async () => {
-//     mockDynamoDbClient.resolves({
-//       $metadata: {
-//         httpStatusCode: 200
-//       },
-//       Item: "Table item"
-//     });
+  test("should successfully check if participant has an appointment from participant ID", async () => {
+    mockDynamoDbClient.resolves({
+      $metadata: {
+        httpStatusCode: 200,
+      },
+      Items: ["I exist"],
+    });
 
-//     const partitionKeyName = "PK-Name";
-//     const partitionKeyType = "PK-Type";
-//     const partitionKeyValue = "PK-Value";
-//     const sortKeyName = "SK-Name";
-//     const sortKeyType = "SK-Type";
-//     const sortKeyValue = "SK-Name";
+    const participantId = "NHS-8989-2343";
+    const table = "table-A";
 
-//     const result = await getItemFromTable(mockDynamoDbClient, partitionKeyName, partitionKeyType, partitionKeyValue, sortKeyName, sortKeyType, sortKeyValue);
+    const result = await hasAppointment(
+      mockDynamoDbClient,
+      participantId,
+      table
+    );
 
-//     expect(result.Item).toEqual("Table item");
-//   });
-// })
+    expect(result.Items).toEqual(["I exist"]);
+  });
 
-// describe("generateCsvString", () => {
-//   test("returns correctly formatted string when given header and data", () => {
-//     const header = "Alpha,Beta,Gamma";
-//     const dataArray = [
-//       {
-//         a: "First",
-//         b: "Second",
-//         c: "Third",
-//       },
-//       {
-//         a: "Uno",
-//         b: "Dos",
-//         c: "Tres",
-//       },
-//     ];
-//     const result = generateCsvString(header, dataArray);
-//     expect(result).toEqual(
-//       "Alpha,Beta,Gamma\nFirst,Second,Third\nUno,Dos,Tres"
-//     );
-//   });
-// });
+  test("should return unsuccessful response if item does exist from query", async () => {
+    mockDynamoDbClient.resolves({
+      $metadata: {
+        httpStatusCode: 200,
+      },
+      Items: [],
+    });
 
-// describe("overwriteRecordInTable", () => {
-//   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
-//   test("returns 200 when call executes successfully", async () => {
-//     const oldRecord = {
-//       "PersonId": {"S": "ABC-123-EFG"},
-//       "LsoaCode": {"S": "E011000"}
-//     }
+    const participantId = "NHS-8989-2343";
+    const table = "table-A";
 
-//     const newRecord = {
-//       "message": "Validation successful",
-//       "participant_id": "ABC-123-EFG",
-//       "LsoaCode": "E011000",
-//       "nhs_number": "5558014954",
-//       "superseded_by_nhs_number": "null",
-//       "primary_care_provider": "P84064",
-//       "gp_connect": "false",
-//       "name_prefix": "Mr",
-//       "given_name": "Damon",
-//       "other_given_names": "null",
-//       "family_name": "Hill",
-//       "date_of_birth": "1964-10-01",
-//       "gender": "1",
-//       "address_line_1": "School House",
-//       "address_line_2": "Cottisford Road",
-//       "address_line_3": "Bristol",
-//       "address_line_4": "Avon",
-//       "address_line_5": "null",
-//       "postcode": "BS5 6TY",
-//       "reason_for_removal": "null",
-//       "reason_for_removal_effective_from_date": "null",
-//       "date_of_death": "null",
-//       "telephone_number": "null",
-//       "mobile_number": "null",
-//       "email_address": "null",
-//       "preferred_language": "null",
-//       "is_interpreter_required": "null",
-//       "action": "UPDATE"
-//     }
+    const result = await hasAppointment(
+      mockDynamoDbClient,
+      participantId,
+      table
+    );
 
-//     mockDynamoDbClient.resolves({
-//       $metadata: {
-//         httpStatusCode: 200
-//       },
-//     });
+    expect(result.Items).toEqual([]);
+  });
+});
 
-//     const table = "table-A"
+describe("generateCsvString", () => {
+  test("returns correctly formatted string when given header and data", () => {
+    const header = "Alpha,Beta,Gamma";
+    const dataArray = [
+      {
+        a: "First",
+        b: "Second",
+        c: "Third",
+      },
+      {
+        a: "Uno",
+        b: "Dos",
+        c: "Tres",
+      },
+    ];
+    const result = generateCsvString(header, dataArray);
+    expect(result).toEqual(
+      "Alpha,Beta,Gamma\nFirst,Second,Third\nUno,Dos,Tres"
+    );
+  });
+});
 
-//     const result = await overwriteRecordInTable(mockDynamoDbClient, table, newRecord, oldRecord);
-//     expect(result).toEqual(200);
-//   });
-// });
+describe("updatePopulationTable", () => {
+  const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
+  test("returns 200 when call executes successfully", async () => {
+    mockDynamoDbClient.resolves({
+      $metadata: {
+        httpStatusCode: 200,
+      },
+    });
+
+    const table = "table-A";
+    const participantId = "NHS-3273-2782";
+
+    const result = await updatePopulationTable(
+      mockDynamoDbClient,
+      participantId,
+      table
+    );
+    expect(result).toEqual(200);
+  });
+});
+
+describe("updateAppointmentTable", () => {
+  const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
+  test("returns 200 when call executes successfully", async () => {
+    mockDynamoDbClient.resolves({
+      $metadata: {
+        httpStatusCode: 200,
+      },
+    });
+
+    const table = "table-A";
+    const participantId = "NHS-3273-2782";
+
+    const result = await updateAppointmentTable(
+      mockDynamoDbClient,
+      participantId,
+      table
+    );
+    expect(result).toEqual(200);
+  });
+});

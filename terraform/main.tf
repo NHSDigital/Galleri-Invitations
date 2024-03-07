@@ -959,7 +959,7 @@ module "caas_feed_delete_records_lambda_trigger" {
   bucket_id     = module.validated_records_bucket.bucket_id
   bucket_arn    = module.validated_records_bucket.bucket_arn
   lambda_arn    = module.caas_feed_delete_records_lambda.lambda_arn
-  filter_prefix = "validRecords/valid_records_del-"
+  filter_prefix = "validRecords/valid_records_delete-"
 }
 
 # Dynamodb tables

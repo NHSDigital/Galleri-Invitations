@@ -34,20 +34,20 @@ export const handler = async (event) => {
       const recordsToUploadSettled = await Promise.allSettled(
         uniqueRecords.map(async (record) => {
           const participantIdResponse = await getParticipantId(
-            record.nhs_number,
-            dbClient
+            dbClient,
+            record.nhs_number
           );
 
           if (participantIdResponse.Items > 0) {
             const participantId = participantIdResponse.Item.Participant_Id.S;
-            updatePopulationTable(participantId, dbClient);
+            updatePopulationTable(dbClient, participantId);
             const appointmentStatus = await hasAppointment(
-              participantId,
-              dbClient
+              dbClient,
+              participantId
             );
 
             if (appointmentStatus.Items > 0) {
-              updateAppointmentTable(participantId, dbClient);
+              updateAppointmentTable(dbClient, participantId);
             }
           } else {
             return {
@@ -101,7 +101,6 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
         Key: key,
       })
     );
-
     return response.Body.transformToString();
   } catch (err) {
     console.log(`Failed to read from ${bucketName}/${key}`);
@@ -118,7 +117,6 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
         Body: body,
       })
     );
-
     console.log(`Successfully pushed to ${bucketName}/${key}`);
     return response;
   } catch (err) {
@@ -167,12 +165,16 @@ export const filterUniqueEntries = (caasFeed) => {
   return unique;
 };
 
-export async function getParticipantId(nhsNumber, client) {
+export async function getParticipantId(
+  client,
+  nhsNumber,
+  table = `${ENVIRONMENT}-Population`
+) {
   const gsiPartitionKeyName = "nhs_number";
   const gsiPartitionKeyValue = nhsNumber;
 
   const params = {
-    TableName: `${ENVIRONMENT}-Population`,
+    TableName: table,
     IndexName: "nhs_number-index",
     KeyConditionExpression: "#gsiKey = :gsiValue",
     ExpressionAttributeNames: {
@@ -188,12 +190,16 @@ export async function getParticipantId(nhsNumber, client) {
   return response;
 }
 
-export async function hasAppointment(Participant_Id, client) {
+export async function hasAppointment(
+  client,
+  participantId,
+  table = `${ENVIRONMENT}-Appointments`
+) {
   const partitionKeyName = "Participant_Id";
-  const partitionKeyValue = Participant_Id;
+  const partitionKeyValue = participantId;
 
   const params = {
-    TableName: `${ENVIRONMENT}-Appointments`,
+    TableName: table,
     Key: {
       [partitionKeyName]: partitionKeyValue,
     },
@@ -204,12 +210,16 @@ export async function hasAppointment(Participant_Id, client) {
   return response;
 }
 
-export async function updatePopulationTable(personId, client) {
+export async function updatePopulationTable(
+  client,
+  personId,
+  table = `${ENVIRONMENT}-Population`
+) {
   const partitionKeyName = "PersonId";
   const partitionKeyValue = personId;
 
   const params = {
-    TableName: `${ENVIRONMENT}-Population`,
+    TableName: table,
     Key: {
       [partitionKeyName]: partitionKeyValue,
     },
@@ -228,12 +238,16 @@ export async function updatePopulationTable(personId, client) {
   return response.$metadata.httpStatusCode;
 }
 
-export async function updateAppointmentTable(client, Participant_Id) {
+export async function updateAppointmentTable(
+  client,
+  participantId,
+  table = `${ENVIRONMENT}-Appointments`
+) {
   const partitionKeyName = "Participant_Id";
-  const partitionKeyValue = Participant_Id;
+  const partitionKeyValue = participantId;
 
   const params = {
-    TableName: `${ENVIRONMENT}-Appointments`,
+    TableName: table,
     Key: {
       [partitionKeyName]: partitionKeyValue,
     },
