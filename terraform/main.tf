@@ -983,10 +983,10 @@ module "gtms_upload_clinic_capacity_data_trigger" {
 
 # Send Invitaion Batch to GTMS
 module "send_GTMS_invitation_batch_lambda" {
-  source               = "./modules/lambda"
-  environment          = var.environment
-  bucket_id            = module.s3_bucket.bucket_id
-  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  source          = "./modules/lambda"
+  environment     = var.environment
+  bucket_id       = module.s3_bucket.bucket_id
+  lambda_iam_role = module.iam_galleri_lambda_role.galleri_lambda_role_arn
 
   lambda_function_name = "sendGTMSInvitationBatchLambda"
   lambda_timeout       = 100
