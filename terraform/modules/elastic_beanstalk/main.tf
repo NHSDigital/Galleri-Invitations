@@ -5,7 +5,7 @@ locals {
 
 data "aws_route53_zone" "domain" {
   name         = "${var.hostname}."
-  private_zone = false 
+  private_zone = false
 }
 
 data "archive_file" "screens" {
