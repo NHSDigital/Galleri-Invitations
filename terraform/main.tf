@@ -140,6 +140,13 @@ module "clinic_schedule_summary" {
   environment             = var.environment
 }
 
+module "processed_clinic_schedule_summary_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "processed-inbound-gtms-clinic-schedule-summary"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
 module "gtms_appointment" {
   source                  = "./modules/s3"
   bucket_name             = "inbound-gtms-appointment"
@@ -944,12 +951,43 @@ module "gtms_upload_clinic_data_lambda_trigger" {
   filter_prefix = "validRecords/valid_records_add-"
 }
 
-# Send Invitaion Batch to GTMS
-module "send_GTMS_invitation_batch_lambda" {
+# GTMS upload clinic capacity data
+module "gtms_upload_clinic_capacity_data_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gtmsUploadClinicCapacityDataLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "gtms_upload_clinic_capacity_data_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "gtms_upload_clinic_capacity_data_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gtms_upload_clinic_capacity_data_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "gtms_upload_clinic_capacity_data_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.processed_clinic_schedule_summary_bucket.bucket_id
+  bucket_arn    = module.processed_clinic_schedule_summary_bucket.bucket_arn
+  lambda_arn    = module.gtms_upload_clinic_capacity_data_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_add-"
+}
+
+# Send Invitaion Batch to GTMS
+module "send_GTMS_invitation_batch_lambda" {
+  source          = "./modules/lambda"
+  environment     = var.environment
+  bucket_id       = module.s3_bucket.bucket_id
+  lambda_iam_role = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+
   lambda_function_name = "sendGTMSInvitationBatchLambda"
   lambda_timeout       = 100
   memory_size          = 1024
@@ -1218,7 +1256,14 @@ module "phlebotomy_site_table" {
       name      = "ClinicIdPostcodeIndex"
       hash_key  = "ClinicId"
       range_key = "Postcode"
-    }
+    },
+    {
+      name               = "ClinicId-index"
+      hash_key           = "ClinicId"
+      range_key          = null,
+      non_key_attributes = ["WeekCommencingDate"]
+      projection_type    = "INCLUDE"
+    },
   ]
   tags = {
     Name        = "Dynamodb Table Phlebotomy Site"
