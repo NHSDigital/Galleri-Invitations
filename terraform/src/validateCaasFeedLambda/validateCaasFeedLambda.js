@@ -22,7 +22,7 @@ export const handler = async (event) => {
     if (!records.length) {
       throw new Error(`The file ${key} in bucket ${bucket} is empty`);
     }
-    console.log(records);
+    console.table(records);
 
     const [outputSuccess, outputUnsuccess] = validateRecords(records);
     console.log(`Finished validating object ${key} in bucket ${bucket}`);
@@ -60,7 +60,9 @@ export const handler = async (event) => {
         s3
       );
     } else {
-      console.error("No data to push for valid Records with action - ADD");
+      console.info(
+        "No valid records with the action - ADD were found to be pushed into the bucket"
+      );
     }
 
     if (recordsUpdateCsvData.length > 0) {
@@ -71,7 +73,9 @@ export const handler = async (event) => {
         s3
       );
     } else {
-      console.error("No data to push for valid Records with action - UPDATE");
+      console.info(
+        "No valid records with the action - UPDATE were found to be pushed into the bucket"
+      );
     }
 
     if (recordsDeleteCsvData.length > 0) {
@@ -82,7 +86,9 @@ export const handler = async (event) => {
         s3
       );
     } else {
-      console.error("No data to push for valid Records with action - DELETE");
+      console.info(
+        "No valid records with the action - DELETE were found to be pushed into the bucket"
+      );
     }
 
     if (invalidRecordsCsvData.length > 0) {
@@ -93,7 +99,9 @@ export const handler = async (event) => {
         s3
       );
     } else {
-      console.error("No invalid records to push in the bucket");
+      console.info(
+        "No invalid records were found to be pushed into the bucket"
+      );
     }
 
     // Logging the invalid records
@@ -103,7 +111,7 @@ export const handler = async (event) => {
           JSON.stringify(outputUnsuccess, null, 2)
       );
     } else {
-      console.log("NO INVALID RECORDS FOUND IN THE PROCESSED CAAS FEED");
+      console.info("NO INVALID RECORDS FOUND IN THE PROCESSED CAAS FEED");
     }
 
     return `Finished validating object ${key} in bucket ${bucket}`;
