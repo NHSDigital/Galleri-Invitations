@@ -4,8 +4,8 @@ locals {
 }
 
 data "aws_route53_zone" "domain" {
-  name         = "${var.hostname}." # The domain name of the hosted zone, ensure it ends with a dot (.)
-  private_zone = false              # Set to true if you're querying a private hosted zone
+  name         = "${var.hostname}."
+  private_zone = false 
 }
 
 data "archive_file" "screens" {
@@ -18,7 +18,7 @@ data "archive_file" "screens" {
 
 resource "aws_route53_record" "screens" {
   zone_id = data.aws_route53_zone.domain.id
-  name    = "${var.environment}.${var.hostname}" # The DNS name you want to use for your EB environment
+  name    = "${var.environment}.${var.hostname}"
   type    = "A"
 
   alias {
