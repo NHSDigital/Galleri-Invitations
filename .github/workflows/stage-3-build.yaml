@@ -48,9 +48,6 @@ on:
         default: apply
         type: string
         required: false
-      aws_account_id:
-        type: string
-        required: true
 
 env:
   role-to-assume: ${{ vars.AWS_ROLE_ARN }}
