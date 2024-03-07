@@ -48,6 +48,15 @@ on:
         default: apply
         type: string
         required: false
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+      USERS:
+        required: true
+      CIS2_SECRET:
+        required: true
+      NEXTAUTH_SECRET:
+        required: true
 
 env:
   role-to-assume: ${{ vars.AWS_ROLE_ARN }}
@@ -58,10 +67,10 @@ env:
   frontend-branch: ${{ inputs.frontend_branch }}
   invitations-branch: ${{ inputs.invitations_branch }}
   tf-action: ${{ inputs.tf_action }}
-  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-  USERS: ${{ secrets.USERS }}
-  CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
-  NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+  # AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  # USERS: ${{ secrets.USERS }}
+  # CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
+  # NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
 
 jobs:
   build:
