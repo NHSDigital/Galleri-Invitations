@@ -61,7 +61,7 @@ on:
         required: true
 
 env:
-  role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+  # role-to-assume: ${{ vars.AWS_ROLE_ARN }}
   aws-region: ${{ vars.aws_region }}
   aws-bucket-name: ${{ vars.aws_bucket_name }}
   aws-bucket-key-name: ${{ vars.aws_bucket_key_name }}
