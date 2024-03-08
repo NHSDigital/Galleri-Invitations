@@ -80,7 +80,7 @@ async function getHealthStatusCode() {
       mailboxID: CONFIG.senderMailboxID,
       mailboxPassword: CONFIG.senderMailboxPassword,
       sharedKey: CONFIG.sharedKey,
-      agent: CONFIG.senderAgent,
+      agent: CONFIG.receiverAgent,
     });
 
     return healthCheck.status
@@ -97,7 +97,7 @@ async function getMessageArray() {
       mailboxID: CONFIG.senderMailboxID,
       mailboxPassword: CONFIG.senderMailboxPassword,
       sharedKey: CONFIG.sharedKey,
-      agent: CONFIG.senderAgent,
+      agent: CONFIG.receiverAgent,
     });
     let messageList = messageCount.data.messages
     let inboxCount = messageCount.data.approx_inbox_count;
@@ -117,7 +117,7 @@ async function markRead(msgID) {
       mailboxPassword: CONFIG.senderMailboxPassword,
       sharedKey: CONFIG.sharedKey,
       message: msgID,
-      agent: CONFIG.senderAgent,
+      agent: CONFIG.receiverAgent,
     });
     return markMsg;
   } catch (error) {
@@ -134,7 +134,7 @@ async function readMsg(msgID) {
       mailboxPassword: CONFIG.senderMailboxPassword,
       sharedKey: CONFIG.sharedKey,
       messageID: msgID,
-      agent: CONFIG.senderAgent,
+      agent: CONFIG.receiverAgent,
     });
     return messages.data;
   } catch (error) {
