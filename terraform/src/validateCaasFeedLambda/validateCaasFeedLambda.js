@@ -12,24 +12,34 @@ const ENVIRONMENT = process.env.ENVIRONMENT;
 
 export const handler = async (event) => {
   const bucket = event.Records[0].s3.bucket.name;
-  const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
+  const key = decodeURIComponent(
+    event.Records[0].s3.object.key.replace(/\+/g, " ")
+  );
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
   try {
     const csvString = await readCsvFromS3(bucket, key, s3);
     const records = await parseCsvToArray(csvString);
+    if (!records.length) {
+      throw new Error(`The file ${key} in bucket ${bucket} is empty`);
+    }
     console.log(records);
 
     const [outputSuccess, outputUnsuccess] = validateRecords(records);
     console.log(`Finished validating object ${key} in bucket ${bucket}`);
-    console.log('----------------------------------------------------------------');
+    console.log(
+      "----------------------------------------------------------------"
+    );
 
-    console.log('Start Filtering the successful Validated records and split into 3 arrays. ADD, UPDATE and DELETE array ');
+    console.log(
+      "Start Filtering the successful Validated records and split into 3 arrays. ADD, UPDATE and DELETE array "
+    );
 
     //Timestamp
     const timeNow = Date.now();
 
     // Valid Records Arrangement
-    const [recordsAdd, recordsUpdate, recordsDelete] = filterRecordStatus(outputSuccess);
+    const [recordsAdd, recordsUpdate, recordsDelete] =
+      filterRecordStatus(outputSuccess);
     const recordsAddCsvData = convertArrayOfObjectsToCSV(recordsAdd);
     const recordsUpdateCsvData = convertArrayOfObjectsToCSV(recordsUpdate);
     const recordsDeleteCsvData = convertArrayOfObjectsToCSV(recordsDelete);
@@ -37,27 +47,72 @@ export const handler = async (event) => {
     // InValid Records Arrangement
     const invalidRecordsCsvData = convertArrayOfObjectsToCSV(outputUnsuccess);
 
-    console.log(`Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${bucket}`);
+    console.log(
+      `Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${bucket}`
+    );
 
     // Deposit to S3 bucket
-    await pushCsvToS3(`${ENVIRONMENT}-galleri-processed-caas-data`, `validRecords/valid_records_add-${timeNow}.csv`, recordsAddCsvData, s3);
-    await pushCsvToS3(`${ENVIRONMENT}-galleri-processed-caas-data`, `validRecords/valid_records_update-${timeNow}.csv`, recordsUpdateCsvData, s3);
-    await pushCsvToS3(`${ENVIRONMENT}-galleri-processed-caas-data`, `validRecords/valid_records_delete-${timeNow}.csv`, recordsDeleteCsvData, s3);
+    if (recordsAddCsvData.length > 0) {
+      await pushCsvToS3(
+        `${ENVIRONMENT}-galleri-processed-caas-data`,
+        `validRecords/valid_records_add-${timeNow}.csv`,
+        recordsAddCsvData,
+        s3
+      );
+    } else {
+      console.error("No data to push for valid Records with action - ADD");
+    }
 
-    await pushCsvToS3(`${ENVIRONMENT}-galleri-processed-caas-data`, `invalidRecords/invalid_records-${timeNow}.csv`, invalidRecordsCsvData, s3);
+    if (recordsUpdateCsvData.length > 0) {
+      await pushCsvToS3(
+        `${ENVIRONMENT}-galleri-processed-caas-data`,
+        `validRecords/valid_records_update-${timeNow}.csv`,
+        recordsUpdateCsvData,
+        s3
+      );
+    } else {
+      console.error("No data to push for valid Records with action - UPDATE");
+    }
+
+    if (recordsDeleteCsvData.length > 0) {
+      await pushCsvToS3(
+        `${ENVIRONMENT}-galleri-processed-caas-data`,
+        `validRecords/valid_records_delete-${timeNow}.csv`,
+        recordsDeleteCsvData,
+        s3
+      );
+    } else {
+      console.error("No data to push for valid Records with action - DELETE");
+    }
+
+    if (invalidRecordsCsvData.length > 0) {
+      await pushCsvToS3(
+        `${ENVIRONMENT}-galleri-processed-caas-data`,
+        `invalidRecords/invalid_records-${timeNow}.csv`,
+        invalidRecordsCsvData,
+        s3
+      );
+    } else {
+      console.error("No invalid records to push in the bucket");
+    }
 
     // Logging the invalid records
-    console.warn("PLEASE FIND THE INVALID CAAS RECORDS FROM THE PROCESSED CAAS FEED BELOW:\n" + JSON.stringify(outputUnsuccess, null, 2))
+    if (outputUnsuccess.length > 0) {
+      console.warn(
+        "PLEASE FIND THE INVALID CAAS RECORDS FROM THE PROCESSED CAAS FEED BELOW:\n" +
+          JSON.stringify(outputUnsuccess, null, 2)
+      );
+    } else {
+      console.log("NO INVALID RECORDS FOUND IN THE PROCESSED CAAS FEED");
+    }
 
     return `Finished validating object ${key} in bucket ${bucket}`;
-
   } catch (err) {
     const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
     console.error(message);
     throw new Error(message);
-  };
+  }
 };
-
 
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
@@ -95,7 +150,7 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
 
 // Takes Csv data read in from the S3 bucket to generate an array of filtered objects
 export const parseCsvToArray = async (csvString) => {
-  console.log('Parsing csv string');
+  console.log("Parsing csv string");
   const dataArray = [];
   let row_counter = 0;
 
@@ -104,7 +159,7 @@ export const parseCsvToArray = async (csvString) => {
       .pipe(csv())
       .on("data", (row) => {
         row_counter++;
-        dataArray.push(row)
+        dataArray.push(row);
       })
       .on("end", () => {
         resolve(dataArray);
@@ -119,27 +174,27 @@ export const convertArrayOfObjectsToCSV = (data) => {
   const csvContent = [];
 
   if (!Array.isArray(data) || data.length === 0) {
-    console.error('Data is empty or not an array.');
-    return '';
+    console.error("Data is empty or not an array.");
+    return "";
   }
 
   // Extracting headers
   const headers = Object.keys(data[0]);
-  csvContent.push(headers.join(','));
+  csvContent.push(headers.join(","));
 
   // Extracting values
   data.forEach((item) => {
     const values = headers.map((header) => {
-      const escapedValue = item[header].includes(',')
+      const escapedValue = item[header].includes(",")
         ? `"${item[header]}"`
         : item[header];
       return escapedValue;
     });
-    csvContent.push(values.join(','));
+    csvContent.push(values.join(","));
   });
 
-  return csvContent.join('\n');
-}
+  return csvContent.join("\n");
+};
 
 // Main Validation function which will iterate through the records
 export default function validateRecords(records) {
@@ -205,27 +260,43 @@ export function validateRecord(record) {
     return validationResults;
   }
 
-  if ((record.name_prefix !== "null" && !isValidNameFormat(record.name_prefix, 35, 2)) || (record.name_prefix === "")) {
+  if (
+    (record.name_prefix !== "null" &&
+      !isValidNameFormat(record.name_prefix, 35, 2)) ||
+    record.name_prefix === ""
+  ) {
     validationResults.success = false;
     validationResults.message = "Technical error - Name Prefix is missing";
     return validationResults;
   }
 
   // AC9 - Given Name not provided
-  if ((record.given_name !== "null" && !isValidNameFormat(record.given_name, 35, 2)) || (record.given_name === "")) {
+  if (
+    (record.given_name !== "null" &&
+      !isValidNameFormat(record.given_name, 35, 2)) ||
+    record.given_name === ""
+  ) {
     validationResults.success = false;
     validationResults.message = "Technical error - Given Name is missing";
     return validationResults;
   }
 
   // AC8 - Family Name not provided
-  if ((record.family_name !== "null" && !isValidNameFormat(record.family_name, 35, 2)) || (record.family_name === "")) {
+  if (
+    (record.family_name !== "null" &&
+      !isValidNameFormat(record.family_name, 35, 2)) ||
+    record.family_name === ""
+  ) {
     validationResults.success = false;
     validationResults.message = "Technical error - Family Name is missing";
     return validationResults;
   }
 
-  if ((record.other_given_names !== "null" && !isValidNameFormat(record.other_given_names, 100, 1)) || (record.other_given_names === "")) {
+  if (
+    (record.other_given_names !== "null" &&
+      !isValidNameFormat(record.other_given_names, 100, 1)) ||
+    record.other_given_names === ""
+  ) {
     validationResults.success = false;
     validationResults.message = "Technical error - Other given name is missing";
     return validationResults;
@@ -315,7 +386,8 @@ export function isValidNameFormat(given_name, limit, flag) {
     } else {
       return true;
     }
-  } else if (flag === 2) { //all other name checks
+  } else if (flag === 2) {
+    //all other name checks
     if (!isValidFormat) {
       return false; //Invalid format
     } else {
@@ -407,19 +479,19 @@ export function isValidAction(action) {
 
 //Spread records into 3 arrays. ADD, UPDATE and DELETE array
 export const filterRecordStatus = (records) => {
-  const recordsAdd = []
-  const recordsUpdate = []
-  const recordsDelete = []
+  const recordsAdd = [];
+  const recordsUpdate = [];
+  const recordsDelete = [];
 
-  records.forEach(el => {
+  records.forEach((el) => {
     if (el.action === "ADD") {
-      recordsAdd.push(el)
+      recordsAdd.push(el);
     } else if (el.action === "UPDATE") {
-      recordsUpdate.push(el)
+      recordsUpdate.push(el);
     } else if (el.action === "DEL") {
-      recordsDelete.push(el)
+      recordsDelete.push(el);
     }
-  })
+  });
 
-  return [recordsAdd, recordsUpdate, recordsDelete]
+  return [recordsAdd, recordsUpdate, recordsDelete];
 };
