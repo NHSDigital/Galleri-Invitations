@@ -132,6 +132,7 @@ jobs:
       tf_action: "${{ github.event.inputs.tf_action }}"
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.UAT_AWS_ACCOUNT_ID }}
+      AWS_ROLE_ARN: ${{ secrets.UAT_AWS_ROLE_ARN }}
       USERS: ${{ secrets.USERS }}
       CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
       NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}

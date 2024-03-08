@@ -57,6 +57,8 @@ on:
         required: true
       NEXTAUTH_SECRET:
         required: true
+      AWS_ROLE_ARN:
+        required: true
 
 env:
   role-to-assume: ${{ vars.AWS_ROLE_ARN }}
@@ -93,7 +95,7 @@ jobs:
       - name: "Create infrastructure"
         uses: ./.github/actions/terraform
         with:
-          role-to-assume: ${{ env.role-to-assume }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.aws-region }}
           aws-bucket-name: ${{ env.aws-bucket-name }}
           aws-bucket-key-name: ${{ env.aws-bucket-key-name }}
