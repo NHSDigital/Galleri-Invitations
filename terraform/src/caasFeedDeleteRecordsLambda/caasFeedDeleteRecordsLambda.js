@@ -69,7 +69,7 @@ export const handler = async (event) => {
 
     if (filteredRejectedRecords) {
       const timeNow = Date.now();
-      const fileName = `validRecords/rejectedRecords/update/rejectedRecords-${timeNow}.csv`;
+      const fileName = `validRecords/rejectedRecords/delete/rejectedRecords-${timeNow}.csv`;
       console.log(
         `${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-${bucket}/${fileName}`
       );
