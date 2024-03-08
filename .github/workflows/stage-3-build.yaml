@@ -69,7 +69,7 @@ env:
   frontend-branch: ${{ inputs.frontend_branch }}
   invitations-branch: ${{ inputs.invitations_branch }}
   tf-action: ${{ inputs.tf_action }}
-  # AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
   # USERS: ${{ secrets.USERS }}
   # CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
   # NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
@@ -106,7 +106,7 @@ jobs:
           TF_VAR_USERS: ${{ secrets.USERS }}
           TF_VAR_CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
           TF_VAR_NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}
         timeout-minutes: 15
 # name: "Build stage"
 
