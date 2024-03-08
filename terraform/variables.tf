@@ -37,5 +37,5 @@ variable "NEXTAUTH_URL" {
 }
 
 variable "invitations-hostname" {
-
+  default = null
 }
