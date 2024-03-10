@@ -44,7 +44,7 @@ module "galleri_invitations_screen" {
   CIS2_ID                                               = var.CIS2_ID
   NEXTAUTH_URL                                          = var.NEXTAUTH_URL
   hostname                                              = var.invitations-hostname
-  dns_zone = var.dns_zone
+  dns_zone                                              = var.dns_zone
 }
 
 # the role that all lambda's are utilising,
