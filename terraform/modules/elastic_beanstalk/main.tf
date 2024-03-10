@@ -108,19 +108,19 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     namespace = "aws:elb:listener:443"
     name      = "ListenerProtocol"
     value     = "HTTPS"
-}
+  }
 
-setting {
+  setting {
     namespace = "aws:elb:listener:443"
     name      = "InstanceProtocol"
     value     = "HTTP"
-}
+  }
 
-setting {
+  setting {
     namespace = "aws:elb:listener:443"
     name      = "InstancePort"
     value     = "80"
-}
+  }
 
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
