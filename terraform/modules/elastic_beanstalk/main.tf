@@ -115,4 +115,16 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     name      = "SecurityGroups"
     value     = aws_security_group.screens.id
   }
+
+  setting {
+    namespace = "aws:ec2:vpc"
+    name      = "VPCId"
+    value     = var.vpc_id
+  }
+
+  setting {
+    namespace = "aws:ec2:vpc"
+    name      = "Subnets"
+    value     = "${var.subnet_1},${var.subnet_2}" # Specify your subnet IDs here
+  }
 }
