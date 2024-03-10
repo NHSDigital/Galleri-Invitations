@@ -2,6 +2,7 @@ variable "bucket_name" {
   type    = string
   default = "galleri-lambda-bucket"
 }
+
 variable "role_name" {
   type    = string
   default = "galleri-lambda-role"
@@ -41,5 +42,5 @@ variable "invitations-hostname" {
 }
 
 variable "dns_zone" {
-  def
+  default = null
 }
