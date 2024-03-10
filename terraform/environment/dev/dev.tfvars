@@ -1,4 +1,4 @@
 # environment name
-environment = "dev"
-dns_zone    = "cicd"
-hostname    = "cicd-gps-cancer-detection-blood-test.nhs.uk"
+environment          = "dev"
+dns_zone             = "cicd"
+invitations-hostname = "cicd-gps-cancer-detection-blood-test.nhs.uk"
