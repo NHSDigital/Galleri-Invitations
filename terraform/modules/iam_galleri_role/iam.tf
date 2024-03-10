@@ -15,75 +15,37 @@ resource "aws_iam_role" "galleri_lambda_role" {
   })
 }
 
-# resource "aws_iam_policy" "iam_policy_for_lambda" {
-#   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_lambda_role"
-#   path        = "/"
-#   description = "AWS IAM Policy for managing aws lambda role"
-#   policy = jsonencode(
-#     {
-#       "Statement" : [
-#         {
-#           "Action" : [
-#             "logs:CreateLogGroup",
-#             "logs:CreateLogStream",
-#             "logs:PutLogEvents"
-#           ],
-#           "Effect" : "Allow",
-#           "Resource" : "arn:aws:logs:*:*:*"
-#         },
-#         {
-#           "Sid" : "AllowS3Access",
-#           "Effect" : "Allow",
-#           "Action" : [
-#             "s3:*"
-#           ],
-#           "Resource" : [
-#             "arn:aws:s3:::galleri-ons-data"
-#           ]
-#         }
-#       ],
-#       "Version" : "2012-10-17"
-#   })
-# }
-
 resource "aws_iam_policy" "iam_policy_for_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_lambda_role"
   path        = "/"
-  description = "AWS IAM Policy for managing AWS Lambda role and Route 53 access"
-
-  policy = jsonencode({
-    "Version" : "2012-10-17",
-    "Statement" : [
-      {
-        "Action" : [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ],
-        "Effect" : "Allow",
-        "Resource" : "arn:aws:logs:*:*:*"
-      },
-      {
-        "Sid" : "AllowS3Access",
-        "Effect" : "Allow",
-        "Action" : [
-          "s3:*"
-        ],
-        "Resource" : [
-          "arn:aws:s3:::galleri-ons-data"
-        ]
-      },
-      {
-        "Sid" : "AllowRoute53ListHostedZones",
-        "Effect" : "Allow",
-        "Action" : [
-          "route53:ListHostedZones"
-        ],
-        "Resource" : "*"
-      }
-    ]
+  description = "AWS IAM Policy for managing aws lambda role"
+  policy = jsonencode(
+    {
+      "Statement" : [
+        {
+          "Action" : [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+          ],
+          "Effect" : "Allow",
+          "Resource" : "arn:aws:logs:*:*:*"
+        },
+        {
+          "Sid" : "AllowS3Access",
+          "Effect" : "Allow",
+          "Action" : [
+            "s3:*"
+          ],
+          "Resource" : [
+            "arn:aws:s3:::galleri-ons-data"
+          ]
+        }
+      ],
+      "Version" : "2012-10-17"
   })
 }
+
 
 resource "aws_iam_policy" "clinic_information_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_clinic_information_lambda_role"
