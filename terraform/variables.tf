@@ -39,3 +39,7 @@ variable "NEXTAUTH_URL" {
 variable "invitations-hostname" {
   default = null
 }
+
+variable "dns_zone" {
+  def
+}

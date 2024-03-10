@@ -18,7 +18,7 @@ data "archive_file" "screens" {
 
 resource "aws_route53_record" "screens" {
   zone_id = data.aws_route53_zone.domain.id
-  name    = "${var.environment}.${var.hostname}"
+  name    = "${var.dns_zone}.${var.hostname}"
   type    = "A"
 
   alias {
@@ -29,10 +29,10 @@ resource "aws_route53_record" "screens" {
 }
 
 resource "aws_acm_certificate" "my_cert" {
-  domain_name       = "${var.environment}.${var.hostname}"
+  domain_name       = "${var.dns_zone}.${var.hostname}"
   validation_method = "DNS"
 
-  subject_alternative_names = ["www.${var.environment}.${var.hostname}"]
+  subject_alternative_names = ["www.${var.dns_zone}.${var.hostname}"]
 
   lifecycle {
     create_before_destroy = true

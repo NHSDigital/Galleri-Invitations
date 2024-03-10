@@ -116,3 +116,7 @@ variable "NEXTAUTH_URL" {
 
 variable "hostname" {
 }
+
+variable "dns_zone" {
+
+}
