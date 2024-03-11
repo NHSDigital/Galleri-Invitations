@@ -54,6 +54,7 @@ jobs:
       version: ${{ steps.variables.outputs.version }}
       does_pull_request_exist: ${{ steps.pr_exists.outputs.does_pull_request_exist }}
       environment: ${{ env.environment }}
+      environment_type: ${{ steps.variables.outputs.environment_type }}
       invitations_branch: ${{ github.event.inputs.invitations_branch }}
       frontend_branch: ${{ github.event.inputs.invitations_branch }}
       database_seeding: ${{ github.event.inputs.database_seeding }}
@@ -83,6 +84,7 @@ jobs:
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
           echo "environment=uat-3" >> $GITHUB_OUTPUT
+          echo "environment_type=$(echo '${{ env.environment }}' | cut -f1 -d'-')" >> $GITHUB_OUTPUT
       - name: "Check if pull request exists for this branch"
         id: pr_exists
         env:
@@ -149,6 +151,7 @@ jobs:
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
+      environment_type: "${{ needs.metadata.outputs.environment_type }}"
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.UAT_AWS_ACCOUNT_ID }}
 
