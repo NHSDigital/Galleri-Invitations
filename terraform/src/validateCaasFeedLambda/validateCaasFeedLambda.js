@@ -304,8 +304,8 @@ export function isValidNHSNumberFormat(nhsNumber) {
 
 export function isValidNameFormat(given_name, limit, flag) {
   //Check Valid name format
-  const isValidFormat = /^[a-zÀ-ú0-9 ]+$/gim.test(given_name);
-  const otherNameValidFormat = /^[a-zÀ-ú0-9| ]+$/gim.test(given_name);
+  const isValidFormat = /^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-_]+$/gim.test(given_name);
+  const otherNameValidFormat = /^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-_|]+$/gim.test(given_name);
   if (given_name.split("").length > limit) {
     return false;
   }
