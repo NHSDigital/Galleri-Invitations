@@ -149,7 +149,8 @@ jobs:
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
-    secrets: inherit
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.UAT_AWS_ACCOUNT_ID }}
 
   acceptance-stage: # Recommended maximum execution time is 10 minutes
     needs: [metadata, build-stage, data-stage]
