@@ -15,11 +15,7 @@ function main() {
     if (($PARTICIPATING_ICB_COUNT < 23)); then
       echo "Initiating upload of Participating ICBs test data to database"
       mkdir -p test-data
-      aws s3 cp s3://participating-icb/Participating_ICBs.csv ./test-data
-      echo "Successfully Downloaded CSV from S3"
-      python $PWD/scripts/pipeline/data_cleanse/generate_participating_icb_data.py
-      echo "Successfully formatted Participating ICBs test data"
-      aws dynamodb batch-write-item --request-items file://$PWD/test-data/participating_icb.json
+      aws dynamodb batch-write-item --request-items file://$PWD/scripts/test-data/participating_icb.json
       echo "Successfully uploaded Participating ICBs test data to database"
     else
       echo "ParticipatingICB table already populated"
@@ -35,7 +31,7 @@ function main() {
     aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/lsoa.json
     # LSOA table needs a minimum of 1MB of data for lambda to function, hence as a workaround populating table with cut down CSV file with uncurated padding records in addition to lSOA json with curated data.
     mkdir nonprod-unique-lsoa-data
-    aws s3 cp s3://galleri-ons-data/lsoa_data/destructible_environments/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
+    aws s3 cp s3://$environment_type-galleri-ons-data/lsoa_data/destructible_environments/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
     python $PWD/scripts/pipeline/nonprod_unique_lsoa_load/nonprod_unique_lsoa_load.py
   fi
   NONPROD_LSOA_DATA_COUNT=$(aws dynamodb scan --table-name $environment-UniqueLsoa --select "COUNT" | jq -r ".Count")
@@ -43,7 +39,7 @@ function main() {
     if (($NONPROD_LSOA_DATA_COUNT < 10)); then
       echo Initiating upload of LSOA subset data to database
       mkdir nonprod-unique-lsoa-data
-      aws s3 cp s3://galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
+      aws s3 cp s3://$environment_type-galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
       ls -l ./nonprod-unique-lsoa-data
       echo Succefully Downloaded CSV from S3
       echo Uploading items to LSOA database
@@ -82,7 +78,7 @@ function main() {
     if (($POSTCODE_COUNT < 1)); then
       echo Initiating upload of Postcode subset data to database
       mkdir nonprod-postcode-load
-      aws s3 cp s3://galleri-ons-data/lsoa_data/lsoa_with_avg_easting_northing.csv ./nonprod-postcode-load
+      aws s3 cp s3://$environment_type-galleri-ons-data/lsoa_data/lsoa_with_avg_easting_northing.csv ./nonprod-postcode-load
       echo Succefully Downloaded CSV from S3
       echo Uploading items to Postcode database
       python $PWD/scripts/pipeline/nonprod_postcode_load/nonprod_postcode_load.py
@@ -108,7 +104,7 @@ function main() {
     if (($POPULATION_COUNT < 100)); then
       echo Initiating upload of dummy Population data to database
       mkdir nonprod-population-data
-      aws s3 cp s3://galleri-test-data/non_prod_participant_data/ ./nonprod-population-data --recursive
+      aws s3 cp s3://$environment_type-galleri-test-data/non_prod_participant_data/ ./nonprod-population-data --recursive
       echo Succefully Downloaded galleri-test-data CSVs from S3
       echo Uploading items to Population database
       python $PWD/scripts/pipeline/nonprod_population_load/nonprod_population_load.py
