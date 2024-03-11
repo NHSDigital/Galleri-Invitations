@@ -12,8 +12,8 @@ const ENVIRONMENT = process.env.ENVIRONMENT;
 //retrieve secrets into lambda, certificates required to connect to MESH
 const MESH_SENDER_CERT = await readSecret("MESH_SENDER_CERT", smClient);
 const MESH_SENDER_KEY = await readSecret("MESH_SENDER_KEY", smClient);
-const CAAS_RECEIVER_CERT = await readSecret("CAAS_MESH_CERT", smClient); //fetching caas cert, was receiver
-const CAAS_RECEIVER_KEY = await readSecret("MESH_RECEIVER_KEY", smClient);
+const CAAS_MESH_CERT = await readSecret("CAAS_MESH_CERT", smClient); //fetching caas cert, was receiver
+const MESH_CAAS_KEY = await readSecret("MESH_SENDER_KEY", smClient);
 
 //Set environment variables
 const CONFIG = await loadConfig({
@@ -22,12 +22,12 @@ const CONFIG = await loadConfig({
   sandbox: "false",
   senderCert: MESH_SENDER_CERT,
   senderKey: MESH_SENDER_KEY,
-  senderMailboxID: process.env.MESH_SENDER_MAILBOX_ID,
-  senderMailboxPassword: process.env.MESH_SENDER_MAILBOX_PASSWORD,
-  receiverCert: CAAS_RECEIVER_CERT, //updated to CAAS cert, from receiver cert
-  receiverKey: CAAS_RECEIVER_KEY, //renamed, key same for each
-  receiverMailboxID: process.env.CAAS_RECEIVER_MAILBOX_ID, // updated, before was set to test receiver mailbox id
-  receiverMailboxPassword: process.env.CAAS_RECEIVER_MAILBOX_PASSWORD, // updated, before was set to test receiver mailbox password
+  senderMailboxID: process.env.CAAS_MESH_MAILBOX_ID,
+  senderMailboxPassword: process.env.CAAS_MESH_MAILBOX_PASSWORD,
+  receiverCert: CAAS_MESH_CERT,
+  receiverKey: MESH_CAAS_KEY,
+  receiverMailboxID: process.env.CAAS_MESH_MAILBOX_ID,
+  receiverMailboxPassword: process.env.CAAS_MESH_MAILBOX_PASSWORD,
 });
 
 //HANDLER
@@ -51,7 +51,7 @@ export const handler = async (event, context) => {
           const messageBody = splitMeshString.splice(1); //data - header
 
           const x = new Set(messageBody);
-          let chunk = [...chunking(x, 2001, header)]; //includes header and 2000 records
+          let chunk = [...chunking(x, 2002, header)]; //includes header, buffer and 2000 records
 
           const upload = await multipleUpload(chunk, clientS3, ENVIRONMENT);
           if (upload[0].$metadata.httpStatusCode === 200) {
@@ -77,8 +77,8 @@ async function getHealthStatusCode() {
   try {
     let healthCheck = await handShake({
       url: CONFIG.url,
-      mailboxID: CONFIG.senderMailboxID,
-      mailboxPassword: CONFIG.senderMailboxPassword,
+      mailboxID: CONFIG.receiverMailboxID,
+      mailboxPassword: CONFIG.receiverMailboxPassword,
       sharedKey: CONFIG.sharedKey,
       agent: CONFIG.receiverAgent,
     });
@@ -94,13 +94,16 @@ async function getMessageArray() {
   try {
     let messageCount = await getMessageCount({
       url: CONFIG.url,
-      mailboxID: CONFIG.senderMailboxID,
-      mailboxPassword: CONFIG.senderMailboxPassword,
+      mailboxID: CONFIG.receiverMailboxID,
+      mailboxPassword: CONFIG.receiverMailboxPassword,
       sharedKey: CONFIG.sharedKey,
       agent: CONFIG.receiverAgent,
     });
     let messageList = messageCount.data.messages
     let inboxCount = messageCount.data.approx_inbox_count;
+    if (!inboxCount) {
+      inboxCount = 0;
+    }
     console.log(`Inbox contains ${inboxCount} messages`);
     return messageList;
   } catch (error) {
@@ -113,8 +116,8 @@ async function markRead(msgID) {
   try {
     let markMsg = await markAsRead({
       url: CONFIG.url,
-      mailboxID: CONFIG.senderMailboxID,
-      mailboxPassword: CONFIG.senderMailboxPassword,
+      mailboxID: CONFIG.receiverMailboxID,
+      mailboxPassword: CONFIG.receiverMailboxPassword,
       sharedKey: CONFIG.sharedKey,
       message: msgID,
       agent: CONFIG.receiverAgent,
@@ -130,8 +133,8 @@ async function readMsg(msgID) {
   try {
     let messages = await readMessage({
       url: CONFIG.url,
-      mailboxID: CONFIG.senderMailboxID,
-      mailboxPassword: CONFIG.senderMailboxPassword,
+      mailboxID: CONFIG.receiverMailboxID,
+      mailboxPassword: CONFIG.receiverMailboxPassword,
       sharedKey: CONFIG.sharedKey,
       messageID: msgID,
       agent: CONFIG.receiverAgent,
