@@ -4,7 +4,7 @@ import { unmarshall } from "@aws-sdk/util-dynamodb";
 const dynamoDBClient = new DynamoDBClient({ region: "eu-west-2" });
 const environment = process.env.ENVIRONMENT;
 
-exports.handler = async (event) => {
+export async function handler(event) {
   const uuid = event.queryStringParameters.uuid;
 
   const params = {
@@ -41,4 +41,4 @@ exports.handler = async (event) => {
       body: JSON.stringify({ message: "Internal Server Error" }),
     };
   }
-};
+}
