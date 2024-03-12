@@ -6,9 +6,10 @@ import {
 import {
   DynamoDBClient,
   GetItemCommand,
-  ScanCommand,
-  BatchWriteItemCommand,
-  UpdateItemCommand
+  // ScanCommand,
+  // BatchWriteItemCommand,
+  // UpdateItemCommand,
+  QueryCommand,
 } from "@aws-sdk/client-dynamodb";
 
 //VARIABLES
@@ -24,15 +25,24 @@ export const handler = async (event, context) => {
   try {
     const csvString = await readCsvFromS3(bucket, key, s3);
     console.log(csvString);
-    // const js = JSON.parse(csvString);
-    // console.log(`js variable: , ${js}`);
+    console.log(typeof csvString);
+    const js = JSON.parse(csvString); //convert string retreived from S3 to object
+    console.log(typeof js);
+    console.log(js);
 
-    // const PERSON_ID = ;
+
+    const PERSON_ID = js?.['Withdrawal']?.['ParticipantID'];
+    console.log(PERSON_ID); //NHS-AC35-BS33
+
+    const value = await lookupParticipantId(PERSON_ID, 'Episode', client);
+    console.log(value);
+
     // const result = await getItemsFromTable(
-    //   `${ENVIRONMENT}-Population`,
+    //   `${ENVIRONMENT}-Episode`,
     //   client,
     //   PERSON_ID,
     // );
+    // console.log(result);
   } catch (error) {
     console.error("Error occurred:", error);
   }
@@ -57,8 +67,8 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
 export async function getItemsFromTable(table, client, key) {
   const params = {
     Key: {
-      PersonId: {
-        N: `${key}`,
+      Participant_Id: {
+        S: `${key}`,
       },
     },
     TableName: table,
@@ -68,3 +78,25 @@ export async function getItemsFromTable(table, client, key) {
 
   return response;
 }
+
+export const lookupParticipantId = async (participantId, table, dbClient) => {
+  const input = {
+    ExpressionAttributeValues: {
+      ":participant": {
+        S: `${participantId}`,
+      },
+    },
+    KeyConditionExpression: "Participant_Id = :participant",
+    ProjectionExpression: "Participant_Id",
+    TableName: `${ENVIRONMENT}-${table}`,
+    IndexName: "Participant_Id-index",
+  };
+
+  const command = new QueryCommand(input);
+  const response = await dbClient.send(command);
+  if (!response.Items.length) { // if response is empty, no matching participantId
+    return false;
+  }
+  console.log('match');
+  return true;
+};
