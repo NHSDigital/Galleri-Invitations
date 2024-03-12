@@ -745,6 +745,35 @@ module "user_accounts_lambda_trigger" {
   lambda_arn = module.user_accounts_lambda.lambda_arn
 }
 
+module "gtms_status_update_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gtmsStatusUpdateLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "gtms_status_update_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "gtms_status_update_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gtms_status_update_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "gtms_status_update_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.processed_gtms_withdrawal.bucket_id
+  bucket_arn    = module.processed_gtms_withdrawal.bucket_arn
+  lambda_arn    = module.gtms_status_update_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_update"
+}
+
 module "poll_mesh_mailbox_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
@@ -1159,35 +1188,6 @@ module "caas_feed_update_records_lambda_trigger" {
   bucket_id     = module.validated_records_bucket.bucket_id
   bucket_arn    = module.validated_records_bucket.bucket_arn
   lambda_arn    = module.caas_feed_update_records_lambda.lambda_arn
-  filter_prefix = "validRecords/valid_records_update-"
-}
-
-module "gtms_status_update_lambda" {
-  source               = "./modules/lambda"
-  environment          = var.environment
-  bucket_id            = module.s3_bucket.bucket_id
-  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "gtmsStatusUpdateLambda"
-  lambda_timeout       = 100
-  memory_size          = 1024
-  lambda_s3_object_key = "gtms_status_update_lambda.zip"
-  environment_vars = {
-    ENVIRONMENT = "${var.environment}"
-  }
-}
-
-module "gtms_status_update_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.gtms_status_update_lambda.lambda_function_name
-  retention_days       = 14
-}
-
-module "gtms_status_update_lambda_trigger" {
-  source        = "./modules/lambda_trigger"
-  bucket_id     = module.processed_gtms_withdrawal.bucket_id
-  bucket_arn    = module.processed_gtms_withdrawal.bucket_arn
-  lambda_arn    = module.gtms_status_update_lambda.lambda_arn
   filter_prefix = "validRecords/valid_records_update-"
 }
 

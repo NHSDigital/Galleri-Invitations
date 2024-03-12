@@ -23,8 +23,9 @@ export const handler = async (event, context) => {
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
   try {
     const csvString = await readCsvFromS3(bucket, key, s3);
-    const js = JSON.parse(csvString);
-    console.log(`js variable: , ${js}`);
+    console.log(csvString);
+    // const js = JSON.parse(csvString);
+    // console.log(`js variable: , ${js}`);
 
     // const PERSON_ID = ;
     // const result = await getItemsFromTable(
