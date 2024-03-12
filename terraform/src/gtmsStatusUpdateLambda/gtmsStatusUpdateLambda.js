@@ -26,7 +26,7 @@ export const handler = async (event, context) => {
     const csvString = await readCsvFromS3(bucket, key, s3);
     console.log(csvString);
     console.log(typeof csvString);
-    const js = JSON.parse(csvString); //convert string retreived from S3 to object
+    const js = JSON.parse(csvString); //convert string retrieved from S3 to object
     console.log(typeof js);
     console.log(js);
 
@@ -34,15 +34,11 @@ export const handler = async (event, context) => {
     const PERSON_ID = js?.['Withdrawal']?.['ParticipantID'];
     console.log(PERSON_ID); //NHS-AC35-BS33
 
-    const value = await lookupParticipantId(PERSON_ID, 'Episode', client);
+    const value = await lookupParticipantId(PERSON_ID, 'Episode', client, ENVIRONMENT);
     console.log(value);
+    const searching = await lookupParticipant(PERSON_ID, 'Population', client, ENVIRONMENT);
+    console.log(searching);
 
-    // const result = await getItemsFromTable(
-    //   `${ENVIRONMENT}-Episode`,
-    //   client,
-    //   PERSON_ID,
-    // );
-    // console.log(result);
   } catch (error) {
     console.error("Error occurred:", error);
   }
@@ -79,7 +75,8 @@ export async function getItemsFromTable(table, client, key) {
   return response;
 }
 
-export const lookupParticipantId = async (participantId, table, dbClient) => {
+export const lookupParticipantId = async (participantId, table, dbClient, environment) => {
+  console.log("Looking up participant: ", participantId);
   const input = {
     ExpressionAttributeValues: {
       ":participant": {
@@ -88,15 +85,40 @@ export const lookupParticipantId = async (participantId, table, dbClient) => {
     },
     KeyConditionExpression: "Participant_Id = :participant",
     ProjectionExpression: "Participant_Id",
-    TableName: `${ENVIRONMENT}-${table}`,
+    TableName: `${environment}-${table}`,
     IndexName: "Participant_Id-index",
   };
 
   const command = new QueryCommand(input);
   const response = await dbClient.send(command);
-  if (!response.Items.length) { // if response is empty, no matching participantId
+  if (!response.Items.length || response.$metadata.httpStatusCode !== 200) { // if response is empty, no matching participantId
     return false;
   }
   console.log('match');
   return true;
+};
+
+export const lookupParticipant = async (participantId, table, dbClient, environment) => {
+  console.log("Looking up participant: ", participantId);
+  const param = {
+    ExpressionAttributeValues: {
+      ":id": {
+        S: participantId,
+      },
+    },
+    KeyConditionExpression: "PersonId = :id",
+    Limit: 1,
+    ProjectionExpression: "participantId",
+    TableName: `${environment}-${table}`
+  };
+
+  const command = new QueryCommand(param);
+  const response = await dbClient.send(command);
+
+  if (!response.Items.length || response.$metadata.httpStatusCode !== 200) { // if response is empty, no matching participantId
+    return false;
+  } else {
+    console.log('match');
+    return true;
+  }
 };
