@@ -160,6 +160,13 @@ module "gtms_withdrawal" {
   environment             = var.environment
 }
 
+module "processed_gtms_withdrawal" {
+  source                  = "./modules/s3"
+  bucket_name             = "processed-inbound-gtms-withdrawal"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
 module "gtms_invited_participant_batch" {
   source                  = "./modules/s3"
   bucket_name             = "sent-gtms-invited-participant-batch"
@@ -1000,6 +1007,14 @@ module "gtms_status_update_lambda_cloudwatch" {
   environment          = var.environment
   lambda_function_name = module.gtms_status_update_lambda.lambda_function_name
   retention_days       = 14
+}
+
+module "gtms_status_update_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.processed_gtms_withdrawal.bucket_id
+  bucket_arn    = module.processed_gtms_withdrawal.bucket_arn
+  lambda_arn    = module.gtms_status_update_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_update-"
 }
 
 # Dynamodb tables

@@ -415,6 +415,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added Sending Invitaiton batch to GTMS to this plicy as lambda role exceeded policy limit
 # Added UserAccounts to this policy as lambda role exceeded policy limit
 # Added validateGtmsAppointment to this policy as lambda role exceeded policy limit
+# Added gtmsStatusUpdateLambda to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
   path        = "/"
@@ -443,6 +444,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Postcode",
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-UserAccounts",
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite",
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Episode",
           ]
         },
         {
@@ -461,6 +463,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:s3:::${var.environment}-inbound-gtms-clinic-create-or-update/*",
             "arn:aws:s3:::${var.environment}-inbound-gtms-clinic-schedule-summary/*",
             "arn:aws:s3:::${var.environment}-inbound-gtms-withdrawal/*",
+            "arn:aws:s3:::${var.environment}-processed-inbound-gtms-withdrawal/*",
             "arn:aws:s3:::${var.environment}-sent-gtms-invited-participant-batch",
           ]
         },
