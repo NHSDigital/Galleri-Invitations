@@ -6,7 +6,8 @@ import {
   DynamoDBClient,
   ScanCommand,
   BatchWriteItemCommand,
-  UpdateItemCommand
+  UpdateItemCommand,
+  DeleteItemCommand
 } from "@aws-sdk/client-dynamodb";
 
 const s3 = new S3Client();
@@ -27,16 +28,28 @@ export const handler = async (event, context) => {
     const value = await checkPhlebotomy(result.Items, js, 'ClinicCreateOrUpdate', 'ClinicID');
     if (value) {
       //update
-      saveObjToPhlebotomyTable(js, ENVIRONMENT, client);
+      if(result.Items[0].ClinicName === js.ClinicCreateOrUpdate.ClinicName)
+        saveObjToPhlebotomyTable(js, ENVIRONMENT, client);
+      //delete and put as ClinicName is sort key
+      else{
+        const clinicId = result.Items[0].ClinicId;
+        const clinicName = result.Items[0].ClinicName;
+        const deleteOldItem = await deleteTableRecord(client, ENVIRONMENT, clinicId, clinicName);
+
+        if (deleteOldItem.$metadata.httpStatusCode === 200){
+          const updateResponse = await putTableRecord(client, ENVIRONMENT, js);
+          if (updateResponse.$metadata.httpStatusCode !== 200) {
+            console.error(`Failed to insert item after delete: ${JSON.stringify(js)}`);
+          } else {
+          console.log(`Successfully deleted and inserted item: ${JSON.stringify(js)}`);
+          }
+        }
+        else
+          console.error("Error deleting and updating record with ClinicId:",clinicId)
+      }
     } else {
-      //add
-      const create = await createPhlebotomySite(js);
-      let RequestItems = {};
-      RequestItems[`${ENVIRONMENT}-PhlebotomySite`] = [create];
-      const command = new BatchWriteItemCommand({
-        "RequestItems": RequestItems
-      });
-      const response = await client.send(command);
+      const response = await putTableRecord(client, ENVIRONMENT, js);
+      console.log("response:",response);
       if (response.$metadata.httpStatusCode !== 200) {
         console.error(`Failed to insert item: ${JSON.stringify(js)}`);
       } else {
@@ -122,6 +135,34 @@ export const createPhlebotomySite = (site) => {
   return Promise.resolve(item);
 };
 
+export const deleteTableRecord = async (client, environment, clinicId, clinicName) => {
+
+  const input =
+    {
+      Key: {
+        ClinicId: {S: clinicId.S},
+        ClinicName: {S: clinicName.S}
+      },
+      TableName: `${environment}-PhlebotomySite`,
+    }
+
+  const command = new DeleteItemCommand(input);
+  const response = await client.send(command);
+
+  return response;
+}
+
+export const putTableRecord = async (client, environment, js) => {
+      const create = await createPhlebotomySite(js);
+      let RequestItems = {};
+      RequestItems[`${environment}-PhlebotomySite`] = [create];
+      const command = new BatchWriteItemCommand({
+        "RequestItems": RequestItems
+      });
+      const response = await client.send(command);
+
+      return response;
+};
 
 export const saveObjToPhlebotomyTable = async (MeshObj, environment, client) => {
 
