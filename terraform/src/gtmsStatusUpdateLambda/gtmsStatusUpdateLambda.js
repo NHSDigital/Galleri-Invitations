@@ -1,15 +1,12 @@
 //IMPORTS
 import {
   GetObjectCommand,
+  PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
 import {
   DynamoDBClient,
   GetItemCommand,
-  // ScanCommand,
-  // BatchWriteItemCommand,
-  // UpdateItemCommand,
-  PutObjectCommand,
   QueryCommand,
 } from "@aws-sdk/client-dynamodb";
 
@@ -35,9 +32,12 @@ export const handler = async (event, context) => {
     const PERSON_ID = js?.['Withdrawal']?.['ParticipantID'];
     console.log(PERSON_ID); //NHS-AC35-BS33
 
+    const retrievedBatchID = await lookupParticipantId(PERSON_ID, 'Episode', client, ENVIRONMENT);
+
     if (await lookupParticipant(PERSON_ID, 'Population', client, ENVIRONMENT)) {
-      if (await lookupParticipantId(PERSON_ID, 'Episode', client, ENVIRONMENT)) {
+      if (retrievedBatchID) {
         console.log('update inside here');
+        console.log(retrievedBatchID);
         /*AC2: update episode record data with:
           Episode Event = 'Withdrawn'
           Episode Event Updated = current system date timestamp
@@ -47,9 +47,11 @@ export const handler = async (event, context) => {
           Episode Status = Closed
         */
       } else {
+        console.log('fail');
         //AC1c: Save rejected record folder: 'episode does not exist'
       }
     } else {
+      console.log('fail');
       //AC1b: Save rejected record folder: 'Participant Id does not exist'
     }
 
@@ -123,7 +125,7 @@ export const lookupParticipantId = async (participantId, table, dbClient, enviro
       },
     },
     KeyConditionExpression: "Participant_Id = :participant",
-    ProjectionExpression: "Participant_Id",
+    ProjectionExpression: "Participant_Id, Batch_Id",
     TableName: `${environment}-${table}`,
     IndexName: "Participant_Id-index",
   };
@@ -131,10 +133,10 @@ export const lookupParticipantId = async (participantId, table, dbClient, enviro
   const command = new QueryCommand(input);
   const response = await dbClient.send(command);
   if (!response.Items.length || response.$metadata.httpStatusCode !== 200) { // if response is empty, no matching participantId
-    return false;
+    return [""];
   }
   console.log('match');
-  return true;
+  return [response["Items"][0]["Participant_Id"]["S"]];
 };
 
 //Used to lookup participant from population table
