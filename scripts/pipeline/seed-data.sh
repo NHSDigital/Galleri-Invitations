@@ -15,6 +15,7 @@ function main() {
     if (($PARTICIPATING_ICB_COUNT < 23)); then
       echo "Initiating upload of Participating ICBs test data to database"
       mkdir -p test-data
+      sed -i "s/ENVIRONMENT/$environment/g" $GITHUB_WORKSPACE/scripts/test_data/participating_icb.json
       aws dynamodb batch-write-item --request-items file://$PWD/scripts/test_data/participating_icb.json
       echo "Successfully uploaded Participating ICBs test data to database"
     else
