@@ -776,10 +776,3 @@ resource "aws_iam_role_policy_attachment" "api_gateway_logging_attach" {
 resource "aws_api_gateway_account" "account" {
   cloudwatch_role_arn = aws_iam_role.api_gateway_logging_role.arn
 }
-
-
-
-# "dynamodb:DescribeStream",
-#                 "dynamodb:GetRecords",
-#                 "dynamodb:GetShardIterator",
-#                 "dynamodb:ListStreams"
