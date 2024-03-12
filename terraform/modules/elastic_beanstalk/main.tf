@@ -9,6 +9,19 @@ data "archive_file" "screens" {
   output_path = "${path.cwd}/src/${var.name}.zip"
 }
 
+data "aws_route53_zone" "zone" {
+  name         = "${var.hostname}."
+  private_zone = false
+}
+
+resource "aws_route53_record" "a_record" {
+  zone_id = data.aws_route53_zone.zone.id
+  name    = "subdomain.${var.hostname}"
+  type    = "A"
+  ttl     = "300"
+  records = [aws_elastic_beanstalk_environment.screens.endpoint_url]
+}
+
 # IAM Role for Elastic Beanstalk environment's EC2 instances
 resource "aws_iam_role" "screens" {
   name = "${var.environment}-${var.name}-role"
