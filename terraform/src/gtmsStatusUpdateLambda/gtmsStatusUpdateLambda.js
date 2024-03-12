@@ -9,6 +9,7 @@ import {
   // ScanCommand,
   // BatchWriteItemCommand,
   // UpdateItemCommand,
+  PutObjectCommand,
   QueryCommand,
 } from "@aws-sdk/client-dynamodb";
 
@@ -34,10 +35,29 @@ export const handler = async (event, context) => {
     const PERSON_ID = js?.['Withdrawal']?.['ParticipantID'];
     console.log(PERSON_ID); //NHS-AC35-BS33
 
-    const value = await lookupParticipantId(PERSON_ID, 'Episode', client, ENVIRONMENT);
-    console.log(value);
-    const searching = await lookupParticipant(PERSON_ID, 'Population', client, ENVIRONMENT);
-    console.log(searching);
+    if (await lookupParticipant(PERSON_ID, 'Population', client, ENVIRONMENT)) {
+      if (await lookupParticipantId(PERSON_ID, 'Episode', client, ENVIRONMENT)) {
+        console.log('update inside here');
+        /*AC2: update episode record data with:
+          Episode Event = 'Withdrawn'
+          Episode Event Updated = current system date timestamp
+          Episode Event Description = reason, will be js?.['Withdrawal]?.['Reason]
+          Episode Event Notes = NULL
+          Episode Event Updated By = GTMS
+          Episode Status = Closed
+        */
+      } else {
+        //AC1c: Save rejected record folder: 'episode does not exist'
+      }
+    } else {
+      //AC1b: Save rejected record folder: 'Participant Id does not exist'
+    }
+
+    // const searching = await lookupParticipant(PERSON_ID, 'Population', client, ENVIRONMENT);
+    // console.log(searching);
+    // const value = await lookupParticipantId(PERSON_ID, 'Episode', client, ENVIRONMENT);
+    // console.log(value);
+
 
   } catch (error) {
     console.error("Error occurred:", error);
@@ -60,6 +80,24 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
   }
 };
 
+export const pushCsvToS3 = async (bucketName, key, body, client) => {
+  try {
+    const response = await client.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+        Body: body,
+      })
+    );
+
+    console.log(`Successfully pushed to ${bucketName}/${key}`);
+    return response;
+  } catch (err) {
+    console.log(`Failed to push to ${bucketName}/${key}. Error Message: ${err}`);
+    throw err;
+  }
+};
+
 export async function getItemsFromTable(table, client, key) {
   const params = {
     Key: {
@@ -75,6 +113,7 @@ export async function getItemsFromTable(table, client, key) {
   return response;
 }
 
+//Used to lookup participant from episode table
 export const lookupParticipantId = async (participantId, table, dbClient, environment) => {
   console.log("Looking up participant: ", participantId);
   const input = {
@@ -98,6 +137,7 @@ export const lookupParticipantId = async (participantId, table, dbClient, enviro
   return true;
 };
 
+//Used to lookup participant from population table
 export const lookupParticipant = async (participantId, table, dbClient, environment) => {
   console.log("Looking up participant: ", participantId);
   const param = {
