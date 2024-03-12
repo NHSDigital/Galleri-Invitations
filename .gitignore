@@ -52,7 +52,7 @@ local_data
 nonprod-postcode-load
 nonprod-unique-lsoa-data
 nonprod-population-data
-participating_icb.json
+# participating_icb.json
 Participating_ICBs.csv
 
 coverage
