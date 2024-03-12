@@ -24,7 +24,7 @@ export const handler = async (event, context) => {
   try {
     const csvString = await readCsvFromS3(bucket, key, s3);
     const js = JSON.parse(csvString);
-    console.log(`js variable: , ${js}`)
+    console.log(`js variable: , ${js}`);
 
     // const PERSON_ID = ;
     // const result = await getItemsFromTable(
@@ -35,7 +35,7 @@ export const handler = async (event, context) => {
   } catch (error) {
     console.error("Error occurred:", error);
   }
-}
+};
 
 //FUNCTIONS
 export const readCsvFromS3 = async (bucketName, key, client) => {
