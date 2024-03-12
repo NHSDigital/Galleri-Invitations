@@ -173,6 +173,13 @@ module "gtms_invited_participant_batch" {
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
+
+module "gtms_appointment_processed" {
+  source                  = "./modules/s3"
+  bucket_name             = "gtms-appointment-processed"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
 # End of GTMS buckets
 
 # Data Filter Gridall IMD
@@ -793,6 +800,36 @@ module "validate_gtms_appointment_lambda_trigger" {
   bucket_id  = module.gtms_appointment.bucket_id
   bucket_arn = module.gtms_appointment.bucket_arn
   lambda_arn = module.validate_gtms_appointment_lambda.lambda_arn
+}
+
+# Validate Appointment Common Data Lambda
+module "validate_appointment_common_data_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "validateAppointmentCommonDataLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "validate_appointment_common_data_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "validate_appointment_common_data_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.validate_appointment_common_data_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "validate_appointment_common_data_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.inbound-gtms-appointment-validated.bucket_id
+  bucket_arn = module.inbound-gtms-appointment-validated.bucket_arn
+  lambda_arn = module.validate_appointment_common_data_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_add-"
 }
 
 # Create GTMS Invitation Batch
