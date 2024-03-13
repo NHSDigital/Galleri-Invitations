@@ -4,9 +4,9 @@ import {
 } from "@aws-sdk/client-s3";
 import {
   DynamoDBClient,
-  ScanCommand,
   BatchWriteItemCommand,
   UpdateItemCommand,
+  QueryCommand,
   DeleteItemCommand
 } from "@aws-sdk/client-dynamodb";
 
@@ -21,13 +21,9 @@ export const handler = async (event, context) => {
   try {
     const csvString = await readCsvFromS3(bucket, key, s3);
     const js = JSON.parse(csvString);
-    const result = await getItemsFromTable(
-      `${ENVIRONMENT}-PhlebotomySite`,
-      client
-    );
-    const value = await checkPhlebotomy(result.Items, js, 'ClinicCreateOrUpdate', 'ClinicID');
-    if (value) {
-      //update
+
+    const result = await checkPhlebotomy(js.ClinicCreateOrUpdate.ClinicID, client, ENVIRONMENT);
+    if (result.Count) {
       if(result.Items[0].ClinicName === js.ClinicCreateOrUpdate.ClinicName)
         saveObjToPhlebotomyTable(js, ENVIRONMENT, client);
       //delete and put as ClinicName is sort key
@@ -74,29 +70,6 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
   } catch (err) {
     console.error(`Failed to read from ${bucketName}/${key}`);
     throw err;
-  }
-};
-
-
-export async function getItemsFromTable(table, client) {
-  const response = await client.send(
-    new ScanCommand({
-      TableName: table,
-    })
-  );
-
-  return response;
-}
-
-//cycle through the json returned and compare to each phlebotomy site
-export const checkPhlebotomy = async (loopedArr, arr, key, item) => {
-  for (const element of loopedArr) {
-    console.log(element['ClinicId']['S']);
-    if (arr[key][item] === element['ClinicId']['S']) {
-      return true; // update
-    } else {
-      return false;
-    }
   }
 };
 
@@ -216,4 +189,21 @@ export const saveObjToPhlebotomyTable = async (MeshObj, environment, client) => 
   } catch (error) {
     console.error(`Error: ${error}`);
   }
+};
+
+export async function checkPhlebotomy(record, client, environment) {
+  const input = {
+    ExpressionAttributeValues: {
+      ":ClinicId": {
+        S: `${record}`,
+      },
+    },
+    KeyConditionExpression: "ClinicId = :ClinicId",
+    TableName: `${environment}-PhlebotomySite`,
+  };
+
+  const command = new QueryCommand(input);
+  const response = await client.send(command);
+
+  return response;
 };
