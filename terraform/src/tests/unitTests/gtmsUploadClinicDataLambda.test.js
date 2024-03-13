@@ -146,4 +146,4 @@ describe('saveObjToPhlebotomyTable', () => {
     const result = await saveObjToPhlebotomyTable(meshResponsePass, environment, mockDynamodbClient);
     expect(result).toBe(false);
   });
-})
+});
