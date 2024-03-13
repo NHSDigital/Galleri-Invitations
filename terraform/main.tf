@@ -825,10 +825,10 @@ module "validate_appointment_common_data_lambda_cloudwatch" {
 }
 
 module "validate_appointment_common_data_lambda_trigger" {
-  source     = "./modules/lambda_trigger"
-  bucket_id  = module.gtms_appointment_validated.bucket_id
-  bucket_arn = module.gtms_appointment_validated.bucket_arn
-  lambda_arn = module.validate_appointment_common_data_lambda.lambda_arn
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.gtms_appointment_validated.bucket_id
+  bucket_arn    = module.gtms_appointment_validated.bucket_arn
+  lambda_arn    = module.validate_appointment_common_data_lambda.lambda_arn
   filter_prefix = "validRecords/valid_records_add-"
 }
 
