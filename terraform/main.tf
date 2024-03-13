@@ -149,6 +149,14 @@ module "clinic_schedule_summary" {
   account_id              = var.account_id
 }
 
+module "processed_clinic_schedule_summary_bucket" {
+  source                  = "./modules/s3"
+  bucket_name             = "processed-inbound-gtms-clinic-schedule-summary"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
 module "gtms_appointment" {
   source                  = "./modules/s3"
   bucket_name             = "inbound-gtms-appointment"
@@ -761,16 +769,14 @@ module "poll_mesh_mailbox_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "poll_mesh_mailbox_lambda.zip"
   environment_vars = {
-    ENVIRONMENT                    = "${var.environment}",
-    MESH_SANDBOX                   = "false",
-    MESH_URL                       = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
-    MESH_SHARED_KEY                = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
-    MESH_SENDER_MAILBOX_ID         = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_id.secret_string)["MESH_SENDER_MAILBOX_ID"],
-    MESH_SENDER_MAILBOX_PASSWORD   = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_password.secret_string)["MESH_SENDER_MAILBOX_PASSWORD"],
-    MESH_RECEIVER_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_id.secret_string)["MESH_RECEIVER_MAILBOX_ID"],
-    MESH_RECEIVER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_password.secret_string)["MESH_RECEIVER_MAILBOX_PASSWORD"],
-    CAAS_MESH_MAILBOX_ID           = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_id.secret_string)["CAAS_MESH_MAILBOX_ID"],
-    CAAS_MESH_MAILBOX_PASSWORD     = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_password.secret_string)["CAAS_MESH_MAILBOX_PASSWORD"]
+    ENVIRONMENT                  = "${var.environment}",
+    MESH_SANDBOX                 = "false",
+    MESH_URL                     = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
+    MESH_SHARED_KEY              = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
+    MESH_SENDER_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_id.secret_string)["MESH_SENDER_MAILBOX_ID"],
+    MESH_SENDER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_password.secret_string)["MESH_SENDER_MAILBOX_PASSWORD"],
+    CAAS_MESH_MAILBOX_ID         = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_id.secret_string)["CAAS_MESH_MAILBOX_ID"],
+    CAAS_MESH_MAILBOX_PASSWORD   = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_password.secret_string)["CAAS_MESH_MAILBOX_PASSWORD"]
   }
 }
 
@@ -957,12 +963,43 @@ module "gtms_upload_clinic_data_lambda_trigger" {
   filter_prefix = "validRecords/valid_records_add-"
 }
 
-# Send Invitaion Batch to GTMS
-module "send_GTMS_invitation_batch_lambda" {
+# GTMS upload clinic capacity data
+module "gtms_upload_clinic_capacity_data_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gtmsUploadClinicCapacityDataLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "gtms_upload_clinic_capacity_data_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "gtms_upload_clinic_capacity_data_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gtms_upload_clinic_capacity_data_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "gtms_upload_clinic_capacity_data_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.processed_clinic_schedule_summary_bucket.bucket_id
+  bucket_arn    = module.processed_clinic_schedule_summary_bucket.bucket_arn
+  lambda_arn    = module.gtms_upload_clinic_capacity_data_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_add-"
+}
+
+# Send Invitaion Batch to GTMS
+module "send_GTMS_invitation_batch_lambda" {
+  source          = "./modules/lambda"
+  environment     = var.environment
+  bucket_id       = module.s3_bucket.bucket_id
+  lambda_iam_role = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+
   lambda_function_name = "sendGTMSInvitationBatchLambda"
   lambda_timeout       = 100
   memory_size          = 1024
@@ -1231,7 +1268,14 @@ module "phlebotomy_site_table" {
       name      = "ClinicIdPostcodeIndex"
       hash_key  = "ClinicId"
       range_key = "Postcode"
-    }
+    },
+    {
+      name               = "ClinicId-index"
+      hash_key           = "ClinicId"
+      range_key          = null,
+      non_key_attributes = ["WeekCommencingDate"]
+      projection_type    = "INCLUDE"
+    },
   ]
   tags = {
     Name        = "Dynamodb Table Phlebotomy Site"
@@ -1305,8 +1349,7 @@ module "population_table" {
   secondary_write_capacity = null
   secondary_read_capacity  = null
   environment              = var.environment
-  non_key_attributes       = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
-  projection_type          = "INCLUDE"
+  projection_type          = "ALL"
   attributes = [{
     name = "PersonId"
     type = "S"
@@ -1334,29 +1377,36 @@ module "population_table" {
   ]
   global_secondary_index = [
     {
-      name      = "LsoaCode-index"
-      hash_key  = "LsoaCode"
-      range_key = null
+      name               = "LsoaCode-index"
+      hash_key           = "LsoaCode"
+      range_key          = null
+      non_key_attributes = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+      projection_type    = "INCLUDE"
     },
     {
-      name      = "BatchId-index"
-      hash_key  = "Batch_Id"
-      range_key = null
+      name               = "BatchId-index"
+      hash_key           = "Batch_Id"
+      range_key          = null
+      non_key_attributes = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+      projection_type    = "INCLUDE"
     },
     {
-      name      = "Participant_Id-index"
-      hash_key  = "participantId"
-      range_key = null
+      name            = "Participant_Id-index"
+      hash_key        = "participantId"
+      range_key       = null
+      projection_type = "ALL"
     },
     {
-      name      = "nhs_number-index"
-      hash_key  = "nhs_number"
-      range_key = null
+      name            = "nhs_number-index"
+      hash_key        = "nhs_number"
+      range_key       = null
+      projection_type = "ALL"
     },
     {
-      name      = "superseded_by_nhs_number-index"
-      hash_key  = "superseded_by_nhs_number"
-      range_key = null
+      name            = "superseded_by_nhs_number-index"
+      hash_key        = "superseded_by_nhs_number"
+      range_key       = null
+      projection_type = "ALL"
     }
   ]
   tags = {
@@ -1468,7 +1518,7 @@ module "episode_table" {
   secondary_write_capacity = 10
   secondary_read_capacity  = 10
   environment              = var.environment
-  projection_type          = "KEYS_ONLY"
+  projection_type          = "ALL"
   attributes = [
     {
       name = "Batch_Id"
