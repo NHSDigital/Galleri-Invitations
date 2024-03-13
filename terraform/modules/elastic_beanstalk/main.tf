@@ -14,6 +14,7 @@ data "aws_route53_zone" "zone" {
   private_zone = false
 }
 
+# Setup DNS record
 resource "aws_route53_record" "a_record" {
   zone_id = data.aws_route53_zone.zone.id
   name    = "subdomain.${var.hostname}"
@@ -138,6 +139,6 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   setting {
     namespace = "aws:ec2:vpc"
     name      = "Subnets"
-    value     = "${var.subnet_1},${var.subnet_2}" # Specify your subnet IDs here
+    value     = "${var.subnet_1},${var.subnet_2}"
   }
 }
