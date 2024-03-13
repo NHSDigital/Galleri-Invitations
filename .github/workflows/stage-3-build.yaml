@@ -57,8 +57,6 @@ on:
         required: true
       NEXTAUTH_SECRET:
         required: true
-      AWS_ROLE_ARN:
-        required: true
 
 env:
   # role-to-assume: ${{ vars.AWS_ROLE_ARN }}
