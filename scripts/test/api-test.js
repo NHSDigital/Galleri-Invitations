@@ -30,7 +30,7 @@ const clinicInformation = {
   expected_status_code: 200,
   expected_response_count: 13,
 };
-const clinicSummeryList = {
+const clinicSummaryList = {
   name: "clinic-summary-list",
   resource_path: "clinic-summary-list",
   method: "GET",
@@ -228,7 +228,7 @@ const apiList = await getApiId();
 // // GET requests
 await apiCall({ apiList: apiList, api: clinicIcbList });
 await apiCall({ apiList: apiList, api: clinicInformation });
-await apiCall({ apiList: apiList, api: clinicSummeryList });
+await apiCall({ apiList: apiList, api: clinicSummaryList });
 // // Need to investigate why getLsoaInRange returns no results
 // await apiCall({ apiList: apiList, api: getLsoaInRange });
 await apiCall({ apiList: apiList, api: participatingIcbList });
