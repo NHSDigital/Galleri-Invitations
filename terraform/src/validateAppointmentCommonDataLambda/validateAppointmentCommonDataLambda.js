@@ -92,7 +92,7 @@ export const handler = async (event) => {
         dbClient,
         appointmentJson.AppointmentID,
         "Appointments",
-        "Appointment_Id ",
+        "Appointment_Id",
         "S",
         true
       );
