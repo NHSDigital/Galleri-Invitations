@@ -1,43 +1,16 @@
-// PsuedoCode read object from S3 from appointment message validate s3
-// check population table for participant_ID and episode table for matching entry.
-// check the InvitationNHSNumber is supplied And PDSNHSNumber is supplied either matches a participant's NHSnumber
-// check clinicID is supplied and it
-// GIven UUID is has timestamp more recent than existing timestamp with same UUID
-
-// "example": {
-//   "ParticipantID": "NHS-AB12-CD34",
-//   "AppointmentID": "00000000-0000-0000-0000-000000000000",
-//   "ClinicID": "D7E-G2H",
-//   "AppointmentDateTime": "2006-01-02T15:04:05.000Z",
-//   "BloodCollectionDate": "2006-01-02",
-//   "PrimaryPhoneNumber": "01999999999",
-//   "SecondaryPhoneNumber": "01999999999",
-//   "Email": "me@example.com",
-//   "Replaces": null,
-//   "CancellationReason": null,
-//   "Channel": "ONLINE",
-//   "BloodNotCollectedReason": null,
-//   "EventType": "BOOKED",
-//   "AppointmentAccessibility": {
-//     "accessibleToilet": true,
-//     "disabledParking": true,
-//     "inductionLoop": true,
-//     "signLanguage": true,
-//     "stepFreeAccess": true,
-//     "wheelchairAccess": true
-//   },
-
 import {
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 
 const s3 = new S3Client();
+const dbClient = new DynamoDBClient({
+  region: "eu-west-2",
+  convertEmptyValues: true,
+});
 const ENVIRONMENT = process.env.ENVIRONMENT;
-const dbClient = new DynamoDBClient({ region: "eu-west-2" });
-const SUCCESSFUL_RESPONSE = 200;
 
 export const handler = async (event) => {
   const bucket = event.Records[0].s3.bucket.name;
@@ -46,39 +19,104 @@ export const handler = async (event) => {
   );
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
   try {
-    const appointmentString = (readFromS3 = (bucket, key, s3));
+    const appointmentString = await readFromS3(bucket, key, s3);
     const appointmentJson = JSON.parse(appointmentString);
-
+    //AC1
     if (
       appointmentJson.hasOwnProperty("ParticipantID") &&
       appointmentJson.ParticipantID.trim() !== " "
     ) {
-      const validateParticipantId = await lookUp(
+      const validateParticipantIdResponse = await lookUp(
         dbClient,
         appointmentJson.ParticipantID,
         "Population",
-        "participantId",
+        "PersonId",
         "S",
-        true
+        false
       );
-      const validateEpisode = await lookUp(
+      const validateEpisodeResponse = await lookUp(
         dbClient,
         appointmentJson.ParticipantID,
         "Episode",
-        "participantId",
+        "Participant_Id",
         "S",
         true
       );
+      const validateParticipantId = !(validateParticipantIdResponse.Items > 0);
+      const validateEpisode = !(validateEpisodeResponse.Items > 0);
+
+      if (validateParticipantId || validateEpisode) {
+        await rejectRecord(appointmentJson);
+      }
     }
-    if (validateParticipantId !== SUCCESSFUL_RESPONSE || validateEpisode !== SUCCESSFUL_RESPONSE) {
-      await pushToS3(`${ENVIRONMENT}-processed-inbound-gtms-clinic-create-or-update`, `validRecords/valid_records_add-${timeNow}.json`, jsonString, s3);
-      return;
+    //AC2
+    if (
+      appointmentJson.hasOwnProperty("InvitationNHSNumber") &&
+      appointmentJson.InvitationNHSNumber.trim() !== " " &&
+      appointmentJson.hasOwnProperty("PDSNHSNumber") &&
+      appointmentJson.PDSNHSNumber.trim() !== " "
+    ) {
+      if (
+        appointmentJson.InvitationNHSNumber !==
+          validateParticipantIdResponse.Items.nhs_number &&
+        appointmentJson.PDSNHSNumber !==
+          validateParticipantIdResponse.Items.nhs_number
+      ) {
+        await rejectRecord(appointmentJson);
+      }
     }
-  }   catch (error) {
+    //AC3
+    if (
+      appointmentJson.hasOwnProperty("ClinicID") &&
+      appointmentJson.ClinicID.trim() !== " "
+    ) {
+      const validateClinicIdResponse = await lookUp(
+        dbClient,
+        appointmentJson.ClinicID,
+        "PhlebotomySite",
+        "ClinicId",
+        "S",
+        false
+      );
+      const validateClinicId = !(validateClinicIdResponse.Items > 0);
+      if (validateClinicId) {
+        await rejectRecord(appointmentJson);
+      }
+    }
+    //AC4
+    if (
+      appointmentJson.hasOwnProperty("AppointmentID") &&
+      appointmentJson.AppointmentID.trim() !== " "
+    ) {
+      const validateAppointmentIdResponse = await lookUp(
+        dbClient,
+        appointmentJson.AppointmentID,
+        "Appointments",
+        "Appointment_Id ",
+        "S",
+        true
+      );
+      const validateAppointmentId = validateAppointmentIdResponse.Items > 0;
+      if (validateAppointmentId) {
+        const oldAppointmentTime = new Date(
+          validateAppointmentIdResponse.Items.AppointmentDateTime
+        );
+        const newAppointmentTime = new Date(
+          appointmentJson.AppointmentDateTime
+        );
+        if (oldAppointmentTime > newAppointmentTime) {
+          await rejectRecord(appointmentJson);
+        }
+      } else {
+        await rejectRecord(appointmentJson);
+      }
+    }
+  } catch (error) {
     console.error(
       "Error with appointment extraction, procession or uploading",
       error
     );
+  }
 };
 
 //METHODS
@@ -115,6 +153,23 @@ export const pushToS3 = async (bucketName, key, body, client) => {
   }
 };
 
+export const rejectRecord = async (appointmentJson) => {
+  try {
+    const timeNow = new Date().toISOString();
+    const jsonString = JSON.stringify(appointmentJson);
+    await pushToS3(
+      `${ENVIRONMENT}-processed-appointments`,
+      `invalidRecords/invalid_records-${timeNow}.json`,
+      jsonString,
+      s3
+    );
+    return;
+  } catch (err) {
+    console.log("Failed: ", err);
+    throw err;
+  }
+};
+
 // DYNAMODB FUNCTIONS
 // returns successful response if attribute doesn't exist in table
 export const lookUp = async (dbClient, ...params) => {
@@ -145,41 +200,5 @@ export const lookUp = async (dbClient, ...params) => {
     console.log(`look up item input = ${JSON.stringify(input, null, 2)}`);
   }
 
-  return response;
-};
-
-// returns item and metadata from dynamodb table
-export const getItemFromTable = async (dbClient, table, ...keys) => {
-  const [
-    partitionKeyName,
-    partitionKeyType,
-    partitionKeyValue,
-    sortKeyName,
-    sortKeyType,
-    sortKeyValue,
-  ] = keys;
-
-  let partitionKeyNameObject = {};
-  let partitionKeyNameNestedObject = {};
-  partitionKeyNameNestedObject[partitionKeyType] = partitionKeyValue;
-  partitionKeyNameObject[partitionKeyName] = partitionKeyNameNestedObject;
-
-  const keyObject = {
-    key: partitionKeyNameObject,
-  };
-
-  if (sortKeyName !== undefined) {
-    keyObject.key.sortKeyName = {
-      sortKeyType: sortKeyValue,
-    };
-  }
-
-  const params = {
-    Key: partitionKeyNameObject,
-    TableName: `${ENVIRONMENT}-${table}`,
-  };
-
-  const command = new GetItemCommand(params);
-  const response = await dbClient.send(command);
   return response;
 };

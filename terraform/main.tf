@@ -174,9 +174,9 @@ module "gtms_invited_participant_batch" {
   environment             = var.environment
 }
 
-module "gtms_appointment_processed" {
+module "proccessed_appointments" {
   source                  = "./modules/s3"
-  bucket_name             = "gtms-appointment-processed"
+  bucket_name             = "processed-appointments"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
 }
@@ -826,8 +826,8 @@ module "validate_appointment_common_data_lambda_cloudwatch" {
 
 module "validate_appointment_common_data_lambda_trigger" {
   source     = "./modules/lambda_trigger"
-  bucket_id  = module.inbound-gtms-appointment-validated.bucket_id
-  bucket_arn = module.inbound-gtms-appointment-validated.bucket_arn
+  bucket_id  = module.gtms_appointment_validated.bucket_id
+  bucket_arn = module.gtms_appointment_validated.bucket_arn
   lambda_arn = module.validate_appointment_common_data_lambda.lambda_arn
   filter_prefix = "validRecords/valid_records_add-"
 }
@@ -1579,6 +1579,13 @@ module "appointment_table" {
     {
       name = "Appointment_Id"
       type = "S"
+    }
+  ]
+  global_secondary_index = [
+    {
+      name      = "Appointment_Id-index"
+      hash_key  = "Appointment_Id"
+      range_key = null
     }
   ]
   tags = {
