@@ -18,7 +18,7 @@ data "aws_route53_zone" "zone" {
 resource "aws_route53_record" "a_record" {
   zone_id = data.aws_route53_zone.zone.id
   name    = "subdomain.${var.hostname}"
-  type    = "A"
+  type    = "CNAME"
   ttl     = "300"
   records = [aws_elastic_beanstalk_environment.screens.endpoint_url]
 }
