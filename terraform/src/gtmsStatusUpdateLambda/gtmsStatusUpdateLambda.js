@@ -193,7 +193,6 @@ export const saveObjToEpisodeTable = async (csvString, environment, client, batc
     TableName: `${environment}-Episode`,
     UpdateExpression: "SET #EE = :Episode_Event_new, #EEU = :Episode_Event_Updated_new,  #ES = :Episode_Status_new, #ESU = :Episode_Status_Updated_new, #EEUB = :Episode_Event_Updated_By_new, #EED = :Episode_Event_Description_new, #EEN = :Episode_Event_Notes_new"
   };
-  console.log(params);
   const command = new UpdateItemCommand(params);
   try {
     const response = await client.send(command);
