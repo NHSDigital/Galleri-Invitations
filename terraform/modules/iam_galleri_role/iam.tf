@@ -318,6 +318,11 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Policy required by validateClinicDataLambda
 # resource "aws_iam_policy" "iam_policy_for_validate_clinic_data_lambda" {
 #  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_validate_clinic_data_lambda_role"
+
+# Policy required by validateClinicCapacityLambda
+# resource "aws_iam_policy" "iam_policy_for_validate_clinic_capacity_lambda" {
+#  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_validate_clinic_capacity_lambda_role"
+
 # Policy required by validateCaasFeedLambda
 # resource "aws_iam_policy" "iam_policy_for_validate_caas_feed_lambda" {
 #  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_validate_caas_feed_lambda_role"
@@ -411,6 +416,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 
 # Added GpPractice and Postcode to this policy as lambda role exceeded policy limit
 # Added validate CLinic Data to this policy as lambda role exceeded policy limit
+# Added validate CLinic Capacity to this policy as lambda role exceeded policy limit
 # Added validate Caas Feed to this policy as lambda role exceeded policy limit
 # Added Sending Invitaiton batch to GTMS to this plicy as lambda role exceeded policy limit
 # Added UserAccounts to this policy as lambda role exceeded policy limit
@@ -457,6 +463,9 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "s3:*"
           ],
           "Resource" : [
+            "arn:aws:s3:::galleri-clinic-data/*",
+            "arn:aws:s3:::galleri-clinic-capacity/*",
+            "arn:aws:s3:::${var.environment}-outbound-gtms-invited-participant-batch/*",
             "arn:aws:s3:::${var.environment}-galleri-caas-data/*",
             "arn:aws:s3:::${var.environment}-invalid-gtms-payload/*",
             "arn:aws:s3:::${var.environment}-outbound-gtms-invited-participant-batch/*",
@@ -762,8 +771,13 @@ resource "aws_iam_role_policy_attachment" "clinic_information_lambda" {
 #resource "aws_iam_role_policy_attachment" "validate_clinic_data_lambda" {
 #  role       = aws_iam_role.galleri_lambda_role.name
 #  policy_arn = aws_iam_policy.validate_clinic_data_lambda.arn
+#}
 
 # Role exceeded quota for PoliciesPerRole: 10
+#resource "aws_iam_role_policy_attachment" "validate_clinic_capacity_lambda" {
+#  role       = aws_iam_role.galleri_lambda_role.name
+#  policy_arn = aws_iam_policy.validate_clinic_capacity_lambda.arn
+
 #resource "aws_iam_role_policy_attachment" "validate_caas_feed_lambda" {
 #  role       = aws_iam_role.galleri_lambda_role.name
 #  policy_arn = aws_iam_policy.iam_policy_for_validate_caas_feed_lambda.arn
