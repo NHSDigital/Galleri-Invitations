@@ -108,6 +108,7 @@ describe("lookupParticipant", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
+  const environment = "dev-1"
   test("return participant", async () => {
     const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
@@ -126,7 +127,7 @@ describe("lookupParticipant", () => {
         },
         "Items": [item]
       });
-    const participant = await lookupParticipant("id", "Population", mockDynamoDbClient, "env");
+    const participant = await lookupParticipant("id", "Population", mockDynamoDbClient, environment);
     expect(participant).toEqual(true);
   });
 
@@ -142,7 +143,7 @@ describe("lookupParticipant", () => {
         "Items": []
       });
 
-    const participant = await lookupParticipant("id", "Population", mockDynamoDbClient, "env");
+    const participant = await lookupParticipant("id", "Population", mockDynamoDbClient, environment);
     expect(participant).toEqual(false);
   });
 
@@ -157,7 +158,94 @@ describe("lookupParticipant", () => {
         }
       });
 
-    const participant = await lookupParticipant("id", "Population", mockDynamoDbClient, "env");
+    const participant = await lookupParticipant("id", "Population", mockDynamoDbClient, environment);
     expect(participant).toEqual(false);
   });
 });
+
+describe("lookupParticipantId", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+  const environment = "dev-1"
+  test("return participant", async () => {
+    const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
+    const item = {
+      "Batch_Id": {
+        "S": "123"
+      }
+    };
+    mockDynamoDbClient
+      .on(QueryCommand)
+      .resolves({
+        "$metadata": {
+          "httpStatusCode": 200
+        },
+        "Items": [item]
+      });
+    const participant = await lookupParticipantId("id", "Episode", mockDynamoDbClient, environment);
+    expect(participant).toEqual("123");
+  });
+
+  test("participant not found", async () => {
+    const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
+
+    mockDynamoDbClient
+      .on(QueryCommand)
+      .resolves({
+        "$metadata": {
+          "httpStatusCode": 200
+        },
+        "Items": []
+      });
+
+    const participant = await lookupParticipantId("id", "Episode", mockDynamoDbClient, environment);
+    expect(participant).toEqual("");
+  });
+
+  test("http error status", async () => {
+    const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
+
+    mockDynamoDbClient
+      .on(QueryCommand)
+      .resolves({
+        "$metadata": {
+          "httpStatusCode": 400
+        }
+      });
+
+    const participant = await lookupParticipantId("id", "Episode", mockDynamoDbClient, environment);
+    expect(participant).toEqual("");
+  });
+});
+
+describe('saveObjToEpisodeTable', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+  const environment = "dev-1"
+  const meshResponsePass = {
+    "Withdrawal": {
+      "ParticipantID": "NHS-AC35-BS33",
+      "Withdrawn": true,
+      "Reason": "CLINICAL_REASON"
+    }
+  }
+  test('successfully push to dynamodb', async () => {
+    const mockDynamodbClient = mockClient(new S3Client({}));
+    mockDynamodbClient.resolves({
+      $metadata: { httpStatusCode: 200 }
+    });
+    const result = await saveObjToEpisodeTable(meshResponsePass, environment, mockDynamodbClient);
+    expect(result).toBe(true)
+  });
+
+  test('Failed to push to dynamodb', async () => {
+    const mockDynamodbClient = mockClient(new S3Client({}));
+    mockDynamodbClient.resolves({
+      $metadata: { httpStatusCode: 400 },
+    });
+    const result = await saveObjToEpisodeTable(meshResponsePass, environment, mockDynamodbClient);
+    expect(result).toBe(false);
+  });
+})
