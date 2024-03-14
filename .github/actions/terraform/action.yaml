@@ -129,5 +129,6 @@ runs:
         npm install --prefix src/gtmsMeshMailboxLambda
         npm install --prefix src/validateClinicDataLambda
         npm install --prefix src/gtmsUploadClinicDataLambda
+        npm install --prefix src/gtmsUploadClinicCapacityDataLambda
         npm install --prefix src/sendGTMSInvitationBatchLambda
         terraform ${{ env.tf-action }} -auto-approve -input=false -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars
