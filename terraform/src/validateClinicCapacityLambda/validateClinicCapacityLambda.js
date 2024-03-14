@@ -31,7 +31,7 @@ export const handler = async (event) => {
       // Valid Records Arrangement
       if (validationResult.success) {
         // Deposit to S3 bucket
-        await pushToS3(bucket, `validRecords/valid_records_add-${timeNow}.csv`, jsonString, s3);
+        await pushToS3(bucket, `validRecords/valid_records-${timeNow}.csv`, jsonString, s3);
       }
       else {
         await pushToS3(bucket, `invalidRecords/invalid_records-${timeNow}.csv`, jsonString, s3);
