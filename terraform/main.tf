@@ -185,6 +185,7 @@ module "processed_gtms_withdrawal" {
   bucket_name             = "processed-inbound-gtms-withdrawal"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
+  account_id              = var.account_id
 }
 
 module "gtms_invited_participant_batch" {
