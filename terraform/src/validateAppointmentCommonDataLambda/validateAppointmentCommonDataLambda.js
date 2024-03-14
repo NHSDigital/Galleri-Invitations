@@ -105,7 +105,6 @@ export const handler = async (event) => {
         "S",
         true
       );
-      ``;
       const validateAppointmentId = validateAppointmentIdResponse.Items > 0;
       if (validateAppointmentId) {
         const oldAppointmentTime = new Date(
