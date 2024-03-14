@@ -95,7 +95,7 @@ export async function validateRecord(record, client) {
   while ( count < numberOfClinics ){
     const clinicValidation = await isClinicIDvalid(record.ClinicScheduleSummary.ClinicScheduleSummary[count].ClinicID, client);
 
-    if(clinicValidation.hasOwnProperty("Items")){
+    if(clinicValidation.Count === 1){
       const validation = validate(record, ClinicSchemaGTMS);
       if (!validation.valid) {    // validate the JSON Schema
         validationResults.success = false;
