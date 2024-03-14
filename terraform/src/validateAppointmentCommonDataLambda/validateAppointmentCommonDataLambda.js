@@ -21,11 +21,8 @@ export const handler = async (event) => {
   try {
     const appointmentString = await readFromS3(bucket, key, s3);
     const appointmentJson = JSON.parse(appointmentString);
-    //AC1
-    if (
-      appointmentJson.hasOwnProperty("ParticipantID") &&
-      appointmentJson.ParticipantID.trim() !== " "
-    ) {
+    //Check if ParticipantID and Episode exist in respective Dynamo tables
+    if (appointmentJson.ParticipantID?.trim() !== " ") {
       const validateParticipantIdResponse = await lookUp(
         dbClient,
         appointmentJson.ParticipantID,
@@ -47,16 +44,18 @@ export const handler = async (event) => {
 
       if (validateParticipantId || validateEpisode) {
         await rejectRecord(appointmentJson);
+        console.log("No valid ParticipantID or Episode in table");
+        return;
       }
     } else {
       await rejectRecord(appointmentJson);
+      console.log("No property ParticipantID found");
+      return;
     }
-    //AC2
+    //Check if either PDSNHSNumber and InvitationNHSNumber map to an NHS Number
     if (
-      appointmentJson.hasOwnProperty("InvitationNHSNumber") &&
-      appointmentJson.InvitationNHSNumber.trim() !== " " &&
-      appointmentJson.hasOwnProperty("PDSNHSNumber") &&
-      appointmentJson.PDSNHSNumber.trim() !== " "
+      appointmentJson.InvitationNHSNumber?.trim() !== " " &&
+      appointmentJson.PDSNHSNumber?.trim() !== " "
     ) {
       if (
         appointmentJson.InvitationNHSNumber !==
@@ -65,15 +64,18 @@ export const handler = async (event) => {
           validateParticipantIdResponse.Items.nhs_number
       ) {
         await rejectRecord(appointmentJson);
+        console.log(
+          "InvitationNHSNumber nor PDSNHSNumber map to a valid NHSNumber"
+        );
+        return;
       }
     } else {
       await rejectRecord(appointmentJson);
+      console.log("No property InvitationNHSNumber or PDSNHSNumber found");
+      return;
     }
-    //AC3
-    if (
-      appointmentJson.hasOwnProperty("ClinicID") &&
-      appointmentJson.ClinicID.trim() !== " "
-    ) {
+    //Check if ClinicID exists in its respective Dynamo tables
+    if (appointmentJson.ClinicID?.trim() !== " ") {
       const validateClinicIdResponse = await lookUp(
         dbClient,
         appointmentJson.ClinicID,
@@ -85,15 +87,16 @@ export const handler = async (event) => {
       const validateClinicId = !(validateClinicIdResponse.Items > 0);
       if (validateClinicId) {
         await rejectRecord(appointmentJson);
+        console.log("No valid ClinicID in table");
+        return;
       }
     } else {
       await rejectRecord(appointmentJson);
+      console.log("No property ClinicID found");
+      return;
     }
-    //AC4
-    if (
-      appointmentJson.hasOwnProperty("AppointmentID") &&
-      appointmentJson.AppointmentID.trim() !== " "
-    ) {
+    //Checks to ensure new appointment time is more recent than the old appointment time
+    if (appointmentJson.AppointmentID?.trim() !== " ") {
       const validateAppointmentIdResponse = await lookUp(
         dbClient,
         appointmentJson.AppointmentID,
@@ -102,6 +105,7 @@ export const handler = async (event) => {
         "S",
         true
       );
+      ``;
       const validateAppointmentId = validateAppointmentIdResponse.Items > 0;
       if (validateAppointmentId) {
         const oldAppointmentTime = new Date(
@@ -112,12 +116,20 @@ export const handler = async (event) => {
         );
         if (oldAppointmentTime > newAppointmentTime) {
           await rejectRecord(appointmentJson);
+          console.log(
+            "Existing Appointment is more recent then New Appointment"
+          );
+          return;
         }
       } else {
         await rejectRecord(appointmentJson);
+        console.log("No Valid Appointment found");
+        return;
       }
     } else {
       await rejectRecord(appointmentJson);
+      console.log("No property AppointmentID found");
+      return;
     }
   } catch (error) {
     console.error(
