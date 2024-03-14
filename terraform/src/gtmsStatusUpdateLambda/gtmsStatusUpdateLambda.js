@@ -6,7 +6,6 @@ import {
 } from "@aws-sdk/client-s3";
 import {
   DynamoDBClient,
-  GetItemCommand,
   QueryCommand,
   UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
@@ -34,7 +33,7 @@ export const handler = async (event, context) => {
     if (retrievedParticipantID) {
       if (retrievedBatchID) {
         //AC2: update episode record data
-        await saveObjToEpisodeTable(csvString, ENVIRONMENT, client, retrievedBatchID[0], REASON, PERSON_ID);
+        await saveObjToEpisodeTable(csvString, ENVIRONMENT, client, retrievedBatchID, REASON, PERSON_ID);
       } else {
         //AC1c: Save rejected record folder: 'episode does not exist'
         const confirmation = await pushCsvToS3(
@@ -95,21 +94,6 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
   }
 };
 
-export async function getItemsFromTable(table, client, key) {
-  const params = {
-    Key: {
-      Participant_Id: {
-        S: `${key}`,
-      },
-    },
-    TableName: table,
-  };
-  const command = new GetItemCommand(params);
-  const response = await client.send(command);
-
-  return response;
-}
-
 //Used to lookup participant from episode table
 export const lookupParticipantId = async (participantId, table, dbClient, environment) => {
   console.log("Looking up participant: ", participantId);
@@ -127,12 +111,13 @@ export const lookupParticipantId = async (participantId, table, dbClient, enviro
 
   const command = new QueryCommand(input);
   const response = await dbClient.send(command);
-  if (!response.Items.length || response.$metadata.httpStatusCode !== 200) { // if response is empty, no matching participantId
+  if (!response?.Items?.length || response.$metadata.httpStatusCode !== 200) { // if response is empty, no matching participantId
     console.log('no matches in Episode Table')
     return "";
+  } else {
+    console.log('A match in Episode Table');
+    return response["Items"][0]["Batch_Id"]["S"];
   }
-  console.log('A match in Episode Table');
-  return response["Items"][0]["Batch_Id"]["S"];
 };
 
 //Used to lookup participant from population table
@@ -153,7 +138,7 @@ export const lookupParticipant = async (participantId, table, dbClient, environm
   const command = new QueryCommand(param);
   const response = await dbClient.send(command);
 
-  if (!response.Items.length || response.$metadata.httpStatusCode !== 200) { // if response is empty, no matching participantId
+  if (!response?.Items?.length || response.$metadata.httpStatusCode !== 200) { // if response is empty, no matching participantId
     console.log('No matches in Population Table');
     return false;
   } else {
@@ -208,7 +193,7 @@ export const saveObjToEpisodeTable = async (csvString, environment, client, batc
     TableName: `${environment}-Episode`,
     UpdateExpression: "SET #EE = :Episode_Event_new, #EEU = :Episode_Event_Updated_new,  #ES = :Episode_Status_new, #ESU = :Episode_Status_Updated_new, #EEUB = :Episode_Event_Updated_By_new, #EED = :Episode_Event_Description_new, #EEN = :Episode_Event_Notes_new"
   };
-
+  console.log(params);
   const command = new UpdateItemCommand(params);
   try {
     const response = await client.send(command);
