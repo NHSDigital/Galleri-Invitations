@@ -23,47 +23,38 @@ export const handler = async (event, context) => {
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
   try {
     const csvString = await readCsvFromS3(bucket, key, s3);
-    console.log(csvString);
-    console.log(typeof csvString);
     const js = JSON.parse(csvString); //convert string retrieved from S3 to object
-    console.log(typeof js);
-    console.log(js);
-
 
     const PERSON_ID = js?.['Withdrawal']?.['ParticipantID'];
     const REASON = js?.['Withdrawal']?.['Reason'];
-    console.log(PERSON_ID); //NHS-AC35-BS33
 
     const retrievedBatchID = await lookupParticipantId(PERSON_ID, 'Episode', client, ENVIRONMENT);
-
-    if (await lookupParticipant(PERSON_ID, 'Population', client, ENVIRONMENT)) {
+    const retrievedParticipantID = await lookupParticipant(PERSON_ID, 'Population', client, ENVIRONMENT);
+    const dateTime = new Date(Date.now()).toISOString();
+    if (retrievedParticipantID) {
       if (retrievedBatchID) {
-        console.log('update inside here');
-        console.log(retrievedBatchID);
-        /*AC2: update episode record data with:
-          Episode Event = 'Withdrawn'
-          Episode Event Updated = current system date timestamp
-          Episode Event Description = reason, will be js?.['Withdrawal]?.['Reason]
-          Episode Event Notes = NULL
-          Episode Event Updated By = GTMS
-          Episode Status = Closed
-        */
-        const saved = await saveObjToEpisodeTable(csvString, ENVIRONMENT, client, retrievedBatchID[0], REASON, PERSON_ID);
-        console.log(saved);
+        //AC2: update episode record data
+        await saveObjToEpisodeTable(csvString, ENVIRONMENT, client, retrievedBatchID[0], REASON, PERSON_ID);
       } else {
-        console.log('fail');
         //AC1c: Save rejected record folder: 'episode does not exist'
+        const confirmation = await pushCsvToS3(
+          `${bucket}`,
+          `episode_does_not_exist/invalidRecord_${dateTime}.json`,
+          csvString,
+          s3
+        );
+        return confirmation;
       }
     } else {
-      console.log('fail');
       //AC1b: Save rejected record folder: 'Participant Id does not exist'
+      const confirmation = await pushCsvToS3(
+        `${bucket}`,
+        `participant_id_does_not_exist/invalidRecord_${dateTime}.json`,
+        csvString,
+        s3
+      );
+      return confirmation;
     }
-
-    // const searching = await lookupParticipant(PERSON_ID, 'Population', client, ENVIRONMENT);
-    // console.log(searching);
-    // const value = await lookupParticipantId(PERSON_ID, 'Episode', client, ENVIRONMENT);
-    // console.log(value);
-
 
   } catch (error) {
     console.error("Error occurred:", error);
@@ -137,10 +128,11 @@ export const lookupParticipantId = async (participantId, table, dbClient, enviro
   const command = new QueryCommand(input);
   const response = await dbClient.send(command);
   if (!response.Items.length || response.$metadata.httpStatusCode !== 200) { // if response is empty, no matching participantId
-    return [""];
+    console.log('no matches in Episode Table')
+    return "";
   }
-  console.log('match');
-  return [response["Items"][0]["Batch_Id"]["S"]];
+  console.log('A match in Episode Table');
+  return response["Items"][0]["Batch_Id"]["S"];
 };
 
 //Used to lookup participant from population table
@@ -162,9 +154,10 @@ export const lookupParticipant = async (participantId, table, dbClient, environm
   const response = await dbClient.send(command);
 
   if (!response.Items.length || response.$metadata.httpStatusCode !== 200) { // if response is empty, no matching participantId
+    console.log('No matches in Population Table');
     return false;
   } else {
-    console.log('match');
+    console.log('A match in Population Table');
     return true;
   }
 };
@@ -220,10 +213,10 @@ export const saveObjToEpisodeTable = async (csvString, environment, client, batc
   try {
     const response = await client.send(command);
     if (response.$metadata.httpStatusCode !== 200) {
-      console.error(`Error updating item: ${csvString}`);
+      console.error(`Error occurred while trying to update db with item: ${csvString}`);
       return false;
     } else {
-      console.log(`Successfully updated with item: ${csvString}`);
+      console.log(`Successfully updated db with item: ${csvString}`);
       return true;
     }
   } catch (error) {
