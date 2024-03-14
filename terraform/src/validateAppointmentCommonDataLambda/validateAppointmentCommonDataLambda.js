@@ -48,6 +48,8 @@ export const handler = async (event) => {
       if (validateParticipantId || validateEpisode) {
         await rejectRecord(appointmentJson);
       }
+    } else {
+      await rejectRecord(appointmentJson);
     }
     //AC2
     if (
@@ -64,6 +66,8 @@ export const handler = async (event) => {
       ) {
         await rejectRecord(appointmentJson);
       }
+    } else {
+      await rejectRecord(appointmentJson);
     }
     //AC3
     if (
@@ -82,6 +86,8 @@ export const handler = async (event) => {
       if (validateClinicId) {
         await rejectRecord(appointmentJson);
       }
+    } else {
+      await rejectRecord(appointmentJson);
     }
     //AC4
     if (
@@ -110,10 +116,12 @@ export const handler = async (event) => {
       } else {
         await rejectRecord(appointmentJson);
       }
+    } else {
+      await rejectRecord(appointmentJson);
     }
   } catch (error) {
     console.error(
-      "Error with appointment extraction, procession or uploading",
+      "Error with Appointment extraction, procession or uploading",
       error
     );
   }
