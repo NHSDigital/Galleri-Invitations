@@ -30,7 +30,7 @@ const clinicInformation = {
   expected_status_code: 200,
   expected_response_count: 13,
 };
-const clinicSummeryList = {
+const clinicSummaryList = {
   name: "clinic-summary-list",
   resource_path: "clinic-summary-list",
   method: "GET",
