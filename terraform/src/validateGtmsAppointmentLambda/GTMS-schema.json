@@ -4,10 +4,7 @@
     "InvitedParticipantBatch": {
       "type": "array",
       "items": {
-        "required": [
-          "participantId",
-          "nhsNumber"
-        ],
+        "required": ["participantId", "nhsNumber"],
         "type": "object",
         "properties": {
           "participantId": {
@@ -66,7 +63,7 @@
         },
         "Address": {
           "type": "string",
-          "pattern": "^[a-zA-Z0-9\\s&'*(),.#\\-\"]{0,250}$",
+          "pattern": "^[a-zA-Z0-9\\s&'*(),.#\\-\"]{0,175}$",
           "description": "Clinic address"
         },
         "Postcode": {
@@ -91,19 +88,14 @@
       }
     },
     "ClinicScheduleSummary": {
-      "required": [
-        "ClinicScheduleSummary"
-      ],
+      "required": ["ClinicScheduleSummary"],
       "type": "object",
       "properties": {
         "ClinicScheduleSummary": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": [
-              "ClinicID",
-              "Schedule"
-            ],
+            "required": ["ClinicID", "Schedule"],
             "properties": {
               "ClinicID": {
                 "type": "string",
@@ -114,10 +106,7 @@
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "required": [
-                    "WeekCommencingDate",
-                    "Availability"
-                  ],
+                  "required": ["WeekCommencingDate", "Availability"],
                   "properties": {
                     "WeekCommencingDate": {
                       "type": "string",
@@ -226,33 +215,18 @@
         },
         "Channel": {
           "type": "string",
-          "enum": [
-            "ONLINE",
-            "CALL_CENTRE",
-            "CLINIC"
-          ],
+          "enum": ["ONLINE", "CALL_CENTRE", "CLINIC"],
           "description": "Populated for all events. Online and call centre will be used for bookings and cancellations. Clinic will be used for no shows, aborted and completed"
         },
         "BloodNotCollectedReason": {
           "type": "string",
           "nullable": true,
-          "enum": [
-            "PARTICIPANT_DECISION",
-            "FAILED_ATTEMPT",
-            "OTHER",
-            null
-          ],
+          "enum": ["PARTICIPANT_DECISION", "FAILED_ATTEMPT", "OTHER", null],
           "description": "This is required if EventType is 'Aborted'"
         },
         "EventType": {
           "type": "string",
-          "enum": [
-            "BOOKED",
-            "CANCELLED",
-            "COMPLETE",
-            "ABORTED",
-            "NO_SHOW"
-          ],
+          "enum": ["BOOKED", "CANCELLED", "COMPLETE", "ABORTED", "NO_SHOW"],
           "description": "In case contact details or notification preferences are updated by the call centre outside of the booking process this same message will be sent to GPS, with all these fields, but the notification preferences and contact details will be updated. If the user has no appointment contact details cannot be updated. The new contact details or notification preferences will be sent as part of this message with event type corresponding to the most recent status of the appointment (i.e. if the appt was cancelled then the message with contact details or notifications preferences update will be event type cancelled).\nWe will not be sending a rebooking event or a cancellation of a rebooked appointment. The rebooked appointment is sent as BOOKED and the REPLACES field is populated"
         },
         "AppointmentAccessibility": {
@@ -320,11 +294,7 @@
       }
     },
     "Withdrawal": {
-      "required": [
-        "ParticipantID",
-        "Withdrawn",
-        "Reason"
-      ],
+      "required": ["ParticipantID", "Withdrawn", "Reason"],
       "type": "object",
       "properties": {
         "ParticipantID": {
@@ -402,11 +372,7 @@
           "$ref": "#/definitions/InterpreterLanguage"
         }
       },
-      "required": [
-        "signLanguage",
-        "braille",
-        "interpreter"
-      ]
+      "required": ["signLanguage", "braille", "interpreter"]
     },
     "InterpreterLanguage": {
       "title": "Interpreter languages",
@@ -437,10 +403,7 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "canSMS",
-        "canEmail"
-      ]
+      "required": ["canSMS", "canEmail"]
     }
   },
   "properties": {

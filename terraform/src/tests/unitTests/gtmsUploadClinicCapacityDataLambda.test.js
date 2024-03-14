@@ -1,19 +1,17 @@
 import { mockClient } from 'aws-sdk-client-mock';
 import { S3Client } from '@aws-sdk/client-s3';
 import { sdkStreamMixin } from '@aws-sdk/util-stream-node';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, UpdateItemCommand } from '@aws-sdk/client-dynamodb';
 
 import * as fs from 'fs';
 import path from 'path';
 
 import {
   readCsvFromS3,
-  putTableRecord,
-  checkPhlebotomy,
+  getItemsFromTable,
   createPhlebotomySite,
-  saveObjToPhlebotomyTable,
-  deleteTableRecord
-} from '../../gtmsUploadClinicDataLambda/gtmsUploadClinicDataLambda.js';
+  saveObjToPhlebotomyTable
+} from '../../gtmsUploadClinicCapacityDataLambda/gtmsUploadClinicCapacityDataLambda.js';
 
 describe("readCsvFromS3", () => {
   afterEach(() => {
@@ -60,7 +58,7 @@ describe("readCsvFromS3", () => {
   });
 });
 
-describe('checkPhlebotomy', () => {
+describe('getItemsFromTable', () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
   test('should mock call to dynamoDb successfully', async () => {
@@ -71,46 +69,9 @@ describe('checkPhlebotomy', () => {
       Body: "hello"
     });
 
-    const result = await checkPhlebotomy('table', mockDynamoDbClient, 'key');
+    const result = await getItemsFromTable('table', mockDynamoDbClient, 'key');
 
     expect(result.Body).toEqual("hello");
-  });
-});
-
-describe('deleteTableRecord', () => {
-  const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
-
-  test('should mock call to dynamoDb successfully', async () => {
-    mockDynamoDbClient.resolves({
-      $metadata: {
-        httpStatusCode: 200
-      },
-      Body: "hello"
-    });
-
-    const result = await deleteTableRecord(mockDynamoDbClient,'table', 'clinicid', 'clinicname');
-
-    expect(result.Body).toEqual("hello");
-  });
-});
-
-describe('createPhlebotomySite', () => {
-  const meshResponsePass = {
-    "ClinicCreateOrUpdate":
-    {
-      "ClinicID": "CF78U818",
-      "ODSCode": "1234",
-      "ICBCode": "OPM",
-      "ClinicName": "Phlebotomy clinic 34",
-      "Address": "test address dynamo put",
-      "Postcode": "BH17 7DT",
-      "Directions": "These will contain directions to the site"
-    }
-  }
-  test('Should compare values to be true', async () => {
-    const val = await createPhlebotomySite(meshResponsePass);
-    const expectedVal = { "PutRequest": { "Item": { "Address": { "S": "test address dynamo put" }, "ClinicId": { "S": "CF78U818" }, "ClinicName": { "S": "Phlebotomy clinic 34" }, "Directions": { "S": "These will contain directions to the site" }, "ICBCode": { "S": "OPM" }, "ODSCode": { "S": "1234" }, "Postcode": { "S": "BH17 7DT" }, "TargetFillToPercentage": { "N": "50" } } } }
-    expect(val).toEqual(expectedVal);
   });
 });
 
@@ -120,30 +81,55 @@ describe('saveObjToPhlebotomyTable', () => {
   });
 
   const meshResponsePass = {
-    "ClinicCreateOrUpdate":
-    {
-      "ClinicID": "CF78U818",
-      "ODSCode": "1234",
-      "ICBCode": "OPM",
-    }
-  }
+    "ClinicID": "CJ74G234",
+    "Schedule": [
+      {
+        "WeekCommencingDate": "2024-02-19",
+        "Availability": 5
+      },
+      {
+        "WeekCommencingDate": "2024-02-12",
+        "Availability": 5
+      },
+      {
+        "WeekCommencingDate": "2024-02-05",
+        "Availability": 0
+      },
+      {
+        "WeekCommencingDate": "2024-01-29",
+        "Availability": 8
+      },
+      {
+        "WeekCommencingDate": "2024-01-22",
+        "Availability": 5
+      },
+      {
+        "WeekCommencingDate": "2024-01-15",
+        "Availability": 9
+      }
+    ]
+  };
+
   test('successfully push to dynamodb', async () => {
     const mockDynamodbClient = mockClient(new S3Client({}));
-    const environment = "dev-1"
+    const environment = "dev-1";
+    const clinicName = "test_clinic";
     mockDynamodbClient.resolves({
       $metadata: { httpStatusCode: 200 }
     });
-    const result = await saveObjToPhlebotomyTable(meshResponsePass, environment, mockDynamodbClient);
+    const result = await saveObjToPhlebotomyTable(meshResponsePass, environment, mockDynamodbClient, clinicName);
     expect(result).toBe(true)
   });
 
   test('Failed to push to dynamodb', async () => {
     const mockDynamodbClient = mockClient(new S3Client({}));
-    const environment = "dev-1"
+    const environment = "dev-1";
+    const clinicName = "test_clinic";
     mockDynamodbClient.resolves({
       $metadata: { httpStatusCode: 400 },
     });
-    const result = await saveObjToPhlebotomyTable(meshResponsePass, environment, mockDynamodbClient);
+    const result = await saveObjToPhlebotomyTable(meshResponsePass, environment, mockDynamodbClient, clinicName);
     expect(result).toBe(false);
   });
-});
+})
+
