@@ -31,7 +31,7 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
     test('should return success for a valid record', async() => {
 
       mockDynamoDbClient.resolves({
-        Items: ["NJ22I636"],
+        Count: 1,
       });
       const validationResult = await moduleapi.validateRecord(data[0], mockDynamoDbClient);
       expect(validationResult.success).toBe(true);
@@ -49,7 +49,7 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
     test('should return failure for an invalid date', async() => {
       mockDynamoDbClient.resolves({
-        Items: ["SO42 7BZ"],
+        Count : 1,
       });
       const validationResult = await moduleapi.validateRecord(data[1], mockDynamoDbClient);
 
@@ -60,12 +60,18 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
     });
 
     test('should return failure for out-of-bound availability', async() => {
+      mockDynamoDbClient.resolves({
+        Count : 1,
+      });
       const validationResult = await moduleapi.validateRecord(data[2], mockDynamoDbClient);
       expect(validationResult.success).toBe(false);
       expect(validationResult.message).toBe("Invalid JSON Schema");
     });
 
     test('should return failure for wrong clinic ID in multiple clinics', async() => {
+      mockDynamoDbClient.resolves({
+        Count : 1,
+      });
         const validationResult = await moduleapi.validateRecord(data[3], mockDynamoDbClient);
         expect(validationResult.success).toBe(false);
         expect(validationResult.message).toBe("Invalid JSON Schema");
