@@ -167,6 +167,13 @@ module "gtms_withdrawal" {
   environment             = var.environment
 }
 
+module "processed_gtms_withdrawal" {
+  source                  = "./modules/s3"
+  bucket_name             = "processed-inbound-gtms-withdrawal"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
 module "gtms_invited_participant_batch" {
   source                  = "./modules/s3"
   bucket_name             = "sent-gtms-invited-participant-batch"
@@ -745,6 +752,35 @@ module "user_accounts_lambda_trigger" {
   lambda_arn = module.user_accounts_lambda.lambda_arn
 }
 
+module "gtms_status_update_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gtmsStatusUpdateLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "gtms_status_update_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "gtms_status_update_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gtms_status_update_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "gtms_status_update_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.processed_gtms_withdrawal.bucket_id
+  bucket_arn    = module.processed_gtms_withdrawal.bucket_arn
+  lambda_arn    = module.gtms_status_update_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_update"
+}
+
 module "poll_mesh_mailbox_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
@@ -1016,7 +1052,6 @@ module "send_GTMS_invitation_batch_lambda_trigger" {
   bucket_arn = module.invited_participant_batch.bucket_arn
   lambda_arn = module.send_GTMS_invitation_batch_lambda.lambda_arn
 }
-
 
 # Dynamodb tables
 module "sdrs_table" {
