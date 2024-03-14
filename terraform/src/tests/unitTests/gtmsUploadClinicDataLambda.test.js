@@ -1,17 +1,18 @@
 import { mockClient } from 'aws-sdk-client-mock';
 import { S3Client } from '@aws-sdk/client-s3';
 import { sdkStreamMixin } from '@aws-sdk/util-stream-node';
-import { DynamoDBClient, UpdateItemCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 
 import * as fs from 'fs';
 import path from 'path';
 
 import {
   readCsvFromS3,
-  getItemsFromTable,
-  createPhlebotomySite,
+  putTableRecord,
   checkPhlebotomy,
-  saveObjToPhlebotomyTable
+  createPhlebotomySite,
+  saveObjToPhlebotomyTable,
+  deleteTableRecord
 } from '../../gtmsUploadClinicDataLambda/gtmsUploadClinicDataLambda.js';
 
 describe("readCsvFromS3", () => {
@@ -59,7 +60,7 @@ describe("readCsvFromS3", () => {
   });
 });
 
-describe('getItemsFromTable', () => {
+describe('checkPhlebotomy', () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
   test('should mock call to dynamoDb successfully', async () => {
@@ -70,7 +71,24 @@ describe('getItemsFromTable', () => {
       Body: "hello"
     });
 
-    const result = await getItemsFromTable('table', mockDynamoDbClient, 'key');
+    const result = await checkPhlebotomy('table', mockDynamoDbClient, 'key');
+
+    expect(result.Body).toEqual("hello");
+  });
+});
+
+describe('deleteTableRecord', () => {
+  const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
+
+  test('should mock call to dynamoDb successfully', async () => {
+    mockDynamoDbClient.resolves({
+      $metadata: {
+        httpStatusCode: 200
+      },
+      Body: "hello"
+    });
+
+    const result = await deleteTableRecord(mockDynamoDbClient,'table', 'clinicid', 'clinicname');
 
     expect(result.Body).toEqual("hello");
   });
@@ -94,66 +112,6 @@ describe('createPhlebotomySite', () => {
     const expectedVal = { "PutRequest": { "Item": { "Address": { "S": "test address dynamo put" }, "ClinicId": { "S": "CF78U818" }, "ClinicName": { "S": "Phlebotomy clinic 34" }, "Directions": { "S": "These will contain directions to the site" }, "ICBCode": { "S": "OPM" }, "ODSCode": { "S": "1234" }, "Postcode": { "S": "BH17 7DT" }, "TargetFillToPercentage": { "N": "50" } } } }
     expect(val).toEqual(expectedVal);
   });
-});
-
-describe('checkPhlebotomy', () => {
-  const meshResponseFail =
-  {
-    "ClinicCreateOrUpdate": {
-      "ClinicID": "C1C-A1A",
-      "ODSCode": "Y888888",
-      "ICBCode": "QNX",
-      "ClinicName": "GRAIL Test Clinic",
-      "Address": "210 Euston Rd, London NW1 2DA",
-      "Postcode": "BD22 0AG",
-      "Directions": "Closest London Underground station is Euston Square."
-    }
-  }
-
-  const meshResponsePass = {
-    "ClinicCreateOrUpdate":
-    {
-      "ClinicID": "CF78U818",
-      "ODSCode": "1234",
-      "ICBCode": "OPM",
-      "ClinicName": "Phlebotomy clinic 34",
-      "Address": "test address dynamo put",
-      "Postcode": "BH17 7DT",
-      "Directions": "These will contain directions to the site"
-    }
-  }
-
-  const phlebotomyArr =
-    [{
-      Address: { S: 'test address dynamo put' },
-      Directions: { S: 'These will contain directions to the site' },
-      ODSCode: { S: '1234' },
-      ClinicId: { S: 'CF78U818' },
-      ICBCode: { S: 'OPM' },
-      PostCode: { S: 'BH17 7DT' },
-      ClinicName: { S: 'Phlebotomy clinic 34' }
-    },
-    {
-      Address: { S: '35 disroot Hospital ,             Mordor RG12 7RX' },
-      Directions: { S: 'These will contain directions to the site' },
-      ODSCode: { S: 'O66043' },
-      ClinicId: { S: 'AQ86L135' },
-      ICBCode: { S: 'QNQ' },
-      PostCode: { S: 'RG12 7RX' },
-      ClinicName: { S: 'Phlebotomy clinic 35' },
-    }
-    ]
-
-  test('Should compare values to be true', async () => {
-    const val = await checkPhlebotomy(phlebotomyArr, meshResponsePass, 'ClinicCreateOrUpdate', 'ClinicID');
-    expect(val).toEqual(true);
-  });
-
-  test('Should compare values to be true', async () => {
-    const val = await checkPhlebotomy(phlebotomyArr, meshResponseFail, 'ClinicCreateOrUpdate', 'ClinicID');
-    expect(val).toEqual(false);
-  });
-
 });
 
 describe('saveObjToPhlebotomyTable', () => {
@@ -188,4 +146,4 @@ describe('saveObjToPhlebotomyTable', () => {
     const result = await saveObjToPhlebotomyTable(meshResponsePass, environment, mockDynamodbClient);
     expect(result).toBe(false);
   });
-})
+});

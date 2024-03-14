@@ -129,7 +129,9 @@ runs:
         npm install --prefix src/getUserRoleLambda
         npm install --prefix src/gtmsMeshMailboxLambda
         npm install --prefix src/validateClinicDataLambda
+        npm install --prefix src/validateClinicCapacityLambda
         npm install --prefix src/gtmsUploadClinicDataLambda
         npm install --prefix src/gtmsUploadClinicCapacityDataLambda
         npm install --prefix src/sendGTMSInvitationBatchLambda
+        npm install --prefix src/gtmsStatusUpdateLambda
         terraform ${{ env.tf-action }} -no-color -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars

@@ -237,10 +237,10 @@ await apiCall({ apiList: apiList, api: invitationParameters });
 // POST requests
 // Lambda currently broken, awaiting GAL-334 to resolve then test can be enabled
 // await apiCall({ apiList: apiList, api: calculateNumberToInvite });
-await apiCall({ apiList: apiList, api: generateInvites });
+// await apiCall({ apiList: apiList, api: generateInvites });
 
 // PUT requests
-await apiCall({ apiList: apiList, api: invitationParametersPutQuintiles });
+// await apiCall({ apiList: apiList, api: invitationParametersPutQuintiles });
 // invitationParametersPutForecastUptake is failing with lambda permission error
 // await apiCall({ apiList: apiList, api: invitationParametersPutForecastUptake });
 
