@@ -39,8 +39,10 @@ export const handler = async (event) => {
         "S",
         true
       );
-      const validateParticipantId = !(validateParticipantIdResponse.Items > 0);
-      const validateEpisode = !(validateEpisodeResponse.Items > 0);
+      const validateParticipantId = !(
+        validateParticipantIdResponse.Items.length > 0
+      );
+      const validateEpisode = !(validateEpisodeResponse.Items.length > 0);
 
       if (validateParticipantId || validateEpisode) {
         await rejectRecord(appointmentJson);
@@ -84,7 +86,7 @@ export const handler = async (event) => {
         "S",
         false
       );
-      const validateClinicId = !(validateClinicIdResponse.Items > 0);
+      const validateClinicId = !(validateClinicIdResponse.Items.length > 0);
       if (validateClinicId) {
         await rejectRecord(appointmentJson);
         console.log("No valid ClinicID in table");
@@ -105,7 +107,8 @@ export const handler = async (event) => {
         "S",
         true
       );
-      const validateAppointmentId = validateAppointmentIdResponse.Items > 0;
+      const validateAppointmentId =
+        validateAppointmentIdResponse.Items.length > 0;
       if (validateAppointmentId) {
         const oldAppointmentTime = new Date(
           validateAppointmentIdResponse.Items.AppointmentDateTime
@@ -130,6 +133,14 @@ export const handler = async (event) => {
       console.log("No property AppointmentID found");
       return;
     }
+    const timeNow = new Date().toISOString();
+    const jsonString = JSON.stringify(appointmentJson);
+    await pushToS3(
+      `${ENVIRONMENT}-processed-appointments`,
+      `validRecords/valid_records-${timeNow}.json`,
+      jsonString,
+      s3
+    );
   } catch (error) {
     console.error(
       "Error with Appointment extraction, procession or uploading",
