@@ -16,7 +16,7 @@
     "@aws-sdk/client-api-gateway": "^3.525.0",
     "@aws-sdk/client-dynamodb": "^3.485.0",
     "@aws-sdk/client-lambda": "^3.525.0",
-    "@aws-sdk/client-secrets-manager": "^3.501.0",
+    "@aws-sdk/client-secrets-manager": "^3.534.0",
     "@aws-sdk/config-resolver": "^3.374.0",
     "@aws-sdk/util-stream-node": "^3.374.0",
     "@babel/plugin-syntax-import-assertions": "^7.23.3",
