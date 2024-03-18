@@ -417,6 +417,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added gtms upload clinic capacity data to this policy as lambda role exceeded policy limit
 # Added validateGtmsAppointment to this policy as lambda role exceeded policy limit
 # Added caasFeedAdd to this policy as lambda role exceeded policy limit
+# Added processAppointmentEventTypeLambda to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
   path        = "/"
@@ -469,6 +470,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:s3:::${var.environment}-inbound-gtms-withdrawal/*",
             "arn:aws:s3:::${var.environment}-sent-gtms-invited-participant-batch",
             "arn:aws:s3:::${var.environment}-galleri-processed-caas-data/*",
+            "arn:aws:s3:::${var.environment}-proccessed-appointments/*",
           ]
         },
         {
@@ -739,6 +741,51 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
 #   })
 # }
 
+# # Policy required by processAppointmentEventTypeLambda
+# resource "aws_iam_policy" "iam_policy_for_process_appointment_event_type_lambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_process_appointment_event_type_lambda_role"
+#   path        = "/"
+#   description = "AWS IAM Policy for caas feed add lambda"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+#           "Sid" : "AllowS3Access",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "s3:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:s3:::${var.environment}-proccessed-appointments/*",
+#           ]
+#         },
+#         {
+#           "Sid" : "AllowDyanmodbAccess",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "dynamodb:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Appointments/*/*"
+#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population/*/*",
+#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Postcode"
+#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GpPractice"
+#           ]
+#         },
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+# }
+
 resource "aws_iam_role_policy_attachment" "galleri_lambda_policy" {
   role       = aws_iam_role.galleri_lambda_role.name
   policy_arn = aws_iam_policy.iam_policy_for_lambda.arn
@@ -828,6 +875,12 @@ resource "aws_iam_role_policy_attachment" "generate_invites_policy" {
 # resource "aws_iam_role_policy_attachment" "validate_gtms_appointment_lambda" {
 #   role       = aws_iam_role.galleri_lambda_role.name
 #   policy_arn = aws_iam_policy.iam_policy_for_validate_gtms_appointment_lambda.arn
+# }
+
+# Role exceeded quota for PoliciesPerRole: 10
+# resource "aws_iam_role_policy_attachment" "process_appointment_event_type_lambda" {
+#   role       = aws_iam_role.galleri_lambda_role.name
+#   policy_arn = aws_iam_policy.iam_policy_for_process_appointment_event_type_lambda.arn
 # }
 
 # resource "aws_iam_role_policy_attachment" "secrets_lambda_policy" {
