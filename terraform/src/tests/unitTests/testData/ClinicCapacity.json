@@ -1,0 +1,70 @@
+[
+    {
+    "ClinicScheduleSummary":{
+        "ClinicScheduleSummary": [
+        {
+            "ClinicID": "C1C-A1A",
+            "Schedule": [
+            {
+                "WeekCommencingDate": "2023-09-04",
+                "Availability": 5
+            }
+            ]
+        }
+        ]
+    }
+    },
+    {
+        "ClinicScheduleSummary":{
+            "ClinicScheduleSummary": [
+            {
+                "ClinicID": "C1C-A1A",
+                "Schedule": [
+                {
+                    "WeekCommencingDate": "2023-19-04",
+                    "Availability": 5
+                }
+                ]
+            }
+            ]
+        }
+    },
+    {
+        "ClinicScheduleSummary":{
+            "ClinicScheduleSummary": [
+            {
+                "ClinicID": "C1C-A1A",
+                "Schedule": [
+                {
+                    "WeekCommencingDate": "2023-19-04",
+                    "Availability": 5000000000
+                }
+                ]
+            }
+            ]
+        }
+    },
+    {
+        "ClinicScheduleSummary":{
+            "ClinicScheduleSummary": [
+            {
+                "ClinicID": "C1C-A1A",
+                "Schedule": [
+                {
+                    "WeekCommencingDate": "2023-09-04",
+                    "Availability": 5
+                }
+                ]
+            },
+            {
+                "ClinicID": "C1CA1A",
+                "Schedule": [
+                {
+                    "WeekCommencingDate": "2023-09-04",
+                    "Availability": 5
+                }]
+            }
+            ]
+        }
+    }
+]

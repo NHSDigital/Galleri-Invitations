@@ -174,6 +174,13 @@ module "gtms_withdrawal" {
   environment             = var.environment
 }
 
+module "processed_gtms_withdrawal" {
+  source                  = "./modules/s3"
+  bucket_name             = "processed-inbound-gtms-withdrawal"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+}
+
 module "gtms_invited_participant_batch" {
   source                  = "./modules/s3"
   bucket_name             = "sent-gtms-invited-participant-batch"
@@ -752,6 +759,35 @@ module "user_accounts_lambda_trigger" {
   lambda_arn = module.user_accounts_lambda.lambda_arn
 }
 
+module "gtms_status_update_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gtmsStatusUpdateLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "gtms_status_update_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "gtms_status_update_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gtms_status_update_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "gtms_status_update_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.processed_gtms_withdrawal.bucket_id
+  bucket_arn    = module.processed_gtms_withdrawal.bucket_arn
+  lambda_arn    = module.gtms_status_update_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_update"
+}
+
 module "poll_mesh_mailbox_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
@@ -762,16 +798,14 @@ module "poll_mesh_mailbox_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "poll_mesh_mailbox_lambda.zip"
   environment_vars = {
-    ENVIRONMENT                    = "${var.environment}",
-    MESH_SANDBOX                   = "false",
-    MESH_URL                       = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
-    MESH_SHARED_KEY                = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
-    MESH_SENDER_MAILBOX_ID         = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_id.secret_string)["MESH_SENDER_MAILBOX_ID"],
-    MESH_SENDER_MAILBOX_PASSWORD   = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_password.secret_string)["MESH_SENDER_MAILBOX_PASSWORD"],
-    MESH_RECEIVER_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_id.secret_string)["MESH_RECEIVER_MAILBOX_ID"],
-    MESH_RECEIVER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_password.secret_string)["MESH_RECEIVER_MAILBOX_PASSWORD"],
-    CAAS_MESH_MAILBOX_ID           = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_id.secret_string)["CAAS_MESH_MAILBOX_ID"],
-    CAAS_MESH_MAILBOX_PASSWORD     = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_password.secret_string)["CAAS_MESH_MAILBOX_PASSWORD"]
+    ENVIRONMENT                  = "${var.environment}",
+    MESH_SANDBOX                 = "false",
+    MESH_URL                     = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
+    MESH_SHARED_KEY              = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
+    MESH_SENDER_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_id.secret_string)["MESH_SENDER_MAILBOX_ID"],
+    MESH_SENDER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_password.secret_string)["MESH_SENDER_MAILBOX_PASSWORD"],
+    CAAS_MESH_MAILBOX_ID         = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_id.secret_string)["CAAS_MESH_MAILBOX_ID"],
+    CAAS_MESH_MAILBOX_PASSWORD   = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_password.secret_string)["CAAS_MESH_MAILBOX_PASSWORD"]
   }
 }
 
@@ -958,7 +992,6 @@ module "gtms_upload_clinic_data_lambda_trigger" {
   filter_prefix = "validRecords/valid_records_add-"
 }
 
-
 # GPS public key jwks
 module "gps_jwks_lambda" {
   source               = "./modules/lambda"
@@ -1025,6 +1058,38 @@ module "cis2_signed_jwt_api_gateway" {
   method_http_parameters = {}
   lambda_function_name   = module.cis2_signed_jwt.lambda_function_name
 }
+
+# GTMS validate clinic capacity
+module "validate_clinic_capacity_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "validateClinicCapacityLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "validate_clinic_capacity_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "validate_clinic_capacity_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.validate_clinic_capacity_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+
+module "validate_clinic_capacity_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.clinic_schedule_summary.bucket_id
+  bucket_arn    = module.clinic_schedule_summary.bucket_arn
+  lambda_arn    = module.validate_clinic_capacity_lambda.lambda_arn
+  filter_prefix = "clinic-schedule-summary"
+}
+
 
 # GTMS upload clinic capacity data
 module "gtms_upload_clinic_capacity_data_lambda" {
@@ -1093,7 +1158,6 @@ module "send_GTMS_invitation_batch_lambda_trigger" {
   bucket_arn = module.invited_participant_batch.bucket_arn
   lambda_arn = module.send_GTMS_invitation_batch_lambda.lambda_arn
 }
-
 
 # Dynamodb tables
 module "sdrs_table" {

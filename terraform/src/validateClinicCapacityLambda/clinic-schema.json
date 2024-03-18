@@ -66,7 +66,7 @@
         },
         "Address": {
           "type": "string",
-          "pattern": "^[a-zA-Z0-9\\s&'*(),.#\\-\"]{0,250}$",
+          "pattern": "^[a-zA-Z0-9\\s&'*(),.#\\-\"]{0,175}$",
           "description": "Clinic address"
         },
         "Postcode": {
