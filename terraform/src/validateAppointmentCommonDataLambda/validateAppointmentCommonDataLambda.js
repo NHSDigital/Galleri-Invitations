@@ -21,11 +21,12 @@ export const handler = async (event) => {
   try {
     const appointmentString = await readFromS3(bucket, key, s3);
     const appointmentJson = JSON.parse(appointmentString);
+    const { Appointment } = appointmentJson;
     //Check if ParticipantID and Episode exist in respective Dynamo tables
-    if (appointmentJson.ParticipantID?.trim() !== " ") {
+    if (Appointment.ParticipantID?.trim() !== " ") {
       const validateParticipantIdResponse = await lookUp(
         dbClient,
-        appointmentJson.ParticipantID,
+        Appointment.ParticipantID,
         "Population",
         "PersonId",
         "S",
@@ -33,7 +34,7 @@ export const handler = async (event) => {
       );
       const validateEpisodeResponse = await lookUp(
         dbClient,
-        appointmentJson.ParticipantID,
+        Appointment.ParticipantID,
         "Episode",
         "Participant_Id",
         "S",
@@ -56,13 +57,13 @@ export const handler = async (event) => {
     }
     //Check if either PDSNHSNumber and InvitationNHSNumber map to an NHS Number
     if (
-      appointmentJson.InvitationNHSNumber?.trim() !== " " &&
-      appointmentJson.PDSNHSNumber?.trim() !== " "
+      Appointment.InvitationNHSNumber?.trim() !== " " &&
+      Appointment.PDSNHSNumber?.trim() !== " "
     ) {
       if (
-        appointmentJson.InvitationNHSNumber !==
+        Appointment.InvitationNHSNumber !==
           validateParticipantIdResponse.Items.nhs_number &&
-        appointmentJson.PDSNHSNumber !==
+        Appointment.PDSNHSNumber !==
           validateParticipantIdResponse.Items.nhs_number
       ) {
         await rejectRecord(appointmentJson);
@@ -77,10 +78,10 @@ export const handler = async (event) => {
       return;
     }
     //Check if ClinicID exists in its respective Dynamo tables
-    if (appointmentJson.ClinicID?.trim() !== " ") {
+    if (Appointment.ClinicID?.trim() !== " ") {
       const validateClinicIdResponse = await lookUp(
         dbClient,
-        appointmentJson.ClinicID,
+        Appointment.ClinicID,
         "PhlebotomySite",
         "ClinicId",
         "S",
@@ -98,10 +99,10 @@ export const handler = async (event) => {
       return;
     }
     //Checks to ensure new appointment time is more recent than the old appointment time
-    if (appointmentJson.AppointmentID?.trim() !== " ") {
+    if (Appointment.AppointmentID?.trim() !== " ") {
       const validateAppointmentIdResponse = await lookUp(
         dbClient,
-        appointmentJson.AppointmentID,
+        Appointment.AppointmentID,
         "Appointments",
         "Appointment_Id",
         "S",
@@ -113,9 +114,7 @@ export const handler = async (event) => {
         const oldAppointmentTime = new Date(
           validateAppointmentIdResponse.Items.AppointmentDateTime
         );
-        const newAppointmentTime = new Date(
-          appointmentJson.AppointmentDateTime
-        );
+        const newAppointmentTime = new Date(Appointment.AppointmentDateTime);
         if (oldAppointmentTime > newAppointmentTime) {
           await rejectRecord(appointmentJson);
           console.log(
