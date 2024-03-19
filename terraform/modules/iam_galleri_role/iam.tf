@@ -414,12 +414,56 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # }
 
 
+# resource "aws_iam_policy" "iam_policy_for_caas_feed_delete_records_lambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_caas_feed_delete_records_lambda_role"
+#   path        = "/"
+#   description = "AWS IAM Policy for deleting records from caas feed"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+#           "Sid" : "AllowS3Access",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "s3:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:s3:::${var.environment}-galleri-processed-caas-data/*",
+#           ]
+#         },
+#         {
+#          "Sid" : "AllowDynamodbAccess",
+#          "Effect" : "Allow",
+#          "Action" : [
+#            "dynamodb:*"
+#          ],
+#          "Resource" : [
+#            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population",
+#            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Appointments"
+#          ]
+#        },
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+# }
+
+
 # Added GpPractice and Postcode to this policy as lambda role exceeded policy limit
 # Added validate CLinic Data to this policy as lambda role exceeded policy limit
 # Added validate CLinic Capacity to this policy as lambda role exceeded policy limit
 # Added validate Caas Feed to this policy as lambda role exceeded policy limit
 # Added Sending Invitaiton batch to GTMS to this plicy as lambda role exceeded policy limit
 # Added UserAccounts to this policy as lambda role exceeded policy limit
+# Added caasFeedDeleteRecords to this policy as lambda role exceeded policy limit
 # Added gtms upload clinic capacity data to this policy as lambda role exceeded policy limit
 # Added validateGtmsAppointment to this policy as lambda role exceeded policy limit
 # Added gtmsStatusUpdateLambda to this policy as lambda role exceeded policy limit
@@ -453,6 +497,8 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GpPractice",
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Postcode",
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-UserAccounts",
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite",
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Appointments",
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite/*/*",
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Appointments/*/*",
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Episode",
@@ -836,6 +882,11 @@ resource "aws_iam_role_policy_attachment" "clinic_information_lambda" {
 #  role       = aws_iam_role.galleri_lambda_role.name
 #  policy_arn = aws_iam_policy.iam_policy_for_send_gtms_invitation_batch_lambda.arn
 #}
+
+# Role exceeded quota for PoliciesPerRole: 10
+# resource "aws_iam_role_policy_attachment" "caas_feed_delete_records_lambda" {
+#   role       = aws_iam_role.galleri_lambda_role.name
+#   policy_arn = aws_iam_policy.iam_policy_for_caas_feed_delete_records_lambda.arn
 
 # Role exceeded quota for PoliciesPerRole: 10
 # resource "aws_iam_role_policy_attachment" "caas_feed_add_lambda" {
