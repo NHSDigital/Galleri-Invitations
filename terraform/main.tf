@@ -800,12 +800,13 @@ module "poll_mesh_mailbox_lambda" {
   environment_vars = {
     ENVIRONMENT                  = "${var.environment}",
     MESH_SANDBOX                 = "false",
+    MESH_CHUNK_VALUE             = "2001",
     MESH_URL                     = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
     MESH_SHARED_KEY              = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
     MESH_SENDER_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_id.secret_string)["MESH_SENDER_MAILBOX_ID"],
     MESH_SENDER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_password.secret_string)["MESH_SENDER_MAILBOX_PASSWORD"],
     CAAS_MESH_MAILBOX_ID         = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_id.secret_string)["CAAS_MESH_MAILBOX_ID"],
-    CAAS_MESH_MAILBOX_PASSWORD   = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_password.secret_string)["CAAS_MESH_MAILBOX_PASSWORD"]
+    CAAS_MESH_MAILBOX_PASSWORD   = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_password.secret_string)["CAAS_MESH_MAILBOX_PASSWORD"],
   }
 }
 
@@ -1281,8 +1282,8 @@ module "caas_feed_add_records_lambda" {
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "caasFeedAddRecordsLambda"
-  lambda_timeout       = 100
-  memory_size          = 1024
+  lambda_timeout       = 180
+  memory_size          = 2048
   lambda_s3_object_key = "caas_feed_add_records_lambda.zip"
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
