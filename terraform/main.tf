@@ -1282,8 +1282,8 @@ module "caas_feed_add_records_lambda" {
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "caasFeedAddRecordsLambda"
-  lambda_timeout       = 100
-  memory_size          = 1024
+  lambda_timeout       = 180
+  memory_size          = 2048
   lambda_s3_object_key = "caas_feed_add_records_lambda.zip"
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
