@@ -45,7 +45,7 @@ resource "aws_acm_certificate_validation" "cert_validation" {
 }
 
 resource "aws_acm_certificate" "cert" {
-  domain_name       = aws_route53_record.a_record.name
+  domain_name       = "${var.environment}.${var.hostname}"
   validation_method = "DNS"
 
   lifecycle {
