@@ -130,6 +130,8 @@ runs:
         npm install --prefix src/validateClinicDataLambda
         npm install --prefix src/validateClinicCapacityLambda
         npm install --prefix src/gtmsUploadClinicDataLambda
+        npm install --prefix src/gpsJwksLambda
+        npm install --prefix src/cis2SignedJwtLambda
         npm install --prefix src/gtmsUploadClinicCapacityDataLambda
         npm install --prefix src/sendGTMSInvitationBatchLambda
         npm install --prefix src/gtmsStatusUpdateLambda
