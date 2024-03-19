@@ -20,7 +20,7 @@ resource "aws_route53_record" "a_record" {
   name    = "${var.environment}.${var.hostname}"
   type    = "CNAME"
   ttl     = "300"
-  records = [aws_elastic_beanstalk_environment.screens.endpoint_url]
+  records = ["${var.environment}.${var.hostname}.elasticbeanstalk.com"]
 }
 
 resource "aws_route53_record" "cert" {
@@ -135,58 +135,59 @@ resource "aws_security_group_rule" "https" {
   cidr_blocks       = ["0.0.0.0/0"]
 }
 
-# # Elastic Beanstalk Environment
-# resource "aws_elastic_beanstalk_environment" "screens" {
-#   name                = "${var.environment}-${var.name}-frontend"
-#   application         = aws_elastic_beanstalk_application.screens.name
-#   solution_stack_name = "64bit Amazon Linux 2 v5.8.7 running Node.js 18"
-#   version_label       = aws_elastic_beanstalk_application_version.screens.name
+# Elastic Beanstalk Environment
+resource "aws_elastic_beanstalk_environment" "screens" {
+  name                = "${var.environment}-${var.name}-frontend"
+  application         = aws_elastic_beanstalk_application.screens.name
+  solution_stack_name = "64bit Amazon Linux 2 v5.8.7 running Node.js 18"
+  version_label       = aws_elastic_beanstalk_application_version.screens.name
+  cname_prefix        = "${var.environment}.${var.hostname}"
 
-#   setting {
-#     namespace = "aws:elb:listener:443"
-#     name      = "ListenerProtocol"
-#     value     = "HTTPS"
-#   }
+  setting {
+    namespace = "aws:elb:listener:443"
+    name      = "ListenerProtocol"
+    value     = "HTTPS"
+  }
 
-#   setting {
-#     namespace = "aws:elb:listener:443"
-#     name      = "SSLCertificateId"
-#     value     = aws_acm_certificate.cert.arn
-#   }
+  setting {
+    namespace = "aws:elb:listener:443"
+    name      = "SSLCertificateId"
+    value     = aws_acm_certificate.cert.arn
+  }
 
-#   setting {
-#     namespace = "aws:elb:listener:443"
-#     name      = "InstancePort"
-#     value     = "80"
-#   }
+  setting {
+    namespace = "aws:elb:listener:443"
+    name      = "InstancePort"
+    value     = "80"
+  }
 
-#   setting {
-#     namespace = "aws:elasticbeanstalk:environment"
-#     name      = "EnvironmentType"
-#     value     = "LoadBalanced"
-#   }
+  setting {
+    namespace = "aws:elasticbeanstalk:environment"
+    name      = "EnvironmentType"
+    value     = "LoadBalanced"
+  }
 
-#   setting {
-#     namespace = "aws:autoscaling:launchconfiguration"
-#     name      = "IamInstanceProfile"
-#     value     = aws_iam_instance_profile.screens.name
-#   }
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "IamInstanceProfile"
+    value     = aws_iam_instance_profile.screens.name
+  }
 
-#   setting {
-#     namespace = "aws:autoscaling:launchconfiguration"
-#     name      = "SecurityGroups"
-#     value     = aws_security_group.screens.id
-#   }
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "SecurityGroups"
+    value     = aws_security_group.screens.id
+  }
 
-#   setting {
-#     namespace = "aws:ec2:vpc"
-#     name      = "VPCId"
-#     value     = var.vpc_id
-#   }
+  setting {
+    namespace = "aws:ec2:vpc"
+    name      = "VPCId"
+    value     = var.vpc_id
+  }
 
-#   setting {
-#     namespace = "aws:ec2:vpc"
-#     name      = "Subnets"
-#     value     = "${var.subnet_1},${var.subnet_2}"
-#   }
-# }
+  setting {
+    namespace = "aws:ec2:vpc"
+    name      = "Subnets"
+    value     = "${var.subnet_1},${var.subnet_2}"
+  }
+}
