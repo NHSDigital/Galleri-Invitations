@@ -74,6 +74,15 @@ describe('validateCaasFeed function', () => {
     );
   });
 
+  test('should return failure for blank Primary Care Provider', () => {
+    const validationResult = validateRecord({ ...validRecord, primary_care_provider: " " });
+
+    expect(validationResult.success).toBe(false);
+    expect(validationResult.message).toBe(
+      "Technical error - GP Practice code contain blank values"
+    );
+  });
+
   test('should return failure for the Primary Care Provider and the Reason for Removal fields contain values', () => {
     const validationResult = validateRecord({ ...validRecord, primary_care_provider: "null", reason_for_removal: "null", });
 

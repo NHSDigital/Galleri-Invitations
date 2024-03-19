@@ -1,0 +1,9 @@
+{
+  "name": "gpsJwksLambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "gpsJwksLambda.js",
+  "author": "",
+  "dependencies": {
+  }
+}

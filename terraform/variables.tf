@@ -22,11 +22,13 @@ variable "USERS" {
 }
 
 variable "CIS2_ID" {
-  default = null
+  default     = null
+  description = "The CIS2 client_id"
 }
 
 variable "CIS2_SECRET" {
-  default = null
+  default     = null
+  description = "The CIS2 client_secret"
 }
 
 variable "NEXTAUTH_SECRET" {
@@ -43,4 +45,15 @@ variable "invitations-hostname" {
 
 variable "dns_zone" {
   default = null
+}
+variable "CIS2_TOKEN_ENDPOINT_URL" {
+  description = "The CIS2 token endpoint URL"
+}
+
+variable "CIS2_PUBLIC_KEY_ID" {
+  description = "The CIS2 public key id (kid)"
+}
+
+variable "CIS2_KNAME" {
+  description = "The CIS2 private key secret name in AWS secrets manager"
 }
