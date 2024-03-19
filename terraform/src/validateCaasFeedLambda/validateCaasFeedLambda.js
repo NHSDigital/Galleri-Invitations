@@ -16,6 +16,7 @@ export const handler = async (event) => {
     event.Records[0].s3.object.key.replace(/\+/g, " ")
   );
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
+  const slicedKey = key.slice(16, -4);
   try {
     const csvString = await readCsvFromS3(bucket, key, s3);
     const records = await parseCsvToArray(csvString);
@@ -33,9 +34,6 @@ export const handler = async (event) => {
     console.log(
       "Start Filtering the successful Validated records and split into 3 arrays. ADD, UPDATE and DELETE array "
     );
-
-    //Timestamp
-    const timeNow = Date.now();
 
     // Valid Records Arrangement
     const [recordsAdd, recordsUpdate, recordsDelete] =
@@ -55,7 +53,7 @@ export const handler = async (event) => {
     if (recordsAddCsvData.length > 0) {
       await pushCsvToS3(
         `${ENVIRONMENT}-galleri-processed-caas-data`,
-        `validRecords/valid_records_add-${timeNow}.csv`,
+        `validRecords/valid_records_add-${slicedKey}.csv`,
         recordsAddCsvData,
         s3
       );
@@ -66,7 +64,7 @@ export const handler = async (event) => {
     if (recordsUpdateCsvData.length > 0) {
       await pushCsvToS3(
         `${ENVIRONMENT}-galleri-processed-caas-data`,
-        `validRecords/valid_records_update-${timeNow}.csv`,
+        `validRecords/valid_records_update-${slicedKey}.csv`,
         recordsUpdateCsvData,
         s3
       );
@@ -77,7 +75,7 @@ export const handler = async (event) => {
     if (recordsDeleteCsvData.length > 0) {
       await pushCsvToS3(
         `${ENVIRONMENT}-galleri-processed-caas-data`,
-        `validRecords/valid_records_delete-${timeNow}.csv`,
+        `validRecords/valid_records_delete-${slicedKey}.csv`,
         recordsDeleteCsvData,
         s3
       );
@@ -88,7 +86,7 @@ export const handler = async (event) => {
     if (invalidRecordsCsvData.length > 0) {
       await pushCsvToS3(
         `${ENVIRONMENT}-galleri-processed-caas-data`,
-        `invalidRecords/invalid_records-${timeNow}.csv`,
+        `invalidRecords/invalid_records-${slicedKey}.csv`,
         invalidRecordsCsvData,
         s3
       );
@@ -100,7 +98,7 @@ export const handler = async (event) => {
     if (outputUnsuccess.length > 0) {
       console.warn(
         "PLEASE FIND THE INVALID CAAS RECORDS FROM THE PROCESSED CAAS FEED BELOW:\n" +
-          JSON.stringify(outputUnsuccess, null, 2)
+        JSON.stringify(outputUnsuccess, null, 2)
       );
     } else {
       console.log("NO INVALID RECORDS FOUND IN THE PROCESSED CAAS FEED");
@@ -244,6 +242,14 @@ export function validateRecord(record) {
     validationResults.success = false;
     validationResults.message =
       "Technical error - The Superseded by NHS number was not supplied in a valid format";
+    return validationResults;
+  }
+
+  //GAL-1237 - when primary care provider is blank
+  if (record.primary_care_provider.trim().length === 0) {
+    validationResults.success = false;
+    validationResults.message =
+      "Technical error - GP Practice code contain blank values";
     return validationResults;
   }
 
