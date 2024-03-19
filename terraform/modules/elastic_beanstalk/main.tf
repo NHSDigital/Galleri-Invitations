@@ -145,6 +145,8 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   version_label       = aws_elastic_beanstalk_application_version.screens.name
   cname_prefix        = "${var.environment}-${var.dns_zone}-gps-cancer-detection-blood-test"
 
+  depends_on = [aws_acm_certificate_validation.cert_validation]
+
   setting {
     namespace = "aws:elb:listener:443"
     name      = "ListenerProtocol"
