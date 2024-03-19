@@ -23,8 +23,31 @@ resource "aws_route53_record" "a_record" {
   records = [aws_elastic_beanstalk_environment.screens.endpoint_url]
 }
 
+resource "aws_route53_record" "cert_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.cert.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      type   = dvo.resource_record_type
+      record = dvo.resource_record_value
+    }
+  }
+
+  zone_id = data.aws_route53_zone.zone.id
+  name    = each.value.name
+  type    = each.value.type
+  records = [each.value.record]
+  ttl     = 60
+}
+
+resource "aws_acm_certificate_validation" "cert" {
+  certificate_arn         = aws_acm_certificate.cert.arn
+  validation_record_fqdns = [for _, record in aws_route53_record.cert_validation : "${record.name}.${var.hostname}."]
+
+  depends_on = [aws_route53_record.cert_validation]
+}
+
 resource "aws_acm_certificate" "cert" {
-  domain_name       = "${var.environment}.${var.hostname}"
+  domain_name       = aws_route53_record.a_record.name
   validation_method = "DNS"
 
   lifecycle {
