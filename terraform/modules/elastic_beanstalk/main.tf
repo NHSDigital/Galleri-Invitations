@@ -23,6 +23,15 @@ resource "aws_route53_record" "a_record" {
   records = [aws_elastic_beanstalk_environment.screens.endpoint_url]
 }
 
+resource "aws_acm_certificate" "cert" {
+  domain_name       = "subdomain.${var.hostname}"
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 # IAM Role for Elastic Beanstalk environment's EC2 instances
 resource "aws_iam_role" "screens" {
   name = "${var.environment}-${var.name}-role"
@@ -87,14 +96,14 @@ resource "aws_security_group" "screens" {
 }
 
 # Inbound rules for HTTP and HTTPS
-resource "aws_security_group_rule" "http" {
-  security_group_id = aws_security_group.screens.id
-  type              = "ingress"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
-}
+# resource "aws_security_group_rule" "http" {
+#   security_group_id = aws_security_group.screens.id
+#   type              = "ingress"
+#   from_port         = 80
+#   to_port           = 80
+#   protocol          = "tcp"
+#   cidr_blocks       = ["0.0.0.0/0"]
+# }
 
 resource "aws_security_group_rule" "https" {
   security_group_id = aws_security_group.screens.id
@@ -111,6 +120,24 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   application         = aws_elastic_beanstalk_application.screens.name
   solution_stack_name = "64bit Amazon Linux 2 v5.8.7 running Node.js 18"
   version_label       = aws_elastic_beanstalk_application_version.screens.name
+
+  setting {
+    namespace = "aws:elb:listener:443"
+    name      = "ListenerProtocol"
+    value     = "HTTPS"
+  }
+
+  setting {
+    namespace = "aws:elb:listener:443"
+    name      = "SSLCertificateId"
+    value     = aws_acm_certificate.cert.arn
+  }
+
+  setting {
+    namespace = "aws:elb:listener:443"
+    name      = "InstancePort"
+    value     = "80"
+  }
 
   setting {
     namespace = "aws:elasticbeanstalk:environment"
