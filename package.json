@@ -27,6 +27,7 @@
     "csv-stringify": "^6.4.4",
     "dayjs": "^1.11.10",
     "jsonschema": "^1.4.1",
+    "jsonwebtoken": "^9.0.2",
     "loglevel": "^1.9.1",
     "nhs-mesh-client": "^1.0.8",
     "randexp": "^0.5.3"
