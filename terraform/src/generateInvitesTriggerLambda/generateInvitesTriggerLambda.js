@@ -36,7 +36,7 @@ export const handler = async (event, context) => {
       createdBy,
       client
     );
-    console.log(`responsePopulation = ${responsePopulation.length}`)
+    console.log(`responsePopulation = ${responsePopulation.length}`);
     const responsePhlebotomySite = await updateClinicFields(
       clinicInfo,
       personIdentifiedArray.length,
@@ -48,15 +48,17 @@ export const handler = async (event, context) => {
         (element) => element.value === SUCCESSFULL_REPSONSE
       )
     ) {
-      console.log(`All ${responsePopulation.length} persons successfully updated`);
+      console.log(
+        `All ${responsePopulation.length} persons successfully updated`
+      );
       personUpdated = true;
-    }
-    else {
-      const successfulRecords = responsePopulation.reduce(
-        (curr, acc) => {if (curr.value === SUCCESSFULL_REPSONSE) return acc + 1}
-        ,0
-      )
-      console.log(`Only ${successfulRecords}/${responsePopulation.length} persons were successfully updated. Contact third line support to investigate`);
+    } else {
+      const successfulRecords = responsePopulation.reduce((curr, acc) => {
+        if (curr.value === SUCCESSFULL_REPSONSE) return acc + 1;
+      }, 0);
+      console.log(
+        `Only ${successfulRecords}/${responsePopulation.length} persons were successfully updated. Contact third line support to investigate`
+      );
     }
 
     if (responsePhlebotomySite == SUCCESSFULL_REPSONSE) {
@@ -132,13 +134,13 @@ export async function updateRecord(record, batchId, client, createdBy) {
     UpdateExpression: `SET
       #IDENTIFIED_TO_BE_UPDATED = :to_be_invited,
       #BATCH_ID = :batch,
-      #CREATED_BY: created`,
+      #CREATED_BY = :created`,
   };
 
   const command = new UpdateItemCommand(input);
   const response = await client.send(command);
-  if ((response.$metadata.httpStatusCode) != 200){
-    console.log(`record update failed for person ${record}`)
+  if (response.$metadata.httpStatusCode != 200) {
+    console.log(`record update failed for person ${record}`);
   }
   return response.$metadata.httpStatusCode;
 }
@@ -236,12 +238,12 @@ export const generateBatchID = async (client) => {
     let batchId;
     let found;
     do {
-      batchUuid = uuid4()
-      batchId = `IB-${batchUuid}`
-      console.log("Checking if batchId exists in Episode table")
+      batchUuid = uuid4();
+      batchId = `IB-${batchUuid}`;
+      console.log("Checking if batchId exists in Episode table");
       found = await lookupBatchId(batchId, `Population`, client);
     } while (found == 400);
-    console.log(`batchId = ${batchId}`)
+    console.log(`batchId = ${batchId}`);
     return batchId;
   } catch (err) {
     console.error("Error generating batch id.");
@@ -266,8 +268,9 @@ export async function lookupBatchId(batchId, table, dbClient) {
 
   const command = new QueryCommand(input);
   const response = await dbClient.send(command);
-  if (!response.Items.length){ // if response is empty, no matching participantId
-    return 200
+  if (!response.Items.length) {
+    // if response is empty, no matching participantId
+    return 200;
   }
   return 400;
-};
+}
