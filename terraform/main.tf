@@ -1253,7 +1253,7 @@ module "validate_caas_feed_lambda" {
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "validateCaasFeedLambda"
   lambda_timeout       = 100
-  memory_size          = 1024
+  memory_size          = 4096
   lambda_s3_object_key = "validate_caas_feed_lambda.zip"
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
