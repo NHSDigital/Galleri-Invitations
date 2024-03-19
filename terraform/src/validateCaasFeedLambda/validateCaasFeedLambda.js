@@ -245,6 +245,14 @@ export function validateRecord(record) {
     return validationResults;
   }
 
+  //GAL-1237 - when primary care provider is blank
+  if (record.primary_care_provider.trim().length === 0) {
+    validationResults.success = false;
+    validationResults.message =
+      "Technical error - GP Practice code contain blank values";
+    return validationResults;
+  }
+
   // AC6 - Both the Primary Care Provider and the Reason for Removal fields contain values (other than null) OR Both the Primary Care Provider and the Reason for Removal fields contain null values
   if (
     (record.primary_care_provider !== "null" &&
