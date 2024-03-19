@@ -141,7 +141,7 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   application         = aws_elastic_beanstalk_application.screens.name
   solution_stack_name = "64bit Amazon Linux 2 v5.8.7 running Node.js 18"
   version_label       = aws_elastic_beanstalk_application_version.screens.name
-  cname_prefix        = "${var.environment}.${var.hostname}"
+  cname_prefix        = "${var.environment}-${var.dns_zone}-gps-cancer-detection-blood-test"
 
   setting {
     namespace = "aws:elb:listener:443"
