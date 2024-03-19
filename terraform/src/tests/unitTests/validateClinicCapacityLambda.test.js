@@ -1,126 +1,80 @@
-import * as moduleapi from '../../validateClinicDataLambda/validateClinicDataLambda.js';
+import * as moduleapi from "../../validateClinicCapacityLambda/validateClinicCapacityLambda.js";
 import AWS from 'aws-sdk-mock';
 import { mockClient } from "aws-sdk-client-mock";
 import { S3Client } from "@aws-sdk/client-s3";
-import data from "./testData/ClinicData.json";
+import data from "./testData/ClinicCapacity.json";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 
 const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
-  describe('validateClinicData postcode function', () => {
+  describe('validate ClinicID function', () => {
 
-    test('Postcode not in Gridall', async ()=>{
+    test('ClinicID not in DynamoDB', async ()=>{
       mockDynamoDbClient.resolves({
-        Item: [],
+        metadata: [],
       });
-      const postcodeValidation = await moduleapi.isPostcodeInGridall("NW1 2HC", mockDynamoDbClient);
-      expect(postcodeValidation.Item.length).toBe(0);
+      const clinicValidation = await moduleapi.isClinicIDvalid("NJ22I636", mockDynamoDbClient);
+      expect(clinicValidation.hasOwnProperty("Items")).toBe(false);
     });
 
-    test('Postcode in Gridall', async ()=>{
+    test('ClinicID not in DynamoDB', async ()=>{
       mockDynamoDbClient.resolves({
-        "Item": {
-          "ICB": {
-            "S": "QNX"
-          }
-        }
+        Items: ["NJ22I636"],
       });
-      const postcodeValidation = await moduleapi.isPostcodeInGridall("NW1 2HC", mockDynamoDbClient);
-      expect(postcodeValidation.Item.ICB.S).toBe("QNX");
+      const clinicValidation = await moduleapi.isClinicIDvalid("NJ22I636", mockDynamoDbClient );
+      expect(clinicValidation.hasOwnProperty("Items")).toBe(true);
     });
 
   })
-  describe('validateClinicData function', () => {
+  describe('validateClinicCapacity function', () => {
 
     test('should return success for a valid record', async() => {
 
       mockDynamoDbClient.resolves({
-        "Item": {
-          "ICB": {
-            "S": "QNX"
-          }
-        }
+        Count: 1,
       });
       const validationResult = await moduleapi.validateRecord(data[0], mockDynamoDbClient);
       expect(validationResult.success).toBe(true);
     });
 
-    test('should return failure for an invalid post code', async() => {
+    test('should return failure for an invalid ClinicID', async() => {
 
       mockDynamoDbClient.resolves({
         metadata: [],
       });
       const validationResult = await moduleapi.validateRecord(data[0], mockDynamoDbClient);
       expect(validationResult.success).toBe(false);
-      expect(validationResult.message).toBe(
-        'Invalid PostCode : SO42 7BZ'
-      );
+      expect(validationResult.message).toBe('Invalid ClinicID: C1C-A1A');
     });
 
-    test('should return failure for an invalid ICB code', async() => {
+    test('should return failure for an invalid date', async() => {
       mockDynamoDbClient.resolves({
-        "Item": {
-          "ICB": {S:"01D"}
-        }
+        Count : 1,
       });
       const validationResult = await moduleapi.validateRecord(data[1], mockDynamoDbClient);
 
       expect(validationResult.success).toBe(false);
       expect(validationResult.message).toBe(
-        'Invalid ICB Code : 01D'
+        'Invalid JSON Schema'
       );
     });
 
-    test('should return failure for wrong postcode', async() => {
+    test('should return failure for out-of-bound availability', async() => {
+      mockDynamoDbClient.resolves({
+        Count : 1,
+      });
       const validationResult = await moduleapi.validateRecord(data[2], mockDynamoDbClient);
       expect(validationResult.success).toBe(false);
-      expect(validationResult.message).toBe("Invalid JSON");
+      expect(validationResult.message).toBe("Invalid JSON Schema");
     });
 
-    test('should return failure for wrong ODScode', async() => {
+    test('should return failure for wrong clinic ID in multiple clinics', async() => {
+      mockDynamoDbClient.resolves({
+        Count : 1,
+      });
         const validationResult = await moduleapi.validateRecord(data[3], mockDynamoDbClient);
         expect(validationResult.success).toBe(false);
-        expect(validationResult.message).toBe("Invalid JSON");
-      });
-
-      test('should return failure for missing Clinic Name', async() => {
-        const validationResult = await moduleapi.validateRecord(data[4], mockDynamoDbClient);
-        expect(validationResult.success).toBe(false);
-        expect(validationResult.message).toBe("Invalid JSON");
-      });
-
-      test('should return failure for missing Address', async() => {
-        const validationResult = await moduleapi.validateRecord(data[5], mockDynamoDbClient);
-        expect(validationResult.success).toBe(false);
-        expect(validationResult.message).toBe("Invalid JSON");
-      });
-
-      test('should return failure for missing Directions', async() => {
-        const validationResult = await moduleapi.validateRecord(data[6], mockDynamoDbClient);
-        expect(validationResult.success).toBe(false);
-        expect(validationResult.message).toBe("Invalid JSON");
-      });
-
-      test('should return failure for missing Directions', async() => {
-        mockDynamoDbClient.resolves({
-          "Item": {
-            "ICB": {S:"QNX"}
-          }
-        });
-        const validationResult = await moduleapi.validateRecord(data[7], mockDynamoDbClient);
-        expect(validationResult.success).toBe(true);
-        expect(validationResult.key.ClinicCreateOrUpdate.ICBCode).toBe("QNX");
-      });
-
-      test('should return failure for missing Directions', async() => {
-        mockDynamoDbClient.resolves({
-          "Item": {
-            "ICB": {S:"QJK"}
-          }
-        });
-        const validationResult = await moduleapi.validateRecord(data[8], mockDynamoDbClient);
-        expect(validationResult.success).toBe(false);
-        expect(validationResult.message).toBe("Invalid ICB Code provided in GTMS message: QNX");
+        expect(validationResult.message).toBe("Invalid JSON Schema");
       });
 
     afterEach(() => {
@@ -151,7 +105,7 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
         $metadata: { httpStatusCode: 200 },
       });
       const result = await moduleapi.pushToS3(
-        "galleri-clinic-data",
+        "galleri-clinic-capacity",
         "test.txt",
         "dfsdfd",
         mockS3Client
@@ -168,7 +122,7 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
         send: jest.fn().mockRejectedValue(errorMsg),
       };
       try {
-        await moduleapi.pushToS3("galleri-clinic-data", "test.txt", "dfsdfd", mockClient);
+        await moduleapi.pushToS3("galleri-clinic-capacity", "test.txt", "dfsdfd", mockClient);
       } catch (err) {
         expect(err.message).toBe("Mocked error");
       }
@@ -186,6 +140,9 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
       AWS.mock('S3', 'putObject', (params, callback) => {
         // Provide a mocked response for putObject
         callback(null, 'mocked response');
+      });
+      mockDynamoDbClient.resolves({
+        Items: ["SO42 7BZ"],
       });
     });
 

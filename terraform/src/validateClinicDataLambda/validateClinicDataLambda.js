@@ -23,19 +23,16 @@ export const handler = async (event) => {
     console.log(`Finished validating object ${key} in bucket ${bucket}`);
     console.log('----------------------------------------------------------------');
 
-    //Timestamp
-    const timeNow = Date.now();
-
     console.log(`Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${bucket}`);
 
     // Valid Records Arrangement
     if (validationResults.success) {
       // Deposit to S3 bucket
-      await pushToS3(`${ENVIRONMENT}-processed-inbound-gtms-clinic-create-or-update`, `validRecords/valid_records_add-${timeNow}.json`, jsonString, s3);
+      await pushToS3(`${ENVIRONMENT}-processed-inbound-gtms-clinic-create-or-update`, `validRecords/${key}`, JSON.stringify(validationResults.key), s3);
     }
     else {
-      await pushToS3(`${ENVIRONMENT}-processed-inbound-gtms-clinic-create-or-update`, `invalidRecords/invalid_records-${timeNow}.json`, jsonString, s3);
-      console.warn("PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Data BELOW:\n" + validationResult.errors, null, 2);
+      await pushToS3(`${ENVIRONMENT}-processed-inbound-gtms-clinic-create-or-update`, `invalidRecords/${key}`, jsonString, s3);
+      console.warn("PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Data BELOW:\n" + validationResults.message);
     }
     return `Finished validating object ${key} in bucket ${bucket}`;
 
@@ -84,6 +81,7 @@ export async function validateRecord(record, client) {
   const validationResults = {
     success: true,
     message: "success",
+    key: record,
   };
 
   console.log("record:", record);
@@ -99,6 +97,16 @@ export async function validateRecord(record, client) {
         // AC - not covered ICB code provided (if supplied)
         validationResults.success = false;
         validationResults.message = `Invalid ICB Code : ${ICBValidation}`;
+        return validationResults;
+      }
+      else if(!(record.ClinicCreateOrUpdate).hasOwnProperty("ICBCode")){
+        record.ClinicCreateOrUpdate["ICBCode"]=ICBValidation;
+        validationResults.key = record;
+        return validationResults;
+      }
+      else if(ICBValidation !=record.ClinicCreateOrUpdate.ICBCode){
+        validationResults.success = false;
+        validationResults.message = `Invalid ICB Code provided in GTMS message: ${record.ClinicCreateOrUpdate.ICBCode}`;
         return validationResults;
       }
     }
