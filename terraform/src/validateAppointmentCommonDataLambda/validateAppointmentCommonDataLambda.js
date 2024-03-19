@@ -23,7 +23,10 @@ export const handler = async (event) => {
     const appointmentJson = JSON.parse(appointmentString);
     const { Appointment } = appointmentJson;
     //Check if ParticipantID and Episode exist in respective Dynamo tables
-    if (Appointment.ParticipantID?.trim() !== " ") {
+    if (
+      Appointment.ParticipantID &&
+      Appointment.ParticipantID?.trim() !== " "
+    ) {
       const validateParticipantIdResponse = await lookUp(
         dbClient,
         Appointment.ParticipantID,
@@ -57,8 +60,10 @@ export const handler = async (event) => {
     }
     //Check if either PDSNHSNumber and InvitationNHSNumber map to an NHS Number
     if (
-      Appointment.InvitationNHSNumber?.trim() !== " " &&
-      Appointment.PDSNHSNumber?.trim() !== " "
+      Appointment.InvitationNHSNumber &&
+      Appointment.InvitationNHSNumber?.trim() !== "" &&
+      Appointment.PDSNHSNumber &&
+      Appointment.PDSNHSNumber?.trim() !== ""
     ) {
       if (
         Appointment.InvitationNHSNumber !==
@@ -78,7 +83,7 @@ export const handler = async (event) => {
       return;
     }
     //Check if ClinicID exists in its respective Dynamo tables
-    if (Appointment.ClinicID?.trim() !== " ") {
+    if (Appointment.ClinicID && Appointment.ClinicID?.trim() !== "") {
       const validateClinicIdResponse = await lookUp(
         dbClient,
         Appointment.ClinicID,
@@ -99,7 +104,7 @@ export const handler = async (event) => {
       return;
     }
     //Checks to ensure new appointment time is more recent than the old appointment time
-    if (Appointment.AppointmentID?.trim() !== " ") {
+    if (Appointment.AppointmentID && Appointment.AppointmentID?.trim() !== "") {
       const validateAppointmentIdResponse = await lookUp(
         dbClient,
         Appointment.AppointmentID,
