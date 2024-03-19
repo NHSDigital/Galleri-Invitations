@@ -135,5 +135,6 @@ runs:
         npm install --prefix src/cis2SignedJwtLambda
         npm install --prefix src/gtmsUploadClinicCapacityDataLambda
         npm install --prefix src/sendGTMSInvitationBatchLambda
+        npm install --prefix src/validateAppointmentCommonDataLambda
         npm install --prefix src/gtmsStatusUpdateLambda
         terraform ${{ env.tf-action }} -auto-approve -input=false -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars
