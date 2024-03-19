@@ -51,7 +51,7 @@ export const handler = async (event, context) => {
           const messageBody = splitMeshString.splice(1); //data - header
 
           const x = new Set(messageBody);
-          let chunk = [...chunking(x, 2002, header)]; //includes header, buffer and 2000 records
+          let chunk = [...chunking(x, 2001, header)]; //includes header, buffer and 2000 records
 
           const upload = await multipleUpload(chunk, clientS3, ENVIRONMENT);
           if (upload[0].$metadata.httpStatusCode === 200) {
