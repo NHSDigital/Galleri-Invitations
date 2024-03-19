@@ -109,6 +109,7 @@ resource "aws_elastic_beanstalk_application_version" "screens" {
   application = aws_elastic_beanstalk_application.screens.name
   bucket      = aws_s3_bucket.screens.bucket
   key         = aws_s3_object.screens.key
+  depends_on  = [aws_acm_certificate_validation.cert_validation]
 }
 
 # Security Group for the Elastic Beanstalk environment
