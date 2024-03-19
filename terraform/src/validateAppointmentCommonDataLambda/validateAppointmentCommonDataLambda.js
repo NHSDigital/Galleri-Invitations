@@ -23,10 +23,7 @@ export const handler = async (event) => {
     const appointmentJson = JSON.parse(appointmentString);
     const { Appointment } = appointmentJson;
     //Check if ParticipantID and Episode exist in respective Dynamo tables
-    if (
-      Appointment.ParticipantID &&
-      Appointment.ParticipantID?.trim() !== " "
-    ) {
+    if (Appointment.ParticipantID && Appointment.ParticipantID?.trim() !== "") {
       const validateParticipantIdResponse = await lookUp(
         dbClient,
         Appointment.ParticipantID,
