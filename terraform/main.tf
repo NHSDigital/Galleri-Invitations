@@ -1189,7 +1189,7 @@ module "caas_feed_delete_records_lambda_trigger" {
   lambda_arn    = module.caas_feed_delete_records_lambda.lambda_arn
   filter_prefix = "validRecords/valid_records_delete-"
 }
-    
+
 # Dynamodb tables
 module "sdrs_table" {
   source      = "./modules/dynamodb"
