@@ -318,6 +318,11 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Policy required by validateClinicDataLambda
 # resource "aws_iam_policy" "iam_policy_for_validate_clinic_data_lambda" {
 #  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_validate_clinic_data_lambda_role"
+
+# Policy required by validateClinicCapacityLambda
+# resource "aws_iam_policy" "iam_policy_for_validate_clinic_capacity_lambda" {
+#  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_validate_clinic_capacity_lambda_role"
+
 # Policy required by validateCaasFeedLambda
 # resource "aws_iam_policy" "iam_policy_for_validate_caas_feed_lambda" {
 #  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_validate_caas_feed_lambda_role"
@@ -454,10 +459,16 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 
 # Added GpPractice and Postcode to this policy as lambda role exceeded policy limit
 # Added validate CLinic Data to this policy as lambda role exceeded policy limit
+# Added validate CLinic Capacity to this policy as lambda role exceeded policy limit
 # Added validate Caas Feed to this policy as lambda role exceeded policy limit
 # Added Sending Invitaiton batch to GTMS to this plicy as lambda role exceeded policy limit
 # Added UserAccounts to this policy as lambda role exceeded policy limit
 # Added caasFeedDeleteRecords to this policy as lambda role exceeded policy limit
+# Added gtms upload clinic capacity data to this policy as lambda role exceeded policy limit
+# Added validateGtmsAppointment to this policy as lambda role exceeded policy limit
+# Added gtmsStatusUpdateLambda to this policy as lambda role exceeded policy limit
+# Added caasFeedAdd to this policy as lambda role exceeded policy limit
+
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
   path        = "/"
@@ -482,11 +493,14 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           ],
           "Resource" : [
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population/*/*",
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population",
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GpPractice",
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Postcode",
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-UserAccounts",
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite",
             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Appointments",
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite/*/*",
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Episode",
           ]
         },
         {
@@ -496,14 +510,27 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "s3:*"
           ],
           "Resource" : [
-            "arn:aws:s3:::${var.environment}-galleri-caas-data/*",
+            "arn:aws:s3:::galleri-clinic-data/*",
+            "arn:aws:s3:::galleri-clinic-capacity/*",
             "arn:aws:s3:::${var.environment}-outbound-gtms-invited-participant-batch/*",
+            "arn:aws:s3:::${var.environment}-galleri-caas-data/*",
+            "arn:aws:s3:::${var.environment}-invalid-gtms-payload/*",
+            "arn:aws:s3:::${var.environment}-outbound-gtms-invited-participant-batch/*",
+            "arn:aws:s3:::${var.environment}-inbound-gtms-appointment/*",
+            "arn:aws:s3:::${var.environment}-inbound-gtms-appointment-validated/*",
             "arn:aws:s3:::${var.environment}-processed-inbound-gtms-clinic-create-or-update",
             "arn:aws:s3:::${var.environment}-inbound-gtms-clinic-create-or-update/*",
+            "arn:aws:s3:::${var.environment}-processed-inbound-gtms-clinic-create-or-update/*",
             "arn:aws:s3:::${var.environment}-inbound-gtms-clinic-schedule-summary/*",
+            "arn:aws:s3:::${var.environment}-processed-inbound-gtms-clinic-schedule-summary/*",
             "arn:aws:s3:::${var.environment}-inbound-gtms-appointment/*",
             "arn:aws:s3:::${var.environment}-inbound-gtms-withdrawal/*",
-            "arn:aws:s3:::${var.environment}-sent-gtms-invited-participant-batch",
+            "arn:aws:s3:::${var.environment}-gps-public-keys-bucket/*",
+            "arn:aws:s3:::${var.environment}-gps-public-keys-bucket",
+            "arn:aws:s3:::${var.environment}-gp-practices-bucket/*",
+            "arn:aws:s3:::${var.environment}-processed-inbound-gtms-withdrawal/*",
+            "arn:aws:s3:::${var.environment}-sent-gtms-invited-participant-batch/*",
+            "arn:aws:s3:::${var.environment}-galleri-processed-caas-data/*",
           ]
         },
         {
@@ -527,7 +554,10 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_PASSWORD*",
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_KEY*",
             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_CERT*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_CERT*"
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_CERT*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:CAAS_MESH_MAILBOX_ID*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:CAAS_MESH_MAILBOX_PASSWORD*",
+            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:CAAS_MESH_CERT*",
           ]
         },
         {
@@ -651,6 +681,126 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
   })
 }
 
+# resource "aws_iam_policy" "iam_policy_for_gtms_upload_clinic_capacity_data_lambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_gtms_upload_clinic_capacity_data_lambda_role"
+#   path        = "/"
+#   description = "AWS IAM Policy for managing aws lambda gtms upload clinic capacity role"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+#           "Sid" : "AllowPhlebotomySiteDynamodbAccess",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "dynamodb:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite/*/*"
+#           ]
+#         },
+#           "Sid" : "AllowS3Access",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "s3:*"
+#           ],
+#           "Resource" : [
+#         {
+#             "arn:aws:s3:::${var.environment}-processed-inbound-gtms-clinic-create-or-update/*",
+#             "arn:aws:s3:::${var.environment}-processed-inbound-gtms-clinic-schedule-summary/*",
+#           ]
+#         }
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+# }
+
+# resource "aws_iam_policy" "iam_policy_for_validate_gtms_appointment_lambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_validate_gtms_appointment_lambda_role"
+#   path        = "/"
+#   description = "AWS IAM Policy for validating gtms appointment lambda"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+
+#           "Sid" : "AllowS3Access",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "s3:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:s3:::${var.environment}-inbound-gtms-appointment/*",
+#             "arn:aws:s3:::${var.environment}-inbound-gtms-appointment-validated/*",
+#           ]
+#         },
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+# }
+
+# # Policy required by caasFeedAddRecordsLambda
+# resource "aws_iam_policy" "iam_policy_for_caas_feed_add_lambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_caas_feed_add_lambda_role"
+#   path        = "/"
+#   description = "AWS IAM Policy for caas feed add lambda"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+#           "Sid" : "AllowS3Access",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "s3:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:s3:::${var.environment}-galleri-processed-caas-data/*",
+#           ]
+#         },
+#         {
+#           "Sid" : "AllowDyanmodbAccess",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "dynamodb:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population"
+#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population/*/*",
+#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Postcode"
+#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GpPractice"
+#           ]
+#         },
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+# }
+
 resource "aws_iam_role_policy_attachment" "galleri_lambda_policy" {
   role       = aws_iam_role.galleri_lambda_role.name
   policy_arn = aws_iam_policy.iam_policy_for_lambda.arn
@@ -671,12 +821,19 @@ resource "aws_iam_role_policy_attachment" "clinic_information_lambda" {
 #resource "aws_iam_role_policy_attachment" "validate_clinic_data_lambda" {
 #  role       = aws_iam_role.galleri_lambda_role.name
 #  policy_arn = aws_iam_policy.validate_clinic_data_lambda.arn
+#}
+
+# Role exceeded quota for PoliciesPerRole: 10
+#resource "aws_iam_role_policy_attachment" "validate_clinic_capacity_lambda" {
+#  role       = aws_iam_role.galleri_lambda_role.name
+#  policy_arn = aws_iam_policy.validate_clinic_capacity_lambda.arn
 
 #resource "aws_iam_role_policy_attachment" "validate_caas_feed_lambda" {
 #  role       = aws_iam_role.galleri_lambda_role.name
 #  policy_arn = aws_iam_policy.iam_policy_for_validate_caas_feed_lambda.arn
 #}
 
+# Role exceeded quota for PoliciesPerRole: 10
 #resource "aws_iam_role_policy_attachment" "send_gtms_invitation_batch_lambda" {
 #  role       = aws_iam_role.galleri_lambda_role.name
 #  policy_arn = aws_iam_policy.iam_policy_for_send_gtms_invitation_batch_lambda.arn
@@ -686,6 +843,11 @@ resource "aws_iam_role_policy_attachment" "clinic_information_lambda" {
 # resource "aws_iam_role_policy_attachment" "caas_feed_delete_records_lambda" {
 #   role       = aws_iam_role.galleri_lambda_role.name
 #   policy_arn = aws_iam_policy.iam_policy_for_caas_feed_delete_records_lambda.arn
+
+# Role exceeded quota for PoliciesPerRole: 10
+# resource "aws_iam_role_policy_attachment" "caas_feed_add_lambda" {
+#  role       = aws_iam_role.galleri_lambda_role.name
+#  policy_arn = aws_iam_policy.iam_policy_for_caas_feed_add_lambda.arn
 # }
 
 resource "aws_iam_role_policy_attachment" "participating_icb_list_lambda" {
@@ -728,15 +890,45 @@ resource "aws_iam_role_policy_attachment" "generate_invites_policy" {
   policy_arn = aws_iam_policy.iam_policy_for_generate_invites_lambda.arn
 }
 
+# Role exceeded quota for PoliciesPerRole: 10
 # resource "aws_iam_role_policy_attachment" "create_episode_record_policy" {
 #   role       = aws_iam_role.galleri_lambda_role.name
 #   policy_arn = aws_iam_policy.iam_policy_for_create_episode_record_lambda.arn
+# }
+
+# Role exceeded quota for PoliciesPerRole: 10
+# resource "aws_iam_role_policy_attachment" "validate_gtms_appointment_lambda" {
+#   role       = aws_iam_role.galleri_lambda_role.name
+#   policy_arn = aws_iam_policy.iam_policy_for_validate_gtms_appointment_lambda.arn
 # }
 
 # resource "aws_iam_role_policy_attachment" "secrets_lambda_policy" {
 #   role       = aws_iam_role.github-oidc-invitations-role.name
 #   policy_arn = aws_iam_policy.iam_policy_for_participants_in_lsoa_lambda.arn
 # }
+
+# Role exceeded quota for PoliciesPerRole: 10
+#resource "aws_iam_role_policy_attachment" "gp_practice_loader_lambda" {
+#  role       = aws_iam_role.galleri_lambda_role.name
+#  policy_arn = aws_iam_policy.gp_practice_loader_lambda.arn
+#}
+
+# Role exceeded quota for PoliciesPerRole: 10
+#resource "aws_iam_role_policy_attachment" "validate_clinic_data_lambda" {
+#  role       = aws_iam_role.galleri_lambda_role.name
+#  policy_arn = aws_iam_policy.validate_clinic_data_lambda.arn
+
+# Role exceeded quota for PoliciesPerRole: 10
+#resource "aws_iam_role_policy_attachment" "validate_caas_feed_lambda" {
+#  role       = aws_iam_role.galleri_lambda_role.name
+#  policy_arn = aws_iam_policy.validate_caas_feed_lambda.arn
+#}
+
+# Role exceeded quota for PoliciesPerRole: 10
+#resource "aws_iam_role_policy_attachment" "gtms_upload_clinic_capacity_data" {
+#  role       = aws_iam_role.galleri_lambda_role.name
+#  policy_arn = aws_iam_policy.iam_policy_for_gtms_upload_clinic_capacity_data_lambda.arn
+#}
 
 resource "aws_iam_role" "api_gateway_logging_role" {
   name = "${var.environment}-galleri_logging_role"

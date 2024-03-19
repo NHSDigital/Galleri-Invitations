@@ -15,7 +15,7 @@ const validRecord = {
   "gp_connect": "true",
   "name_prefix": "null",
   "given_name": "Yellow",
-  "other_given_names": "test",
+  "other_given_names": "Zöe-Garciá_Eleña.|Andrea Brown|Charles 3",
   "family_name": "Bentley",
   "date_of_birth": "1990-01-01",
   "gender": "2",
@@ -71,6 +71,15 @@ describe('validateCaasFeed function', () => {
     expect(validationResult.success).toBe(false);
     expect(validationResult.message).toBe(
       "Technical error - The Superseded by NHS number was not supplied in a valid format"
+    );
+  });
+
+  test('should return failure for blank Primary Care Provider', () => {
+    const validationResult = validateRecord({ ...validRecord, primary_care_provider: " " });
+
+    expect(validationResult.success).toBe(false);
+    expect(validationResult.message).toBe(
+      "Technical error - GP Practice code contain blank values"
     );
   });
 
