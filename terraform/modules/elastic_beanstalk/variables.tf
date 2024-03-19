@@ -120,7 +120,3 @@ variable "hostname" {
 variable "dns_zone" {
 
 }
-
-variable "subdomain" {
-  
-}

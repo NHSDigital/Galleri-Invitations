@@ -17,14 +17,14 @@ data "aws_route53_zone" "zone" {
 # Setup DNS record
 resource "aws_route53_record" "a_record" {
   zone_id = data.aws_route53_zone.zone.id
-  name    = "${var.subdomain}.${var.hostname}"
+  name    = "${var.environment}.${var.hostname}"
   type    = "CNAME"
   ttl     = "300"
   records = [aws_elastic_beanstalk_environment.screens.endpoint_url]
 }
 
 resource "aws_acm_certificate" "cert" {
-  domain_name       = "${var.subdomain}.${var.hostname}"
+  domain_name       = "${var.environment}.${var.hostname}"
   validation_method = "DNS"
 
   lifecycle {
