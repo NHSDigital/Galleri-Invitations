@@ -8,7 +8,7 @@ const smClient = new SecretsManagerClient({ region: "eu-west-2" });
 const clientS3 = new S3Client({});
 
 const ENVIRONMENT = process.env.ENVIRONMENT;
-
+const MESH_CHUNK_VALUE = process.env.MESH_CHUNK_VALUE;
 //retrieve secrets into lambda, certificates required to connect to MESH
 const MESH_SENDER_CERT = await readSecret("MESH_SENDER_CERT", smClient);
 const MESH_SENDER_KEY = await readSecret("MESH_SENDER_KEY", smClient);
@@ -51,8 +51,7 @@ export const handler = async (event, context) => {
           const messageBody = splitMeshString.splice(1); //data - header
 
           const x = new Set(messageBody);
-          let chunk = [...chunking(x, 2001, header)]; //includes header, buffer and 2000 records
-
+          let chunk = [...chunking(x, Number(MESH_CHUNK_VALUE), header)]; //includes header, buffer and 2000 records
           const upload = await multipleUpload(chunk, clientS3, ENVIRONMENT);
           if (upload[0].$metadata.httpStatusCode === 200) {
             const response = await markRead(messageArr[i]); //remove message after actioned message
