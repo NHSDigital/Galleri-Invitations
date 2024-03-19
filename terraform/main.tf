@@ -96,6 +96,7 @@ module "gps_public_keys_bucket" {
   bucket_name             = "gps-public-keys-bucket"
   galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   environment             = var.environment
+  account_id              = var.account_id
 }
 
 # CaaS MESH data bucket
