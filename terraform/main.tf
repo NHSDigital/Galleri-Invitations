@@ -18,6 +18,11 @@ module "vpc" {
   name        = "Galleri-VPC"
 }
 
+module "route53_hosted_zone" {
+  source = "./modules/route53"
+  invitations-hostname = var.invitations-hostname
+}
+
 # Deploy frontend in elastic beanstalk
 module "galleri_invitations_screen" {
   source                                                = "./modules/elastic_beanstalk"
