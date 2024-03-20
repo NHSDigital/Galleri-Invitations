@@ -55,7 +55,7 @@ export const handler = async (event) => {
     if (recordsAddCsvData.length > 0) {
       await pushCsvToS3(
         `${ENVIRONMENT}-galleri-processed-caas-data`,
-        `validRecords/valid_records_add-${timeNow}.csv`,
+        `validRecords/${key.replace(/\.[^/.]+$/, "")}_add-${timeNow}.csv`,
         recordsAddCsvData,
         s3
       );
@@ -66,7 +66,7 @@ export const handler = async (event) => {
     if (recordsUpdateCsvData.length > 0) {
       await pushCsvToS3(
         `${ENVIRONMENT}-galleri-processed-caas-data`,
-        `validRecords/valid_records_update-${timeNow}.csv`,
+        `validRecords/${key.replace(/\.[^/.]+$/, "")}_update-${timeNow}.csv`,
         recordsUpdateCsvData,
         s3
       );
@@ -77,7 +77,7 @@ export const handler = async (event) => {
     if (recordsDeleteCsvData.length > 0) {
       await pushCsvToS3(
         `${ENVIRONMENT}-galleri-processed-caas-data`,
-        `validRecords/valid_records_delete-${timeNow}.csv`,
+        `validRecords/${key.replace(/\.[^/.]+$/, "")}_delete-${timeNow}.csv`,
         recordsDeleteCsvData,
         s3
       );
@@ -88,7 +88,7 @@ export const handler = async (event) => {
     if (invalidRecordsCsvData.length > 0) {
       await pushCsvToS3(
         `${ENVIRONMENT}-galleri-processed-caas-data`,
-        `invalidRecords/invalid_records-${timeNow}.csv`,
+        `invalidRecords/${key.replace(/\.[^/.]+$/, "")}-${timeNow}.csv`,
         invalidRecordsCsvData,
         s3
       );
@@ -244,6 +244,14 @@ export function validateRecord(record) {
     validationResults.success = false;
     validationResults.message =
       "Technical error - The Superseded by NHS number was not supplied in a valid format";
+    return validationResults;
+  }
+
+  //GAL-1237 - when primary care provider is blank
+  if (record.primary_care_provider.trim().length === 0) {
+    validationResults.success = false;
+    validationResults.message =
+      "Technical error - GP Practice code contain blank values";
     return validationResults;
   }
 
