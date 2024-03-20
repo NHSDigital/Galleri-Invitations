@@ -45,7 +45,7 @@ module "galleri_invitations_screen" {
   NEXTAUTH_URL                                          = var.NEXTAUTH_URL
   hostname                                              = var.invitations-hostname
   dns_zone                                              = var.dns_zone
-  region = var.region
+  region                                                = var.region
 }
 
 # the role that all lambda's are utilising,
