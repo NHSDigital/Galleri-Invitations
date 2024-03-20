@@ -20,7 +20,7 @@ resource "aws_route53_record" "a_record" {
   name    = "${var.environment}.${var.hostname}"
   type    = "CNAME"
   ttl     = "300"
-  records = ["${var.environment}.${var.hostname}.elasticbeanstalk.com"]
+  records = ["${var.environment}-${var.hostname}.${var.region}.elasticbeanstalk.com"]
 }
 
 resource "aws_route53_record" "cert_validation" {

@@ -57,3 +57,7 @@ variable "CIS2_PUBLIC_KEY_ID" {
 variable "CIS2_KNAME" {
   description = "The CIS2 private key secret name in AWS secrets manager"
 }
+
+variable "region" {
+  default = "eu-west-2"
+}
