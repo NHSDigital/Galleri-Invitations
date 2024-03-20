@@ -1,0 +1,8 @@
+{
+  "name": "caasfeeddeleterecordslambda",
+  "version": "1.0.0",
+  "description": "",
+  "main": "caasFeedDeleteRecordsLambda.js",
+  "author": "",
+  "license": "ISC"
+}

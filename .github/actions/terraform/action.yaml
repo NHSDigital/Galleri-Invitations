@@ -130,10 +130,12 @@ runs:
         npm install --prefix src/validateClinicDataLambda
         npm install --prefix src/validateClinicCapacityLambda
         npm install --prefix src/gtmsUploadClinicDataLambda
+        npm install --prefix src/caasFeedDeleteRecordsLambda
         npm install --prefix src/gpsJwksLambda
         npm install --prefix src/cis2SignedJwtLambda
         npm install --prefix src/gtmsUploadClinicCapacityDataLambda
         npm install --prefix src/sendGTMSInvitationBatchLambda
+        npm install --prefix src/validateAppointmentCommonDataLambda
         npm install --prefix src/gtmsStatusUpdateLambda
         npm install --prefix src/processAppointmentEventTypeLambda
         terraform ${{ env.tf-action }} -auto-approve -input=false -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars

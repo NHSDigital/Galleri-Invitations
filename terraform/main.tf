@@ -807,12 +807,13 @@ module "poll_mesh_mailbox_lambda" {
   environment_vars = {
     ENVIRONMENT                  = "${var.environment}",
     MESH_SANDBOX                 = "false",
+    MESH_CHUNK_VALUE             = "2001",
     MESH_URL                     = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
     MESH_SHARED_KEY              = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
     MESH_SENDER_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_id.secret_string)["MESH_SENDER_MAILBOX_ID"],
     MESH_SENDER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_password.secret_string)["MESH_SENDER_MAILBOX_PASSWORD"],
     CAAS_MESH_MAILBOX_ID         = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_id.secret_string)["CAAS_MESH_MAILBOX_ID"],
-    CAAS_MESH_MAILBOX_PASSWORD   = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_password.secret_string)["CAAS_MESH_MAILBOX_PASSWORD"]
+    CAAS_MESH_MAILBOX_PASSWORD   = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_password.secret_string)["CAAS_MESH_MAILBOX_PASSWORD"],
   }
 }
 
@@ -843,6 +844,36 @@ module "validate_gtms_appointment_lambda_trigger" {
   bucket_id  = module.gtms_appointment.bucket_id
   bucket_arn = module.gtms_appointment.bucket_arn
   lambda_arn = module.validate_gtms_appointment_lambda.lambda_arn
+}
+
+# Validate Appointment Common Data Lambda
+module "validate_appointment_common_data_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "validateAppointmentCommonDataLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "validate_appointment_common_data_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "validate_appointment_common_data_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.validate_appointment_common_data_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "validate_appointment_common_data_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.gtms_appointment_validated.bucket_id
+  bucket_arn    = module.gtms_appointment_validated.bucket_arn
+  lambda_arn    = module.validate_appointment_common_data_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_add-"
 }
 
 # Create GTMS Invitation Batch
@@ -1166,6 +1197,36 @@ module "send_GTMS_invitation_batch_lambda_trigger" {
   lambda_arn = module.send_GTMS_invitation_batch_lambda.lambda_arn
 }
 
+# Delete Caas feed records
+module "caas_feed_delete_records_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "caasFeedDeleteRecordsLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "caas_feed_delete_records_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "caas_feed_delete_records_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.caas_feed_delete_records_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "caas_feed_delete_records_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.validated_records_bucket.bucket_id
+  bucket_arn    = module.validated_records_bucket.bucket_arn
+  lambda_arn    = module.caas_feed_delete_records_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_delete-"
+}
+
 # Dynamodb tables
 module "sdrs_table" {
   source      = "./modules/dynamodb"
@@ -1288,8 +1349,8 @@ module "caas_feed_add_records_lambda" {
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "caasFeedAddRecordsLambda"
-  lambda_timeout       = 100
-  memory_size          = 1024
+  lambda_timeout       = 180
+  memory_size          = 2048
   lambda_s3_object_key = "caas_feed_add_records_lambda.zip"
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
@@ -1719,6 +1780,13 @@ module "appointment_table" {
     {
       name = "Appointment_Id"
       type = "S"
+    }
+  ]
+  global_secondary_index = [
+    {
+      name      = "Appointment_Id-index"
+      hash_key  = "Appointment_Id"
+      range_key = null
     }
   ]
   tags = {
