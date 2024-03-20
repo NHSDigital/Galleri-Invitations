@@ -9,50 +9,50 @@ data "archive_file" "screens" {
   output_path = "${path.cwd}/src/${var.name}.zip"
 }
 
-data "aws_route53_zone" "zone" {
+data "aws_route53_zone" "example" {
   name         = "${var.hostname}."
   private_zone = false
 }
 
-# Setup DNS record
-resource "aws_route53_record" "a_record" {
-  zone_id = data.aws_route53_zone.zone.id
-  name    = "${var.environment}.${var.hostname}"
-  type    = "CNAME"
-  ttl     = "300"
-  records = ["${var.environment}-${var.hostname}.${var.region}.elasticbeanstalk.com"]
+# Setup DNS records, this is a bit of a roundabot process but the way it works is the first three blocks are just to validate
+# ownership of the domain, it does this by creating a hostname with a unique prefix and then checks it to verify
+# everything is correct.
+
+resource "aws_acm_certificate" "example" {
+  domain_name       = "${var.environment}.${var.hostname}"
+  validation_method = "DNS"
 }
 
-resource "aws_route53_record" "cert_validation" {
+resource "aws_route53_record" "example" {
   for_each = {
-    for dvo in aws_acm_certificate.cert.domain_validation_options : dvo.domain_name => {
+    for dvo in aws_acm_certificate.example.domain_validation_options : dvo.domain_name => {
       name   = dvo.resource_record_name
-      type   = dvo.resource_record_type
       record = dvo.resource_record_value
+      type   = dvo.resource_record_type
     }
   }
 
-  zone_id = data.aws_route53_zone.zone.id
-  name    = each.value.name
-  type    = each.value.type
-  records = [each.value.record]
-  ttl     = 60
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = data.aws_route53_zone.example.zone_id
 }
 
-resource "aws_acm_certificate_validation" "cert_validation" {
-  certificate_arn         = aws_acm_certificate.cert.arn
-  validation_record_fqdns = [for _, record in aws_route53_record.cert_validation : "${record.name}.${var.hostname}."]
-
-  depends_on = [aws_route53_record.cert_validation]
+resource "aws_acm_certificate_validation" "example" {
+  certificate_arn         = aws_acm_certificate.example.arn
+  validation_record_fqdns = [for record in aws_route53_record.example : record.fqdn]
 }
 
-resource "aws_acm_certificate" "cert" {
-  domain_name       = "${var.environment}.${var.hostname}"
-  validation_method = "DNS"
+# Once we have validated that the domain is owned and correct then we create the actual record
 
-  lifecycle {
-    create_before_destroy = true
-  }
+resource "aws_route53_record" "actual_record" {
+  zone_id = data.aws_route53_zone.example.id
+  name    = "${var.environment}.${var.hostname}"
+  type    = "CNAME"
+  ttl     = "300"
+  records = ["${var.environment}-${var.dns_zone}-gps-cancer-detection-blood-test.${var.region}.elasticbeanstalk.com"]
 }
 
 # IAM Role for Elastic Beanstalk environment's EC2 instances
@@ -109,7 +109,7 @@ resource "aws_elastic_beanstalk_application_version" "screens" {
   application = aws_elastic_beanstalk_application.screens.name
   bucket      = aws_s3_bucket.screens.bucket
   key         = aws_s3_object.screens.key
-  depends_on  = [aws_acm_certificate_validation.cert_validation]
+  depends_on  = [aws_acm_certificate_validation.example]
 }
 
 # Security Group for the Elastic Beanstalk environment
@@ -146,7 +146,7 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   version_label       = aws_elastic_beanstalk_application_version.screens.name
   cname_prefix        = "${var.environment}-${var.dns_zone}-gps-cancer-detection-blood-test"
 
-  depends_on = [aws_acm_certificate_validation.cert_validation]
+  depends_on = [aws_acm_certificate_validation.example]
 
   setting {
     namespace = "aws:elb:listener:443"
@@ -157,7 +157,7 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   setting {
     namespace = "aws:elb:listener:443"
     name      = "SSLCertificateId"
-    value     = aws_acm_certificate.cert.arn
+    value     = aws_acm_certificate_validation.example.certificate_arn
   }
 
   setting {
