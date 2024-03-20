@@ -328,4 +328,10 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     name      = "NEXTAUTH_URL"
     value     = "http://localhost:3000/"
   }
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "SecurityGroups"
+    value     = aws_security_group.screens.id
+  }
 }
