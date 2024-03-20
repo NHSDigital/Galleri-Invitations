@@ -119,16 +119,6 @@ resource "aws_security_group" "screens" {
   vpc_id      = var.vpc_id
 }
 
-# Inbound rules for HTTP and HTTPS
-# resource "aws_security_group_rule" "http" {
-#   security_group_id = aws_security_group.screens.id
-#   type              = "ingress"
-#   from_port         = 80
-#   to_port           = 80
-#   protocol          = "tcp"
-#   cidr_blocks       = ["0.0.0.0/0"]
-# }
-
 resource "aws_security_group_rule" "https" {
   security_group_id = aws_security_group.screens.id
   type              = "ingress"
@@ -194,5 +184,148 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     namespace = "aws:ec2:vpc"
     name      = "Subnets"
     value     = "${var.subnet_1},${var.subnet_2}"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_ENVIRONMENT"
+    value     = var.environment
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_QUINTILES"
+    value     = var.NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_QUINTILES
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_CLINIC_ICB_LIST"
+    value     = var.NEXT_PUBLIC_CLINIC_ICB_LIST
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_INVITATION_PARAMETERS"
+    value     = var.NEXT_PUBLIC_INVITATION_PARAMETERS
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_CLINIC_INFORMATION"
+    value     = var.NEXT_PUBLIC_CLINIC_INFORMATION
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_FORECAST_UPTAKE"
+    value     = var.NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_FORECAST_UPTAKE
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_PARTICIPATING_ICB_LIST"
+    value     = var.NEXT_PUBLIC_PARTICIPATING_ICB_LIST
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_CALCULATE_NUM_TO_INVITE"
+    value     = var.NEXT_PUBLIC_CALCULATE_NUM_TO_INVITE
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_GET_LSOA_IN_RANGE"
+    value     = var.NEXT_PUBLIC_GET_LSOA_IN_RANGE
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_PUT_TARGET_PERCENTAGE"
+    value     = var.NEXT_PUBLIC_PUT_TARGET_PERCENTAGE
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_CLINIC_SUMMARY_LIST"
+    value     = var.NEXT_PUBLIC_CLINIC_SUMMARY_LIST
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_TARGET_PERCENTAGE"
+    value     = var.NEXT_PUBLIC_TARGET_PERCENTAGE
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_GENERATE_INVITES"
+    value     = var.NEXT_PUBLIC_GENERATE_INVITES
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "USERS"
+    value = jsonencode([
+      {
+        "id" : "1",
+        "name" : "dev",
+        "role" : "Invitation Planner",
+        "email" : "dev@nhs.net",
+        "password" : "Testing"
+      },
+      {
+        "id" : "2",
+        "name" : "test",
+        "role" : "Invitation Planner",
+        "email" : "test@nhs.net",
+        "password" : "Testing"
+      },
+      {
+        "id" : "3",
+        "name" : "dev_2",
+        "role" : "Referring Clinician",
+        "email" : "dev2@nhs.net",
+        "password" : "Testing"
+      },
+      {
+        "id" : "4",
+        "name" : "test_2",
+        "role" : "Referring Clinician",
+        "email" : "test2@nhs.net",
+        "password" : "Testing"
+      },
+      {
+        "id" : "5",
+        "name" : "pen",
+        "email" : "pen@nhs.net",
+        "password" : "Testing"
+      }
+    ])
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "CIS2_ID"
+    value     = "328183617639.apps.supplier"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "CIS2_SECRET"
+    value     = var.CIS2_SECRET
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXTAUTH_SECRET"
+    value     = var.NEXTAUTH_SECRET
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXTAUTH_URL"
+    value     = "http://localhost:3000/"
   }
 }
