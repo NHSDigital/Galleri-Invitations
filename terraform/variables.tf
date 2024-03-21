@@ -58,3 +58,11 @@ variable "CIS2_KNAME" {
 variable "region" {
   default = "eu-west-2"
 }
+
+variable "invitations-hostname" {
+  description = "the dns name for the account"
+}
+
+variable "dns_zone" {
+  description = "the aws account the environment is part of, eg cicd, nft, uat, etc"
+}
