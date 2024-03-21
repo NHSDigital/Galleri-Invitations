@@ -24,7 +24,7 @@ def format_dynamodb_json(csvreader):
     # extract relevant information from row and format
     # in dynamodb json
     for row in csvreader:
-        Id = str(row[0])
+        Id = Number(row[0])
         IcbCode = str(row[1])
         Board = str(row[2])
         output.append(
