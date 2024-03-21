@@ -32,11 +32,12 @@ function main() {
     aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/lsoa.json
     # LSOA table needs a minimum of 1MB of data for lambda to function, hence as a workaround populating table with cut down CSV file with uncurated padding records in addition to lSOA json with curated data.
     mkdir nonprod-unique-lsoa-data
-    if [[ $environment_type == "dev" ]]; then
-      aws s3 cp s3://galleri-ons-data/lsoa_data/destructible_environments/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
-    else
-      aws s3 cp s3://$environment_type-galleri-ons-data/lsoa_data/destructible_environments/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
-    fi
+    cp $PWD/scripts/test_data/lsoa/trimmed/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
+    # if [[ $environment_type == "dev" ]]; then
+    #   aws s3 cp s3://galleri-ons-data/lsoa_data/destructible_environments/unique_lsoa_data.csv ./nonprod-unique-lsoa-data      
+    # else
+    #   aws s3 cp s3://$environment_type-galleri-ons-data/lsoa_data/destructible_environments/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
+    # fi
     python $PWD/scripts/pipeline/nonprod_unique_lsoa_load/nonprod_unique_lsoa_load.py
   fi
   NONPROD_LSOA_DATA_COUNT=$(aws dynamodb scan --table-name $environment-UniqueLsoa --select "COUNT" | jq -r ".Count")
@@ -44,7 +45,8 @@ function main() {
     if (($NONPROD_LSOA_DATA_COUNT < 10)); then
       echo Initiating upload of LSOA subset data to database
       mkdir nonprod-unique-lsoa-data
-      aws s3 cp s3://$environment_type-galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
+      # aws s3 cp s3://$environment_type-galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
+      cp $PWD/scripts/test_data/lsoa/untrimmed/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
       ls -l ./nonprod-unique-lsoa-data
       echo Succefully Downloaded CSV from S3
       echo Uploading items to LSOA database
@@ -113,7 +115,8 @@ function main() {
     if (($POPULATION_COUNT < 100)); then
       echo Initiating upload of dummy Population data to database
       mkdir nonprod-population-data
-      aws s3 cp s3://$environment_type-galleri-test-data/non_prod_participant_data/ ./nonprod-population-data --recursive
+      # aws s3 cp s3://$environment_type-galleri-test-data/non_prod_participant_data/ ./nonprod-population-data --recursive
+      cp $PWD/scirpts/test_data/unique_lsoa_data.csv ./nonprod-population-data --recursive
       echo Succefully Downloaded galleri-test-data CSVs from S3
       echo Uploading items to Population database
       python $PWD/scripts/pipeline/nonprod_population_load/nonprod_population_load.py
