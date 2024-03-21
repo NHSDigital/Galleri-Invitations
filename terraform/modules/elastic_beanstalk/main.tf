@@ -123,7 +123,7 @@ resource "aws_vpc_security_group_ingress_rule" "https" {
 resource "aws_elastic_beanstalk_environment" "screens" {
   name                = "${var.environment}-invitations-frontend"
   application         = aws_elastic_beanstalk_application.screens.name
-  solution_stack_name = "64bit Amazon Linux 2 v5.8.7 running Node.js 18"
+  solution_stack_name = "64bit Amazon Linux 2 v5.8.11 running Node.js 18"
   version_label       = aws_elastic_beanstalk_application_version.screens.name
 
   setting {

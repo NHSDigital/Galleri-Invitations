@@ -38,6 +38,10 @@ variable "NEXTAUTH_URL" {
   default = null
 }
 
+variable "account_id" {
+  description = "account id"
+}
+
 variable "CIS2_TOKEN_ENDPOINT_URL" {
   description = "The CIS2 token endpoint URL"
 }
