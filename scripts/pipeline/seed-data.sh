@@ -32,7 +32,9 @@ function main() {
     aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/lsoa.json
     # LSOA table needs a minimum of 1MB of data for lambda to function, hence as a workaround populating table with cut down CSV file with uncurated padding records in addition to lSOA json with curated data.
     mkdir nonprod-unique-lsoa-data
-    cp $PWD/scripts/test_data/lsoa/trimmed/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
+    # cp $PWD/scripts/test_data/lsoa/trimmed/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
+    unzip $PWD/scripts/test_data/lsoa/trimmed/unique_lsoa_data.zip -d ./nonprod-unique-lsoa-data
+
     # if [[ $environment_type == "dev" ]]; then
     #   aws s3 cp s3://galleri-ons-data/lsoa_data/destructible_environments/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
     # else
@@ -46,7 +48,8 @@ function main() {
       echo Initiating upload of LSOA subset data to database
       mkdir nonprod-unique-lsoa-data
       # aws s3 cp s3://$environment_type-galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
-      cp $PWD/scripts/test_data/lsoa/untrimmed/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
+      uzip $PWD/scripts/test_data/lsoa/untrimmed/unique_lsoa_data.zip -d ./nonprod-unique-lsoa-data
+      # cp $PWD/scripts/test_data/lsoa/untrimmed/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
       ls -l ./nonprod-unique-lsoa-data
       echo Succefully Downloaded CSV from S3
       echo Uploading items to LSOA database
