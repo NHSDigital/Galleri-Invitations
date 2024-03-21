@@ -177,7 +177,7 @@ export const lookUp = async (dbClient, ...params) => {
 
   return response;
 };
-
+// Updates Episode and appointment
 export async function updateRecordInTable(
   client,
   table,
