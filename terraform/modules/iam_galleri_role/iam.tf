@@ -70,7 +70,7 @@ resource "aws_iam_policy" "clinic_information_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite"
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-PhlebotomySite"
           ]
         }
       ],
@@ -102,8 +102,8 @@ resource "aws_iam_policy" "clinic_information_lambda" {
 #            "dynamodb:*"
 #          ],
 #          "Resource" : [
-#            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GpPractice",
-#            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Postcode"
+#            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GpPractice",
+#            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Postcode"
 #          ]
 #        }
 #      ],
@@ -134,7 +134,7 @@ resource "aws_iam_policy" "participating_icb_list_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-ParticipatingIcb"
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-ParticipatingIcb"
           ]
         }
       ],
@@ -165,7 +165,7 @@ resource "aws_iam_policy" "clinic_summary_list_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite"
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-PhlebotomySite"
           ]
         }
       ],
@@ -196,7 +196,7 @@ resource "aws_iam_policy" "target_percentage_lambda" {
             "dynamodb:GetItem"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-InvitationParameters"
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-InvitationParameters"
           ]
         }
       ],
@@ -227,7 +227,7 @@ resource "aws_iam_policy" "invitation_parameters_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-InvitationParameters"
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-InvitationParameters"
           ]
         }
       ],
@@ -257,7 +257,7 @@ resource "aws_iam_policy" "iam_policy_for_calculate_num_to_invite_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-InvitationParameters"
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-InvitationParameters"
           ]
         },
         {
@@ -267,7 +267,7 @@ resource "aws_iam_policy" "iam_policy_for_calculate_num_to_invite_lambda" {
             "lambda:*"
           ],
           "Resource" : [
-            "arn:aws:lambda:eu-west-2:136293001324:function:${var.environment}-getLsoaParticipantsLambda"
+            "arn:aws:lambda:eu-west-2:${var.account_id}:function:${var.environment}-getLsoaParticipantsLambda"
           ]
         }
       ],
@@ -298,7 +298,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-UniqueLsoa"
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-UniqueLsoa"
           ]
         },
         {
@@ -308,7 +308,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
             "lambda:*"
           ],
           "Resource" : [
-            "arn:aws:lambda:eu-west-2:136293001324:function:${var.environment}-getLsoaParticipantsLambda"
+            "arn:aws:lambda:eu-west-2:${var.account_id}:function:${var.environment}-getLsoaParticipantsLambda"
           ]
         }
       ],
@@ -394,19 +394,19 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 #             "secretsmanager:ListSecretVersionIds"
 #           ],
 #           "Resource" : [
-#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_URL*",
-#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SHARED_KEY_1*",
-#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:GTMS_MESH_MAILBOX_ID*",
-#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:GTMS_MESH_MAILBOX_PASSWORD*",
-#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:GTMS_MESH_CERT*",
-#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_KEY*",
-#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_ID*",
-#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_PASSWORD*",
-#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_ID*",
-#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_PASSWORD*",
-#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_KEY*",
-#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_CERT*",
-#             "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_CERT*"
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_URL*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SHARED_KEY_1*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:GTMS_MESH_MAILBOX_ID*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:GTMS_MESH_MAILBOX_PASSWORD*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:GTMS_MESH_CERT*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SENDER_KEY*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SENDER_MAILBOX_ID*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SENDER_MAILBOX_PASSWORD*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_RECEIVER_MAILBOX_ID*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_RECEIVER_MAILBOX_PASSWORD*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_RECEIVER_KEY*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_RECEIVER_CERT*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SENDER_CERT*"
 #           ]
 #         }
 #      ],
@@ -448,8 +448,8 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 #            "dynamodb:*"
 #          ],
 #          "Resource" : [
-#            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population",
-#            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Appointments"
+#            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Population",
+#            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Appointments"
 #          ]
 #        },
 #       ],
@@ -493,16 +493,16 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population/*/*",
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population",
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GpPractice",
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Postcode",
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-UserAccounts",
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite",
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Appointments",
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite/*/*",
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Appointments/*/*",
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Episode",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Population/*/*",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Population",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GpPractice",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Postcode",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-UserAccounts",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-PhlebotomySite",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Appointments",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-PhlebotomySite/*/*",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Appointments/*/*",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Episode",
           ]
         },
         {
@@ -545,22 +545,22 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "secretsmanager:ListSecretVersionIds"
           ],
           "Resource" : [
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_URL*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SHARED_KEY_1*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:GTMS_MESH_MAILBOX_ID*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:GTMS_MESH_MAILBOX_PASSWORD*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:GTMS_MESH_CERT*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_KEY*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_ID*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_MAILBOX_PASSWORD*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_ID*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_MAILBOX_PASSWORD*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_KEY*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_RECEIVER_CERT*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:MESH_SENDER_CERT*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:CAAS_MESH_MAILBOX_ID*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:CAAS_MESH_MAILBOX_PASSWORD*",
-            "arn:aws:secretsmanager:eu-west-2:136293001324:secret:CAAS_MESH_CERT*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_URL*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SHARED_KEY_1*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:GTMS_MESH_MAILBOX_ID*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:GTMS_MESH_MAILBOX_PASSWORD*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:GTMS_MESH_CERT*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SENDER_KEY*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SENDER_MAILBOX_ID*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SENDER_MAILBOX_PASSWORD*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_RECEIVER_MAILBOX_ID*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_RECEIVER_MAILBOX_PASSWORD*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_RECEIVER_KEY*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_RECEIVER_CERT*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SENDER_CERT*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CAAS_MESH_MAILBOX_ID*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CAAS_MESH_MAILBOX_PASSWORD*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CAAS_MESH_CERT*",
           ]
         },
         {
@@ -595,7 +595,7 @@ resource "aws_iam_policy" "iam_policy_for_generate_invites_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite"
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-PhlebotomySite"
           ]
         },
         {
@@ -605,7 +605,7 @@ resource "aws_iam_policy" "iam_policy_for_generate_invites_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population"
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Population"
           ]
         },
         {
@@ -615,7 +615,7 @@ resource "aws_iam_policy" "iam_policy_for_generate_invites_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Episode"
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Episode"
           ]
         },
         {
@@ -625,7 +625,7 @@ resource "aws_iam_policy" "iam_policy_for_generate_invites_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Episode/*/*"
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Episode/*/*"
           ]
         }
       ],
@@ -656,7 +656,7 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population"
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Population"
           ]
         },
         {
@@ -666,7 +666,7 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Episode"
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Episode"
           ]
         },
         {
@@ -676,7 +676,7 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Episode/*/*"
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Episode/*/*"
           ]
         }
       ],
@@ -707,7 +707,7 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
 #             "dynamodb:*"
 #           ],
 #           "Resource" : [
-#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-PhlebotomySite/*/*"
+#             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-PhlebotomySite/*/*"
 #           ]
 #         },
 #           "Sid" : "AllowS3Access",
@@ -793,10 +793,10 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
 #             "dynamodb:*"
 #           ],
 #           "Resource" : [
-#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population"
-#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population/*/*",
-#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Postcode"
-#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GpPractice"
+#             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Population"
+#             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Population/*/*",
+#             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Postcode"
+#             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GpPractice"
 #           ]
 #         },
 #       ],
@@ -837,8 +837,8 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
 #            "dynamodb:*"
 #          ],
 #          "Resource" : [
-#            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population",
-#            "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Appointments"
+#            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Population",
+#            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Appointments"
 #          ]
 #        },
 #       ],
