@@ -39,20 +39,10 @@ variable "NEXTAUTH_URL" {
   default = null
 }
 
-<<<<<<< HEAD
-variable "invitations-hostname" {
-  default = null
-}
-
-variable "dns_zone" {
-  default = null
-}
-=======
 variable "account_id" {
   description = "account id"
 }
 
->>>>>>> origin/main
 variable "CIS2_TOKEN_ENDPOINT_URL" {
   description = "The CIS2 token endpoint URL"
 }
