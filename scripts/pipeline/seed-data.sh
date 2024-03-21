@@ -13,13 +13,17 @@ function main() {
   PARTICIPATING_ICB_COUNT=$(aws dynamodb scan --table-name $environment-ParticipatingIcb --select "COUNT" | jq -r ".Count")
   if [[ $? -eq 0 ]] && [[ $PARTICIPATING_ICB_COUNT =~ ^[0-9]+$ ]]; then
     if (($PARTICIPATING_ICB_COUNT < 23)); then
+      # echo "Initiating upload of Participating ICBs test data to database"
+      # mkdir -p test-data
+      # aws s3 cp s3://participating-icb/Participating_ICBs.csv ./test-data
+      # echo "Successfully Downloaded CSV from S3"
+      # python $PWD/scripts/pipeline/data_cleanse/generate_participating_icb_data.py
+      # echo "Successfully formatted Participating ICBs test data"
+      # aws dynamodb batch-write-item --request-items file://$PWD/test-data/participating_icb.json
+      # echo "Successfully uploaded Participating ICBs test data to database"
       echo "Initiating upload of Participating ICBs test data to database"
-      mkdir -p test-data
-      aws s3 cp s3://participating-icb/Participating_ICBs.csv ./test-data
-      echo "Successfully Downloaded CSV from S3"
-      python $PWD/scripts/pipeline/data_cleanse/generate_participating_icb_data.py
-      echo "Successfully formatted Participating ICBs test data"
-      aws dynamodb batch-write-item --request-items file://$PWD/test-data/participating_icb.json
+      aws dynamodb batch-write-item --request-items file://$PWD/scripts/test_data/participating_icb.json \
+      --return-consumed-capacity INDEXES --return-item-collection-metrics SIZE
       echo "Successfully uploaded Participating ICBs test data to database"
     else
       echo "ParticipatingICB table already populated"
