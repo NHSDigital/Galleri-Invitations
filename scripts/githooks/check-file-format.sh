@@ -43,7 +43,7 @@ function main() {
       --volume $PWD:/check \
       mstruebing/editorconfig-checker:$image_version \
         ec \
-          --exclude '.git/'
+          --exclude '.git/' --exclude 'scripts/test_data/Participating_ICBs.csv'
 
   else
 
