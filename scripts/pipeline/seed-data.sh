@@ -34,7 +34,7 @@ function main() {
     mkdir nonprod-unique-lsoa-data
     cp $PWD/scripts/test_data/lsoa/trimmed/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
     # if [[ $environment_type == "dev" ]]; then
-    #   aws s3 cp s3://galleri-ons-data/lsoa_data/destructible_environments/unique_lsoa_data.csv ./nonprod-unique-lsoa-data      
+    #   aws s3 cp s3://galleri-ons-data/lsoa_data/destructible_environments/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
     # else
     #   aws s3 cp s3://$environment_type-galleri-ons-data/lsoa_data/destructible_environments/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
     # fi
