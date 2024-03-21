@@ -88,11 +88,12 @@ function main() {
     if (($POSTCODE_COUNT < 1)); then
       echo Initiating upload of Postcode subset data to database
       mkdir nonprod-postcode-load
-      if [[ $environment_type == "dev" ]]; then
-        aws s3 cp s3://galleri-ons-data/lsoa_data/lsoa_with_avg_easting_northing.csv ./nonprod-postcode-load
-      else
-        aws s3 cp s3://$environment_type-galleri-ons-data/lsoa_data/lsoa_with_avg_easting_northing.csv ./nonprod-postcode-load
-      fi
+      unzip $PWD/scripts/test_data/lsoa_with_avg_easting_northing.zip -d ./nonprod-postcode-load
+      # if [[ $environment_type == "dev" ]]; then
+      #   aws s3 cp s3://galleri-ons-data/lsoa_data/lsoa_with_avg_easting_northing.csv ./nonprod-postcode-load
+      # else
+      #   aws s3 cp s3://$environment_type-galleri-ons-data/lsoa_data/lsoa_with_avg_easting_northing.csv ./nonprod-postcode-load
+      # fi
       echo Succefully Downloaded CSV from S3
       echo Uploading items to Postcode database
       python $PWD/scripts/pipeline/nonprod_postcode_load/nonprod_postcode_load.py
