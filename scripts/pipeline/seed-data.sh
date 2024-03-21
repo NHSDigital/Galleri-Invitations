@@ -48,7 +48,7 @@ function main() {
       echo Initiating upload of LSOA subset data to database
       mkdir nonprod-unique-lsoa-data
       # aws s3 cp s3://$environment_type-galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
-      uzip $PWD/scripts/test_data/lsoa/untrimmed/unique_lsoa_data.zip -d ./nonprod-unique-lsoa-data
+      unzip $PWD/scripts/test_data/lsoa/untrimmed/unique_lsoa_data.zip -d ./nonprod-unique-lsoa-data
       # cp $PWD/scripts/test_data/lsoa/untrimmed/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
       ls -l ./nonprod-unique-lsoa-data
       echo Succefully Downloaded CSV from S3
