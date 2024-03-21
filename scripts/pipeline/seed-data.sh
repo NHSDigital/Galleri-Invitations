@@ -21,7 +21,7 @@ function main() {
       # echo "Successfully formatted Participating ICBs test data"
       # aws dynamodb batch-write-item --request-items file://$PWD/test-data/participating_icb.json
       # echo "Successfully uploaded Participating ICBs test data to database"
-      echo "Initiating upload of Participating ICBs test data to database"
+      echo "Starting upload of Participating ICBs test data to database"
       aws dynamodb batch-write-item --request-items file://$PWD/scripts/test_data/participating_icb.json \
       --return-consumed-capacity INDEXES --return-item-collection-metrics SIZE
       echo "Successfully uploaded Participating ICBs test data to database"
