@@ -112,6 +112,15 @@ variable "NEXTAUTH_SECRET" {
 }
 
 variable "NEXTAUTH_URL" {
+}
 
+variable "hostname" {
+}
+
+variable "dns_zone" {
+
+}
+
+variable "region" {
 
 }

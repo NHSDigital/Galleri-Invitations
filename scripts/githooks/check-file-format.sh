@@ -43,7 +43,7 @@ function main() {
       --volume $PWD:/check \
       mstruebing/editorconfig-checker:$image_version \
         ec \
-          --exclude '.git/'
+          --exclude '.git/' --exclude 'scripts/test_data/Participating_ICBs.csv'
 
   else
 
@@ -55,7 +55,7 @@ function main() {
           --volume=$PWD:/check \
           mstruebing/editorconfig-checker:$image_version \
             ec \
-              --exclude '.git/' \
+              --exclude '.git/' --exclude 'scripts/test_data/Participating_ICBs.csv' \
               "$file"
         [ $? != 0 ] && exit_code=1 ||:
       done < <(echo "$files")

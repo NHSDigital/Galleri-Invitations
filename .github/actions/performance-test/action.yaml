@@ -21,7 +21,7 @@ runs:
         ./jmeter -n -t $GITHUB_WORKSPACE/scripts/test/perftest/NHS_Galleri_Perf_Test_v1.0.jmx -l $GITHUB_WORKSPACE/result.jtl
         cat $GITHUB_WORKSPACE/result.jtl
     - name: "Upload Performance Test Results"
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: performance-test-result
         path: result.jtl

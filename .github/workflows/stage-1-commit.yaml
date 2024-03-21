@@ -49,6 +49,15 @@ jobs:
           fetch-depth: 0 # Full history is needed to scan all commits
       - name: "Scan secrets"
         uses: ./.github/actions/scan-secrets
+      - uses: actions/cache@v2
+        id: cache-gitleaks
+        with:
+          path: |
+            .gitleaks-cache
+          key: ${{ runner.os }}-gitleaks-${{ github.ref }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-gitleaks-${{ github.ref }}-
+            ${{ runner.os }}-gitleaks-
   check-file-format:
     runs-on: ubuntu-latest
     timeout-minutes: 2

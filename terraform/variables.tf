@@ -2,6 +2,7 @@ variable "bucket_name" {
   type    = string
   default = "galleri-lambda-bucket"
 }
+
 variable "role_name" {
   type    = string
   default = "galleri-lambda-role"
@@ -52,4 +53,16 @@ variable "CIS2_PUBLIC_KEY_ID" {
 
 variable "CIS2_KNAME" {
   description = "The CIS2 private key secret name in AWS secrets manager"
+}
+
+variable "region" {
+  default = "eu-west-2"
+}
+
+variable "invitations-hostname" {
+  description = "the dns name for the account"
+}
+
+variable "dns_zone" {
+  description = "the aws account the environment is part of, eg cicd, nft, uat, etc"
 }

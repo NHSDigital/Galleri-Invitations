@@ -46,6 +46,7 @@ resource "aws_iam_policy" "iam_policy_for_lambda" {
   })
 }
 
+
 resource "aws_iam_policy" "clinic_information_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_clinic_information_lambda_role"
   path        = "/"
