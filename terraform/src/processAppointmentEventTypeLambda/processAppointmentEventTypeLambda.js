@@ -1,5 +1,13 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { S3Client } from "@aws-sdk/client-s3";
+import {
+  DynamoDBClient,
+  TransactWriteItemsCommand,
+  QueryCommand,
+} from "@aws-sdk/client-dynamodb";
+import {
+  S3Client,
+  GetObjectCommand,
+  PutObjectCommand,
+} from "@aws-sdk/client-s3";
 const dbClient = new DynamoDBClient();
 const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
@@ -19,7 +27,7 @@ export const handler = async (event) => {
     BloodCollectionDate,
     GrailID,
     BloodNotCollectedReason,
-    eventType,
+    EventType,
   } = Appointment;
   const episodeResponse = await lookUp(
     dbClient,
@@ -29,57 +37,80 @@ export const handler = async (event) => {
     "S",
     true
   );
-  const episodeItems = episodeResponse.Items;
-
+  const episodeItems = episodeResponse.Items[0];
+  console.log(`This is the output of the episodeItems: ${episodeItems}`);
+  console.log(`It's items by definition is: ${episodeItems}`);
+  console.log(episodeItems.Batch_Id.S);
   try {
     let episodeEvent = "";
-    switch (eventType) {
+    let response = false;
+
+    switch (EventType) {
       case "COMPLETE":
-        console.log(`This was a ${eventType}`);
+        console.log(`This was a ${EventType}`);
         episodeEvent = "Appointment Attended - Sample Taken";
         if (BloodCollectionDate && GrailID) {
-          transactionalWrite(
+          response = await transactionalWrite(
             dbClient,
             ParticipantID,
-            episodeItems.Batch_Id,
+            episodeItems.Batch_Id.S,
             AppointmentID,
-            eventType,
+            EventType,
             episodeEvent
+          );
+          console.log("This is to test that it reaches here in the code");
+        } else {
+          await rejectRecord(appointmentJson);
+          console.log(
+            "Invalid Appointment: Blood collection date and Grail ID not both supplied"
           );
         }
         break;
+
       case "NO_SHOW":
-        console.log(`This was a ${eventType}`);
+        console.log(`This was a ${EventType}`);
         episodeEvent = "Did Not Attend Appointment";
-        transactionalWrite(
+        response = await transactionalWrite(
           dbClient,
           ParticipantID,
-          episodeItems.Batch_Id,
+          episodeItems.Batch_Id.S,
           AppointmentID,
-          eventType,
+          EventType,
           episodeEvent
         );
         break;
+
       case "ABORTED":
-        console.log(`This was a ${eventType}`);
+        console.log(`This was a ${EventType}`);
         episodeEvent = "Appointment Attended - No Sample Taken";
         if (BloodNotCollectedReason) {
-          transactionalWrite(
+          response = await transactionalWrite(
             dbClient,
             ParticipantID,
-            episodeItems.Batch_Id,
+            episodeItems.Batch_Id.S,
             AppointmentID,
-            eventType,
+            EventType,
             episodeEvent,
             BloodNotCollectedReason
           );
+        } else {
+          await rejectRecord(appointmentJson);
+          console.log(
+            "Invalid Appointment: Blood not collected reason not supplied"
+          );
         }
         break;
+
       default:
-        console.Error(
-          `This was a ${eventType}, which is not an expected Event Type`
+        await rejectRecord(appointmentJson);
+        console.error(
+          `This was a ${EventType}, which is not an expected Event Type`
         );
         break;
+    }
+    if (!response) {
+      await rejectRecord(appointmentJson);
+      console.log("Could not Update Episode and Appointment Table");
     }
   } catch (error) {
     const message = `Error processing object ${key} in bucket ${bucket}: ${error}`;
@@ -89,14 +120,58 @@ export const handler = async (event) => {
 };
 
 //METHODS
-export const extractStringFromFilepath = async (filepath) => {
-  const regex = /valid_records-([^-]+)-([^.]+)\.json/;
-  const match = filepath.match(regex);
-  if (match && match[1]) {
-    return match[1];
+//S3 Methods
+export const readFromS3 = async (bucketName, key, client) => {
+  try {
+    const response = await client.send(
+      new GetObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+      })
+    );
+
+    return response.Body.transformToString();
+  } catch (err) {
+    console.log("Failed: ", err);
+    throw err;
   }
-  return null;
 };
+
+export const pushToS3 = async (bucketName, key, body, client) => {
+  try {
+    const response = await client.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+        Body: body,
+      })
+    );
+
+    return response;
+  } catch (err) {
+    console.log("Failed: ", err);
+    throw err;
+  }
+};
+
+export const rejectRecord = async (appointmentJson) => {
+  try {
+    const timeNow = new Date().toISOString();
+    const jsonString = JSON.stringify(appointmentJson);
+    await pushToS3(
+      `${ENVIRONMENT}-processed-appointments`,
+      `invalidRecords/invalid_records-${timeNow}.json`,
+      jsonString,
+      s3
+    );
+    return;
+  } catch (err) {
+    console.log("Failed: ", err);
+    throw err;
+  }
+};
+
+//Dynamo Methods
 export const lookUp = async (dbClient, ...params) => {
   const [id, table, attribute, attributeType, useIndex] = params;
 
@@ -138,38 +213,36 @@ const transactionalWrite = async (
   eventDescription = "Null"
 ) => {
   const timeNow = String(Date.now());
-
   const params = {
     TransactItems: [
       {
         Update: {
-          TableName: `${ENVIRONMENT}-Episode`,
           Key: {
-            Batch_Id: batchId,
-            Participant_Id: participantId,
+            Batch_Id: { S: batchId },
+            Participant_Id: { S: participantId },
           },
-          UpdateExpression:
-            "SET Episode_Event = :episodeEvent, Episode_Event_Updated = :time, Episode_Event_Description = :eventDescription Episode_Status = :open, Episode_Event_Notes = :null Episode_Event_Updated_By = :gtms, Episode_Status_Updated = :time",
+          UpdateExpression: `SET Episode_Event = :episodeEvent, Episode_Event_Updated = :timeNow, Episode_Event_Description = :eventDescription, Episode_Status = :open, Episode_Event_Notes = :null, Episode_Event_Updated_By = :gtms, Episode_Status_Updated = :timeNow`,
+          TableName: `${ENVIRONMENT}-Episode`,
           ExpressionAttributeValues: {
-            ":episodeEvent": episodeEvent,
-            ":time": timeNow,
-            ":eventDescription": eventDescription,
-            ":open": "Open",
-            ":null": "Null",
-            ":gtms": "GTMS",
+            ":episodeEvent": { S: episodeEvent },
+            ":timeNow": { N: timeNow },
+            ":eventDescription": { S: eventDescription },
+            ":open": { S: "Open" },
+            ":null": { S: "Null" },
+            ":gtms": { S: "GTMS" },
           },
         },
       },
       {
         Update: {
-          TableName: `${ENVIRONMENT}-Appointments`,
           Key: {
-            Participant_Id: participantId,
-            Appointment_Id: appointmentId,
+            Participant_Id: { S: participantId },
+            Appointment_Id: { S: appointmentId },
           },
-          UpdateExpression: "SET event_type = :eventType",
+          UpdateExpression: `SET event_type = :eventType`,
+          TableName: `${ENVIRONMENT}-Appointments`,
           ExpressionAttributeValues: {
-            ":eventType": eventType,
+            ":eventType": { S: eventType },
           },
         },
       },
@@ -177,80 +250,10 @@ const transactionalWrite = async (
   };
 
   try {
-    await client.transactWrite(params).promise();
-    console.log("Transactional write succeeded");
+    const command = new TransactWriteItemsCommand(params);
+    const response = await client.send(command);
+    return true;
   } catch (error) {
     console.error("Transactional write failed:", error);
   }
 };
-
-//In the Event that the we need to update the episode table.
-
-//Complete
-// Appointment EventType = COMPLETE
-// Episode Event = Appointment Attended - Sample Taken xx
-// Episode Event updated = current system date timestamp
-// Episode event description = NULL
-// Episode event notes = NULL
-// Episode event updated by = GTMS
-// Episode status = Open
-// Episode status updated = same as episode event updated xx
-
-//NO_SHOW
-// Appointment EventType = NO_SHOW
-// Episode Event = Did Not Attend Appointment xx
-// Episode Event updated = current system date timestamp
-// Episode event description = NULL
-// Episode event notes = NULL
-// Episode event updated by = GTMS
-// Episode status = Open
-// Episode status updated = same as episode event updated xx
-
-//ABORTED
-// Appointment = ABORTED
-// Episode Event = Appointment Attended – No Sample Taken xx
-// Episode Event updated = current system date timestamp
-// Episode event description = BloodNotCollectedReason
-// Episode event notes = NULL
-// Episode event updated by = GTMS
-// Episode status = Open
-// Episode status updated = same as episode event updated xx
-
-// {"Appointment" :{
-//   "ParticipantID": "NHS-AB12-CD34",
-//   "AppointmentID": "00000000-0000-0000-0000-000000000000",
-//   "ClinicID": "D7E-G2H",
-//   "AppointmentDateTime": "2006-01-02T15:04:05Z",
-//   "BloodCollectionDate": "2006-01-02",
-//   "PrimaryPhoneNumber": "01999999999",
-//   "SecondaryPhoneNumber": "01999999999",
-//   "Email": "me@example.com",
-//   "Replaces": "",
-//   "CancellationReason": "OTHER",
-//   "Channel": "ONLINE",
-//   "BloodNotCollectedReason": "PARTICIPANT_DECISION",
-//   "EventType": "BOOKED",
-//   "AppointmentAccessibility": {
-//       "accessibleToilet": false,
-//       "disabledParking": false,
-//       "inductionLoop": false,
-//       "signLanguage": false,
-//       "stepFreeAccess": false,
-//       "wheelchairAccess": false
-//   },
-//   "CommunicationAccessibility": {
-//       "signLanguage": false,
-//       "braille": false,
-//       "interpreter": true,
-//       "language": "ARABIC"
-//     },
-//   "NotificationPreferences": {
-//       "canSMS": false,
-//       "canEmail": false
-//     },
-//   "GrailID": "NHS0000000",
-//   "InvitationNHSNumber": "0000000000",
-//   "PDSNHSNumber": "0000000000",
-//   "DateOfBirth": "2024-01-01",
-// }
-// }
