@@ -120,7 +120,7 @@ function main() {
       echo Initiating upload of dummy Population data to database
       mkdir nonprod-population-data
       # aws s3 cp s3://$environment_type-galleri-test-data/non_prod_participant_data/ ./nonprod-population-data --recursive
-      cp $PWD/scirpts/test_data/unique_lsoa_data.csv ./nonprod-population-data --recursive
+      cp $PWD/scripts/test_data/unique_lsoa_data.csv ./nonprod-population-data --recursive
       echo Succefully Downloaded galleri-test-data CSVs from S3
       echo Uploading items to Population database
       python $PWD/scripts/pipeline/nonprod_population_load/nonprod_population_load.py
