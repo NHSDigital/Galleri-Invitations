@@ -15,31 +15,35 @@ export const handler = async (event) => {
   const { Appointment } = appointmentJson;
   const {
     ParticipantID,
+    AppointmentID,
     BloodCollectionDate,
     GrailID,
     BloodNotCollectedReason,
+    eventType,
   } = Appointment;
   const episodeResponse = await lookUp(
     dbClient,
-    Appointment.ParticipantID,
+    ParticipantID,
     "Episode",
     "Participant_Id",
     "S",
     true
   );
+  const episodeItems = episodeResponse.Items;
 
   try {
-    const eventType = await extractStringFromFilepath(key);
     let episodeEvent = "";
     switch (eventType) {
       case "COMPLETE":
         console.log(`This was a ${eventType}`);
         episodeEvent = "Appointment Attended - Sample Taken";
         if (BloodCollectionDate && GrailID) {
-          updateRecordOnEventType(
+          transactionalWrite(
             dbClient,
+            ParticipantID,
+            episodeItems.Batch_Id,
+            AppointmentID,
             eventType,
-            episodeResponse,
             episodeEvent
           );
         }
@@ -47,10 +51,12 @@ export const handler = async (event) => {
       case "NO_SHOW":
         console.log(`This was a ${eventType}`);
         episodeEvent = "Did Not Attend Appointment";
-        updateRecordOnEventType(
+        transactionalWrite(
           dbClient,
+          ParticipantID,
+          episodeItems.Batch_Id,
+          AppointmentID,
           eventType,
-          episodeResponse,
           episodeEvent
         );
         break;
@@ -58,11 +64,14 @@ export const handler = async (event) => {
         console.log(`This was a ${eventType}`);
         episodeEvent = "Appointment Attended - No Sample Taken";
         if (BloodNotCollectedReason) {
-          updateRecordOnEventType(
+          transactionalWrite(
             dbClient,
+            ParticipantID,
+            episodeItems.Batch_Id,
+            AppointmentID,
             eventType,
-            episodeResponse,
-            episodeEvent
+            episodeEvent,
+            BloodNotCollectedReason
           );
         }
         break;
@@ -88,65 +97,6 @@ export const extractStringFromFilepath = async (filepath) => {
   }
   return null;
 };
-
-export const updateRecordOnEventType = async (
-  client,
-  eventType,
-  episodeResponse,
-  episodeEvent,
-  episodeEventDescription = "Null"
-) => {
-  updateAppointmentTable(client, ParticipantID, eventType);
-
-  if (episodeRecordCheck.Items.length > 0) {
-    const episodeRecord = episodeResponse.Items[0];
-    const batchId = episodeRecord.Batch_Id.S;
-    const participantId = episodeRecord.Participant_Id.S;
-
-    const timeNow = Date.now();
-
-    const updateEpisodeEvent = ["Episode_Event", "S", episodeEvent];
-    const updateEpisodeEventUpdated = [
-      "Episode_Event_Updated",
-      "N",
-      String(timeNow),
-    ];
-    const updateEpisodeStatus = ["Episode_Status", "S", "Open"];
-    const updateEpisodeEventDescription = [
-      "Episode_Event_Description",
-      "S",
-      episodeEventDescription,
-    ];
-    const updateEpisodeEventNotes = ["Episode_Event_Notes", "S", "NULL"];
-    const updateEpisodeEventUpdatedBy = [
-      "Episode_Event_Updated_By",
-      "S",
-      "GTMS",
-    ];
-    const updateEpisodeStatusUpdated = [
-      "Episode_Status_Updated",
-      "N",
-      String(timeNow),
-    ];
-
-    await updateRecordInTable(
-      client,
-      "Episode",
-      batchId,
-      "Batch_Id",
-      participantId,
-      "Participant_Id",
-      updateEpisodeEvent,
-      updateEpisodeEventUpdated,
-      updateEpisodeStatus,
-      updateEpisodeEventDescription,
-      updateEpisodeEventNotes,
-      updateEpisodeEventUpdatedBy,
-      updateEpisodeStatusUpdated
-    );
-  }
-};
-
 export const lookUp = async (dbClient, ...params) => {
   const [id, table, attribute, attributeType, useIndex] = params;
 
@@ -178,94 +128,60 @@ export const lookUp = async (dbClient, ...params) => {
   return response;
 };
 // Updates Episode and appointment
-export async function updateRecordInTable(
-  client,
-  table,
-  partitionKey,
-  partitionKeyName,
-  sortKey,
-  sortKeyName,
-  ...itemsToUpdate
-) {
-  let updateItemCommandKey = {};
-  updateItemCommandKey[partitionKeyName] = { S: `${partitionKey}` };
-  updateItemCommandKey[sortKeyName] = { S: `${sortKey}` };
-
-  let updateItemCommandExpressionAttributeNames = {};
-
-  let updateItemCommandExpressionAttributeValues = {};
-
-  let updateItemCommandExpressionAttributeValuesNested = {};
-
-  let updateItemCommandUpdateExpression = `SET `;
-
-  itemsToUpdate.forEach((updateItem, index) => {
-    const [itemName, itemType, item] = updateItem;
-
-    // ExpressionAttributeNames
-    const localAttributeName = `#${itemName.toUpperCase()}`;
-    updateItemCommandExpressionAttributeNames[localAttributeName] = itemName;
-
-    const localItemName = `local_${itemName}`;
-
-    // ExpressionAttributeValues
-    updateItemCommandExpressionAttributeValuesNested = {
-      ...updateItemCommandExpressionAttributeValuesNested,
-      [itemType]: item,
-    };
-    updateItemCommandExpressionAttributeValues[`:${localItemName}`] =
-      updateItemCommandExpressionAttributeValuesNested;
-
-    // UpdateExpression
-    if (index > 0) {
-      updateItemCommandUpdateExpression += `,${localAttributeName} = :${localItemName}`;
-    } else {
-      updateItemCommandUpdateExpression += `${localAttributeName} = :${localItemName}`;
-    }
-  });
-
-  const input = {
-    ExpressionAttributeNames: updateItemCommandExpressionAttributeNames,
-    ExpressionAttributeValues: updateItemCommandExpressionAttributeValues,
-    Key: updateItemCommandKey,
-    TableName: `${ENVIRONMENT}-${table}`,
-    UpdateExpression: updateItemCommandUpdateExpression,
-  };
-
-  const command = new UpdateItemCommand(input);
-  const response = await client.send(command);
-  if (response.$metadata.httpStatusCode != 200) {
-    console.log(`record update failed for person ${partitionKey}`);
-  }
-  return response.$metadata.httpStatusCode;
-}
-
-export const updateAppointmentTable = async (
+const transactionalWrite = async (
   client,
   participantId,
+  batchId,
+  appointmentId,
   eventType,
-  table = `${ENVIRONMENT}-Appointments`
+  episodeEvent,
+  eventDescription = "Null"
 ) => {
-  const partitionKeyName = "Participant_Id";
-  const partitionKeyValue = participantId;
+  const timeNow = String(Date.now());
 
   const params = {
-    TableName: table,
-    Key: {
-      [partitionKeyName]: partitionKeyValue,
-    },
-    UpdateExpression: "SET event_type = :eventType",
-    ExpressionAttributeValues: {
-      ":eventType": eventType,
-    },
+    TransactItems: [
+      {
+        Update: {
+          TableName: `${ENVIRONMENT}-Episode`,
+          Key: {
+            Batch_Id: batchId,
+            Participant_Id: participantId,
+          },
+          UpdateExpression:
+            "SET Episode_Event = :episodeEvent, Episode_Event_Updated = :time, Episode_Event_Description = :eventDescription Episode_Status = :open, Episode_Event_Notes = :null Episode_Event_Updated_By = :gtms, Episode_Status_Updated = :time",
+          ExpressionAttributeValues: {
+            ":episodeEvent": episodeEvent,
+            ":time": timeNow,
+            ":eventDescription": eventDescription,
+            ":open": "Open",
+            ":null": "Null",
+            ":gtms": "GTMS",
+          },
+        },
+      },
+      {
+        Update: {
+          TableName: `${ENVIRONMENT}-Appointments`,
+          Key: {
+            Participant_Id: participantId,
+            Appointment_Id: appointmentId,
+          },
+          UpdateExpression: "SET event_type = :eventType",
+          ExpressionAttributeValues: {
+            ":eventType": eventType,
+          },
+        },
+      },
+    ],
   };
 
-  const command = new UpdateItemCommand(params);
-  const response = await client.send(command);
-  if (response.$metadata.httpStatusCode != 200) {
-    console.log(`record update failed for person ${partitionKeyValue}`);
+  try {
+    await client.transactWrite(params).promise();
+    console.log("Transactional write succeeded");
+  } catch (error) {
+    console.error("Transactional write failed:", error);
   }
-  return response.$metadata.httpStatusCode;
 };
 
 //In the Event that the we need to update the episode table.
