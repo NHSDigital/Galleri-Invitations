@@ -26,17 +26,33 @@ export const handler = async (event) => {
   const js = JSON.parse(csvString); //convert string retrieved from S3 to object
 
   console.log(js);
-  // const episodeResponse = await lookUp(
-  //   dbClient,
-  //   ParticipantID,
-  //   "Episode",
-  //   "Participant_Id",
-  //   "S",
-  //   true
-  // );
 
+  const ParticipantID = js?.['Appointment']?.['ParticipantID'];
+  const AppointmentID = js?.['Appointment']?.['AppointmentID'];
+  const episodeResponse = await lookUp(
+    dbClient,
+    ParticipantID,
+    "Episode",
+    "Participant_Id",
+    "S",
+    true
+  );
 
-}
+  const episodeItems = episodeResponse.Items[0];
+  console.log(`episodeItems: , ${JSON.stringify(episodeItems)}`);
+
+  const appointmentResponse = await lookUp(
+    dbClient,
+    AppointmentID,
+    "Appointments",
+    "Appointment_Id",
+    "S",
+    true
+  );
+
+  const appointmentItems = appointmentResponse.Items[0];
+  console.log(`appointmentItems: , ${JSON.stringify(appointmentItems)}`);
+};
 
 //FUNCTIONS
 export const readCsvFromS3 = async (bucketName, key, client) => {
