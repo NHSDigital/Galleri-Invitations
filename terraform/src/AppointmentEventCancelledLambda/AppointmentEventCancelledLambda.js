@@ -27,8 +27,31 @@ export const handler = async (event) => {
 
   console.log(js);
 
+  const cancelledByNHS = {
+    CLINIC_CLOSED_DUE_TO_LACK_OF_STAFF: "CLINIC_CLOSED_DUE_TO_LACK_OF_STAFF",
+    CLINIC_CLOSED_DUE_TO_LACK_OF_FACILITY: "CLINIC_CLOSED_DUE_TO_LACK_OF_FACILITY",
+    CLINIC_CLOSED_DUE_TO_OTHER_REASON: "CLINIC_CLOSED_DUE_TO_OTHER_REASON",
+  };
+
+  const cancelledByParticipant = {
+    CANT_FIND_A_SUITABLE_LOCATION: "CANT_FIND_A_SUITABLE_LOCATION",
+    CANT_FIND_A_SUITABLE_DATE_TIME: "CANT_FIND_A_SUITABLE_DATE_TIME",
+    WORK_FAMILY_COMMITMENTS: "WORK_FAMILY_COMMITMENTS",
+    OTHER: "OTHER",
+  }
+
+  const partcipantWithdrawn = {
+    NO_LONGER_LIVE_IN_THE_COUNTRY: "NO_LONGER_LIVE_IN_THE_COUNTRY",
+    DONT_WANT_TO_TAKE_PART: "DONT_WANT_TO_TAKE_PART",
+  }
+
+
+
   const ParticipantID = js?.['Appointment']?.['ParticipantID'];
   const AppointmentID = js?.['Appointment']?.['AppointmentID'];
+  const CancellationReason = js?.['Appointment']?.['CancellationReason'];
+  const EventType = js?.['Appointment']?.['EventType']; //CANCELLED
+  console.log(EventType);
   const episodeResponse = await lookUp(
     dbClient,
     ParticipantID,
@@ -52,6 +75,67 @@ export const handler = async (event) => {
 
   const appointmentItems = appointmentResponse.Items[0];
   console.log(`appointmentItems: , ${JSON.stringify(appointmentItems)}`);
+
+  if (episodeItems && appointmentItems && EventType === 'CANCELLED') { //if both queries are not undefined
+    //exists
+    console.log("Inside here");
+    if (CancellationReason) { //cancellation reason is supplied
+      console.log('supplied reason');
+      console.log(Object.values(cancelledByNHS).includes(CancellationReason));
+      if (Object.values(cancelledByNHS).includes(CancellationReason)) {
+        const episodeEvent = 'Appointment Cancelled By NHS';
+        console.log(episodeEvent);
+        // Then update cancelled appointment for the supplied participant in appointment table
+        // And update episode record for the participant
+        // And episode latest event is set to Appointment Cancelled by NHS
+
+        // Episode Event = Appointment Cancelled by NHS
+        // Episode Event updated = current system date timestamp
+        // Episode event description = CancellationReason
+        // Episode event notes = NULL
+        // Episode event updated by = GTMS
+        // Episode status = Open
+        // Episode status updated = same as episode event updated
+        const response = await transactionalWrite(
+          dbClient,
+          ParticipantID,
+          episodeItems['Batch_Id']['S'], //required PK for Episode update
+          AppointmentID,
+          EventType,
+          episodeEvent, //Appointment Cancelled by NHS
+          CancellationReason //reason its cancelled coming from payload
+        );
+        console.log(response);
+        console.log("arrived here -abdul");
+      }
+      if (Object.values(cancelledByParticipant).includes(CancellationReason)) {
+        // Then update cancelled appointment for the supplied participant in appointment table
+        // And update episode record for the participant
+        // And episode latest event is set to Appointment Cancelled by participant
+
+        // Episode Event = Appointment Cancelled by participant
+        // Episode Event updated = current system date timestamp
+        // Episode event description = CancellationReason
+        // Episode event notes = NULL
+        // Episode event updated by = GTMS
+        // Episode status = Open
+        // Episode status updated = same as episode event updated
+      }
+      if (Object.values(partcipantWithdrawn).includes(CancellationReason)) {
+        // Then update cancelled appointment for the supplied participant in appointment table
+        // And update episode record for the participant
+        // And episode latest event is set to Appointment Cancelled by Participant - Withdrawn
+
+        // Episode Event = Appointment Cancelled by Participant - Withdrawn
+        // Episode Event updated = current system date timestamp
+        // Episode event description = CancellationReason
+        // Episode event notes = NULL
+        // Episode event updated by = GTMS
+        // Episode status = Open
+        // Episode status updated = same as episode event updated
+      }
+    }
+  }
 };
 
 //FUNCTIONS
@@ -117,4 +201,59 @@ export const lookUp = async (dbClient, ...params) => {
   }
 
   return response;
+};
+
+const transactionalWrite = async (
+  client,
+  participantId,
+  batchId,
+  appointmentId,
+  eventType,
+  episodeEvent,
+  cancellationReason,
+) => {
+  const timeNow = String(Date.now());
+  const params = {
+    TransactItems: [
+      {
+        Update: {
+          Key: {
+            Batch_Id: { S: batchId },
+            Participant_Id: { S: participantId },
+          },
+          UpdateExpression: `SET Episode_Event = :episodeEvent, Episode_Event_Updated = :timeNow, Episode_Event_Description = :eventDescription, Episode_Status = :open, Episode_Event_Notes = :null, Episode_Event_Updated_By = :gtms, Episode_Status_Updated = :timeNow`,
+          TableName: `${ENVIRONMENT}-Episode`,
+          ExpressionAttributeValues: {
+            ":episodeEvent": { S: episodeEvent },
+            ":timeNow": { N: timeNow },
+            ":eventDescription": { S: cancellationReason },
+            ":open": { S: "Open" },
+            ":null": { S: "Null" },
+            ":gtms": { S: "GTMS" },
+          },
+        },
+      },
+      {
+        Update: {
+          Key: {
+            Participant_Id: { S: participantId },
+            Appointment_Id: { S: appointmentId },
+          },
+          UpdateExpression: `SET event_type = :eventType`,
+          TableName: `${ENVIRONMENT}-Appointments`,
+          ExpressionAttributeValues: {
+            ":eventType": { S: eventType },
+          },
+        },
+      },
+    ],
+  };
+
+  try {
+    const command = new TransactWriteItemsCommand(params);
+    const response = await client.send(command);
+    return true;
+  } catch (error) {
+    console.error("Transactional write failed:", error);
+  }
 };
