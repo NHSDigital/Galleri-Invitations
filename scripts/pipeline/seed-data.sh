@@ -120,11 +120,8 @@ function main() {
       echo Initiating upload of dummy Population data to database
       mkdir nonprod-population-data
       # aws s3 cp s3://$environment_type-galleri-test-data/non_prod_participant_data/ ./nonprod-population-data --recursive
-      if [[ $environment_type == "dev" || $environment_type == "test" ]]; then
-        unzip $PWD/scripts/test_data/lsoa/trimmed/unique_lsoa_data.zip -d ./nonprod-population-data
-      else
-        unzip $PWD/scripts/test_data/lsoa/untrimmed/unique_lsoa_data.zip -d ./nonprod-population-data
-      fi
+      unzip $PWD/scripts/test_data/female_participants_with_LSOA_Invited.zip -d ./nonprod-population-data
+      unzip $PWD/scripts/test_data/male_participants_with_LSOA_Invited.zip -d ./nonprod-population-data
       echo Succefully Downloaded galleri-test-data CSVs from S3
       echo Uploading items to Population database
       python $PWD/scripts/pipeline/nonprod_population_load/nonprod_population_load.py
