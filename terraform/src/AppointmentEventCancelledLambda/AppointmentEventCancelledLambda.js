@@ -25,8 +25,6 @@ export const handler = async (event) => {
   const csvString = await readCsvFromS3(bucket, key, s3);
   const js = JSON.parse(csvString); //convert string retrieved from S3 to object
 
-  console.log(js);
-
   const cancelledByNHS = {
     CLINIC_CLOSED_DUE_TO_LACK_OF_STAFF: "CLINIC_CLOSED_DUE_TO_LACK_OF_STAFF",
     CLINIC_CLOSED_DUE_TO_LACK_OF_FACILITY: "CLINIC_CLOSED_DUE_TO_LACK_OF_FACILITY",
@@ -38,20 +36,19 @@ export const handler = async (event) => {
     CANT_FIND_A_SUITABLE_DATE_TIME: "CANT_FIND_A_SUITABLE_DATE_TIME",
     WORK_FAMILY_COMMITMENTS: "WORK_FAMILY_COMMITMENTS",
     OTHER: "OTHER",
-  }
+  };
 
-  const partcipantWithdrawn = {
+  const participantWithdrawn = {
     NO_LONGER_LIVE_IN_THE_COUNTRY: "NO_LONGER_LIVE_IN_THE_COUNTRY",
     DONT_WANT_TO_TAKE_PART: "DONT_WANT_TO_TAKE_PART",
-  }
-
-
+  };
 
   const ParticipantID = js?.['Appointment']?.['ParticipantID'];
   const AppointmentID = js?.['Appointment']?.['AppointmentID'];
   const CancellationReason = js?.['Appointment']?.['CancellationReason'];
   const EventType = js?.['Appointment']?.['EventType']; //CANCELLED
-  console.log(EventType);
+  console.log(`EventType: , ${EventType}`);
+
   const episodeResponse = await lookUp(
     dbClient,
     ParticipantID,
@@ -60,7 +57,6 @@ export const handler = async (event) => {
     "S",
     true
   );
-
   const episodeItems = episodeResponse.Items[0];
   console.log(`episodeItems: , ${JSON.stringify(episodeItems)}`);
 
@@ -72,31 +68,18 @@ export const handler = async (event) => {
     "S",
     true
   );
-
   const appointmentItems = appointmentResponse.Items[0];
   console.log(`appointmentItems: , ${JSON.stringify(appointmentItems)}`);
 
+  const dateTime = new Date(Date.now()).toISOString();
+
   if (episodeItems && appointmentItems && EventType === 'CANCELLED') { //if both queries are not undefined
-    //exists
-    console.log("Inside here");
     if (CancellationReason) { //cancellation reason is supplied
-      console.log('supplied reason');
-      console.log(Object.values(cancelledByNHS).includes(CancellationReason));
+      console.log('The Supplied Reason Is: ');
       if (Object.values(cancelledByNHS).includes(CancellationReason)) {
         const episodeEvent = 'Appointment Cancelled By NHS';
         console.log(episodeEvent);
-        // Then update cancelled appointment for the supplied participant in appointment table
-        // And update episode record for the participant
-        // And episode latest event is set to Appointment Cancelled by NHS
-
-        // Episode Event = Appointment Cancelled by NHS
-        // Episode Event updated = current system date timestamp
-        // Episode event description = CancellationReason
-        // Episode event notes = NULL
-        // Episode event updated by = GTMS
-        // Episode status = Open
-        // Episode status updated = same as episode event updated
-        const response = await transactionalWrite(
+        await transactionalWrite(
           dbClient,
           ParticipantID,
           episodeItems['Batch_Id']['S'], //required PK for Episode update
@@ -105,36 +88,62 @@ export const handler = async (event) => {
           episodeEvent, //Appointment Cancelled by NHS
           CancellationReason //reason its cancelled coming from payload
         );
-        console.log(response);
-        console.log("arrived here -abdul");
       }
       if (Object.values(cancelledByParticipant).includes(CancellationReason)) {
-        // Then update cancelled appointment for the supplied participant in appointment table
-        // And update episode record for the participant
-        // And episode latest event is set to Appointment Cancelled by participant
-
-        // Episode Event = Appointment Cancelled by participant
-        // Episode Event updated = current system date timestamp
-        // Episode event description = CancellationReason
-        // Episode event notes = NULL
-        // Episode event updated by = GTMS
-        // Episode status = Open
-        // Episode status updated = same as episode event updated
+        const episodeEvent = 'Appointment Cancelled by participant';
+        console.log(episodeEvent);
+        await transactionalWrite(
+          dbClient,
+          ParticipantID,
+          episodeItems['Batch_Id']['S'],
+          AppointmentID,
+          EventType,
+          episodeEvent,
+          CancellationReason
+        );
       }
-      if (Object.values(partcipantWithdrawn).includes(CancellationReason)) {
-        // Then update cancelled appointment for the supplied participant in appointment table
-        // And update episode record for the participant
-        // And episode latest event is set to Appointment Cancelled by Participant - Withdrawn
-
-        // Episode Event = Appointment Cancelled by Participant - Withdrawn
-        // Episode Event updated = current system date timestamp
-        // Episode event description = CancellationReason
-        // Episode event notes = NULL
-        // Episode event updated by = GTMS
-        // Episode status = Open
-        // Episode status updated = same as episode event updated
+      if (Object.values(participantWithdrawn).includes(CancellationReason)) {
+        const episodeEvent = 'Appointment Cancelled by Participant - Withdrawn';
+        console.log(episodeEvent);
+        await transactionalWrite(
+          dbClient,
+          ParticipantID,
+          episodeItems['Batch_Id']['S'],
+          AppointmentID,
+          EventType,
+          episodeEvent,
+          CancellationReason
+        );
       }
+      if (!Object.values(cancelledByNHS).includes(CancellationReason) && !Object.values(cancelledByParticipant).includes(CancellationReason) && !Object.values(participantWithdrawn).includes(CancellationReason)) {
+        //edge case, reason is populated but incorrect
+        const confirmation = await pushCsvToS3(
+          `${bucket}`,
+          `invalid_cancellation_reason/invalidRecord_${dateTime}.json`,
+          csvString,
+          s3
+        );
+        return confirmation;
+      }
+    } else {
+      //Cancellation Reason not supplied
+      const confirmation = await pushCsvToS3(
+        `${bucket}`,
+        `cancellation_reason_not_provided/invalidRecord_${dateTime}.json`,
+        csvString,
+        s3
+      );
+      return confirmation;
     }
+  } else {
+    //Failed to match Appointments table, Episode table, or incorrect event type
+    const confirmation = await pushCsvToS3(
+      `${bucket}`,
+      `record_does_not_match/invalidRecord_${dateTime}.json`,
+      csvString,
+      s3
+    );
+    return confirmation;
   }
 };
 
@@ -252,7 +261,13 @@ const transactionalWrite = async (
   try {
     const command = new TransactWriteItemsCommand(params);
     const response = await client.send(command);
-    return true;
+    if (response.$metadata.httpStatusCode !== 200) {
+      console.error(`Error occurred while trying to update db with item: ${participantId}`);
+      return false;
+    } else {
+      console.log(`Successfully updated db with item: ${participantId}`);
+      return true;
+    }
   } catch (error) {
     console.error("Transactional write failed:", error);
   }
