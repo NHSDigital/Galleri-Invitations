@@ -47,7 +47,6 @@ export const handler = async (event) => {
   const AppointmentID = js?.['Appointment']?.['AppointmentID'];
   const CancellationReason = js?.['Appointment']?.['CancellationReason'];
   const EventType = js?.['Appointment']?.['EventType']; //CANCELLED
-  console.log(`EventType: , ${EventType}`);
 
   const episodeResponse = await lookUp(
     dbClient,
