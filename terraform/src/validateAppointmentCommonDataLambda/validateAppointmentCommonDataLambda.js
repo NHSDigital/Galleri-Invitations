@@ -134,7 +134,7 @@ export const handler = async (event) => {
       console.log("No property AppointmentID found");
       return;
     }
-    await acceptRecord(appointmentJson, Appointment.EventType);
+    await acceptRecord(appointmentJson);
   } catch (error) {
     console.error(
       "Error with Appointment extraction, procession or uploading",
@@ -194,12 +194,12 @@ export const rejectRecord = async (appointmentJson) => {
   }
 };
 
-export const acceptRecord = async (appointmentJson, eventType) => {
+export const acceptRecord = async (appointmentJson) => {
   const timeNow = new Date().toISOString();
   const jsonString = JSON.stringify(appointmentJson);
   await pushToS3(
     `${ENVIRONMENT}-processed-appointments`,
-    `validRecords/valid_records-${eventType}-${timeNow}.json`,
+    `validRecords/valid_records-${timeNow}.json`,
     jsonString,
     s3
   );
