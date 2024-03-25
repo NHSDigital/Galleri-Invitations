@@ -757,32 +757,32 @@ module "create_episode_record_dynamodb_stream" {
   maximum_batching_window_in_seconds = 300
 }
 
-module "appointment_event_cancelled_lambda" {
+module "appointments_event_cancelled_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "appointmentEventCancelledLambda"
+  lambda_function_name = "appointmentsEventCancelledLambda"
   lambda_timeout       = 100
   memory_size          = 1024
-  lambda_s3_object_key = "appointment_event_cancelled_lambda.zip"
+  lambda_s3_object_key = "appointments_event_cancelled_lambda.zip"
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
 }
 
-module "appointment_event_cancelled_lambda_cloudwatch" {
+module "appointments_event_cancelled_lambda_cloudwatch" {
   source               = "./modules/cloudwatch"
   environment          = var.environment
-  lambda_function_name = module.appointment_event_cancelled_lambda.lambda_function_name
+  lambda_function_name = module.appointments_event_cancelled_lambda.lambda_function_name
   retention_days       = 14
 }
 
-module "appointment_event_cancelled_lambda_trigger" {
+module "appointments_event_cancelled_lambda_trigger" {
   source        = "./modules/lambda_trigger"
   bucket_id     = module.proccessed_appointments.bucket_id
   bucket_arn    = module.proccessed_appointments.bucket_arn
-  lambda_arn    = module.appointment_event_cancelled_lambda.lambda_arn
+  lambda_arn    = module.appointments_event_cancelled_lambda.lambda_arn
   filter_prefix = "validRecords/valid_records-"
 }
 
