@@ -27,16 +27,19 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
-  if [[ $environment_type == "dev" || $environment_type == "test" ]]; then
+  if [[ $environment_type == "dev" || $environment_type == "nft" ]]; then
     sed -i "s/ENVIRONMENT/$environment/g" $GITHUB_WORKSPACE/scripts/test_data/destructible_environments/lsoa.json
     aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/lsoa.json
     # LSOA table needs a minimum of 1MB of data for lambda to function, hence as a workaround populating table with cut down CSV file with uncurated padding records in addition to lSOA json with curated data.
     mkdir nonprod-unique-lsoa-data
-    if [[ $environment_type == "dev" ]]; then
-      aws s3 cp s3://galleri-ons-data/lsoa_data/destructible_environments/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
-    else
-      aws s3 cp s3://$environment_type-galleri-ons-data/lsoa_data/destructible_environments/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
-    fi
+    # cp $PWD/scripts/test_data/lsoa/trimmed/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
+    unzip $PWD/scripts/test_data/lsoa/trimmed/unique_lsoa_data.zip -d ./nonprod-unique-lsoa-data
+
+    # if [[ $environment_type == "dev" ]]; then
+    #   aws s3 cp s3://galleri-ons-data/lsoa_data/destructible_environments/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
+    # else
+    #   aws s3 cp s3://$environment_type-galleri-ons-data/lsoa_data/destructible_environments/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
+    # fi
     python $PWD/scripts/pipeline/nonprod_unique_lsoa_load/nonprod_unique_lsoa_load.py
   fi
   NONPROD_LSOA_DATA_COUNT=$(aws dynamodb scan --table-name $environment-UniqueLsoa --select "COUNT" | jq -r ".Count")
@@ -44,7 +47,9 @@ function main() {
     if (($NONPROD_LSOA_DATA_COUNT < 10)); then
       echo Initiating upload of LSOA subset data to database
       mkdir nonprod-unique-lsoa-data
-      aws s3 cp s3://$environment_type-galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
+      # aws s3 cp s3://$environment_type-galleri-ons-data/lsoa_data/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
+      unzip $PWD/scripts/test_data/lsoa/untrimmed/unique_lsoa_data.zip -d ./nonprod-unique-lsoa-data
+      # cp $PWD/scripts/test_data/lsoa/untrimmed/unique_lsoa_data.csv ./nonprod-unique-lsoa-data
       ls -l ./nonprod-unique-lsoa-data
       echo Succefully Downloaded CSV from S3
       echo Uploading items to LSOA database
@@ -59,7 +64,7 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
-  if [[ $environment_type == "dev" || $environment_type == "test" ]]; then
+  if [[ $environment_type == "dev" || $environment_type == "nft" ]]; then
     sed -i "s/ENVIRONMENT/$environment/g" $GITHUB_WORKSPACE/scripts/test_data/destructible_environments/phlebotomy.json
     aws dynamodb batch-write-item --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/phlebotomy.json
   fi
@@ -83,11 +88,12 @@ function main() {
     if (($POSTCODE_COUNT < 1)); then
       echo Initiating upload of Postcode subset data to database
       mkdir nonprod-postcode-load
-      if [[ $environment_type == "dev" ]]; then
-        aws s3 cp s3://galleri-ons-data/lsoa_data/lsoa_with_avg_easting_northing.csv ./nonprod-postcode-load
-      else
-        aws s3 cp s3://$environment_type-galleri-ons-data/lsoa_data/lsoa_with_avg_easting_northing.csv ./nonprod-postcode-load
-      fi
+      unzip $PWD/scripts/test_data/lsoa_with_avg_easting_northing.zip -d ./nonprod-postcode-load
+      # if [[ $environment_type == "dev" ]]; then
+      #   aws s3 cp s3://galleri-ons-data/lsoa_data/lsoa_with_avg_easting_northing.csv ./nonprod-postcode-load
+      # else
+      #   aws s3 cp s3://$environment_type-galleri-ons-data/lsoa_data/lsoa_with_avg_easting_northing.csv ./nonprod-postcode-load
+      # fi
       echo Succefully Downloaded CSV from S3
       echo Uploading items to Postcode database
       python $PWD/scripts/pipeline/nonprod_postcode_load/nonprod_postcode_load.py
@@ -101,7 +107,7 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
-  if [[ $environment_type == "dev" || $environment_type == "test" ]]; then
+  if [[ $environment_type == "dev" || $environment_type == "nft" ]]; then
     sed -i "s/ENVIRONMENT/$environment/g" $GITHUB_WORKSPACE/scripts/test_data/destructible_environments/population*.json
     aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/population1.json
     aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/population2.json
@@ -113,7 +119,9 @@ function main() {
     if (($POPULATION_COUNT < 100)); then
       echo Initiating upload of dummy Population data to database
       mkdir nonprod-population-data
-      aws s3 cp s3://$environment_type-galleri-test-data/non_prod_participant_data/ ./nonprod-population-data --recursive
+      # aws s3 cp s3://$environment_type-galleri-test-data/non_prod_participant_data/ ./nonprod-population-data --recursive
+      unzip $PWD/scripts/test_data/female_participants_with_LSOA_Invited.zip -d ./nonprod-population-data
+      unzip $PWD/scripts/test_data/male_participants_with_LSOA_Invited.zip -d ./nonprod-population-data
       echo Succefully Downloaded galleri-test-data CSVs from S3
       echo Uploading items to Population database
       python $PWD/scripts/pipeline/nonprod_population_load/nonprod_population_load.py

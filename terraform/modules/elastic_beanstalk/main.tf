@@ -46,7 +46,6 @@ resource "aws_acm_certificate_validation" "example" {
 }
 
 # Once we have validated that the domain is owned and correct then we create the actual record
-
 resource "aws_route53_record" "actual_record" {
   zone_id = data.aws_route53_zone.example.id
   name    = "${var.environment}.${var.hostname}"

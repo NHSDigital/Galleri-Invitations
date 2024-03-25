@@ -42,8 +42,9 @@ venv
 # node modules
 node_modules
 
-# remove zip files from lambdas
-*.zip
+# remove zip files from lambdas but not test data
+
+terraform/src/**/*.zip
 
 # local data
 local_data
