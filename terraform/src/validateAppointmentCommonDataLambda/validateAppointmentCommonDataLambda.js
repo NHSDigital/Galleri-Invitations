@@ -134,14 +134,7 @@ export const handler = async (event) => {
       console.log("No property AppointmentID found");
       return;
     }
-    const timeNow = new Date().toISOString();
-    const jsonString = JSON.stringify(appointmentJson);
-    await pushToS3(
-      `${ENVIRONMENT}-processed-appointments`,
-      `validRecords/valid_records-${timeNow}.json`,
-      jsonString,
-      s3
-    );
+    await acceptRecord(appointmentJson);
   } catch (error) {
     console.error(
       "Error with Appointment extraction, procession or uploading",
@@ -199,6 +192,17 @@ export const rejectRecord = async (appointmentJson) => {
     console.log("Failed: ", err);
     throw err;
   }
+};
+
+export const acceptRecord = async (appointmentJson) => {
+  const timeNow = new Date().toISOString();
+  const jsonString = JSON.stringify(appointmentJson);
+  await pushToS3(
+    `${ENVIRONMENT}-processed-appointments`,
+    `validRecords/valid_records-${timeNow}.json`,
+    jsonString,
+    s3
+  );
 };
 
 // DYNAMODB FUNCTIONS
