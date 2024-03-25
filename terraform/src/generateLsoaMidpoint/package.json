@@ -1,0 +1,10 @@
+{
+  "name": "generateLsoaMidpoint",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "generateLsoaMidpoint.js",
+  "author": "",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.489.0"
+  }
+}

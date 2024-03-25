@@ -1,44 +1,51 @@
-import { getItemsFromTable, invokeParticipantListLambda, getParticipantsInQuintile } from '../../calculateNumberToInviteLambda/calculateNumberToInviteLambda'
-import { mockClient } from 'aws-sdk-client-mock';
-import { LambdaClient } from '@aws-sdk/client-lambda';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import {
+  getItemsFromTable,
+  invokeParticipantListLambda,
+  getParticipantsInQuintile,
+} from "../../calculateNumberToInviteLambda/calculateNumberToInviteLambda";
+import { mockClient } from "aws-sdk-client-mock";
+import { LambdaClient } from "@aws-sdk/client-lambda";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 
-describe('getItemsFromTable', () => {
+describe("getItemsFromTable", () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
-  test('should mock call to dynamoDb successfully', async () => {
+  test("should mock call to dynamoDb successfully", async () => {
     mockDynamoDbClient.resolves({
       $metadata: {
-        httpStatusCode: 200
+        httpStatusCode: 200,
       },
-      Body: "hello"
+      Body: "hello",
     });
 
-    const result = await getItemsFromTable('table', mockDynamoDbClient, 'key');
+    const result = await getItemsFromTable("table", mockDynamoDbClient, "key");
 
     expect(result.Body).toEqual("hello");
   });
 });
 
-describe('invokeParticipantListLambda', () => {
+describe("invokeParticipantListLambda", () => {
   const mockLambdaClient = mockClient(new LambdaClient({}));
 
-  test('should mock lambda invocation successfully', async () => {
-    const payload = JSON.stringify({"message": "hello from payload"})
+  test("should mock lambda invocation successfully", async () => {
+    const payload = JSON.stringify({ message: "hello from payload" });
 
     mockLambdaClient.resolves({
       $metadata: {
-        httpStatusCode: 200
+        httpStatusCode: 200,
       },
-      Payload: Buffer.from(payload)
+      Payload: Buffer.from(payload),
     });
 
-    const result = await invokeParticipantListLambda('lambdaName', payload, mockLambdaClient);
+    const result = await invokeParticipantListLambda(
+      "lambdaName",
+      payload,
+      mockLambdaClient
+    );
 
     expect(result).toEqual({
-      "message": "hello from payload"
+      message: "hello from payload",
     });
-
   });
 });
 

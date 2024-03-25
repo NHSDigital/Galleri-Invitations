@@ -20,11 +20,10 @@ resource "aws_iam_policy" "iam_policy" {
   name        = "${var.environment}-${var.name}"
   path        = var.path
   description = var.description
-
-  policy = var.policy
+  policy      = var.policy
 }
 
 resource "aws_iam_role_policy_attachment" "attach_policy" {
-  role       = aws_iam_role.iam_role
+  role       = aws_iam_role.iam_role.name
   policy_arn = aws_iam_policy.iam_policy.arn
 }
