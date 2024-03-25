@@ -1,8 +1,8 @@
 {
-  "name": "appointmentEventCancelledLambda",
+  "name": "appointmentsEventCancelledLambda",
   "version": "1.0.0",
   "type": "module",
-  "main": "appointmentEventCancelledLambda.js",
+  "main": "appointmentsEventCancelledLambda.js",
   "author": "",
   "dependencies": {
     "csv-parser": "^3.0.0",

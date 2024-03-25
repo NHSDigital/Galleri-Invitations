@@ -48,14 +48,8 @@ export const handler = async (event) => {
   const CancellationReason = js?.['Appointment']?.['CancellationReason'];
   const EventType = js?.['Appointment']?.['EventType']; //CANCELLED
 
-  const episodeResponse = await lookUp(
-    dbClient,
-    ParticipantID,
-    "Episode",
-    "Participant_Id",
-    "S",
-    true
-  );
+  const episodeResponse = await lookUp(dbClient, ParticipantID, "Episode", "Participant_Id", "S", true);
+
   const episodeItems = episodeResponse.Items[0];
   console.log(`episodeItems: , ${JSON.stringify(episodeItems)}`);
 

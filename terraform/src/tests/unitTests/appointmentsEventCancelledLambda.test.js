@@ -10,7 +10,7 @@ import {
   pushCsvToS3,
   lookUp,
   transactionalWrite,
-} from '../../appointmentEventCancelledLambda/appointmentEventCancelledLambda.js';
+} from '../../appointmentsEventCancelledLambda/appointmentEventCancelledLambda.js';
 
 describe("readCsvFromS3", () => {
   beforeEach(() => {
