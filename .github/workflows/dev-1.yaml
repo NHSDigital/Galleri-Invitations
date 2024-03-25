@@ -1,4 +1,4 @@
-name: "DEV 1 Manual Deploy"
+name: "DEV 1 - Abdul"
 
 # The total recommended execution time for the "CI/CD Pull Request" workflow is around 20 minutes.
 
@@ -36,6 +36,8 @@ on:
           - "yes"
           - "no"
 
+env:
+  AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
 jobs:
   metadata:
     runs-on: ubuntu-latest
@@ -53,13 +55,14 @@ jobs:
       version: ${{ steps.variables.outputs.version }}
       does_pull_request_exist: ${{ steps.pr_exists.outputs.does_pull_request_exist }}
       environment: ${{ env.environment }}
+      environment_type: ${{ steps.variables.outputs.environment_type }}
       invitations_branch: ${{ github.event.inputs.invitations_branch }}
       frontend_branch: ${{ github.event.inputs.invitations_branch }}
       database_seeding: ${{ github.event.inputs.database_seeding }}
       tf_action: ${{ github.event.inputs.tf_action }}
       test: ${{ github.event.inputs.test }}
     steps:
-      - name: "print environment name"
+      - name: "print environment vars"
         run: |
           echo job running on branch: ${{ github.base_ref }}
           echo environment is: ${{ env.environment }}
@@ -82,6 +85,7 @@ jobs:
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
           echo "environment=dev-1" >> $GITHUB_OUTPUT
+          echo "environment_type=$(echo '${{ env.environment }}' | cut -f1 -d'-')" >> $GITHUB_OUTPUT
       - name: "Check if pull request exists for this branch"
         id: pr_exists
         env:
@@ -136,11 +140,7 @@ jobs:
     secrets: inherit
 
   build-stage: # Recommended maximum execution time is 10 minutes
-    needs: [
-        metadata,
-        test-stage,
-        # build-stage
-      ]
+    needs: [metadata, test-stage]
     uses: ./.github/workflows/stage-3-build.yaml
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
@@ -151,15 +151,16 @@ jobs:
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
-      invitations_branch: "${{ github.event.inputs.invitations_branch }}"
-      frontend_branch: "${{ github.event.inputs.frontend_branch }}"
-      tf_action: "${{ github.event.inputs.tf_action }}"
-    secrets: inherit
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
+      USERS: ${{ secrets.USERS }}
+      CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
 
   data-stage: # Recommended maximum execution time is 10 minutes
     needs: [metadata, test-stage, build-stage]
     uses: ./.github/workflows/stage-4-load-data.yaml
-    if: needs.metadata.outputs.database_seeding == 'yes'
+    if: needs.metadata.outputs.database_seeding == 'yes' && needs.metadata.outputs.tf_action != 'destroy'
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
@@ -168,8 +169,10 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
-      environment: ${{ needs.metadata.outputs.environment }}
-    secrets: inherit
+      environment: "${{ needs.metadata.outputs.environment }}"
+      environment_type: "${{ needs.metadata.outputs.environment_type }}"
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
 
   acceptance-stage: # Recommended maximum execution time is 10 minutes
     needs: [metadata, test-stage, build-stage, data-stage]
@@ -184,4 +187,6 @@ jobs:
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
-    secrets: inherit
+      test: ${{ needs.metadata.outputs.test }}
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}

@@ -9,8 +9,55 @@ data "archive_file" "screens" {
   output_path = "${path.cwd}/src/${var.name}.zip"
 }
 
+data "aws_route53_zone" "example" {
+  name         = "${var.hostname}."
+  private_zone = false
+}
+
+# Setup DNS records, this is a bit of a roundabot process but the way it works is the first three blocks are just to validate
+# ownership of the domain, it does this by creating a hostname with a unique prefix and then checks it to verify
+# everything is correct.
+
+resource "aws_acm_certificate" "example" {
+  domain_name       = "${var.environment}.${var.hostname}"
+  validation_method = "DNS"
+}
+
+resource "aws_route53_record" "example" {
+  for_each = {
+    for dvo in aws_acm_certificate.example.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = data.aws_route53_zone.example.zone_id
+}
+
+resource "aws_acm_certificate_validation" "example" {
+  certificate_arn         = aws_acm_certificate.example.arn
+  validation_record_fqdns = [for record in aws_route53_record.example : record.fqdn]
+}
+
+# Once we have validated that the domain is owned and correct then we create the actual record
+resource "aws_route53_record" "actual_record" {
+  zone_id = data.aws_route53_zone.example.id
+  name    = "${var.environment}.${var.hostname}"
+  type    = "CNAME"
+  ttl     = "300"
+  records = ["${var.environment}-${var.dns_zone}-gps-cancer-detection-blood-test.${var.region}.elasticbeanstalk.com"]
+}
+
+# IAM Role for Elastic Beanstalk environment's EC2 instances
 resource "aws_iam_role" "screens" {
   name = "${var.environment}-${var.name}-role"
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -25,117 +72,105 @@ resource "aws_iam_role" "screens" {
   })
 }
 
+# Attach the default policy for Elastic Beanstalk Web Tier to the IAM role
 resource "aws_iam_role_policy_attachment" "screens" {
   role       = aws_iam_role.screens.name
   policy_arn = "arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier"
 }
 
+# IAM Instance Profile for Elastic Beanstalk environment's EC2 instances
 resource "aws_iam_instance_profile" "screens" {
   name = "${var.environment}-${var.name}-instance_profile"
   role = aws_iam_role.screens.name
 }
 
-
+# S3 Bucket for storing application versions
 resource "aws_s3_bucket" "screens" {
   bucket = "${var.environment}-${var.name}-frontend"
 }
 
+# S3 Object for the application version
 resource "aws_s3_object" "screens" {
   bucket = aws_s3_bucket.screens.id
   key    = "${var.name}-${local.source_hash}.zip"
   source = data.archive_file.screens.output_path
 }
 
+# Elastic Beanstalk Application
 resource "aws_elastic_beanstalk_application" "screens" {
   name        = "${var.environment}-${var.name}"
   description = var.description
 }
 
+# Elastic Beanstalk Application Version
 resource "aws_elastic_beanstalk_application_version" "screens" {
   name        = "${var.environment}-${local.source_hash}"
   application = aws_elastic_beanstalk_application.screens.name
   bucket      = aws_s3_bucket.screens.bucket
   key         = aws_s3_object.screens.key
+  depends_on  = [aws_acm_certificate_validation.example]
 }
 
+# Security Group for the Elastic Beanstalk environment
 resource "aws_security_group" "screens" {
   name        = "${var.environment}-${var.name}"
   description = "Security group for Elastic Beanstalk environment"
   vpc_id      = var.vpc_id
-
-  tags = {
-    Name = "${var.environment}-${var.name}"
-  }
 }
 
-# Allow all inbound traffic from members of the group for clustering purposes.
-resource "aws_security_group_rule" "local_ingress" {
+resource "aws_security_group_rule" "https" {
   security_group_id = aws_security_group.screens.id
-
-  type      = "ingress"
-  from_port = 0
-  to_port   = 0
-  protocol  = "-1"
-  self      = true
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
 }
 
-# Allow all outbound traffic.
-resource "aws_security_group_rule" "local_egress" {
-  security_group_id = aws_security_group.screens.id
-
-  type      = "egress"
-  from_port = 0
-  to_port   = 0
-  protocol  = "-1"
-  self      = true
-}
-
-# allow inbound http traffic
-resource "aws_vpc_security_group_ingress_rule" "http" {
-  security_group_id = aws_security_group.screens.id
-
-  from_port   = 80
-  to_port     = 80
-  ip_protocol = "tcp"
-  cidr_ipv4   = "0.0.0.0/0"
-}
-
-# allow inbound tcp 8080
-resource "aws_vpc_security_group_ingress_rule" "tcp_8080" {
-  security_group_id = aws_security_group.screens.id
-
-  from_port   = 8080
-  to_port     = 8080
-  ip_protocol = "tcp"
-  cidr_ipv4   = "0.0.0.0/0"
-}
-
-# allow inbound https
-resource "aws_vpc_security_group_ingress_rule" "https" {
-  security_group_id = aws_security_group.screens.id
-
-  from_port   = 443
-  to_port     = 443
-  ip_protocol = "tcp"
-  cidr_ipv4   = "0.0.0.0/0"
-}
-
+# Elastic Beanstalk Environment
 resource "aws_elastic_beanstalk_environment" "screens" {
-  name                = "${var.environment}-invitations-frontend"
+  name                = "${var.environment}-${var.name}-frontend"
   application         = aws_elastic_beanstalk_application.screens.name
-  solution_stack_name = "64bit Amazon Linux 2 v5.8.7 running Node.js 18"
+  solution_stack_name = "64bit Amazon Linux 2 v5.8.11 running Node.js 18"
   version_label       = aws_elastic_beanstalk_application_version.screens.name
+  cname_prefix        = "${var.environment}-${var.dns_zone}-gps-cancer-detection-blood-test"
+
+  depends_on = [aws_acm_certificate_validation.example]
+
+  setting {
+    namespace = "aws:elb:listener:443"
+    name      = "ListenerProtocol"
+    value     = "HTTPS"
+  }
+
+  setting {
+    namespace = "aws:elb:listener:443"
+    name      = "SSLCertificateId"
+    value     = aws_acm_certificate_validation.example.certificate_arn
+  }
+
+  setting {
+    namespace = "aws:elb:listener:443"
+    name      = "InstancePort"
+    value     = "80"
+  }
 
   setting {
     namespace = "aws:elasticbeanstalk:environment"
     name      = "EnvironmentType"
-    value     = "SingleInstance"
+    value     = "LoadBalanced"
   }
 
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "IamInstanceProfile"
     value     = aws_iam_instance_profile.screens.name
+  }
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "SecurityGroups"
+    value     = aws_security_group.screens.id
   }
 
   setting {
@@ -147,18 +182,7 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   setting {
     namespace = "aws:ec2:vpc"
     name      = "Subnets"
-    value     = join(",", [var.subnet_1])
-  }
-
-  setting {
-    namespace = "aws:autoscaling:launchconfiguration"
-    name      = "SecurityGroups"
-    value     = aws_security_group.screens.id
-  }
-  setting {
-    namespace = "aws:elasticbeanstalk:application:environment"
-    name      = "PORT"
-    value     = 8080
+    value     = "${var.subnet_1},${var.subnet_2}"
   }
 
   setting {
@@ -237,5 +261,76 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "NEXT_PUBLIC_GENERATE_INVITES"
     value     = var.NEXT_PUBLIC_GENERATE_INVITES
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "USERS"
+    value = jsonencode([
+      {
+        "id" : "1",
+        "name" : "dev",
+        "role" : "Invitation Planner",
+        "email" : "dev@nhs.net",
+        "password" : "Testing"
+      },
+      {
+        "id" : "2",
+        "name" : "test",
+        "role" : "Invitation Planner",
+        "email" : "test@nhs.net",
+        "password" : "Testing"
+      },
+      {
+        "id" : "3",
+        "name" : "dev_2",
+        "role" : "Referring Clinician",
+        "email" : "dev2@nhs.net",
+        "password" : "Testing"
+      },
+      {
+        "id" : "4",
+        "name" : "test_2",
+        "role" : "Referring Clinician",
+        "email" : "test2@nhs.net",
+        "password" : "Testing"
+      },
+      {
+        "id" : "5",
+        "name" : "pen",
+        "email" : "pen@nhs.net",
+        "password" : "Testing"
+      }
+    ])
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "CIS2_ID"
+    value     = "328183617639.apps.supplier"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "CIS2_SECRET"
+    value     = var.CIS2_SECRET
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXTAUTH_SECRET"
+    value     = var.NEXTAUTH_SECRET
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXTAUTH_URL"
+    value     = "https://${var.environment}.${var.hostname}"
+  }
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "SecurityGroups"
+    value     = aws_security_group.screens.id
   }
 }

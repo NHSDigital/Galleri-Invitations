@@ -20,8 +20,11 @@ resource "aws_s3_bucket_policy" "allow_access_to_lambda" {
 data "aws_iam_policy_document" "allow_access_to_lambda" {
   statement {
     principals {
-      type        = "AWS"
-      identifiers = var.galleri_lambda_role_arn
+      type = "AWS"
+      identifiers = [
+        "arn:aws:iam::${var.account_id}:role/github-oidc-invitations-role",
+        var.galleri_lambda_role_arn
+      ]
     }
 
     actions = [

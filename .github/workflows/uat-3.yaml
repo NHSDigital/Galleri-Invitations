@@ -35,7 +35,8 @@ on:
         options:
           - "yes"
           - "no"
-
+env:
+  AWS_ACCOUNT_ID: ${{ secrets.UAT_AWS_ACCOUNT_ID }}
 jobs:
   metadata:
     runs-on: ubuntu-latest
@@ -53,6 +54,7 @@ jobs:
       version: ${{ steps.variables.outputs.version }}
       does_pull_request_exist: ${{ steps.pr_exists.outputs.does_pull_request_exist }}
       environment: ${{ env.environment }}
+      environment_type: ${{ steps.variables.outputs.environment_type }}
       invitations_branch: ${{ github.event.inputs.invitations_branch }}
       frontend_branch: ${{ github.event.inputs.invitations_branch }}
       database_seeding: ${{ github.event.inputs.database_seeding }}
@@ -82,6 +84,7 @@ jobs:
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
           echo "environment=uat-3" >> $GITHUB_OUTPUT
+          echo "environment_type=$(echo '${{ env.environment }}' | cut -f1 -d'-')" >> $GITHUB_OUTPUT
       - name: "Check if pull request exists for this branch"
         id: pr_exists
         env:
@@ -115,6 +118,8 @@ jobs:
         # build-stage
       ]
     uses: ./.github/workflows/stage-3-build.yaml
+    # env:
+    #   AWS_ACCOUNT_ID: "${{ secrets.UAT_AWS_ACCOUNT_ID }}"
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
@@ -127,8 +132,11 @@ jobs:
       invitations_branch: "${{ github.event.inputs.invitations_branch }}"
       frontend_branch: "${{ github.event.inputs.frontend_branch }}"
       tf_action: "${{ github.event.inputs.tf_action }}"
-    secrets: inherit
-
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.UAT_AWS_ACCOUNT_ID }}
+      USERS: ${{ secrets.USERS }}
+      CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
   data-stage: # Recommended maximum execution time is 10 minutes
     needs: [metadata, build-stage]
     uses: ./.github/workflows/stage-4-load-data.yaml
@@ -142,7 +150,9 @@ jobs:
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
-    secrets: inherit
+      environment_type: "${{ needs.metadata.outputs.environment_type }}"
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.UAT_AWS_ACCOUNT_ID }}
 
   acceptance-stage: # Recommended maximum execution time is 10 minutes
     needs: [metadata, build-stage, data-stage]

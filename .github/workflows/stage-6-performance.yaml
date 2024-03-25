@@ -1,0 +1,31 @@
+name: "Performance stage"
+
+on:
+  workflow_call:
+    inputs:
+      version_bump:
+        description: "Version to be incremented, set by the CI/CD pipeline workflow"
+        required: true
+        type: string
+
+env:
+  version_bump: ${{ inputs.version_bump }}
+
+jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+      - name: "Versioning"
+        uses: ./.github/actions/versioning
+        with:
+          version_bump: ${{ env.version_bump }}
+  performance-test:
+    needs: [version-bump]
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+      - name: "Performance test"
+        uses: ./.github/actions/performance-test

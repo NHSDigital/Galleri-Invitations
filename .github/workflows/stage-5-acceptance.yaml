@@ -54,12 +54,15 @@ on:
         required: false
       test:
         description: "If the tests should be run or not"
-        default: "false"
+        default: "no"
         type: string
         required: false
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
 
 env:
-  role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+  # role-to-assume: ${{ vars.AWS_ROLE_ARN }}
   aws-region: ${{ vars.aws_region }}
   aws-bucket-name: ${{ vars.aws_bucket_name }}
   aws-bucket-key-name: ${{ vars.aws_bucket_key_name }}
@@ -67,6 +70,7 @@ env:
   frontend-branch: ${{ inputs.frontend_branch }}
   invitations-branch: ${{ inputs.invitations_branch }}
   tf-action: ${{ inputs.tf_action }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
 
 jobs:
   run-tests:
@@ -86,7 +90,8 @@ jobs:
         if: inputs.test == 'yes'
         uses: ./.github/actions/api-testing
         with:
-          role-to-assume: ${{ env.role-to-assume }}
+          # role-to-assume: ${{ env.role-to-assume }}
           aws-region: ${{ env.aws-region }}
           environment: ${{ env.environment }}
+          AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}
         timeout-minutes: 30

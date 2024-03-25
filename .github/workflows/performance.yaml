@@ -10,10 +10,10 @@ on:
   workflow_dispatch:
     inputs:
       invitations_branch:
-        description: "This is the branch/tag of Galleri-Invitations be deployed to the UAT environment"
+        description: "This is the branch/tag of Galleri-Invitations be deployed to the Performance environment"
         required: true
       frontend_branch:
-        description: "This is the branch/tag of the Galleri frontend to be deployed to the UAT environment"
+        description: "This is the branch/tag of the Galleri frontend to be deployed to the Performance environment"
         required: true
       database_seeding:
         description: "Determines if the seeding scripts are run to populate the database"
@@ -46,6 +46,9 @@ jobs:
     timeout-minutes: 1
     env:
       environment: "performance"
+      version_bump: "MINOR"
+      database_seeding: "yes"
+      test: "no"
     outputs:
       build_datetime_london: ${{ steps.variables.outputs.build_datetime_london }}
       build_datetime: ${{ steps.variables.outputs.build_datetime }}
@@ -60,8 +63,8 @@ jobs:
       invitations_branch: ${{ github.event.inputs.invitations_branch }}
       frontend_branch: ${{ github.event.inputs.invitations_branch }}
       database_seeding: ${{ github.event.inputs.database_seeding }}
-      tf_action: ${{ github.event.inputs.tf_action }}
       test: ${{ github.event.inputs.test }}
+      version_bump: ${{ env.version_bump }}
     steps:
       - name: "print environment name"
         run: |
@@ -69,6 +72,9 @@ jobs:
           echo environment is: ${{ env.environment }}
           echo seed database: ${{ github.event.inputs.database_seeding }}
           echo run tests: ${{ github.event.inputs.test }}
+          echo terraform action: ${{ github.event.inputs.tf_action }}
+          echo frontend branch: ${{ github.event.inputs.frontend_branch }}
+          echo invitations_branch: ${{ github.event.inputs.invitations_branch }}
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
@@ -154,7 +160,6 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       invitations_branch: "${{ github.event.inputs.invitations_branch }}"
       frontend_branch: "${{ github.event.inputs.frontend_branch }}"
-      tf_action: "${{ github.event.inputs.tf_action }}"
     secrets: inherit
 
   data-stage: # Recommended maximum execution time is 10 minutes
@@ -188,26 +193,8 @@ jobs:
     secrets: inherit
 
   performance-stage:
-    runs-on: ubuntu-latest
-    needs: [metadata, test-stage, build-stage, data-stage, acceptance-stage]
-    steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v4
-      - name: "git tag with next release version"
-        shell: bash
-        run: |
-          ./scripts/pipeline/version.sh MINOR
-      # - name: "create tagged versions of lambdas"
-      #   run: |
-      #     echo "TODO: create release versions of lambdas"
-      # - name: "create tagged versions of frontend"
-      #   run: |
-      #     echo "TODO: create release versions of lambdas"
-      # - name: "create tagged versions of frontend"
-      #   run: |
-      #     echo "TODO: tag main branch"
-      - name: "run performance check against latest versions"
-        run: |
-          npx cypress run --env api_id=mbz93pl6qf,clinic_id=YK18Z380,clinic_name='Phlebotomy clinic 34' --spec "cypress/e2e/api/CLI/clinic-information.cy.js"
-          npx cypress run --env api_id=yuvf0jcaql,participatingIcb=QJK --spec "cypress/e2e/api/CLI/clinic-summary-list.cy.js"
-          npx cypress run --env api_id=ez9vey9gqh --spec "cypress/e2e/api/CLI/target-percentage.cy.js"
+    needs: [metadata, build-stage, data-stage]
+    uses: ./.github/workflows/stage-6-performance.yaml
+    with:
+      version_bump: "${{ needs.metadata.outputs.version_bump }}"
+    secrets: inherit

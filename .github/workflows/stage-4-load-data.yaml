@@ -35,6 +35,10 @@ on:
         description: "the environment to deploy terraform into"
         required: true
         type: string
+      environment_type:
+        description: "This is a check to determine if the pipeline is running in dev-1, dev-2, test-1, test-2, etc"
+        required: false
+        type: string
       invitations_branch:
         description: "Branch of invitations repository to checkout"
         required: false
@@ -57,9 +61,12 @@ on:
         default: "false"
         type: string
         required: false
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
 
 env:
-  role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+  # role-to-assume: ${{ vars.AWS_ROLE_ARN }}
   aws-region: ${{ vars.aws_region }}
   aws-bucket-name: ${{ vars.aws_bucket_name }}
   aws-bucket-key-name: ${{ vars.aws_bucket_key_name }}
@@ -67,6 +74,8 @@ env:
   frontend-branch: ${{ inputs.frontend_branch }}
   invitations-branch: ${{ inputs.invitations_branch }}
   tf-action: ${{ inputs.tf_action }}
+  environment_type: ${{ inputs.environment_type }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
 
 jobs:
   load-data:
@@ -93,7 +102,9 @@ jobs:
         if: inputs.tf_action == 'apply'
         uses: ./.github/actions/seeding
         with:
-          role-to-assume: ${{ env.role-to-assume }}
+          # role-to-assume: ${{ env.role-to-assume }}
           aws-region: ${{ env.aws-region }}
           environment: ${{ env.environment }}
+          environment_type: ${{ env.environment_type }}
+          AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}
         timeout-minutes: 30
