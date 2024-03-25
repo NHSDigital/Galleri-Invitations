@@ -38,17 +38,17 @@ export const handler = async (event) => {
     true
   );
   const episodeItems = episodeResponse.Items[0];
-  console.log(`This is the output of the episodeItems: ${episodeItems}`);
-  console.log(`It's items by definition is: ${episodeItems}`);
-  console.log(episodeItems.Batch_Id.S);
+  const episodeEvent = {
+    complete: "Appointment Attended - Sample Taken",
+    no_show: "Did Not Attend Appointment",
+    aborted: "Invalid Appointment: Blood not collected reason not supplied",
+  };
   try {
-    let episodeEvent = "";
     let response = false;
 
     switch (EventType) {
       case "COMPLETE":
         console.log(`This was a ${EventType}`);
-        episodeEvent = "Appointment Attended - Sample Taken";
         if (BloodCollectionDate && GrailID) {
           response = await transactionalWrite(
             dbClient,
@@ -56,9 +56,8 @@ export const handler = async (event) => {
             episodeItems.Batch_Id.S,
             AppointmentID,
             EventType,
-            episodeEvent
+            episodeEvent.complete
           );
-          console.log("This is to test that it reaches here in the code");
         } else {
           await rejectRecord(appointmentJson);
           console.log(
@@ -69,20 +68,18 @@ export const handler = async (event) => {
 
       case "NO_SHOW":
         console.log(`This was a ${EventType}`);
-        episodeEvent = "Did Not Attend Appointment";
         response = await transactionalWrite(
           dbClient,
           ParticipantID,
           episodeItems.Batch_Id.S,
           AppointmentID,
           EventType,
-          episodeEvent
+          episodeEvent.no_show
         );
         break;
 
       case "ABORTED":
         console.log(`This was a ${EventType}`);
-        episodeEvent = "Appointment Attended - No Sample Taken";
         if (BloodNotCollectedReason) {
           response = await transactionalWrite(
             dbClient,
@@ -90,7 +87,7 @@ export const handler = async (event) => {
             episodeItems.Batch_Id.S,
             AppointmentID,
             EventType,
-            episodeEvent,
+            episodeEvent.aborted,
             BloodNotCollectedReason
           );
         } else {
@@ -203,7 +200,7 @@ export const lookUp = async (dbClient, ...params) => {
   return response;
 };
 // Updates Episode and appointment
-const transactionalWrite = async (
+export const transactionalWrite = async (
   client,
   participantId,
   batchId,
