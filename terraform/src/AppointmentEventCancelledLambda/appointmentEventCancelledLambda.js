@@ -211,7 +211,7 @@ export const lookUp = async (dbClient, ...params) => {
   return response;
 };
 
-const transactionalWrite = async (
+export const transactionalWrite = async (
   client,
   participantId,
   batchId,

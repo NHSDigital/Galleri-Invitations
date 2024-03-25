@@ -8,6 +8,8 @@ import path from 'path';
 import {
   readCsvFromS3,
   pushCsvToS3,
+  lookUp,
+  transactionalWrite,
 } from '../../appointmentEventCancelledLambda/appointmentEventCancelledLambda.js';
 
 describe("readCsvFromS3", () => {
@@ -98,5 +100,117 @@ describe("pushCsvToS3", () => {
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith(`Failed to push to galleri-ons-data/test.txt. Error Message: ${errorMsg}`);
+  });
+});
+
+describe("lookUp", () => {
+  const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
+
+  test("should return successful response if item does not exist from query", async () => {
+    mockDynamoDbClient.resolves({
+      $metadata: {
+        httpStatusCode: 200,
+      },
+      Items: ["I exist"],
+    });
+
+    const id = "ID-A";
+    const table = "table-A";
+    const attribute = "attribute-A";
+    const attributeType = "Type-A";
+
+    const result = await lookUp(
+      mockDynamoDbClient,
+      id,
+      table,
+      attribute,
+      attributeType
+    );
+
+    expect(result.Items).toEqual(["I exist"]);
+  });
+
+  test("should return unsuccessful response if item does exist from query", async () => {
+    mockDynamoDbClient.resolves({
+      $metadata: {
+        httpStatusCode: 200,
+      },
+      Items: [],
+    });
+
+    const id = "ID-A";
+    const table = "table-A";
+    const attribute = "attribute-A";
+    const attributeType = "Type-A";
+
+    const result = await lookUp(
+      mockDynamoDbClient,
+      id,
+      table,
+      attribute,
+      attributeType
+    );
+
+    expect(result.Items).toEqual([]);
+  });
+});
+
+describe("transactionalWrite", () => {
+  const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
+
+  test("Return successful response if participant exists", async () => {
+    mockDynamoDbClient.resolves({
+      $metadata: {
+        httpStatusCode: 200,
+      },
+      Items: ["I exist"],
+    });
+
+    const participantId = "NHS-12345";
+    const batchId = "IB-pck28f-datsf28f-a233-bug41-2right111f4a53";
+    const appointmentId = "12345";
+    const eventType = "CANCELLED";
+    const episodeEvent = "Appointment Cancelled by Participant - Withdrawn";
+    const eventDescription = "example";
+
+    const result = await transactionalWrite(
+      mockDynamoDbClient,
+      participantId,
+      batchId,
+      appointmentId,
+      eventType,
+      episodeEvent,
+      eventDescription
+    );
+
+    expect(result).toEqual(true);
+  });
+
+  test("Return unsuccessful response if participant does not exist", async () => {
+    mockDynamoDbClient.resolves({
+      $metadata: {
+        httpStatusCode: 400,
+      },
+      Items: [],
+    });
+
+    const participantId = "NHS-12345";
+    const batchId = "IB-pck28f-datsf28f-a233-bug41-2right111f4a53";
+    const appointmentId = "12345";
+    const eventType = "CANCELLED";
+    const episodeEvent = "Appointment Cancelled by Participant - Withdrawn";
+    const eventDescription = "example";
+
+    const result = await transactionalWrite(
+      mockDynamoDbClient,
+      participantId,
+      batchId,
+      appointmentId,
+      eventType,
+      episodeEvent,
+      eventDescription
+    );
+
+    expect(result).toEqual(false);
   });
 });
