@@ -27,7 +27,7 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
-  if [[ $environment_type == "dev" || $environment_type == "test" ]]; then
+  if [[ $environment_type == "dev" || $environment_type == "nft" ]]; then
     sed -i "s/ENVIRONMENT/$environment/g" $GITHUB_WORKSPACE/scripts/test_data/destructible_environments/lsoa.json
     aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/lsoa.json
     # LSOA table needs a minimum of 1MB of data for lambda to function, hence as a workaround populating table with cut down CSV file with uncurated padding records in addition to lSOA json with curated data.
@@ -64,7 +64,7 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
-  if [[ $environment_type == "dev" || $environment_type == "test" ]]; then
+  if [[ $environment_type == "dev" || $environment_type == "nft" ]]; then
     sed -i "s/ENVIRONMENT/$environment/g" $GITHUB_WORKSPACE/scripts/test_data/destructible_environments/phlebotomy.json
     aws dynamodb batch-write-item --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/phlebotomy.json
   fi
@@ -107,7 +107,7 @@ function main() {
 
   echo "--------------------------------------------------------------"
 
-  if [[ $environment_type == "dev" || $environment_type == "test" ]]; then
+  if [[ $environment_type == "dev" || $environment_type == "nft" ]]; then
     sed -i "s/ENVIRONMENT/$environment/g" $GITHUB_WORKSPACE/scripts/test_data/destructible_environments/population*.json
     aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/population1.json
     aws dynamodb batch-write-item  --request-items file://$GITHUB_WORKSPACE/scripts/test_data/destructible_environments/population2.json
