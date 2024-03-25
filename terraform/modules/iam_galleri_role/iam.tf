@@ -470,6 +470,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added gtmsStatusUpdateLambda to this policy as lambda role exceeded policy limit
 # Added caasFeedAdd to this policy as lambda role exceeded policy limit
 # Added validateAppointmentCommonDataLambda to this policy as lambda role exceeded policy limit
+# Added appointmentEventCancelledLambda to this policy as lambda role exceeded policy limit
 # Added processAppointmentEventTypeLambda to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
