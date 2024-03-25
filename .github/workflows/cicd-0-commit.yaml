@@ -8,6 +8,8 @@ on:
       - "feature/**"
       - "hotfix/**"
 
+env:
+  AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
 jobs:
   metadata:
     runs-on: ubuntu-latest
@@ -117,7 +119,11 @@ jobs:
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
-    secrets: inherit
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
+      USERS: ${{ secrets.USERS }}
+      CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
 
   data-stage: # Recommended maximum execution time is 10 minutes
     needs: [metadata, test-stage, build-stage]
@@ -132,7 +138,8 @@ jobs:
       version: "${{ needs.metadata.outputs.version }}"
       environment: "${{ needs.metadata.outputs.environment }}"
       environment_type: "${{ needs.metadata.outputs.environment_type }}"
-    secrets: inherit
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
 
   acceptance-stage: # Recommended maximum execution time is 10 minutes
     needs: [metadata, test-stage, build-stage, data-stage]
@@ -148,4 +155,5 @@ jobs:
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
       test: ${{ needs.metadata.outputs.test }}
-    secrets: inherit
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}

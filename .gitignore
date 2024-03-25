@@ -42,8 +42,9 @@ venv
 # node modules
 node_modules
 
-# remove zip files from lambdas
-*.zip
+# remove zip files from lambdas but not test data
+
+terraform/src/**/*.zip
 
 # local data
 local_data
@@ -52,7 +53,7 @@ local_data
 nonprod-postcode-load
 nonprod-unique-lsoa-data
 nonprod-population-data
-participating_icb.json
+# participating_icb.json
 Participating_ICBs.csv
 
 coverage
