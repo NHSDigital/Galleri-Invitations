@@ -51,7 +51,7 @@ export const handler = async (event) => {
   const episodeResponse = await lookUp(dbClient, ParticipantID, "Episode", "Participant_Id", "S", true);
 
   const episodeItems = episodeResponse.Items[0];
-  console.log(`episodeItems: , ${JSON.stringify(episodeItems)}`);
+  console.log(`episodeItems for participant: ${JSON.stringify(episodeItems.Participant_Id)} loaded.`);
 
   const appointmentResponse = await lookUp(
     dbClient,
@@ -62,7 +62,7 @@ export const handler = async (event) => {
     true
   );
   const appointmentItems = appointmentResponse.Items[0];
-  console.log(`appointmentItems: , ${JSON.stringify(appointmentItems)}`);
+  console.log(`appointmentItems for appointment: ${JSON.stringify(appointmentItems.Appointment_Id)} loaded.`);
 
   const dateTime = new Date(Date.now()).toISOString();
 
