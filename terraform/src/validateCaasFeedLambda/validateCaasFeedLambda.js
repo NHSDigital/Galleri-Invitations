@@ -186,6 +186,10 @@ export const convertArrayOfObjectsToCSV = (data) => {
       const escapedValue = item[header].includes(",")
         ? `"${item[header]}"`
         : item[header];
+      // blanks are removed and column needs to be quoted if it contains other whitespace,`,` or `"`.
+      if (escapedValue.replace(/ /g, '').match(/[\s,"]/)) {
+        return '"' + escapedValue.replace(/"/g, '""') + '"';
+      }
       return escapedValue;
     });
     csvContent.push(values.join(","));

@@ -304,13 +304,13 @@ describe('validateCaasFeed function', () => {
 
   test('should convert an array of objects to CSV format', () => {
     const data = [
-      { "name": 'John', "age": "30", "city": 'New York' },
+      { "name": 'John"connor"', "age": "30", "city": 'New York' },
       { "name": 'Jane', "age": "25", "city": 'San Francisco' },
     ];
 
     const csvContent = convertArrayOfObjectsToCSV(data);
 
-    const expectedCSV = 'name,age,city\nJohn,30,New York\nJane,25,San Francisco';
+    const expectedCSV = 'name,age,city\n"John""connor""",30,New York\nJane,25,San Francisco';
     expect(csvContent).toEqual(expectedCSV);
   });
 
