@@ -48,9 +48,18 @@ on:
         default: apply
         type: string
         required: false
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+      USERS:
+        required: true
+      CIS2_SECRET:
+        required: true
+      NEXTAUTH_SECRET:
+        required: true
 
 env:
-  role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+  # role-to-assume: ${{ vars.AWS_ROLE_ARN }}
   aws-region: ${{ vars.aws_region }}
   aws-bucket-name: ${{ vars.aws_bucket_name }}
   aws-bucket-key-name: ${{ vars.aws_bucket_key_name }}
@@ -58,6 +67,10 @@ env:
   frontend-branch: ${{ inputs.frontend_branch }}
   invitations-branch: ${{ inputs.invitations_branch }}
   tf-action: ${{ inputs.tf_action }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  # USERS: ${{ secrets.USERS }}
+  # CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
+  # NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
 
 jobs:
   build:
@@ -80,7 +93,7 @@ jobs:
       - name: "Create infrastructure"
         uses: ./.github/actions/terraform
         with:
-          role-to-assume: ${{ env.role-to-assume }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.aws-region }}
           aws-bucket-name: ${{ env.aws-bucket-name }}
           aws-bucket-key-name: ${{ env.aws-bucket-key-name }}
@@ -91,6 +104,7 @@ jobs:
           TF_VAR_USERS: ${{ secrets.USERS }}
           TF_VAR_CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
           TF_VAR_NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}
         timeout-minutes: 15
 # name: "Build stage"
 

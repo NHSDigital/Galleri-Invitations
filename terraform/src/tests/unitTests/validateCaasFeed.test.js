@@ -15,7 +15,7 @@ const validRecord = {
   "gp_connect": "true",
   "name_prefix": "null",
   "given_name": "Yellow",
-  "other_given_names": "test",
+  "other_given_names": "Zöe-Garciá_Eleña.|Andrea Brown|Charles 3",
   "family_name": "Bentley",
   "date_of_birth": "1990-01-01",
   "gender": "2",
@@ -71,6 +71,15 @@ describe('validateCaasFeed function', () => {
     expect(validationResult.success).toBe(false);
     expect(validationResult.message).toBe(
       "Technical error - The Superseded by NHS number was not supplied in a valid format"
+    );
+  });
+
+  test('should return failure for blank Primary Care Provider', () => {
+    const validationResult = validateRecord({ ...validRecord, primary_care_provider: " " });
+
+    expect(validationResult.success).toBe(false);
+    expect(validationResult.message).toBe(
+      "Technical error - GP Practice code contain blank values"
     );
   });
 
@@ -295,13 +304,13 @@ describe('validateCaasFeed function', () => {
 
   test('should convert an array of objects to CSV format', () => {
     const data = [
-      { "name": 'John', "age": "30", "city": 'New York' },
+      { "name": 'John"connor"', "age": "30", "city": 'New York' },
       { "name": 'Jane', "age": "25", "city": 'San Francisco' },
     ];
 
     const csvContent = convertArrayOfObjectsToCSV(data);
 
-    const expectedCSV = 'name,age,city\nJohn,30,New York\nJane,25,San Francisco';
+    const expectedCSV = 'name,age,city\n"John""connor""",30,New York\nJane,25,San Francisco';
     expect(csvContent).toEqual(expectedCSV);
   });
 

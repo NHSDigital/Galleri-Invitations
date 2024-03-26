@@ -31,7 +31,7 @@ runs:
       shell: bash
       run: zip sbom-report.json.zip sbom-report.json
     - name: "Upload SBOM report as an artefact"
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: sbom-report.json.zip
         path: ./sbom-report.json.zip
@@ -44,7 +44,7 @@ runs:
       shell: bash
       run: zip vulnerabilities-report.json.zip vulnerabilities-report.json
     - name: "Upload vulnerabilities report as an artefact"
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: vulnerabilities-report.json.zip
         path: ./vulnerabilities-report.json.zip

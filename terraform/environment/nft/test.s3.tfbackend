@@ -1,0 +1,3 @@
+bucket         = "test-galleri-github-oidc-tf-aws-tfstates"
+key            = "infra.tfstate"
+region         = "eu-west-2"

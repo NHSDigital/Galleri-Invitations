@@ -2,6 +2,7 @@ variable "bucket_name" {
   type    = string
   default = "galleri-lambda-bucket"
 }
+
 variable "role_name" {
   type    = string
   default = "galleri-lambda-role"
@@ -21,11 +22,13 @@ variable "USERS" {
 }
 
 variable "CIS2_ID" {
-  default = null
+  default     = null
+  description = "The CIS2 client_id"
 }
 
 variable "CIS2_SECRET" {
-  default = null
+  default     = null
+  description = "The CIS2 client_secret"
 }
 
 variable "NEXTAUTH_SECRET" {
@@ -34,4 +37,32 @@ variable "NEXTAUTH_SECRET" {
 
 variable "NEXTAUTH_URL" {
   default = null
+}
+
+variable "account_id" {
+  description = "account id"
+}
+
+variable "CIS2_TOKEN_ENDPOINT_URL" {
+  description = "The CIS2 token endpoint URL"
+}
+
+variable "CIS2_PUBLIC_KEY_ID" {
+  description = "The CIS2 public key id (kid)"
+}
+
+variable "CIS2_KNAME" {
+  description = "The CIS2 private key secret name in AWS secrets manager"
+}
+
+variable "region" {
+  default = "eu-west-2"
+}
+
+variable "invitations-hostname" {
+  description = "the dns name for the account"
+}
+
+variable "dns_zone" {
+  description = "the aws account the environment is part of, eg cicd, nft, uat, etc"
 }
