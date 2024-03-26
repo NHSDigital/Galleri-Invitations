@@ -23,7 +23,6 @@ export const handler = async (event) => {
     if (!records.length) {
       throw new Error(`The file ${key} in bucket ${bucket} is empty`);
     }
-    console.log(records);
 
     const [outputSuccess, outputUnsuccess] = validateRecords(records);
     console.log(`Finished validating object ${key} in bucket ${bucket}`);
@@ -58,7 +57,7 @@ export const handler = async (event) => {
         s3
       );
     } else {
-      console.error("No data to push for valid Records with action - ADD");
+      console.log("No data to push for valid Records with action - ADD");
     }
 
     if (recordsUpdateCsvData.length > 0) {
@@ -69,7 +68,7 @@ export const handler = async (event) => {
         s3
       );
     } else {
-      console.error("No data to push for valid Records with action - UPDATE");
+      console.log("No data to push for valid Records with action - UPDATE");
     }
 
     if (recordsDeleteCsvData.length > 0) {
@@ -80,7 +79,7 @@ export const handler = async (event) => {
         s3
       );
     } else {
-      console.error("No data to push for valid Records with action - DELETE");
+      console.log("No data to push for valid Records with action - DELETE");
     }
 
     if (invalidRecordsCsvData.length > 0) {
@@ -91,7 +90,7 @@ export const handler = async (event) => {
         s3
       );
     } else {
-      console.error("No invalid records to push in the bucket");
+      console.log("No invalid records to push in the bucket");
     }
 
     // Logging the invalid records
