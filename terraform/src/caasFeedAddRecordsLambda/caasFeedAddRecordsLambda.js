@@ -449,7 +449,6 @@ export const formatDynamoDbRecord = async (record) => {
         identified_to_be_invited: {BOOL: false},
         action: {S: record.action},
       },
-      }
     }
   }
 }

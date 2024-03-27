@@ -502,13 +502,14 @@ describe('formatDynamoDbRecord', () => {
           email_address: { S: "null" },
           preferred_language: { S: "fr" },
           is_interpreter_required: { BOOL: Boolean("1") },
+          Invited: {S: "false"},
+          identified_to_be_invited: {BOOL: false},
           action: { S: "ADD" },
         }
       }
     }
 
     const result = await formatDynamoDbRecord(mockRecord);
-
     expect(result).toEqual(expectedResult);
   });
 })
