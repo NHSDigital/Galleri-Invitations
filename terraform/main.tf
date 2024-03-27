@@ -874,7 +874,7 @@ module "gtms_status_update_lambda_trigger" {
   bucket_id     = module.processed_gtms_withdrawal.bucket_id
   bucket_arn    = module.processed_gtms_withdrawal.bucket_arn
   lambda_arn    = module.gtms_status_update_lambda.lambda_arn
-  filter_prefix = "validRecords/valid_records_update"
+  filter_prefix = "validRecords/valid_records_withdrawal"
 }
 
 module "validate_gtms_withdrawal_lambda" {
