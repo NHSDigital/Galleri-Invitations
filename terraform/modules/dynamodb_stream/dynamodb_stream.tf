@@ -9,7 +9,7 @@ resource "aws_lambda_event_source_mapping" "dynamodb_stream_map" {
   filter_criteria {
     filter {
       pattern = jsonencode({
-        eventName = ["${var.filter_event_name}"]
+        eventName = "${var.filter_event_name}"
       })
     }
   }
