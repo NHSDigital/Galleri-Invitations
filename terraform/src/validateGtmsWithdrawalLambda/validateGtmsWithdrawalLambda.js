@@ -16,6 +16,7 @@ export const handler = async (event) => {
   const record = event.Records[0];
   const bucket = record.s3.bucket.name;
   const key = decodeURIComponent(record.s3.object.key.replace(/\+/g, " "));
+  const validatedBucketName = 'processed-inbound-gtms-withdrawal';
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
   try {
     const jsonString = await readCsvFromS3(bucket, key, s3);
@@ -33,7 +34,7 @@ export const handler = async (event) => {
 
     if (validateResult.valid) {
       await pushCsvToS3(
-        `${ENVIRONMENT}-processed-inbound-gtms-withdrawal`,
+        `${ENVIRONMENT}-${validatedBucketName}`,
         `validRecords/valid_records_add-${Date.now()}.json`,
         jsonString,
         s3
@@ -44,7 +45,7 @@ export const handler = async (event) => {
         validateResult.errors,
       );
       await pushCsvToS3(
-        `${ENVIRONMENT}-processed-inbound-gtms-withdrawal`,
+        `${ENVIRONMENT}-${validatedBucketName}`,
         `failed_validation/invalid_records_add-${Date.now()}.json`,
         jsonString,
         s3
