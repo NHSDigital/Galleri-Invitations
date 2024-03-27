@@ -10,11 +10,7 @@ const smClient = new SecretsManagerClient({ region: "eu-west-2" });
 const CLIENT_ID = process.env.CIS2_ID;
 const TOKEN_ENDPOINT_URL = process.env.CIS2_TOKEN_ENDPOINT_URL;
 const KID = process.env.CIS2_PUBLIC_KEY_ID;
-const PRIVATE_KEY_SECRET_NAME = process.env.CIS2_KNAME;
-
-// console.log("Client id: ", CLIENT_ID);
-// console.log("Token endpoing: ", TOKEN_ENDPOINT_URL);
-// console.log("Kid: ", KID);
+const PRIVATE_KEY_SECRET_NAME = process.env.CIS2_KEY_NAME;
 
 export const handler = async (event) => {
   try {
