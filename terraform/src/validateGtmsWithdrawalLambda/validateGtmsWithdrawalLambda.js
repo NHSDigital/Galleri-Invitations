@@ -35,7 +35,7 @@ export const handler = async (event) => {
     if (validateResult.valid) {
       await pushCsvToS3(
         `${ENVIRONMENT}-${validatedBucketName}`,
-        `validRecords/valid_records_add-${Date.now()}.json`,
+        `validRecords/valid_records_withdrawal-${Date.now()}.json`,
         jsonString,
         s3
       );
@@ -46,7 +46,7 @@ export const handler = async (event) => {
       );
       await pushCsvToS3(
         `${ENVIRONMENT}-${validatedBucketName}`,
-        `failed_validation/invalid_records_add-${Date.now()}.json`,
+        `failed_validation/invalid_records-${Date.now()}.json`,
         jsonString,
         s3
       );
