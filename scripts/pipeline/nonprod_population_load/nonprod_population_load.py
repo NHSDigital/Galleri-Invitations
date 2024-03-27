@@ -56,97 +56,29 @@ def format_dynamodb_json(csvreader, table_name):
                         "Put": {
                             "Item": {
                                 "PersonId": { "S": f'{str(participant_id_rand_exp)}' },
-                                "superseded_by_subject_id": {
-                                    "S": f"{superseded_by_subject_id}"
-                                },
-                                "primary_care_provider": {
-                                    "S": f"{primary_care_provider}"
-                                },
+                                "primary_care_provider": { "S": f"{primary_care_provider}"},
                                 "name_prefix": {"S": f"{name_prefix}"},
-                                "first_given_name": {"S": f"{first_given_name}"},
+                                "given_name": {"S": f"{first_given_name}"},
                                 "other_given_names": {"S": f"{other_given_names}"},
                                 "family_name": {"S": f"{family_name}"},
                                 "date_of_birth": {"S": f"{date_of_birth}"},
-                                "gender_code": {"S": f"{gender_code}"},
                                 "address_line_1": {"S": f"{address_line_1}"},
                                 "address_line_2": {"S": f"{address_line_2}"},
                                 "address_line_3": {"S": f"{address_line_3}"},
                                 "address_line_4": {"S": f"{address_line_4}"},
                                 "address_line_5": {"S": f"{address_line_5}"},
                                 "postcode": {"S": f"{postcode}"},
-                                "removal_reason": {"S": f"{removal_reason}"},
-                                "removal_date": {"S": f"{removal_date}"},
-                                "date_of_death": {"S": f"{date_of_death}"},
                                 "nhs_number": {"N": f"{nhs_number}"},
                                 "superseded_by_nhs_number": {"N": "0"},
-                                "telephone_number_home": {
-                                    "S": f"{telephone_number_home}"
-                                },
-                                "telephone_number_mobile": {
-                                    "S": f"{telephone_number_mobile}"
-                                },
-                                "email_address_home": {"S": f"{email_address_home}"},
                                 "preferred_language": {"S": f"{preferred_language}"},
-                                "interpreter_required": {
-                                    "S": f"{interpreter_required}"
-                                },
-                                "sensitivity_indicator_flag": {
-                                    "S": f"{sensitivity_indicator_flag}"
-                                },
-                                'family_name': {
-                                    'S': f'{family_name}'
-                                },
-                                'date_of_birth': {
-                                    'S': f'{date_of_birth}'
-                                },
-                                'gender_code': {
-                                    'S': f'{gender_code}'
-                                },
-                                'address_line_1': {
-                                    'S': f'{address_line_1}'
-                                },
-                                'address_line_2': {
-                                    'S': f'{address_line_2}'
-                                },
-                                'address_line_3': {
-                                    'S': f'{address_line_3}'
-                                },
-                                'address_line_4': {
-                                    'S': f'{address_line_4}'
-                                },
-                                'address_line_5': {
-                                    'S': f'{address_line_5}'
-                                },
-                                'postcode': {
-                                    'S': f'{postcode}'
-                                },
-                                'removal_reason': {
-                                    'S': f'{removal_reason}'
-                                },
-                                'removal_date': {
-                                    'S': f'{removal_date}'
-                                },
-                                'date_of_death': {
-                                    'S': f'{date_of_death}'
-                                },
-                                'telephone_number_home': {
-                                    'S': f'{telephone_number_home}'
-                                },
-                                'telephone_number_mobile': {
-                                    'S': f'{telephone_number_mobile}'
-                                },
-                                'email_address_home': {
-                                    'S': f'{email_address_home}'
-                                },
-                                'preferred_language': {
-                                    'S': f'{preferred_language}'
-                                },
-                                'interpreter_required': {
-                                    'S': f'{interpreter_required}'
-                                },
-                                'sensitivity_indicator_flag': {
-                                    'S': f'{sensitivity_indicator_flag}'
-                                },
+                                'gender': { 'N': f'{gender_code}'},
+                                'reason_for_removal': { 'S': f'{removal_reason}'},
+                                'reason_for_removal_effective_from_date': {'S': f'{removal_date}'},
+                                'date_of_death': { 'S': f'{date_of_death}'},
+                                'telephone_number': { 'S': f'{telephone_number_home}'},
+                                'mobile_number': { 'S': f'{telephone_number_mobile}'},
+                                'email_address': {'S': f'{email_address_home}'},
+                                'is_interpreter_required': {'S': f'{interpreter_required}'},
                                 'Invited': {
                                     'S': f'{Invited}'
                                 },
@@ -159,9 +91,10 @@ def format_dynamodb_json(csvreader, table_name):
                                 'participantId': {
                                     'S': f'{str(participant_id_rand_exp)}'
                                 },
-                                'gpPracticeCode': {
-                                    'S': f'{gp_practice_code}'
-                                }
+                                'gp_connect': {'S': f'{gp_practice_code}'},
+                                'responsible_icb': {'S': f"{postcode}"},
+
+                                'action': {'S': f'{sensitivity_indicator_flag}'},
                             },
                             "TableName": table_name,
                         },
