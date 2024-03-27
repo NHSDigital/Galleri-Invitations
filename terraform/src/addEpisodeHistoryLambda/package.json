@@ -1,0 +1,10 @@
+{
+  "name": "addEpisodeHistory",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "addEpisodeHistoryLambda.js",
+  "author": "",
+  "dependencies": {
+    "lodash.isequal": "^4.5.0"
+  }
+}
