@@ -216,6 +216,26 @@ module "proccessed_appointments" {
 }
 # End of GTMS buckets
 
+# mesh ecs instances
+
+module "ecs_cluster" {
+  source      = "./modules/ecs-cluster"
+  environment = var.environment
+  name        = "ecs-cluster"
+}
+
+module "ecs_service_mesh" {
+  source        = "./modules/ecs-service"
+  name          = "mesh-sandbox"
+  environment   = var.environment
+  cluster_id    = module.ecs_cluster.ecs_cluster.id
+  desired_count = 1
+  vpc_id        = module.vpc.vpc_id
+  subnets       = module.vpc.subnet_ids
+  public_ip     = true
+  image         = "quay.io/andrew_cleveland-cic/mesh_sandbox"
+}
+
 # Data Filter Gridall IMD
 module "data_filter_gridall_imd_lambda" {
   source               = "./modules/lambda"

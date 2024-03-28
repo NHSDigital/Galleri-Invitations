@@ -1,0 +1,5 @@
+variable "name" {
+}
+
+variable "environment" {
+}
