@@ -343,13 +343,13 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "GALLERI_ACTIVITY_CODE"
-    value     = var.GALLERI_ACTIVITY_CODE
+    value     = "B1824"
   }
 
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "GALLERI_ACTIVITY_NAME"
-    value     = var.GALLERI_ACTIVITY_NAME
+    value     = "Galleri Blood Test"
   }
 
   setting {
