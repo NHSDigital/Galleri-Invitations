@@ -8,6 +8,26 @@
             {
                 "WeekCommencingDate": "2023-09-04",
                 "Availability": 5
+            },
+            {
+                "WeekCommencingDate": "2023-09-11",
+                "Availability": 5
+            },
+            {
+                "WeekCommencingDate": "2023-09-18",
+                "Availability": 5
+            },
+            {
+                "WeekCommencingDate": "2023-09-25",
+                "Availability": 5
+            },
+            {
+                "WeekCommencingDate": "2023-10-02",
+                "Availability": 5
+            },
+            {
+                "WeekCommencingDate": "2023-10-09",
+                "Availability": 5
             }
             ]
         }
@@ -20,6 +40,26 @@
             {
                 "ClinicID": "C1C-A1A",
                 "Schedule": [
+                {
+                    "WeekCommencingDate": "2023-19-04",
+                    "Availability": 5
+                },
+                {
+                    "WeekCommencingDate": "2023-19-04",
+                    "Availability": 5
+                },
+                {
+                    "WeekCommencingDate": "2023-19-04",
+                    "Availability": 5
+                },
+                {
+                    "WeekCommencingDate": "2023-19-04",
+                    "Availability": 5
+                },
+                {
+                    "WeekCommencingDate": "2023-19-04",
+                    "Availability": 5
+                },
                 {
                     "WeekCommencingDate": "2023-19-04",
                     "Availability": 5
@@ -53,6 +93,26 @@
                 {
                     "WeekCommencingDate": "2023-09-04",
                     "Availability": 5
+                },
+                {
+                    "WeekCommencingDate": "2023-09-11",
+                    "Availability": 5
+                },
+                {
+                    "WeekCommencingDate": "2023-09-18",
+                    "Availability": 5
+                },
+                {
+                    "WeekCommencingDate": "2023-09-25",
+                    "Availability": 5
+                },
+                {
+                    "WeekCommencingDate": "2023-10-02",
+                    "Availability": 5
+                },
+                {
+                    "WeekCommencingDate": "2023-10-09",
+                    "Availability": 5
                 }
                 ]
             },
@@ -62,9 +122,134 @@
                 {
                     "WeekCommencingDate": "2023-09-04",
                     "Availability": 5
+                },
+                {
+                    "WeekCommencingDate": "2023-09-11",
+                    "Availability": 5
+                },
+                {
+                    "WeekCommencingDate": "2023-09-18",
+                    "Availability": 5
+                },
+                {
+                    "WeekCommencingDate": "2023-09-25",
+                    "Availability": 5
+                },
+                {
+                    "WeekCommencingDate": "2023-10-02",
+                    "Availability": 5
+                 },
+                {
+                    "WeekCommencingDate": "2023-10-09",
+                    "Availability": 5
                 }]
             }
             ]
         }
+    },
+    {
+      "ClinicScheduleSummary":{
+          "ClinicScheduleSummary": [
+          {
+              "ClinicID": "C1C-A1A",
+              "Schedule": [
+              {
+                  "WeekCommencingDate": "2023-09-04",
+                  "Availability": 5
+              },
+              {
+                  "WeekCommencingDate": "2023-09-11",
+                  "Availability": 5
+              },
+              {
+                  "WeekCommencingDate": "2023-09-18",
+                  "Availability": 5
+              },
+              {
+                  "WeekCommencingDate": "2023-10-02",
+                  "Availability": 5
+              },
+              {
+                  "WeekCommencingDate": "2023-10-09",
+                  "Availability": 5
+              }
+              ]
+          }
+          ]
+      }
+  },
+  {
+    "ClinicScheduleSummary":{
+        "ClinicScheduleSummary": [
+        {
+            "ClinicID": "C1C-A1A",
+            "Schedule": [
+            {
+                "WeekCommencingDate": "2023-09-04",
+                "Availability": 5
+            },
+            {
+                "WeekCommencingDate": "2023-09-11",
+                "Availability": 5
+            },
+            {
+                "WeekCommencingDate": "2023-09-18",
+                "Availability": 5
+            },
+            {
+                "WeekCommencingDate": "2023-09-25",
+                "Availability": 5
+            },
+            {
+                "WeekCommencingDate": "2023-10-02",
+                "Availability": 5
+            },
+            {
+                "WeekCommencingDate": "2023-10-09",
+                "Availability": 5
+            },
+            {
+                "WeekCommencingDate": "2023-10-16",
+                "Availability": 5
+            }
+            ]
+        }
+        ]
     }
+  },
+  {
+    "ClinicScheduleSummary":{
+        "ClinicScheduleSummary": [
+        {
+            "ClinicID": "C1C-A1A",
+            "Schedule": [
+            {
+                "WeekCommencingDate": "2023-09-03",
+                "Availability": 5
+            },
+            {
+                "WeekCommencingDate": "2023-09-10",
+                "Availability": 5
+            },
+            {
+                "WeekCommencingDate": "2023-09-17",
+                "Availability": 5
+            },
+            {
+                "WeekCommencingDate": "2023-09-24",
+                "Availability": 5
+            },
+            {
+                "WeekCommencingDate": "2023-10-01",
+                "Availability": 5
+            },
+            {
+                "WeekCommencingDate": "2023-10-08",
+                "Availability": 5
+            }
+            ]
+        }
+        ]
+    }
+  }
 ]
