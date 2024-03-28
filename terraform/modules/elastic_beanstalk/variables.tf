@@ -123,11 +123,9 @@ variable "NEXTAUTH_URL" {
 }
 
 variable "GALLERI_ACTIVITY_CODE" {
-  default = "B1824"
 }
 
 variable "GALLERI_ACTIVITY_NAME" {
-  default = "Galleri Blood Test"
 }
 
 variable "hostname" {
