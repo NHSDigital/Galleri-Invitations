@@ -41,8 +41,8 @@ def format_dynamodb_json(csvreader, table_name):
             {
                 "Put": {
                     "Item": {
-                        "POSTCODE": {"S": f"{POSTCODE}"},
-                        "POSTCODE_2": {"S": f"{POSTCODE_2}"},
+                        "POSTCODE": {"S": f"{POSTCODE_2}"},
+                        "POSTCODE_2": {"S": f"{POSTCODE}"},
                         "LOCAL_AUT_ORG": {"S": f"{LOCAL_AUT_ORG}"},
                         "NHS_ENG_REGION": {"S": f"{NHS_ENG_REGION}"},
                         "SUB_ICB": {"S": f"{SUB_ICB}"},
@@ -74,7 +74,7 @@ def batch_write_to_dynamodb(lsoa_data):
     # format and send these to the batch write function
     # repeat till no records left
     dynamodb_client = boto3.client("dynamodb")
-    for i in range(1, 100000, 100):
+    for i in range(1, 815651, 100):
         upper_bound_slice = i + 100
         test_data = lsoa_data[i:upper_bound_slice]
         dynamodb_client.transact_write_items(TransactItems=test_data)

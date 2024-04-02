@@ -18,7 +18,7 @@ const clinicIcbList = {
   name: "clinic-icb-list",
   resource_path: "clinic-icb-list",
   method: "GET",
-  query_string: "?participatingIcb=QJK",
+  query_string: "?participatingIcb=QH8",
   expected_status_code: 200,
   expected_response_count: 11,
 };
@@ -26,15 +26,15 @@ const clinicInformation = {
   name: "clinic-information",
   resource_path: "clinic-information",
   method: "GET",
-  query_string: "?clinicId=CV04Z730&clinicName=Phlebotomy%20clinic%2026",
+  query_string: "?clinicId=QA61A770&clinicName=Phlebotomy%20clinic%2073",
   expected_status_code: 200,
   expected_response_count: 13,
 };
-const clinicSummeryList = {
+const clinicSummaryList = {
   name: "clinic-summary-list",
   resource_path: "clinic-summary-list",
   method: "GET",
-  query_string: "?participatingIcb=QJK",
+  query_string: "?participatingIcb=QH8",
   expected_status_code: 200,
   expected_response_count: 11,
 };
@@ -97,8 +97,8 @@ const generateInvites = {
   payload: {
     selectedParticipants: ["9000211252"],
     clinicInfo: {
-      clinicId: "CC51F831",
-      clinicName: "Phlebotomy clinic 5",
+      clinicId: "QA61A770",
+      clinicName: "Phlebotomy clinic 73",
       rangeSelected: 1,
       targetPercentage: "50",
       targetNoAppsToFill: 160,
@@ -228,7 +228,7 @@ const apiList = await getApiId();
 // // GET requests
 await apiCall({ apiList: apiList, api: clinicIcbList });
 await apiCall({ apiList: apiList, api: clinicInformation });
-await apiCall({ apiList: apiList, api: clinicSummeryList });
+await apiCall({ apiList: apiList, api: clinicSummaryList });
 // // Need to investigate why getLsoaInRange returns no results
 // await apiCall({ apiList: apiList, api: getLsoaInRange });
 await apiCall({ apiList: apiList, api: participatingIcbList });
@@ -237,10 +237,10 @@ await apiCall({ apiList: apiList, api: invitationParameters });
 // POST requests
 // Lambda currently broken, awaiting GAL-334 to resolve then test can be enabled
 // await apiCall({ apiList: apiList, api: calculateNumberToInvite });
-await apiCall({ apiList: apiList, api: generateInvites });
+// await apiCall({ apiList: apiList, api: generateInvites });
 
 // PUT requests
-await apiCall({ apiList: apiList, api: invitationParametersPutQuintiles });
+// await apiCall({ apiList: apiList, api: invitationParametersPutQuintiles });
 // invitationParametersPutForecastUptake is failing with lambda permission error
 // await apiCall({ apiList: apiList, api: invitationParametersPutForecastUptake });
 

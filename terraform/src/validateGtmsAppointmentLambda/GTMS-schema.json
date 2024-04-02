@@ -303,6 +303,7 @@
         },
         "Withdrawn": {
           "type": "boolean",
+          "enum": [true],
           "description": "NHS number of the invitee, to be persisted in the NHSI system and used for participant search and other appropriate operations."
         },
         "Reason": {

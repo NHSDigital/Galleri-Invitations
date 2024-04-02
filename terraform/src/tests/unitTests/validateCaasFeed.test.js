@@ -74,6 +74,15 @@ describe('validateCaasFeed function', () => {
     );
   });
 
+  test('should return failure for blank Primary Care Provider', () => {
+    const validationResult = validateRecord({ ...validRecord, primary_care_provider: " " });
+
+    expect(validationResult.success).toBe(false);
+    expect(validationResult.message).toBe(
+      "Technical error - GP Practice code contain blank values"
+    );
+  });
+
   test('should return failure for the Primary Care Provider and the Reason for Removal fields contain values', () => {
     const validationResult = validateRecord({ ...validRecord, primary_care_provider: "null", reason_for_removal: "null", });
 
@@ -295,13 +304,13 @@ describe('validateCaasFeed function', () => {
 
   test('should convert an array of objects to CSV format', () => {
     const data = [
-      { "name": 'John', "age": "30", "city": 'New York' },
+      { "name": 'John"connor"', "age": "30", "city": 'New York' },
       { "name": 'Jane', "age": "25", "city": 'San Francisco' },
     ];
 
     const csvContent = convertArrayOfObjectsToCSV(data);
 
-    const expectedCSV = 'name,age,city\nJohn,30,New York\nJane,25,San Francisco';
+    const expectedCSV = 'name,age,city\n"John""connor""",30,New York\nJane,25,San Francisco';
     expect(csvContent).toEqual(expectedCSV);
   });
 

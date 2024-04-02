@@ -4,9 +4,10 @@ import {
 } from "@aws-sdk/client-s3";
 import {
   DynamoDBClient,
-  ScanCommand,
   BatchWriteItemCommand,
-  UpdateItemCommand
+  UpdateItemCommand,
+  QueryCommand,
+  DeleteItemCommand
 } from "@aws-sdk/client-dynamodb";
 
 const s3 = new S3Client();
@@ -20,23 +21,31 @@ export const handler = async (event, context) => {
   try {
     const csvString = await readCsvFromS3(bucket, key, s3);
     const js = JSON.parse(csvString);
-    const result = await getItemsFromTable(
-      `${ENVIRONMENT}-PhlebotomySite`,
-      client
-    );
-    const value = await checkPhlebotomy(result.Items, js, 'ClinicCreateOrUpdate', 'ClinicID');
-    if (value) {
-      //update
-      saveObjToPhlebotomyTable(js, ENVIRONMENT, client);
+
+    const result = await checkPhlebotomy(js.ClinicCreateOrUpdate.ClinicID, client, ENVIRONMENT);
+    if (result.Count) {
+      if(result.Items[0].ClinicName === js.ClinicCreateOrUpdate.ClinicName)
+        saveObjToPhlebotomyTable(js, ENVIRONMENT, client);
+      //delete and put as ClinicName is sort key
+      else{
+        const clinicId = result.Items[0].ClinicId;
+        const clinicName = result.Items[0].ClinicName;
+        const deleteOldItem = await deleteTableRecord(client, ENVIRONMENT, clinicId, clinicName);
+
+        if (deleteOldItem.$metadata.httpStatusCode === 200){
+          const updateResponse = await putTableRecord(client, ENVIRONMENT, js);
+          if (updateResponse.$metadata.httpStatusCode !== 200) {
+            console.error(`Failed to insert item after delete: ${JSON.stringify(js)}`);
+          } else {
+          console.log(`Successfully deleted and inserted item: ${JSON.stringify(js)}`);
+          }
+        }
+        else
+          console.error("Error deleting and updating record with ClinicId:",clinicId)
+      }
     } else {
-      //add
-      const create = await createPhlebotomySite(js);
-      let RequestItems = {};
-      RequestItems[`${ENVIRONMENT}-PhlebotomySite`] = [create];
-      const command = new BatchWriteItemCommand({
-        "RequestItems": RequestItems
-      });
-      const response = await client.send(command);
+      const response = await putTableRecord(client, ENVIRONMENT, js);
+      console.log("response:",response);
       if (response.$metadata.httpStatusCode !== 200) {
         console.error(`Failed to insert item: ${JSON.stringify(js)}`);
       } else {
@@ -61,29 +70,6 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
   } catch (err) {
     console.error(`Failed to read from ${bucketName}/${key}`);
     throw err;
-  }
-};
-
-
-export async function getItemsFromTable(table, client) {
-  const response = await client.send(
-    new ScanCommand({
-      TableName: table,
-    })
-  );
-
-  return response;
-}
-
-//cycle through the json returned and compare to each phlebotomy site
-export const checkPhlebotomy = async (loopedArr, arr, key, item) => {
-  for (const element of loopedArr) {
-    console.log(element['ClinicId']['S']);
-    if (arr[key][item] === element['ClinicId']['S']) {
-      return true; // update
-    } else {
-      return false;
-    }
   }
 };
 
@@ -122,6 +108,34 @@ export const createPhlebotomySite = (site) => {
   return Promise.resolve(item);
 };
 
+export const deleteTableRecord = async (client, environment, clinicId, clinicName) => {
+
+  const input =
+    {
+      Key: {
+        ClinicId: {S: clinicId.S},
+        ClinicName: {S: clinicName.S}
+      },
+      TableName: `${environment}-PhlebotomySite`,
+    }
+
+  const command = new DeleteItemCommand(input);
+  const response = await client.send(command);
+
+  return response;
+}
+
+export const putTableRecord = async (client, environment, js) => {
+      const create = await createPhlebotomySite(js);
+      let RequestItems = {};
+      RequestItems[`${environment}-PhlebotomySite`] = [create];
+      const command = new BatchWriteItemCommand({
+        "RequestItems": RequestItems
+      });
+      const response = await client.send(command);
+
+      return response;
+};
 
 export const saveObjToPhlebotomyTable = async (MeshObj, environment, client) => {
 
@@ -175,4 +189,21 @@ export const saveObjToPhlebotomyTable = async (MeshObj, environment, client) => 
   } catch (error) {
     console.error(`Error: ${error}`);
   }
+};
+
+export async function checkPhlebotomy(record, client, environment) {
+  const input = {
+    ExpressionAttributeValues: {
+      ":ClinicId": {
+        S: `${record}`,
+      },
+    },
+    KeyConditionExpression: "ClinicId = :ClinicId",
+    TableName: `${environment}-PhlebotomySite`,
+  };
+
+  const command = new QueryCommand(input);
+  const response = await client.send(command);
+
+  return response;
 };

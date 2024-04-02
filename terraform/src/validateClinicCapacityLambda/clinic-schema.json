@@ -1,0 +1,476 @@
+{
+  "type": "object",
+  "definitions": {
+    "InvitedParticipantBatch": {
+      "type": "array",
+      "items": {
+        "required": [
+          "participantId",
+          "nhsNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "participantId": {
+            "type": "string",
+            "pattern": "^NHS-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]$",
+            "description": "Unique identifier for an invitee, to be persisted in the NHSI system and used for all operations related to the participant."
+          },
+          "nhsNumber": {
+            "type": "string",
+            "pattern": "^[0-9]{10}$",
+            "description": "NHS number of the invitee, to be persisted in the NHSI system and used for participant search and other appropriate operations."
+          }
+        }
+      },
+      "example": [
+        {
+          "participantId": "NHS-AB12-CD34",
+          "nhsNumber": "9434765919"
+        },
+        {
+          "participantId": "NHS-AB12-CD56",
+          "nhsNumber": "9434765920"
+        }
+      ]
+    },
+    "ClinicCreateOrUpdate": {
+      "required": [
+        "ClinicID",
+        "ClinicName",
+        "Address",
+        "Postcode",
+        "Directions"
+      ],
+      "type": "object",
+      "properties": {
+        "ClinicID": {
+          "type": "string",
+          "description": "GTMS-generated clinic ID",
+          "pattern": "^[A-Z][0-9][A-Z]-[A-Z][0-9][A-Z]$",
+          "example": "C1C-A1A"
+        },
+        "ODSCode": {
+          "type": "string",
+          "pattern": "^.{0,10}$",
+          "description": "ODS code of the clinic"
+        },
+        "ICBCode": {
+          "type": "string",
+          "pattern": "^.{0,255}$",
+          "description": "ICB code of the clinic"
+        },
+        "ClinicName": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9\\s&'*(),.#\\-\"]{0,100}$",
+          "description": "Clinic name"
+        },
+        "Address": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9\\s&'*(),.#\\-\"]{0,175}$",
+          "description": "Clinic address"
+        },
+        "Postcode": {
+          "type": "string",
+          "pattern": "^[A-Z]{1,2}[0-9R][0-9A-Z]? [0-9][ABD-HJLNP-UW-Z]{2}$",
+          "description": "Clinic postcode"
+        },
+        "Directions": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9\\s&'*(),.#\\-\"]{0,2000}$",
+          "description": "Directions to the clinic"
+        }
+      },
+      "example": {
+        "ClinicID": "C1C-A1A",
+        "ODSCode": "Y888888",
+        "ICBCode": "01D",
+        "ClinicName": "GRAIL Test Clinic",
+        "Address": "210 Euston Rd, London NW1 2DA",
+        "Postcode": "NW1 2DA",
+        "Directions": "Closest London Underground station is Euston Square."
+      }
+    },
+    "ClinicScheduleSummary": {
+      "required": [
+        "ClinicScheduleSummary"
+      ],
+      "type": "object",
+      "properties": {
+        "ClinicScheduleSummary": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "ClinicID",
+              "Schedule"
+            ],
+            "properties": {
+              "ClinicID": {
+                "type": "string",
+                "description": "Persistent unique ID for clinic",
+                "pattern": "^[A-Z][0-9][A-Z]-[A-Z][0-9][A-Z]$"
+              },
+              "Schedule": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "WeekCommencingDate",
+                    "Availability"
+                  ],
+                  "properties": {
+                    "WeekCommencingDate": {
+                      "type": "string",
+                      "description": "ISO8601, yyyy-mm-dd date. Week commencing date (always monday).",
+                      "format": "date"
+                    },
+                    "Availability": {
+                      "type": "number",
+                      "description": "number of available slots",
+                      "minimum": 0,
+                      "maximum": 10000
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "example": {
+        "ClinicScheduleSummary": [
+          {
+            "ClinicID": "C1C-A1A",
+            "Schedule": [
+              {
+                "WeekCommencingDate": "2023-09-04T00:00:00.000Z",
+                "Availability": 5
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "Appointment": {
+      "required": [
+        "ParticipantID",
+        "AppointmentID",
+        "ClinicID",
+        "AppointmentDateTime",
+        "Channel",
+        "EventType",
+        "AppointmentAccessibility",
+        "CommunicationAccessibility",
+        "NotificationPreferences"
+      ],
+      "type": "object",
+      "properties": {
+        "ParticipantID": {
+          "type": "string",
+          "format": "^NHS-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]$"
+        },
+        "AppointmentID": {
+          "type": "string",
+          "format": "^.{0,255}$"
+        },
+        "ClinicID": {
+          "type": "string",
+          "format": "^[A-Z][0-9][A-Z]-[A-Z][0-9][A-Z]$"
+        },
+        "AppointmentDateTime": {
+          "type": "string",
+          "format": "^[A-Z][0-9][A-Z]-[A-Z][0-9][A-Z]$",
+          "description": "RFC 3339 date time\n1) when the appointment was booked for in all events BUT the completed event\n2) in the completed event it's specifically overridden to be the time when appointment was started (attended)\n"
+        },
+        "BloodCollectionDate": {
+          "type": "string",
+          "format": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "Sent only in the appointment completed event. Required in the appointment completed event\n"
+        },
+        "PrimaryPhoneNumber": {
+          "type": "string",
+          "format": "^0?[1235789]\\d{8,9}$",
+          "description": "Resend as BOOKED if this is updated separate from booking flow. If participant choose they don't have a phone number this field will be blank"
+        },
+        "SecondaryPhoneNumber": {
+          "type": "string",
+          "format": "^0?[1235789]\\d{8,9}$",
+          "description": "Resend as BOOKED if this is updated separate from booking flow. If participant choose they don't have a phone number this field will be blank"
+        },
+        "Email": {
+          "type": "string",
+          "format": "email",
+          "description": "Resend as BOOKED if this is updated separate from booking flow"
+        },
+        "Replaces": {
+          "type": "string",
+          "nullable": true,
+          "format": "^.{0,255}$",
+          "description": "UUID for appointment being replaced (optional). Required if it's rebooked"
+        },
+        "CancellationReason": {
+          "type": "string",
+          "nullable": true,
+          "enum": [
+            "CANT_FIND_A_SUITABLE_LOCATION",
+            "CANT_FIND_A_SUITABLE_DATE_TIME",
+            "NO_LONGER_LIVE_IN_THE_COUNTRY",
+            "WORK_FAMILY_COMMITMENTS",
+            "DONT_WANT_TO_TAKE_PART",
+            "OTHER",
+            "CLINIC_CLOSED_DUE_TO_LACK_OF_STAFF",
+            "CLINIC_CLOSED_DUE_TO_LACK_OF_FACILITY",
+            "CLINIC_CLOSED_DUE_TO_OTHER_REASON",
+            null
+          ]
+        },
+        "Channel": {
+          "type": "string",
+          "enum": [
+            "ONLINE",
+            "CALL_CENTRE",
+            "CLINIC"
+          ],
+          "description": "Populated for all events. Online and call centre will be used for bookings and cancellations. Clinic will be used for no shows, aborted and completed"
+        },
+        "BloodNotCollectedReason": {
+          "type": "string",
+          "nullable": true,
+          "enum": [
+            "PARTICIPANT_DECISION",
+            "FAILED_ATTEMPT",
+            "OTHER",
+            null
+          ],
+          "description": "This is required if EventType is 'Aborted'"
+        },
+        "EventType": {
+          "type": "string",
+          "enum": [
+            "BOOKED",
+            "CANCELLED",
+            "COMPLETE",
+            "ABORTED",
+            "NO_SHOW"
+          ],
+          "description": "In case contact details or notification preferences are updated by the call centre outside of the booking process this same message will be sent to GPS, with all these fields, but the notification preferences and contact details will be updated. If the user has no appointment contact details cannot be updated. The new contact details or notification preferences will be sent as part of this message with event type corresponding to the most recent status of the appointment (i.e. if the appt was cancelled then the message with contact details or notifications preferences update will be event type cancelled).\nWe will not be sending a rebooking event or a cancellation of a rebooked appointment. The rebooked appointment is sent as BOOKED and the REPLACES field is populated"
+        },
+        "AppointmentAccessibility": {
+          "$ref": "#/definitions/SiteAccessibilityOptions"
+        },
+        "CommunicationAccessibility": {
+          "$ref": "#/definitions/CommunicationAccessibility"
+        },
+        "NotificationPreferences": {
+          "$ref": "#/definitions/NotificationPreferences"
+        },
+        "GrailID": {
+          "type": "string",
+          "format": "^NHS[0-9][A-HJ-NP-Z0-9]{6}$",
+          "description": "Populated only in appointment COMPLETED event"
+        },
+        "InvitationNHSNumber": {
+          "type": "string",
+          "format": "^[0-9]{10}$",
+          "description": "Populated for all events. The NHS number in the message will be the  one received from GPS in the invite message"
+        },
+        "PDSNHSNumber": {
+          "type": "string",
+          "format": "^[0-9]{10}$",
+          "description": "Populated for all events. The NHS number in the message will be the PDS NHS number."
+        },
+        "DateOfBirth": {
+          "type": "string",
+          "format": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "We'll be sending DOB from PDS, always the most recent one. Please note that there is logic at the point of consuming the date of birth from PDS. If the DOB from PDS only has year, then day and month will be populated with 01 value. If the date of birth from PDS only has month and year then the day will be populated with the 01 value. "
+        }
+      },
+      "example": {
+        "ParticipantID": "NHS-AB12-CD34",
+        "AppointmentID": "00000000-0000-0000-0000-000000000000",
+        "ClinicID": "D7E-G2H",
+        "AppointmentDateTime": "2006-01-02T15:04:05.000Z",
+        "BloodCollectionDate": "2006-01-02",
+        "PrimaryPhoneNumber": "01999999999",
+        "SecondaryPhoneNumber": "01999999999",
+        "Email": "me@example.com",
+        "Replaces": null,
+        "CancellationReason": null,
+        "Channel": "ONLINE",
+        "BloodNotCollectedReason": null,
+        "EventType": "BOOKED",
+        "AppointmentAccessibility": {
+          "accessibleToilet": true,
+          "disabledParking": true,
+          "inductionLoop": true,
+          "signLanguage": true,
+          "stepFreeAccess": true,
+          "wheelchairAccess": true
+        },
+        "CommunicationAccessibility": {
+          "signLanguage": true,
+          "braille": false,
+          "interpreter": false,
+          "language": "ARABIC"
+        },
+        "NotificationPreferences": {
+          "canEmail": true,
+          "canSMS": false
+        }
+      }
+    },
+    "Withdrawal": {
+      "required": [
+        "ParticipantID",
+        "Withdrawn",
+        "Reason"
+      ],
+      "type": "object",
+      "properties": {
+        "ParticipantID": {
+          "type": "string",
+          "pattern": "^NHS-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]$"
+        },
+        "Withdrawn": {
+          "type": "boolean",
+          "enum": [true],
+          "description": "NHS number of the invitee, to be persisted in the NHSI system and used for participant search and other appropriate operations."
+        },
+        "Reason": {
+          "type": "string",
+          "enum": [
+            "CLINICAL_REASON",
+            "REPORTED_AS_DECEASED",
+            "LEFT_COUNTRY",
+            "WITHDREW_CONSENT"
+          ]
+        }
+      },
+      "example": {
+        "ParticipantID": "NHS-AB12-CD34",
+        "Withdrawn": true,
+        "Reason": "CLINICAL_REASON"
+      }
+    },
+    "SiteAccessibilityOptions": {
+      "title": "SiteAccessibilityOptions",
+      "type": "object",
+      "description": "Accessibility options for a site",
+      "properties": {
+        "accessibleToilet": {
+          "type": "boolean"
+        },
+        "disabledParking": {
+          "type": "boolean"
+        },
+        "inductionLoop": {
+          "type": "boolean"
+        },
+        "signLanguage": {
+          "type": "boolean"
+        },
+        "stepFreeAccess": {
+          "type": "boolean"
+        },
+        "wheelchairAccess": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "accessibleToilet",
+        "disabledParking",
+        "inductionLoop",
+        "signLanguage",
+        "stepFreeAccess",
+        "wheelchairAccess"
+      ]
+    },
+    "CommunicationAccessibility": {
+      "title": "Contact requirements",
+      "type": "object",
+      "description": "Participant accessibility requirements for receiving communications",
+      "properties": {
+        "signLanguage": {
+          "type": "boolean"
+        },
+        "braille": {
+          "type": "boolean"
+        },
+        "interpreter": {
+          "type": "boolean"
+        },
+        "language": {
+          "$ref": "#/definitions/InterpreterLanguage"
+        }
+      },
+      "required": [
+        "signLanguage",
+        "braille",
+        "interpreter"
+      ]
+    },
+    "InterpreterLanguage": {
+      "title": "Interpreter languages",
+      "type": "string",
+      "description": "Interpreter languages available for participants",
+      "enum": [
+        "ARABIC",
+        "BENGALI",
+        "CHINESE_SIMPLIFIED",
+        "CHINESE_TRADITIONAL",
+        "FARSI",
+        "GUJARATI",
+        "POLISH",
+        "PORTUGUESE",
+        "PUNJABI",
+        "URDU"
+      ]
+    },
+    "NotificationPreferences": {
+      "title": "Notification preferences",
+      "description": "The contact preference of a participant",
+      "type": "object",
+      "properties": {
+        "canSMS": {
+          "type": "boolean"
+        },
+        "canEmail": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "canSMS",
+        "canEmail"
+      ]
+    }
+  },
+  "properties": {
+    "InvitedParticipantBatch": {
+      "$ref": "#/definitions/InvitedParticipantBatch"
+    },
+    "ClinicCreateOrUpdate": {
+      "$ref": "#/definitions/ClinicCreateOrUpdate"
+    },
+    "ClinicScheduleSummary": {
+      "$ref": "#/definitions/ClinicScheduleSummary"
+    },
+    "Appointment": {
+      "$ref": "#/definitions/Appointment"
+    },
+    "Withdrawal": {
+      "$ref": "#/definitions/Withdrawal"
+    },
+    "SiteAccessibilityOptions": {
+      "$ref": "#/definitions/SiteAccessibilityOptions"
+    },
+    "CommunicationAccessibility": {
+      "$ref": "#/definitions/CommunicationAccessibility"
+    },
+    "InterpreterLanguage": {
+      "$ref": "#/definitions/InterpreterLanguage"
+    },
+    "NotificationPreferences": {
+      "$ref": "#/definitions/NotificationPreferences"
+    }
+  }
+}

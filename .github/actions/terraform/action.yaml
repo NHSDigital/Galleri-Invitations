@@ -20,7 +20,7 @@ runs:
     - name: Configure AWS credentials from AWS account
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        role-to-assume: ${{ env.role-to-assume }}
+        role-to-assume: "arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/github-oidc-invitations-role"
         aws-region: ${{ env.aws-region }}
         role-session-name: GitHub-OIDC-TERRAFORM
 
@@ -60,7 +60,7 @@ runs:
       shell: bash
       run: |
         cd ./terraform
-        terraform init -backend-config="bucket=${{ env.aws-bucket-name }}" -backend-config="key=${{ env.aws-bucket-key-name }}" -backend-config="region=${{ env.aws-region }}"
+        terraform init -backend-config="environment/${{ steps.environment-type.outputs.environment-type }}/${{ steps.environment-type.outputs.environment-type }}.s3.tfbackend"
 
     - name: Terraform workspace
       id: workspace
@@ -82,14 +82,14 @@ runs:
       shell: bash
       run: |
         cd ./terraform
-        terraform validate -no-color
+        terraform validate
 
     - name: Terraform Plan
       id: plan
       shell: bash
       run: |
         cd ./terraform
-        terraform plan -no-color -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars
+        terraform plan -no-color -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars
 
     - name: Terraform Plan Status
       if: steps.plan.outcome == 'failure'
@@ -128,7 +128,17 @@ runs:
         npm install --prefix src/getUserRoleLambda
         npm install --prefix src/gtmsMeshMailboxLambda
         npm install --prefix src/validateClinicDataLambda
+        npm install --prefix src/validateClinicCapacityLambda
         npm install --prefix src/gtmsUploadClinicDataLambda
+        npm install --prefix src/addEpisodeHistoryLambda
+        npm install --prefix src/caasFeedDeleteRecordsLambda
+        npm install --prefix src/gpsJwksLambda
+        npm install --prefix src/cis2SignedJwtLambda
         npm install --prefix src/gtmsUploadClinicCapacityDataLambda
         npm install --prefix src/sendGTMSInvitationBatchLambda
-        terraform ${{ env.tf-action }} -auto-approve -input=false -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars
+        npm install --prefix src/validateAppointmentCommonDataLambda
+        npm install --prefix src/gtmsStatusUpdateLambda
+        npm install --prefix src/appointmentsEventCancelledLambda
+        npm install --prefix src/processAppointmentEventTypeLambda
+        npm install --prefix src/validateGtmsWithdrawalLambda
+        terraform ${{ env.tf-action }} -no-color -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars
