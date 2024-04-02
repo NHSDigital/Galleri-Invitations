@@ -130,6 +130,7 @@ runs:
         npm install --prefix src/validateClinicDataLambda
         npm install --prefix src/validateClinicCapacityLambda
         npm install --prefix src/gtmsUploadClinicDataLambda
+        npm install --prefix src/addEpisodeHistoryLambda
         npm install --prefix src/caasFeedDeleteRecordsLambda
         npm install --prefix src/gpsJwksLambda
         npm install --prefix src/cis2SignedJwtLambda
@@ -139,4 +140,5 @@ runs:
         npm install --prefix src/gtmsStatusUpdateLambda
         npm install --prefix src/appointmentsEventCancelledLambda
         npm install --prefix src/processAppointmentEventTypeLambda
+        npm install --prefix src/validateGtmsWithdrawalLambda
         terraform ${{ env.tf-action }} -no-color -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars

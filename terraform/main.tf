@@ -755,6 +755,39 @@ module "create_episode_record_dynamodb_stream" {
   starting_position                  = "LATEST"
   batch_size                         = 200
   maximum_batching_window_in_seconds = 300
+  filter_event_name                  = ["MODIFY"]
+}
+
+# Add Episode History
+module "add_episode_history_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "addEpisodeHistoryLambda"
+  lambda_timeout       = 900
+  memory_size          = 1024
+  lambda_s3_object_key = "add_episode_history.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "add_episode_history_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.add_episode_history_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "add_episode_history_dynamodb_stream" {
+  source                             = "./modules/dynamodb_stream"
+  enabled                            = true
+  event_source_arn                   = module.episode_table.dynamodb_stream_arn
+  function_name                      = module.add_episode_history_lambda.lambda_function_name
+  starting_position                  = "LATEST"
+  batch_size                         = 200
+  maximum_batching_window_in_seconds = 30
 }
 
 module "appointments_event_cancelled_lambda" {
@@ -841,8 +874,37 @@ module "gtms_status_update_lambda_trigger" {
   bucket_id     = module.processed_gtms_withdrawal.bucket_id
   bucket_arn    = module.processed_gtms_withdrawal.bucket_arn
   lambda_arn    = module.gtms_status_update_lambda.lambda_arn
-  filter_prefix = "validRecords/valid_records_update"
+  filter_prefix = "validRecords/valid_records_withdrawal"
 }
+
+module "validate_gtms_withdrawal_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "validateGtmsWithdrawalLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "validate_gtms_withdrawal_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "validate_gtms_withdrawal_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.validate_gtms_withdrawal_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "validate_gtms_withdrawal_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.gtms_withdrawal.bucket_id
+  bucket_arn = module.gtms_withdrawal.bucket_arn
+  lambda_arn = module.validate_gtms_withdrawal_lambda.lambda_arn
+}
+
 
 module "poll_mesh_mailbox_lambda" {
   source               = "./modules/lambda"
@@ -955,7 +1017,7 @@ module "create_invitation_batch_dynamodb_stream" {
   starting_position                  = "LATEST"
   batch_size                         = 200
   maximum_batching_window_in_seconds = 300
-  filter_event_name                  = "INSERT"
+  filter_event_name                  = ["INSERT"]
 }
 
 # GTMS MESH lambda
@@ -1622,7 +1684,8 @@ module "population_table" {
   secondary_write_capacity = null
   secondary_read_capacity  = null
   environment              = var.environment
-  projection_type          = "ALL"
+  # non_key_attributes     = ["Invited", "date_of_death", "reason_for_removal_effective_from_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+  projection_type = "ALL"
   attributes = [{
     name = "PersonId"
     type = "S"
@@ -1653,14 +1716,14 @@ module "population_table" {
       name               = "LsoaCode-index"
       hash_key           = "LsoaCode"
       range_key          = null
-      non_key_attributes = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+      non_key_attributes = ["Invited", "date_of_death", "reason_for_removal_effective_from_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
       projection_type    = "INCLUDE"
     },
     {
       name               = "BatchId-index"
       hash_key           = "Batch_Id"
       range_key          = null
-      non_key_attributes = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+      non_key_attributes = ["Invited", "date_of_death", "reason_for_removal_effective_from_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
       projection_type    = "INCLUDE"
     },
     {
@@ -1782,7 +1845,7 @@ module "episode_table" {
   source                   = "./modules/dynamodb"
   billing_mode             = "PROVISIONED"
   stream_enabled           = true
-  stream_view_type         = "NEW_IMAGE"
+  stream_view_type         = "NEW_AND_OLD_IMAGES"
   table_name               = "Episode"
   hash_key                 = "Batch_Id"
   range_key                = "Participant_Id"
@@ -1811,6 +1874,29 @@ module "episode_table" {
   ]
   tags = {
     Name        = "Dynamodb Table Episode"
+    Environment = var.environment
+  }
+}
+
+module "episode_history_table" {
+  source           = "./modules/dynamodb"
+  billing_mode     = "PROVISIONED"
+  stream_enabled   = true
+  stream_view_type = "NEW_AND_OLD_IMAGES"
+  table_name       = "EpisodeHistory"
+  hash_key         = "Participant_Id"
+  read_capacity    = 10
+  write_capacity   = 10
+  environment      = var.environment
+
+  attributes = [
+    {
+      name = "Participant_Id"
+      type = "S"
+    }
+  ]
+  tags = {
+    Name        = "Dynamodb Table Episode History"
     Environment = var.environment
   }
 }
