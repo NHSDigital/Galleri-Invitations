@@ -118,7 +118,7 @@ export async function getEligiblePopulation(lsoaList, client) {
           person?.date_of_death?.S == "NULL" &&
           person?.reason_for_removal_effective_from_date?.S == "NULL" &&
           person?.superseded_by_nhs_number?.N == 0 &&
-          person?.reason_for_removal?.N == "NULL"
+          person?.reason_for_removal?.S == "NULL"
         ) {
           populationArray.push({
             personId: person?.PersonId.S,
