@@ -16,8 +16,9 @@ export const handler = async (event) => {
   try {
     console.log("Getting CIS2 signed jwt");
     const privateKey = await getSecret(PRIVATE_KEY_SECRET_NAME, smClient);
+    const cis2ClientID = await getSecret(CLIENT_ID, smClient);
     const signedJWT = generateJWT(
-      CLIENT_ID,
+      cis2ClientID,
       TOKEN_ENDPOINT_URL,
       KID,
       privateKey

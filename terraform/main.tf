@@ -1189,7 +1189,7 @@ module "cis2_signed_jwt" {
   lambda_s3_object_key = "cis2_signed_jwt_lambda.zip"
   environment_vars = {
     ENVIRONMENT             = "${var.environment}",
-    CIS2_CLIENT_ID          = "${var.CIS2_ID}",
+    CIS2_ID                 = "${var.CIS2_ID}",
     CIS2_TOKEN_ENDPOINT_URL = "${var.CIS2_TOKEN_ENDPOINT_URL}",
     CIS2_PUBLIC_KEY_ID      = "${var.CIS2_PUBLIC_KEY_ID}",
     CIS2_KEY_NAME           = "${var.CIS2_KNAME}"
