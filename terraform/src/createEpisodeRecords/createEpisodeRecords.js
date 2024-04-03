@@ -63,7 +63,7 @@ function createEpisodeRecord(record){
         S: `${record.gpPracticeCode.S}`
       },
       'Episode_Created_By': {
-        S: `${record.createdBy.S}`
+        S: `${record.created_by.S}`
       },
       'Episode_Creation': {
         S: createTime
