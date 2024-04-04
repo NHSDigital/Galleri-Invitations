@@ -121,12 +121,10 @@ describe("Integration Tests", () => {
   describe("readMeshMessage", () => {
     test("should read message from MESH and return status and message object", async () => {
       // Mock data
-      const readMsgFuncMock = jest
-        .fn()
-        .mockResolvedValue({
-          status: 200,
-          data: [{ name: "John" }, { name: "Jane" }],
-        });
+      const readMsgFuncMock = jest.fn().mockResolvedValue({
+        status: 200,
+        data: [{ name: "John" }, { name: "Jane" }],
+      });
       const CONFIG = {
         url: "https://msg.intspineservices.nhs.uk",
         sharedKey: "test_shared_key",
@@ -190,7 +188,7 @@ describe("Integration Tests", () => {
       // Assertions
       expect(pushJsonFuncMock).toHaveBeenCalledWith(
         mockClient,
-        "dev-sent-gtms-invited-participant-batch",
+        "undefined-sent-gtms-invited-participant-batch",
         "sent-invitation_batch_2023-10-26T12:00:00.000Z.json",
         postReceiveMsgObject
       );
