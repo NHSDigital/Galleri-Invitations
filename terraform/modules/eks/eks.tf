@@ -15,7 +15,7 @@ resource "aws_eks_cluster" "cluster" {
   ]
 }
 
-resource "aws_eks_fargate_profile" "cluster" {
+resource "aws_eks_fargate_profile" "default_namespace" {
   cluster_name           = aws_eks_cluster.cluster.name
   fargate_profile_name   = "${var.environment}-${var.name}"
   pod_execution_role_arn = aws_iam_role.fargate_pod_execution.arn
@@ -23,6 +23,17 @@ resource "aws_eks_fargate_profile" "cluster" {
 
   selector {
     namespace = "default"
+  }
+}
+
+resource "aws_eks_fargate_profile" "system_namespace" {
+  cluster_name           = aws_eks_cluster.cluster.name
+  fargate_profile_name   = "${var.environment}-${var.name}"
+  pod_execution_role_arn = aws_iam_role.fargate_pod_execution.arn
+  subnet_ids             = var.subnet_ids
+
+  selector {
+    namespace = "kube-system"
   }
 }
 
