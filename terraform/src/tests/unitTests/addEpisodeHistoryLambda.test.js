@@ -72,7 +72,7 @@ describe("formatEpisodeHistoryRecord", () => {
           N: `10`,
         },
       },
-      TableName: `dev-EpisodeHistory`,
+      TableName: `undefined-EpisodeHistory`,
       UpdateExpression: `set #EE = :episode_event, #EEU = :episode_event_updated, #EED = :episode_event_description, #EEN = :episode_event_notes, #EEUB = :episode_event_updated_by, #ES = :episode_status, #ESU = :episode_status_updated`,
     };
 
