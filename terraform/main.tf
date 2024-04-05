@@ -1319,7 +1319,8 @@ module "send_invitation_batch_to_raw_message_queue_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "send_invitation_batch_to_raw_message_queue_lambda.zip"
   environment_vars = {
-    ENVIRONMENT = "${var.environment}"
+    ENVIRONMENT   = "${var.environment}"
+    SQS_QUEUE_URL = module.notify_raw_message_queue_sqs.sqs_queue_url
   }
 }
 
@@ -1339,10 +1340,11 @@ module "send_invitation_batch_to_raw_message_queue_lambda_trigger" {
 
 # Notify Raw Message Queue
 module "notify_raw_message_queue_sqs" {
-  source = "./modules/sqs"
-  environment = var.environment
-  name = "notifyRawMessageQueue.fifo"
-  is_fifo_queue = true
+  source                         = "./modules/sqs"
+  environment                    = var.environment
+  name                           = "notify-raw-message-queue.fifo"
+  is_fifo_queue                  = true
+  is_content_based_deduplication = true
 }
 
 # Delete Caas feed records
