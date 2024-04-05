@@ -71,7 +71,7 @@ module "eks" {
   source      = "./modules/eks"
   environment = var.environment
   subnet_ids  = module.vpc.fargate_subnet_ids
-  vpc_id = module.vpc.vpc_id
+  vpc_id      = module.vpc.vpc_id
 }
 
 module "s3_bucket" {
