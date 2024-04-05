@@ -138,6 +138,12 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   depends_on = [aws_acm_certificate_validation.example]
 
   setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "InstanceType"
+    value     = var.instance_size
+  }
+
+  setting {
     namespace = "aws:elb:listener:443"
     name      = "ListenerProtocol"
     value     = "HTTPS"
