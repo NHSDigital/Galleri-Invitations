@@ -63,7 +63,9 @@ resource "aws_subnet" "fargate_a" {
   availability_zone = "eu-west-2a"
   vpc_id            = aws_vpc.my_vpc.id
   tags = {
-    Name = "${var.environment}-${var.name}-fargate-a"
+    Name                                                           = "${var.environment}-${var.name}-fargate-a"
+    "kubernetes.io/role/internal-elb"                              = "1"
+    "kubernetes.io/cluster/${var.environment}-${var.cluster_name}" = "owned"
   }
 }
 
@@ -72,7 +74,9 @@ resource "aws_subnet" "fargate_b" {
   availability_zone = "eu-west-2b"
   vpc_id            = aws_vpc.my_vpc.id
   tags = {
-    Name = "${var.environment}-${var.name}-fargate-a"
+    Name                                                           = "${var.environment}-${var.name}-fargate-b"
+    "kubernetes.io/role/internal-elb"                              = "1"
+    "kubernetes.io/cluster/${var.environment}-${var.cluster_name}" = "owned"
   }
 }
 
@@ -92,18 +96,9 @@ resource "aws_nat_gateway" "fargate" {
   subnet_id     = aws_subnet.fargate_a.id
 
   tags = {
-    Name = "${var.environment}-${var.name}-fargate-a"
+    Name = "${var.environment}-${var.name}-fargate"
   }
 }
-
-# resource "aws_nat_gateway" "fargate_b" {
-#   allocation_id = aws_eip.fargate_b.id
-#   subnet_id     = aws_subnet.fargate_b.id
-
-#   tags = {
-#     Name = "${var.environment}-${var.name}-fargate-b"
-#   }
-# }
 
 resource "aws_route_table" "fargate_a" {
   vpc_id = aws_vpc.my_vpc.id
@@ -128,8 +123,8 @@ resource "aws_route_table_association" "fargate_a" {
   route_table_id = aws_route_table.fargate_a.id
 }
 
-# resource "aws_route_table_association" "fargate_b" {
-#   subnet_id      = aws_subnet.fargate_b.id
-#   route_table_id = aws_route_table.fargate_b.id
-# }
+resource "aws_route_table_association" "fargate_b" {
+  subnet_id      = aws_subnet.fargate_b.id
+  route_table_id = aws_route_table.fargate_b.id
+}
 
