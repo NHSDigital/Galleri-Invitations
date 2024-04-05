@@ -9,11 +9,17 @@ import {
   GetObjectCommand,
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
+import winston from "winston";
 
 //VARIABLES
 const dbClient = new DynamoDBClient();
 const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
+
+// variables required for logging
+const { timestamp, combine, printf, colorize, } = winston.format;
+const myFormat = printf(({ level, message, timestamp }) => `[${timestamp}] ${level}: ${message}`);
+
 //Need a lambda param for appointmentdatetime modifier
 
 //HANDLER
@@ -30,6 +36,15 @@ export const handler = async (event) => {
 
 
 //FUNCTIONS
+/**
+ * This function is used to retrieve an object from S3,
+ * and allow the data retrieved to be used in your code.
+ *
+ * @param {string} bucketName The name of the bucket you are querying
+ * @param {string} key The name of the object you are retrieving
+ * @param {Object} client Instance of S3 client
+ * @returns {Object} The data of the file you retrieved
+ */
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -45,6 +60,15 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
   }
 };
 
+/**
+ * This function is used to write a new object in S3
+ *
+ * @param {string} bucketName The name of the bucket you are pushing to
+ * @param {string} key The name you want to give to the file you will write to S3
+ * @param {string} body The data you will be writing to S3
+ * @param {Object} client Instance of S3 client
+ * @returns {Object} metadata about the request, including httpStatusCode
+ */
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
   try {
     const response = await client.send(
@@ -154,3 +178,16 @@ export const transactionalWrite = async (
     console.error("Transactional write failed:", error);
   }
 };
+
+/**
+ * This function aims to decouple parts of the logging process to make it more flexible and extensible.
+ * It is used to configure a custom logger with things such as log levels,
+ * timestamp, and colored text in your logs. The transport medium is the Console.
+ */
+export const logger = winston.createLogger({
+  level: 'debug',
+  format: combine(timestamp({ format: 'YYYY-MM-DD hh:mm:ss.SSS A' }), colorize({ all: true }), myFormat),
+  transports: [
+    new winston.transports.Console(),
+  ],
+});
