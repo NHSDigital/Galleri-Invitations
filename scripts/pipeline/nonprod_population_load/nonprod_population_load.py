@@ -71,7 +71,7 @@ def format_dynamodb_json(csvreader, table_name):
                                 "nhs_number": {"N": f"{nhs_number}"},
                                 "superseded_by_nhs_number": {"N": "0"},
                                 "preferred_language": {"S": f"{preferred_language}"},
-                                'gender': { 'N': f'{gender_code}'},
+                                "gender": { 'N': f'{gender_code}'},
                                 'reason_for_removal': { 'S': f'{removal_reason}'},
                                 'reason_for_removal_effective_from_date': {'S': f'{removal_date}'},
                                 'date_of_death': { 'S': f'{date_of_death}'},
