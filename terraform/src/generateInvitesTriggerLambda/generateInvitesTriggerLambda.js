@@ -57,7 +57,7 @@ export const handler = async (event, context) => {
         if (curr.value === SUCCESSFULL_REPSONSE) return acc + 1;
       }, 0);
       console.log(
-        `Only ${successfulRecords}/${responsePopulation.length} persons were successfully updated. Contact third line support to investigate`
+        `Error: Only ${successfulRecords}/${responsePopulation.length} persons were successfully updated. Contact third line support to investigate`
       );
     }
 
