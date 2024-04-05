@@ -5,6 +5,7 @@
   "main": "validateClinicCapacityLambda.js",
   "author": "",
   "dependencies": {
-    "jsonschema": "^1.4.1"
+    "jsonschema": "^1.4.1",
+    "date-fns": "^3.6.0"
   }
 }
