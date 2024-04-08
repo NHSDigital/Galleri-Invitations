@@ -5,7 +5,6 @@ import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 const s3 = new S3Client();
 const sqs = new SQSClient({});
 
-
 //HANDLER
 export const handler = async (event, context) => {
   const bucket = event.Records[0].s3.bucket.name;
@@ -14,34 +13,37 @@ export const handler = async (event, context) => {
 
   try {
     const JSONObj = await retrieveAndParseJSON(getJSONFromS3, bucket, key, s3);
-
-    for (let record of JSONObj) {
-      const messageBody = {
-        participantId: record.participantId,
-        nhsNumber: record.nhsNumber,
-        episodeEvent: 'Invited'
-      }
-
-      const sendMessageCommand = new SendMessageCommand({
-        QueueUrl: process.env.SQS_QUEUE_URL,
-        MessageBody: JSON.stringify(messageBody),
-        MessageGroupId: 'invitedParticipant'
-      });
-
-      try {
-        const result = await sqs.send(sendMessageCommand);
-        console.log('Message sent:', result.MessageId);
-      } catch (error) {
-        console.error('Error occurred:', error);
-      }
-    }
-
+    await processJSONObj(JSONObj, sqs);
   } catch (error) {
     console.error("Error occurred:", error);
   }
 };
 
 //FUNCTIONS
+
+// Process JSON file and send to SQS queue
+export async function processJSONObj(jsonObj, client) {
+  for (let record of jsonObj) {
+    const messageBody = {
+      participantId: record.participantId,
+      nhsNumber: record.nhsNumber,
+      episodeEvent: 'Invited'
+    }
+
+    const sendMessageCommand = new SendMessageCommand({
+      QueueUrl: process.env.SQS_QUEUE_URL,
+      MessageBody: JSON.stringify(messageBody),
+      MessageGroupId: 'invitedParticipant'
+    });
+
+    try {
+      const result = await client.send(sendMessageCommand);
+      console.log('Message sent:', result.MessageId);
+    } catch (error) {
+      console.error('Error occurred:', error);
+    }
+  }
+}
 
 // Retrieve and Parse the JSON file
 export const retrieveAndParseJSON = async (getJSONFunc, bucket, key, client) => {
