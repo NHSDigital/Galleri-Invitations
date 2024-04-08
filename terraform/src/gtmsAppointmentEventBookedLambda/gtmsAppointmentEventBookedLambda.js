@@ -31,8 +31,43 @@ export const handler = async (event) => {
 
   const csvString = await readCsvFromS3(bucket, key, s3);
   const js = JSON.parse(csvString); //convert string retrieved from S3 to object
+  console.log(js);
+  // logger.info(js);
 
-}
+  const ParticipantID = js?.['Appointment']?.['ParticipantID'];
+  const AppointmentID = js?.['Appointment']?.['AppointmentID'];
+  const EventType = js?.['Appointment']?.['EventType']; //BOOKED
+
+  const appointmentResponse = await lookUp(dbClient, AppointmentID, "Appointments", "Appointment_Id", "S", true);
+  const appointmentItems = appointmentResponse.Items[0];
+  console.log(`appointmentItems for appointment: ${JSON.stringify(appointmentItems)} loaded.`);
+  // console.log(`appointmentItems for appointment: ${JSON.stringify(appointmentItems.Appointment_Id)} loaded.`);
+  //if appointmentID supplied and does not exist in db and participant doesnt have exisitng appt and appointmentDatetime is not in past,
+  // insert appointment record and update episode record
+  // Episode Event = Appointment booked Letter
+  // Episode Event updated = current system date timestamp
+  // Episode event description = NULL
+  // Episode event notes = NULL
+  // Episode event updated by = GTMS
+  // Episode status = Open
+  // Episode status updated = same as episode event updated
+  // Created timestamp
+  // Updated timestamp
+
+
+  //if appointmentDateTime is less than sys date + param (5 days):
+  //   Episode Event = Appointment booked text
+  // Episode Event updated = current system date timestamp
+  // Episode event description = NULL
+  // Episode event notes = NULL
+  // Episode event updated by = GTMS
+  // Episode status = Open
+  // Episode status updated = same as episode event updated
+  // Created timestamp
+  // Updated timestamp
+
+
+};
 
 
 //FUNCTIONS

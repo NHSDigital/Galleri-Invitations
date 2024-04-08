@@ -790,6 +790,35 @@ module "add_episode_history_dynamodb_stream" {
   maximum_batching_window_in_seconds = 30
 }
 
+module "gtms_appointment_event_booked_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gtmsAppointmentEventBookedLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "gtms_appointment_event_booked_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "gtms_appointment_event_booked_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gtms_appointment_event_booked_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "gtms_appointment_event_booked_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.proccessed_appointments.bucket_id
+  bucket_arn    = module.proccessed_appointments.bucket_arn
+  lambda_arn    = module.gtms_appointment_event_booked_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_booked"
+}
+
 module "appointments_event_cancelled_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
@@ -812,35 +841,6 @@ module "appointments_event_cancelled_lambda_cloudwatch" {
 }
 
 module "appointments_event_cancelled_lambda_trigger" {
-  source        = "./modules/lambda_trigger"
-  bucket_id     = module.proccessed_appointments.bucket_id
-  bucket_arn    = module.proccessed_appointments.bucket_arn
-  lambda_arn    = module.appointments_event_cancelled_lambda.lambda_arn
-  filter_prefix = "validRecords/valid_records-"
-}
-
-module "gtms_appointment_event_booked_lambda" {
-  source               = "./modules/lambda"
-  environment          = var.environment
-  bucket_id            = module.s3_bucket.bucket_id
-  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "gtmsAppointmentEventBookedLambda"
-  lambda_timeout       = 100
-  memory_size          = 1024
-  lambda_s3_object_key = "gtms_appointment_event_booked_lambda.zip"
-  environment_vars = {
-    ENVIRONMENT = "${var.environment}"
-  }
-}
-
-module "gtms_appointment_event_booked_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.appointments_event_cancelled_lambda.lambda_function_name
-  retention_days       = 14
-}
-
-module "gtms_appointment_event_booked_lambda_trigger" {
   source        = "./modules/lambda_trigger"
   bucket_id     = module.proccessed_appointments.bucket_id
   bucket_arn    = module.proccessed_appointments.bucket_arn
