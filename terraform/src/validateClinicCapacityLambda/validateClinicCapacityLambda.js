@@ -6,7 +6,7 @@ import {
 import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { validate } from "jsonschema";
 import ClinicSchemaGTMS from "./clinic-schema.json" assert { type: "json" };
-const { isMonday } = require('date-fns');
+import { isMonday } from "date-fns";
 
 const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
