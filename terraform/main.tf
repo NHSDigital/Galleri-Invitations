@@ -840,13 +840,13 @@ module "gtms_appointment_event_booked_lambda_trigger" {
 #   retention_days       = 14
 # }
 
-# module "appointments_event_cancelled_lambda_trigger" {
-#   source        = "./modules/lambda_trigger"
-#   bucket_id     = module.proccessed_appointments.bucket_id
-#   bucket_arn    = module.proccessed_appointments.bucket_arn
-#   lambda_arn    = module.appointments_event_cancelled_lambda.lambda_arn
-#   filter_prefix = "validRecords/valid_records-"
-# }
+module "appointments_event_cancelled_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.proccessed_appointments.bucket_id
+  bucket_arn    = module.proccessed_appointments.bucket_arn
+  lambda_arn    = module.appointments_event_cancelled_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records-"
+}
 
 # User Accounts Lambda
 module "user_accounts_lambda" {
@@ -1579,13 +1579,13 @@ module "participating_icb_table" {
 #   retention_days       = 14
 # }
 
-# module "process_appointment_event_type_lambda_trigger" {
-#   source        = "./modules/lambda_trigger"
-#   bucket_id     = module.proccessed_appointments.bucket_id
-#   bucket_arn    = module.proccessed_appointments.bucket_arn
-#   lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn
-#   filter_prefix = "validRecords/valid_records-"
-# }
+module "process_appointment_event_type_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.proccessed_appointments.bucket_id
+  bucket_arn    = module.proccessed_appointments.bucket_arn
+  lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records-"
+}
 
 module "gp_practice_table" {
   source                   = "./modules/dynamodb"
