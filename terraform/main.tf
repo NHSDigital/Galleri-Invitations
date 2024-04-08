@@ -1534,11 +1534,11 @@ module "caas_feed_update_records_lambda_cloudwatch" {
 }
 
 module "caas_feed_update_records_lambda_trigger" {
- source        = "./modules/lambda_trigger"
- bucket_id     = module.validated_records_bucket.bucket_id
- bucket_arn    = module.validated_records_bucket.bucket_arn
- lambda_arn    = module.caas_feed_update_records_lambda.lambda_arn
- filter_prefix = "validRecords/valid_records_update-"
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.validated_records_bucket.bucket_id
+  bucket_arn    = module.validated_records_bucket.bucket_arn
+  lambda_arn    = module.caas_feed_update_records_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records_update-"
 }
 
 # Dynamodb tables
