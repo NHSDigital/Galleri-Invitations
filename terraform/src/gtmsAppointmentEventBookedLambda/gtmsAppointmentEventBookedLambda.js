@@ -49,10 +49,20 @@ export const handler = async (event) => {
   console.log(`appointmentItems for appointment: ${JSON.stringify(appointmentItems)} loaded.`);
   // console.log(`appointmentItems for appointment: ${JSON.stringify(appointmentItems.Appointment_Id)} loaded.`);
 
-  if (payloadAppointmentDateTime > (new Date()).toISOString()) {
+  if (payloadAppointmentDateTime > (new Date()).toISOString() && payloadEventType === 'BOOKED' && episodeItems) {
     console.info(true);
+    if (!appointmentItems && payloadAppointmentID !== null) { // new appointment ID, and no existing = ADD
+      console.info(true);
+    } else if (appointmentItems && (payloadAppointmentID === appointmentItems.Appointment_Id)) {  //same appointmentID = UPDATE
+      console.info(true);
+    } else { // has appointment id and different one supplied, REJECT
+      //REJECT
+      console.info(false);
+    }
+
   } else {
     console.info(false);
+    //REJECT
   }
 
 
