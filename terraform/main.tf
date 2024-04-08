@@ -819,26 +819,26 @@ module "gtms_appointment_event_booked_lambda_trigger" {
   filter_prefix = "validRecords/valid_records_booked"
 }
 
-# module "appointments_event_cancelled_lambda" {
-#   source               = "./modules/lambda"
-#   environment          = var.environment
-#   bucket_id            = module.s3_bucket.bucket_id
-#   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-#   lambda_function_name = "appointmentsEventCancelledLambda"
-#   lambda_timeout       = 100
-#   memory_size          = 1024
-#   lambda_s3_object_key = "appointments_event_cancelled_lambda.zip"
-#   environment_vars = {
-#     ENVIRONMENT = "${var.environment}"
-#   }
-# }
+module "appointments_event_cancelled_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "appointmentsEventCancelledLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "appointments_event_cancelled_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
 
-# module "appointments_event_cancelled_lambda_cloudwatch" {
-#   source               = "./modules/cloudwatch"
-#   environment          = var.environment
-#   lambda_function_name = module.appointments_event_cancelled_lambda.lambda_function_name
-#   retention_days       = 14
-# }
+module "appointments_event_cancelled_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.appointments_event_cancelled_lambda.lambda_function_name
+  retention_days       = 14
+}
 
 module "appointments_event_cancelled_lambda_trigger" {
   source        = "./modules/lambda_trigger"
@@ -1558,26 +1558,26 @@ module "participating_icb_table" {
   }
 }
 
-# module "process_appointment_event_type_lambda" {
-#   source               = "./modules/lambda"
-#   environment          = var.environment
-#   bucket_id            = module.s3_bucket.bucket_id
-#   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-#   lambda_function_name = "processAppointmentEventTypeLambda"
-#   lambda_timeout       = 100
-#   memory_size          = 1024
-#   lambda_s3_object_key = "process_appointment_event_type_lambda.zip"
-#   environment_vars = {
-#     ENVIRONMENT = "${var.environment}"
-#   }
-# }
+module "process_appointment_event_type_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "processAppointmentEventTypeLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "process_appointment_event_type_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
 
-# module "process_appointment_event_type_lambda_cloudwatch" {
-#   source               = "./modules/cloudwatch"
-#   environment          = var.environment
-#   lambda_function_name = module.process_appointment_event_type_lambda.lambda_function_name
-#   retention_days       = 14
-# }
+module "process_appointment_event_type_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.process_appointment_event_type_lambda.lambda_function_name
+  retention_days       = 14
+}
 
 module "process_appointment_event_type_lambda_trigger" {
   source        = "./modules/lambda_trigger"
