@@ -57,7 +57,7 @@ jobs:
       environment: ${{ env.environment }}
       environment_type: ${{ steps.variables.outputs.environment_type }}
       invitations_branch: ${{ github.event.inputs.invitations_branch }}
-      frontend_branch: ${{ github.event.inputs.invitations_branch }}
+      frontend_branch: ${{ github.event.inputs.frontend_branch }}
       database_seeding: ${{ github.event.inputs.database_seeding }}
       tf_action: ${{ github.event.inputs.tf_action }}
       test: ${{ github.event.inputs.test }}
@@ -149,6 +149,7 @@ jobs:
       nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
+      invitations_branch: "${{ github.event.inputs.invitations_branch }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
     secrets:
