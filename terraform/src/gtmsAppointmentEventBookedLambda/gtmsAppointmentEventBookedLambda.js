@@ -34,14 +34,29 @@ export const handler = async (event) => {
   console.log(js);
   // logger.info(js);
 
-  const ParticipantID = js?.['Appointment']?.['ParticipantID'];
-  const AppointmentID = js?.['Appointment']?.['AppointmentID'];
-  const EventType = js?.['Appointment']?.['EventType']; //BOOKED
+  const payloadParticipantID = js?.['Appointment']?.['ParticipantID'];
+  const payloadAppointmentID = js?.['Appointment']?.['AppointmentID'];
+  const payloadEventType = js?.['Appointment']?.['EventType']; //BOOKED
+  const payloadAppointmentDateTime = js?.['Appointment']?.['AppointmentDateTime'];
 
-  const appointmentResponse = await lookUp(dbClient, AppointmentID, "Appointments", "Appointment_Id", "S", true);
+  const episodeResponse = await lookUp(dbClient, payloadParticipantID, "Episode", "Participant_Id", "S", true);
+  const episodeItems = episodeResponse.Items[0];
+  console.log(`episodeItems for participant: ${JSON.stringify(episodeItems)} loaded.`);
+  // console.log(`episodeItems for participant: ${JSON.stringify(episodeItems.Participant_Id)} loaded.`);
+
+  const appointmentResponse = await lookUp(dbClient, payloadAppointmentID, "Appointments", "Appointment_Id", "S", true);
   const appointmentItems = appointmentResponse.Items[0];
   console.log(`appointmentItems for appointment: ${JSON.stringify(appointmentItems)} loaded.`);
   // console.log(`appointmentItems for appointment: ${JSON.stringify(appointmentItems.Appointment_Id)} loaded.`);
+
+  if (payloadAppointmentDateTime > (new Date()).toISOString()) {
+    console.info(true);
+  } else {
+    console.info(false);
+  }
+
+
+  //if participant exists with no appt and apptID is supplied and is new + dateTime valid => add
   //if appointmentID supplied and does not exist in db and participant doesnt have exisitng appt and appointmentDatetime is not in past,
   // insert appointment record and update episode record
   // Episode Event = Appointment booked Letter
