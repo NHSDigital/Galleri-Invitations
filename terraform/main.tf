@@ -66,6 +66,14 @@ module "iam_galleri_lambda_role" {
 #   environment = var.environment
 # }
 
+# Setups up an eks cluster we can use to host the mesh sandbox for test environments and fhir validator
+module "eks" {
+  source      = "./modules/eks"
+  environment = var.environment
+  subnet_ids  = module.vpc.fargate_subnet_ids
+  vpc_id      = module.vpc.vpc_id
+}
+
 module "s3_bucket" {
   source                  = "./modules/s3"
   bucket_name             = var.bucket_name
