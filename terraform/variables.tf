@@ -14,7 +14,7 @@ variable "environment" {
 
 variable "frontend_repo_location" {
   description = "The location of the Galler-Frontend repo on the filesystem"
-  default     = "/Users/avirajmandair/Downloads/dev/Galleri-Frontend"
+  default     = "/home/runner/work/Galleri-Invitations/Galleri-Invitations/Galleri-Frontend"
 }
 
 variable "USERS" {
