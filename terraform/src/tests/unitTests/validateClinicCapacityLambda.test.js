@@ -75,7 +75,34 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
         const validationResult = await moduleapi.validateRecord(data[3], mockDynamoDbClient);
         expect(validationResult.success).toBe(false);
         expect(validationResult.message).toBe("Invalid JSON Schema");
+    });
+
+    test('should return failure for 5 weeks horizon', async() => {
+      mockDynamoDbClient.resolves({
+        Count : 1,
       });
+        const validationResult = await moduleapi.validateRecord(data[4], mockDynamoDbClient);
+        expect(validationResult.success).toBe(false);
+        expect(validationResult.message).toBe("Six week horizon is exceeded or not met");
+    });
+
+    test('should return failure for 7 weeks horizon', async() => {
+      mockDynamoDbClient.resolves({
+        Count : 1,
+      });
+        const validationResult = await moduleapi.validateRecord(data[5], mockDynamoDbClient);
+        expect(validationResult.success).toBe(false);
+        expect(validationResult.message).toBe("Six week horizon is exceeded or not met");
+    });
+
+    test('should return failure for WeekCommencingDate not starting on a Monday', async() => {
+      mockDynamoDbClient.resolves({
+        Count : 1,
+      });
+        const validationResult = await moduleapi.validateRecord(data[6], mockDynamoDbClient);
+        expect(validationResult.success).toBe(false);
+        expect(validationResult.message).toBe("Week Commencing Date is not a Monday");
+    });
 
     afterEach(() => {
       jest.clearAllMocks();
