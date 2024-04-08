@@ -6,9 +6,6 @@ resource "aws_eks_cluster" "cluster" {
   role_arn = aws_iam_role.eks.arn
 
   vpc_config {
-    # endpoint_private_access = false
-    # endpoint_public_access  = true
-    # public_access_cidrs     = ["0.0.0.0/0"]
     subnet_ids = var.subnet_ids
   }
 
@@ -82,20 +79,20 @@ resource "aws_iam_role" "fargate_pod_execution" {
 
 
 
-resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.eks.name
-}
+# resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy" {
+#   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+#   role       = aws_iam_role.eks.name
+# }
 
-resource "aws_iam_role_policy_attachment" "AmazonEKSServicePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
-  role       = aws_iam_role.eks.name
-}
+# resource "aws_iam_role_policy_attachment" "AmazonEKSServicePolicy" {
+#   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
+#   role       = aws_iam_role.eks.name
+# }
 
-resource "aws_iam_role_policy_attachment" "AmazonEKSVPCResourceController" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
-  role       = aws_iam_role.eks.name
-}
+# resource "aws_iam_role_policy_attachment" "AmazonEKSVPCResourceController" {
+#   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
+#   role       = aws_iam_role.eks.name
+# }
 
 
 
