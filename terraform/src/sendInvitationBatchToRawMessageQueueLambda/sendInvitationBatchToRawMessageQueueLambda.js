@@ -65,26 +65,41 @@ export async function processJSONObj(jsonObj, client) {
 
 // Process JSON file and send to SQS queue
 export async function processJSONObj(jsonObj, client) {
+  const totalRecords = jsonObj.length;
+  let recordsSuccessfullySent = 0;
+  let recordsFailedToSent = 0;
+
   for (let record of jsonObj) {
     const messageBody = {
       participantId: record.participantId,
       nhsNumber: record.nhsNumber,
-      episodeEvent: 'Invited'
-    }
+      episodeEvent: "Invited",
+    };
 
     const sendMessageCommand = new SendMessageCommand({
       QueueUrl: process.env.SQS_QUEUE_URL,
       MessageBody: JSON.stringify(messageBody),
-      MessageGroupId: 'invitedParticipant'
+      MessageGroupId: "invitedParticipant",
     });
 
     try {
-      const result = await client.send(sendMessageCommand);
-      console.log('Message sent:', result.MessageId);
+      await client.send(sendMessageCommand);
+      recordsSuccessfullySent++;
+      console.log(
+        `Message successfully sent for participantId: ${record.participantId}`
+      );
     } catch (error) {
-      console.error('Error occurred:', error);
+      recordsFailedToSent++;
+      console.error(
+        `Failed to send message for participantId: ${record.participantId}`
+      );
+      console.error("Error:", error);
     }
   }
+
+  console.log(
+    `Total records in the batch: ${totalRecords} - Records successfully processed/sent: ${recordsSuccessfullySent} - Records failed to send: ${recordsFailedToSent}`
+  );
 }
 
 // Retrieve and Parse the JSON file
