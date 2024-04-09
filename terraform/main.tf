@@ -808,7 +808,8 @@ module "gtms_appointment_event_booked_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "gtms_appointment_event_booked_lambda.zip"
   environment_vars = {
-    ENVIRONMENT = "${var.environment}"
+    ENVIRONMENT = "${var.environment}",
+    DATEPARAM   = "5"
   }
 }
 

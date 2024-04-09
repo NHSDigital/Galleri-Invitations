@@ -20,9 +20,8 @@ const ENVIRONMENT = process.env.ENVIRONMENT;
 const { timestamp, combine, printf, } = winston.format;
 const myFormat = printf(({ level, message, timestamp }) => `[${timestamp}] ${level}: ${message}`);
 
-//Need a lambda param for appointmentdatetime modifier
-// const DATEPARAM = process.env.DATEPARAM;
-const DATEPARAM = 5;
+const DATEPARAM = process.env.DATEPARAM;
+
 //HANDLER
 export const handler = async (event) => {
   const record = event.Records[0];
@@ -32,13 +31,12 @@ export const handler = async (event) => {
 
   const csvString = await readCsvFromS3(bucket, key, s3);
   const js = JSON.parse(csvString); //convert string retrieved from S3 to object
-  console.log(js);
 
   const payloadParticipantID = js?.['Appointment']?.['ParticipantID'];
   const payloadAppointmentID = js?.['Appointment']?.['AppointmentID'];
   const payloadEventType = js?.['Appointment']?.['EventType']; //BOOKED
   const payloadAppointmentDateTime = js?.['Appointment']?.['AppointmentDateTime'];
-  const payloadAppointmentReplaces = js?.['Appointment']?.['Replaces'];
+  const payloadAppointmentReplaces = js?.['Appointment']?.['Replaces']; //replaces existing appointment id
 
   const episodeResponse = await lookUp(dbClient, payloadParticipantID, "Episode", "Participant_Id", "S", true);
   const episodeItems = episodeResponse.Items[0];
@@ -48,7 +46,7 @@ export const handler = async (event) => {
   const appointmentItems = appointmentResponse.Items[0];
   console.log(`appointmentItems for appointment: ${JSON.stringify(appointmentItems.Appointment_Id)} loaded.`);
 
-  const appointmentParticipant = await lookUp(dbClient, payloadParticipantID, "Appointments", "Participant_Id", "S", false);
+  const appointmentParticipant = await lookUp(dbClient, payloadParticipantID, "Appointments", "Participant_Id", "S", false); //Check participant has any appointments
   const appointmentParticipantItems = appointmentParticipant.Items[0];
   console.log(`appointmentParticipantItems for appointment: ${JSON.stringify(appointmentParticipantItems.Appointment_Id)} loaded.`);
 
