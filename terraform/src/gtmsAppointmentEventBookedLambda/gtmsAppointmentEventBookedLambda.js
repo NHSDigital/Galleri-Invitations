@@ -17,11 +17,12 @@ const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
 // variables required for logging
-const { timestamp, combine, printf, colorize, } = winston.format;
+const { timestamp, combine, printf, } = winston.format;
 const myFormat = printf(({ level, message, timestamp }) => `[${timestamp}] ${level}: ${message}`);
 
 //Need a lambda param for appointmentdatetime modifier
-
+// const DATEPARAM = process.env.DATEPARAM;
+const DATEPARAM = 5;
 //HANDLER
 export const handler = async (event) => {
   const record = event.Records[0];
@@ -32,7 +33,6 @@ export const handler = async (event) => {
   const csvString = await readCsvFromS3(bucket, key, s3);
   const js = JSON.parse(csvString); //convert string retrieved from S3 to object
   console.log(js);
-  // logger.info(js);
 
   const payloadParticipantID = js?.['Appointment']?.['ParticipantID'];
   const payloadAppointmentID = js?.['Appointment']?.['AppointmentID'];
@@ -48,13 +48,61 @@ export const handler = async (event) => {
   const appointmentItems = appointmentResponse.Items[0];
   console.log(`appointmentItems for appointment: ${JSON.stringify(appointmentItems)} loaded.`);
   // console.log(`appointmentItems for appointment: ${JSON.stringify(appointmentItems.Appointment_Id)} loaded.`);
-
-  if (payloadAppointmentDateTime > (new Date()).toISOString() && payloadEventType === 'BOOKED' && episodeItems) {
-    console.info(true);
+  let date = new Date();
+  if ((payloadAppointmentDateTime > date.toISOString()) && payloadEventType === 'BOOKED' && episodeItems) {
+    logger.info(true);
     if (!appointmentItems && payloadAppointmentID !== null) { // new appointment ID, and no existing = ADD
       console.info(true);
-    } else if (appointmentItems && (payloadAppointmentID === appointmentItems.Appointment_Id)) {  //same appointmentID = UPDATE
+      date.setDate(date.getDate() + DATEPARAM);
+      if (payloadAppointmentDateTime > date.toISOString()) { //greater than date param, e.g. 5
+        const episodeEvent = 'Appointment Booked Letter';
+        console.log(episodeEvent);
+        await transactionalWrite(
+          dbClient,
+          payloadParticipantID,
+          episodeItems['Batch_Id']['S'], //required PK for Episode update
+          payloadAppointmentID,
+          payloadEventType,
+          episodeEvent,
+        );
+      } else {
+        const episodeEvent = 'Appointment Booked Text';
+        console.log(episodeEvent);
+        await transactionalWrite(
+          dbClient,
+          payloadParticipantID,
+          episodeItems['Batch_Id']['S'], //required PK for Episode update
+          payloadAppointmentID,
+          payloadEventType,
+          episodeEvent,
+        );
+      }
+
+    } else if (appointmentItems && (payloadAppointmentID === appointmentItems?.['Appointment_Id']?.['S'])) {  //same appointmentID = UPDATE
       console.info(true);
+      if (payloadAppointmentDateTime > date.toISOString()) { //greater than date param, e.g. 5
+        const episodeEvent = 'Appointment Rebooked Letter';
+        console.log(episodeEvent);
+        await transactionalWrite(
+          dbClient,
+          payloadParticipantID,
+          episodeItems['Batch_Id']['S'], //required PK for Episode update
+          payloadAppointmentID,
+          payloadEventType,
+          episodeEvent,
+        );
+      } else {
+        const episodeEvent = 'Appointment Rebooked Text';
+        console.log(episodeEvent);
+        await transactionalWrite(
+          dbClient,
+          payloadParticipantID,
+          episodeItems['Batch_Id']['S'], //required PK for Episode update
+          payloadAppointmentID,
+          payloadEventType,
+          episodeEvent,
+        );
+      }
     } else { // has appointment id and different one supplied, REJECT
       //REJECT
       console.info(false);
@@ -64,33 +112,6 @@ export const handler = async (event) => {
     console.info(false);
     //REJECT
   }
-
-
-  //if participant exists with no appt and apptID is supplied and is new + dateTime valid => add
-  //if appointmentID supplied and does not exist in db and participant doesnt have exisitng appt and appointmentDatetime is not in past,
-  // insert appointment record and update episode record
-  // Episode Event = Appointment booked Letter
-  // Episode Event updated = current system date timestamp
-  // Episode event description = NULL
-  // Episode event notes = NULL
-  // Episode event updated by = GTMS
-  // Episode status = Open
-  // Episode status updated = same as episode event updated
-  // Created timestamp
-  // Updated timestamp
-
-
-  //if appointmentDateTime is less than sys date + param (5 days):
-  //   Episode Event = Appointment booked text
-  // Episode Event updated = current system date timestamp
-  // Episode event description = NULL
-  // Episode event notes = NULL
-  // Episode event updated by = GTMS
-  // Episode status = Open
-  // Episode status updated = same as episode event updated
-  // Created timestamp
-  // Updated timestamp
-
 
 };
 
@@ -185,7 +206,6 @@ export const transactionalWrite = async (
   appointmentId,
   eventType,
   episodeEvent,
-  cancellationReason,
 ) => {
   const timeNow = String(Date.now());
   const params = {
@@ -201,7 +221,7 @@ export const transactionalWrite = async (
           ExpressionAttributeValues: {
             ":episodeEvent": { S: episodeEvent },
             ":timeNow": { N: timeNow },
-            ":eventDescription": { S: cancellationReason },
+            ":eventDescription": { S: "NULL" },
             ":open": { S: "Open" },
             ":null": { S: "Null" },
             ":gtms": { S: "GTMS" },
@@ -246,7 +266,7 @@ export const transactionalWrite = async (
  */
 export const logger = winston.createLogger({
   level: 'debug',
-  format: combine(timestamp({ format: 'YYYY-MM-DD hh:mm:ss.SSS A' }), colorize({ all: true }), myFormat),
+  format: combine(timestamp({ format: 'YYYY-MM-DD hh:mm:ss.SSS A' }), myFormat),
   transports: [
     new winston.transports.Console(),
   ],
