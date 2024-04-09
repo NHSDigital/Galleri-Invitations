@@ -40,16 +40,15 @@ export const handler = async (event) => {
 
   const episodeResponse = await lookUp(dbClient, payloadParticipantID, "Episode", "Participant_Id", "S", true);
   const episodeItems = episodeResponse.Items[0];
-  console.log(`episodeItems for participant: ${JSON.stringify(episodeItems.Participant_Id)} loaded.`);
+  logger.info(`episodeItems for participant: ${JSON.stringify(episodeItems?.Participant_Id)} loaded.`);
 
   const appointmentResponse = await lookUp(dbClient, payloadAppointmentID, "Appointments", "Appointment_Id", "S", true);
   const appointmentItems = appointmentResponse.Items[0];
-  console.log(`appointmentItems for appointment: ${JSON.stringify(appointmentItems.Appointment_Id)} loaded.`);
+  logger.info(`appointmentItems for appointment: ${JSON.stringify(appointmentItems?.Appointment_Id)} loaded.`);
 
   const appointmentParticipant = await lookUp(dbClient, payloadParticipantID, "Appointments", "Participant_Id", "S", false); //Check participant has any appointments
   const appointmentParticipantItems = appointmentParticipant.Items[0];
-  console.log(`appointmentParticipantItems for appointment: ${JSON.stringify(appointmentParticipantItems.Appointment_Id)} loaded.`);
-
+  logger.info(`appointmentParticipantItems for appointment: ${JSON.stringify(appointmentParticipantItems?.Appointment_Id)} loaded.`);
 
   let date = new Date();
   const dateTime = new Date(Date.now()).toISOString();
@@ -60,7 +59,7 @@ export const handler = async (event) => {
       date.setDate(date.getDate() + DATEPARAM);
       if (payloadAppointmentDateTime > date.toISOString()) { //greater than date param, e.g. 5
         const episodeEvent = 'Appointment Booked Letter';
-        console.log(episodeEvent);
+        logger.info(episodeEvent);
         await transactionalWrite(
           dbClient,
           payloadParticipantID,
@@ -71,7 +70,7 @@ export const handler = async (event) => {
         );
       } else {
         const episodeEvent = 'Appointment Booked Text';
-        console.log(episodeEvent);
+        logger.info(episodeEvent);
         await transactionalWrite(
           dbClient,
           payloadParticipantID,
@@ -85,7 +84,7 @@ export const handler = async (event) => {
       console.info('second check');
       if (payloadAppointmentDateTime > date.toISOString()) { //greater than date param, e.g. 5
         const episodeEvent = 'Appointment Rebooked Letter';
-        console.log(episodeEvent);
+        logger.info(episodeEvent);
         await transactionalWrite(
           dbClient,
           payloadParticipantID,
@@ -96,7 +95,7 @@ export const handler = async (event) => {
         );
       } else {
         const episodeEvent = 'Appointment Rebooked Text';
-        console.log(episodeEvent);
+        logger.info(episodeEvent);
         await transactionalWrite(
           dbClient,
           payloadParticipantID,
@@ -108,7 +107,7 @@ export const handler = async (event) => {
       }
     } else { // has appointment id and different one supplied, REJECT
       //REJECT
-      console.info(false);
+      logger.warn('payload invalid');
       const confirmation = await pushCsvToS3(
         `${bucket}`,
         `invalid_appointment_data/invalidRecord_${dateTime}.json`,
@@ -118,7 +117,7 @@ export const handler = async (event) => {
       return confirmation;
     }
   } else {
-    console.info(false);
+    logger.warn('payload invalid');
     //REJECT
     const confirmation = await pushCsvToS3(
       `${bucket}`,
@@ -184,6 +183,16 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
   }
 };
 
+/**
+ * This function allows the user to query against DynamoDB.
+ *
+ * @param {Object} dbClient Instance of DynamoDB client
+ * @param  {...any} params params is destructed to id, which is the value you use to query against.
+ * The table is the table name (type String), attribute is the column you search against (type String),
+ * attributeType is the type of data stored within that column and useIndex is toggled to true if you want to use
+ * and existing index (type boolean)
+ * @returns {Object} metadata about the request, including httpStatusCode
+ */
 export const lookUp = async (dbClient, ...params) => {
   const [id, table, attribute, attributeType, useIndex] = params;
 
@@ -215,6 +224,17 @@ export const lookUp = async (dbClient, ...params) => {
   return response;
 };
 
+/**
+ * This function is used to write to both episode and appointments table depending on the received payload
+ *
+ * @param {Object} client Instance of DynamoDB client
+ * @param {string} participantId The id of the participant
+ * @param {string} batchId The batch id attached to the episode record
+ * @param {string} appointmentId The appointment id relating to the entry payload
+ * @param {string} eventType The eventType extracted from the payload from GTMS
+ * @param {string} episodeEvent Text which is added added to the episode record to signify the type of Episode event update
+ * @returns {boolean} Returns either true of false depending on the success writing to 2 DynamoDB's
+ */
 export const transactionalWrite = async (
   client,
   participantId,
@@ -278,7 +298,7 @@ export const transactionalWrite = async (
 /**
  * This function aims to decouple parts of the logging process to make it more flexible and extensible.
  * It is used to configure a custom logger with things such as log levels,
- * timestamp, and colored text in your logs. The transport medium is the Console.
+ * timestamp. The transport medium is the Console.
  */
 export const logger = winston.createLogger({
   level: 'debug',
