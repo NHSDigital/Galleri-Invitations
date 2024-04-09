@@ -52,82 +52,87 @@ export const handler = async (event) => {
 
   let date = new Date();
   const dateTime = new Date(Date.now()).toISOString();
-  if ((payloadAppointmentDateTime > date.toISOString()) && payloadEventType === 'BOOKED' && episodeItems) {
-    console.info('first check');
-    if (!appointmentItems && payloadAppointmentID !== null && !appointmentParticipantItems) { // new appointment ID, and no existing = ADD
-      console.info('second check');
-      date.setDate(date.getDate() + DATEPARAM);
-      if (payloadAppointmentDateTime > date.toISOString()) { //greater than date param, e.g. 5
-        const episodeEvent = 'Appointment Booked Letter';
-        logger.info(episodeEvent);
-        await transactionalWrite(
-          dbClient,
-          payloadParticipantID,
-          episodeItems['Batch_Id']['S'], //required PK for Episode update
-          payloadAppointmentID,
-          payloadEventType,
-          episodeEvent,
+  try {
+    if ((payloadAppointmentDateTime > date.toISOString()) && payloadEventType === 'BOOKED' && episodeItems) {
+      console.info('first check');
+      if (!appointmentItems && payloadAppointmentID !== null && !appointmentParticipantItems) { // new appointment ID, and no existing = ADD
+        console.info('second check');
+        date.setDate(date.getDate() + DATEPARAM);
+        if (payloadAppointmentDateTime > date.toISOString()) { //greater than date param, e.g. 5
+          const episodeEvent = 'Appointment Booked Letter';
+          logger.info(episodeEvent);
+          await transactionalWrite(
+            dbClient,
+            payloadParticipantID,
+            episodeItems['Batch_Id']['S'], //required PK for Episode update
+            payloadAppointmentID,
+            payloadEventType,
+            episodeEvent,
+          );
+        } else {
+          const episodeEvent = 'Appointment Booked Text';
+          logger.info(episodeEvent);
+          await transactionalWrite(
+            dbClient,
+            payloadParticipantID,
+            episodeItems['Batch_Id']['S'], //required PK for Episode update
+            payloadAppointmentID,
+            payloadEventType,
+            episodeEvent,
+          );
+        }
+      } else if (!appointmentItems && appointmentParticipantItems && (payloadAppointmentReplaces === appointmentParticipantItems?.['Appointment_Id']?.['S'])) {  //same appointmentID = UPDATE
+        console.info('second check');
+        if (payloadAppointmentDateTime > date.toISOString()) { //greater than date param, e.g. 5
+          const episodeEvent = 'Appointment Rebooked Letter';
+          logger.info(episodeEvent);
+          await transactionalWrite(
+            dbClient,
+            payloadParticipantID,
+            episodeItems['Batch_Id']['S'], //required PK for Episode update
+            payloadAppointmentID,
+            payloadEventType,
+            episodeEvent,
+          );
+        } else {
+          const episodeEvent = 'Appointment Rebooked Text';
+          logger.info(episodeEvent);
+          await transactionalWrite(
+            dbClient,
+            payloadParticipantID,
+            episodeItems['Batch_Id']['S'], //required PK for Episode update
+            payloadAppointmentID,
+            payloadEventType,
+            episodeEvent,
+          );
+        }
+      } else { // has appointment id and different one supplied, REJECT
+        //REJECT
+        logger.warn('payload invalid');
+        const confirmation = await pushCsvToS3(
+          `${bucket}`,
+          `invalid_appointment_data/invalidRecord_${dateTime}.json`,
+          csvString,
+          s3
         );
-      } else {
-        const episodeEvent = 'Appointment Booked Text';
-        logger.info(episodeEvent);
-        await transactionalWrite(
-          dbClient,
-          payloadParticipantID,
-          episodeItems['Batch_Id']['S'], //required PK for Episode update
-          payloadAppointmentID,
-          payloadEventType,
-          episodeEvent,
-        );
+        return confirmation;
       }
-    } else if (!appointmentItems && appointmentParticipantItems && (payloadAppointmentReplaces === appointmentParticipantItems?.['Appointment_Id']?.['S'])) {  //same appointmentID = UPDATE
-      console.info('second check');
-      if (payloadAppointmentDateTime > date.toISOString()) { //greater than date param, e.g. 5
-        const episodeEvent = 'Appointment Rebooked Letter';
-        logger.info(episodeEvent);
-        await transactionalWrite(
-          dbClient,
-          payloadParticipantID,
-          episodeItems['Batch_Id']['S'], //required PK for Episode update
-          payloadAppointmentID,
-          payloadEventType,
-          episodeEvent,
-        );
-      } else {
-        const episodeEvent = 'Appointment Rebooked Text';
-        logger.info(episodeEvent);
-        await transactionalWrite(
-          dbClient,
-          payloadParticipantID,
-          episodeItems['Batch_Id']['S'], //required PK for Episode update
-          payloadAppointmentID,
-          payloadEventType,
-          episodeEvent,
-        );
-      }
-    } else { // has appointment id and different one supplied, REJECT
-      //REJECT
+    } else {
       logger.warn('payload invalid');
+      //REJECT
       const confirmation = await pushCsvToS3(
         `${bucket}`,
-        `invalid_appointment_data/invalidRecord_${dateTime}.json`,
+        `invalid_booked_event/invalidRecord_${dateTime}.json`,
         csvString,
         s3
       );
       return confirmation;
     }
-  } else {
-    logger.warn('payload invalid');
-    //REJECT
-    const confirmation = await pushCsvToS3(
-      `${bucket}`,
-      `invalid_booked_event/invalidRecord_${dateTime}.json`,
-      csvString,
-      s3
-    );
-    return confirmation;
+  } catch (err) {
+    const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
+    logger.error(message);
+    throw new Error(message);
   }
-
 };
 
 
