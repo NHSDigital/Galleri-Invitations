@@ -15,14 +15,19 @@ export const handler = async (event, context) => {
     const JSONObj = await retrieveAndParseJSON(getJSONFromS3, bucket, key, s3);
     await processJSONObj(JSONObj, sqs);
   } catch (error) {
-    console.error("Error occurred:", error);
+    console.error('Error occurred whilst processing JSON file from S3');
+    console.error('Error:', error);
   }
 };
 
 //FUNCTIONS
-
 // Process JSON file and send to SQS queue
 export async function processJSONObj(jsonObj, client) {
+
+  const totalRecords = jsonObj.length;
+  let recordsSuccessfullySent = 0;
+  let recordsFailedToSent = 0;
+
   for (let record of jsonObj) {
     const messageBody = {
       participantId: record.participantId,
@@ -37,12 +42,17 @@ export async function processJSONObj(jsonObj, client) {
     });
 
     try {
-      const result = await client.send(sendMessageCommand);
-      console.log('Message sent:', result.MessageId);
+      await client.send(sendMessageCommand);
+      recordsSuccessfullySent++;
+      console.log(`Message successfully sent for participantId: ${record.participantId}`);
     } catch (error) {
-      console.error('Error occurred:', error);
+      recordsFailedToSent++;
+      console.error(`Failed to send message for participantId: ${record.participantId}`);
+      console.error('Error:', error);
     }
   }
+
+  console.log(`Total records in the batch: ${totalRecords} - Records successfully processed/sent: ${recordsSuccessfullySent} - Records failed to send: ${recordsFailedToSent}`);
 }
 
 // Retrieve and Parse the JSON file
@@ -62,10 +72,10 @@ export async function getJSONFromS3(bucketName, key, client) {
       })
     );
     console.log(`Finished getting object key ${key} from bucket ${bucketName}`);
-    console.log(response);
     return response.Body.transformToString();
   } catch (err) {
-    console.log("Failed: ", err);
+    console.error(`Failed to get object key ${key} from bucket ${bucketName}`);
+    console.error('Error:', err);
     throw err;
   }
 }
