@@ -1350,7 +1350,7 @@ module "send_invitation_batch_to_raw_message_queue_lambda_trigger" {
 module "notify_raw_message_queue_sqs" {
   source                         = "./modules/sqs"
   environment                    = var.environment
-  name                           = "notify-raw-message-queue.fifo"
+  name                           = "notifyRawMessageQueue.fifo"
   is_fifo_queue                  = true
   is_content_based_deduplication = true
 }
