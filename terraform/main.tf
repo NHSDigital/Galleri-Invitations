@@ -829,7 +829,7 @@ module "gtms_appointment_event_booked_lambda_trigger" {
   bucket_id     = module.proccessed_appointments.bucket_id
   bucket_arn    = module.proccessed_appointments.bucket_arn
   lambda_arn    = module.gtms_appointment_event_booked_lambda.lambda_arn
-  filter_prefix = "validRecords/valid_records_booked"
+  filter_prefix = "validRecords/valid_records-BOOKED"
 }
 
 module "appointments_event_cancelled_lambda" {
