@@ -51,7 +51,7 @@ describe('processJSONObj', () => {
     await processJSONObj(mockJSON, new SQSClient({}));
 
     // Assertion
-    expect(consoleErrorSpy).toHaveBeenCalledWith("Error occurred:", new Error("Send error"));
+    expect(consoleErrorSpy).toHaveBeenCalledWith("Error:", new Error("Send error"));
   });
 });
 
