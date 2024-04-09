@@ -190,7 +190,7 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
  * @param  {...any} params params is destructed to id, which is the value you use to query against.
  * The table is the table name (type String), attribute is the column you search against (type String),
  * attributeType is the type of data stored within that column and useIndex is toggled to true if you want to use
- * and existing index (type boolean)
+ * an existing index (type boolean)
  * @returns {Object} metadata about the request, including httpStatusCode
  */
 export const lookUp = async (dbClient, ...params) => {
