@@ -2,6 +2,7 @@
   "name": "getCis2SignedJwtLambda",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "getCis2SignedJwtLambda.js",
   "dependencies": {
     "jsonwebtoken": "^9.0.2",

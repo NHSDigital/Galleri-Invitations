@@ -6,10 +6,12 @@ import {
 import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { validate } from "jsonschema";
 import ClinicSchemaGTMS from "./clinic-schema.json" assert { type: "json" };
+import { isMonday } from "date-fns";
 
 const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
 const client = new DynamoDBClient({ region: "eu-west-2" });
+const SIX_WEEK_HORIZON = 6;
 
 export const handler = async (event) => {
   const bucket = event.Records[0].s3.bucket.name;
@@ -102,6 +104,22 @@ export async function validateRecord(record, client) {
         validationResults.message = `Invalid JSON Schema`;
         console.error("errors : ", validation.errors);
         return validationResults;
+      } else {
+        record.ClinicScheduleSummary.ClinicScheduleSummary.forEach((clinic) => {
+          if(clinic.Schedule.length !== SIX_WEEK_HORIZON) {
+            validationResults.success = false;
+            validationResults.message = "Six week horizon is exceeded or not met";
+            return validationResults;
+          } else {
+            clinic.Schedule.forEach((scheduleElement) => {
+              if(!isMonday(new Date(scheduleElement.WeekCommencingDate))) {
+                validationResults.success = false;
+                validationResults.message = "Week Commencing Date is not a Monday";
+                return validationResults;
+              }
+            });
+          }
+        });
       }
     }
     else {
