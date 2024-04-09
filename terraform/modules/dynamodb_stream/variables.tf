@@ -22,6 +22,6 @@ variable "maximum_batching_window_in_seconds" {
   default = 10
 }
 
-variable "filter_event_name" {
-  default = ["INSERT", "MODIFY"]
+variable "filter" {
+  default = { eventName : ["INSERT", "MODIFY"] }
 }

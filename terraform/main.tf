@@ -763,7 +763,7 @@ module "create_episode_record_dynamodb_stream" {
   starting_position                  = "LATEST"
   batch_size                         = 200
   maximum_batching_window_in_seconds = 300
-  filter_event_name                  = ["MODIFY"]
+  filter                             = { eventName : ["MODIFY"] }
 }
 
 # Add Episode History
@@ -1020,12 +1020,12 @@ module "create_invitation_batch_cloudwatch" {
 module "create_invitation_batch_dynamodb_stream" {
   source                             = "./modules/dynamodb_stream"
   enabled                            = true
-  event_source_arn                   = module.episode_table.dynamodb_stream_arn
+  event_source_arn                   = module.episode_history_table.dynamodb_stream_arn
   function_name                      = module.create_invitation_batch_lambda.lambda_function_name
   starting_position                  = "LATEST"
   batch_size                         = 200
   maximum_batching_window_in_seconds = 300
-  filter_event_name                  = ["INSERT"]
+  filter                             = { dynamodb : { NewImage : { Episode_Event : { S : ["Invited"] } } } }
 }
 
 # GTMS MESH lambda

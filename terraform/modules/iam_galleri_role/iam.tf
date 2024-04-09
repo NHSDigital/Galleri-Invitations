@@ -508,6 +508,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Appointments/*/*",
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-EpisodeHistory",
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Episode",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-EpisodeHistory/*/*",
           ]
         },
         {

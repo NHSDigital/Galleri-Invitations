@@ -3,7 +3,6 @@ import isEqual from 'lodash.isequal'
 
 const client = new DynamoDBClient({ region: "eu-west-2" });
 const ENVIRONMENT = process.env.ENVIRONMENT;
-const UNSUCCESSFUL_RESPONSE = 400;
 /*
   Lambda to get create episode records for modified population records
 */
@@ -13,44 +12,46 @@ export const handler = async (event) => {
 
   const episodeRecordsUpload = await processIncomingRecords(changedRecords, client);
 
-  const filteredRecords = episodeRecordsUpload.filter(record => record.status !== "fulfilled")
+  const filteredRecords = episodeRecordsUpload.filter(record => record.status !== "fulfilled");
 
   if (filteredRecords.length > 0){
-    console.warn("Some Records did not update properly")
+    console.warn("Some Records did not update properly");
   } else {
-    return `The episode records have been successfully created.`
+    return `The episode records have been successfully created.`;
   }
 };
 
 // METHODS
-async function processIncomingRecords(incomingRecordsArr, dbClient){
+export const processIncomingRecords = async (incomingRecordsArr, dbClient) => {
   const episodeRecordsUpload = await Promise.allSettled(
     incomingRecordsArr.map(async (record) => {
-      const oldImage = record.dynamodb?.OldImage
-      const newImage = record.dynamodb.NewImage
+      const oldImage = record.dynamodb?.OldImage;
+      const newImage = record.dynamodb.NewImage;
 
       if (!isEqual(oldImage, newImage)) {
         // generate payload
-        const formatRecord = formatEpisodeHistoryRecord(newImage)
+        const formatRecord = formatEpisodeHistoryRecord(newImage);
         // upload payload
-        const uploadRecord = await uploadEpisodeHistoryRecord(formatRecord, dbClient)
+        const uploadRecord = await uploadEpisodeHistoryRecord(formatRecord, dbClient);
         if (uploadRecord.$metadata.httpStatusCode == 200){
-          return Promise.resolve(`Successfully added or updated participant ${newImage.Participant_Id.S} to Episode History table`)
+          return Promise.resolve(`Successfully added or updated participant ${newImage.Participant_Id.S} to Episode History table`);
         } else {
-          return Promise.reject(`An error occured trying to add ${newImage.Participant_Id.S} to Episode History table`)
+          const msg = `An error occured trying to add ${newImage.Participant_Id.S} episode event ${newImage.Episode_Event.S} to Episode History table`;
+          console.error(msg);
+          return Promise.reject(msg);
         }
       } else {
-      console.warn("RECORD HAS NOT BEEN MODIFIED")
+      console.warn("RECORD HAS NOT BEEN MODIFIED");
       return Promise.reject(`Record ${oldImage.Participant_Id.S} has not been modified`);
     }
   })
-  )
-  return episodeRecordsUpload
-}
+  );
 
-export function formatEpisodeHistoryRecord(record){
-  const createTime = String(Date.now())
+  return episodeRecordsUpload;
+};
 
+export const formatEpisodeHistoryRecord = (record) => {
+  console.log("*********Record: ", record);
   const params = {
   "Key": {
     "Participant_Id": {
@@ -71,22 +72,22 @@ export function formatEpisodeHistoryRecord(record){
           S: `${record?.Episode_Event.S}`
       },
       ":episode_event_updated": {
-          N: createTime
+          S: `${record?.Episode_Event_Updated.S}`
       },
       ":episode_event_description": {
-          S: `${record?.Episode_Event_Description.S}`
+          S: `${record?.Episode_Event_Description?.S}` === "undefined" ? "" : `${record?.Episode_Event_Description?.S}`
       },
       ":episode_event_notes": {
-          S: `${record?.Episode_Event_Notes.S}`
+          S: `${record?.Episode_Event_Notes?.S}` === "undefined" ? "" : `${record?.Episode_Event_Notes?.S}`
       },
       ":episode_event_updated_by": {
-          S: `${record?.Episode_Event_Updated_By.S}`
+          S: `${record?.Episode_Event_Updated_By?.S}` === "undefined" ? "" : `${record?.Episode_Event_Updated_By?.S}`
       },
       ":episode_status": {
           S: `${record?.Episode_Status.S}`
       },
       ":episode_status_updated": {
-          N: `${record?.Episode_Status_Updated.N}`
+          S: `${record?.Episode_Status_Updated.S}`
       }
   },
   "TableName": `${ENVIRONMENT}-EpisodeHistory`,
@@ -94,12 +95,11 @@ export function formatEpisodeHistoryRecord(record){
   };
 
   return params;
-}
+};
 
-export async function uploadEpisodeHistoryRecord(item, dbClient){
-
+export const uploadEpisodeHistoryRecord = async (item, dbClient) => {
   const command = new UpdateItemCommand(item);
   const response = await dbClient.send(command);
 
   return response;
-}
+};
