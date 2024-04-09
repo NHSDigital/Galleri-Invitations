@@ -62,64 +62,57 @@ module "iam_galleri_lambda_role" {
 #   environment = var.environment
 # }
 
-# Setups up an eks cluster we can use to host the mesh sandbox for test environments and fhir validator
-# module "eks" {
-#   source      = "./modules/eks"
-#   environment = var.environment
-#   subnet_ids  = module.vpc.fargate_subnet_ids
-#   vpc_id      = module.vpc.vpc_id
-# }
+module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "~> 20.0"
 
-# module "eks" {
-#   source  = "terraform-aws-modules/eks/aws"
-#   version = "~> 20.0"
+  cluster_name    = "${var.environment}-eks-cluster"
+  cluster_version = "1.29"
 
-#   cluster_name    = "my-cluster"
-#   cluster_version = "1.29"
+  cluster_endpoint_public_access = true
 
-#   cluster_endpoint_public_access = true
+  cluster_addons = {
+    coredns = {
+      most_recent = true
+    }
+    kube-proxy = {
+      most_recent = true
+    }
+    vpc-cni = {
+      most_recent = true
+    }
+  }
 
-#   cluster_addons = {
-#     coredns = {
-#       most_recent = true
-#     }
-#     kube-proxy = {
-#       most_recent = true
-#     }
-#     vpc-cni = {
-#       most_recent = true
-#     }
-#   }
+  vpc_id                   = module.vpc.vpc_id
+  subnet_ids               = module.vpc.subnet_ids
+  control_plane_subnet_ids = module.vpc.subnet_ids
 
-#   vpc_id                   = module.vpc.vpc_id
-#   subnet_ids               = module.vpc.subnet_ids
-#   control_plane_subnet_ids = module.vpc.subnet_ids
+  # EKS Managed Node Group(s)
+  eks_managed_node_group_defaults = {
+    # instance_types = ["m6i.large", "m5.large", "m5n.large", "m5zn.large"]
+    instance_types = ["t3.medium"]
+  }
 
-#   # EKS Managed Node Group(s)
-#   eks_managed_node_group_defaults = {
-#     instance_types = ["m6i.large", "m5.large", "m5n.large", "m5zn.large"]
-#   }
+  eks_managed_node_groups = {
+    example = {
+      min_size     = 1
+      max_size     = 3
+      desired_size = 2
 
-#   eks_managed_node_groups = {
-#     example = {
-#       min_size     = 1
-#       max_size     = 5
-#       desired_size = 2
+      instance_types = ["t3.large"]
+      capacity_type  = "SPOT"
+    }
+  }
 
-#       instance_types = ["t3.large"]
-#       capacity_type  = "SPOT"
-#     }
-#   }
+  # Cluster access entry
+  # To add the current caller identity as an administrator
+  enable_cluster_creator_admin_permissions = true
 
-#   # Cluster access entry
-#   # To add the current caller identity as an administrator
-#   enable_cluster_creator_admin_permissions = true
-
-#   tags = {
-#     Environment = "dev"
-#     Terraform   = "true"
-#   }
-# }
+  tags = {
+    Environment = var.environment
+    Terraform   = "true"
+  }
+}
 
 module "s3_bucket" {
   source                  = "./modules/s3"
