@@ -1,0 +1,7 @@
+{
+  "name": "sendInvitationBatchToRawMessageQueueLambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "sendInvitationBatchToRawMessageQueueLambda.js",
+  "author": ""
+}

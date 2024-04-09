@@ -37,9 +37,13 @@ module "galleri_invitations_screen" {
   NEXT_PUBLIC_PUT_TARGET_PERCENTAGE                     = module.target_fill_to_percentage_put_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_TARGET_PERCENTAGE                         = module.target_fill_to_percentage_get_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_GENERATE_INVITES                          = module.generate_invites_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_GET_USER_ROLE                             = module.get_user_role_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_CIS2_SIGNED_JWT                           = module.cis2_signed_jwt_api_gateway.rest_api_galleri_id
   USERS                                                 = var.USERS
   CIS2_ID                                               = var.CIS2_ID
   NEXTAUTH_URL                                          = var.NEXTAUTH_URL
+  GALLERI_ACTIVITY_CODE                                 = var.GALLERI_ACTIVITY_CODE
+  GALLERI_ACTIVITY_NAME                                 = var.GALLERI_ACTIVITY_NAME
   hostname                                              = var.invitations-hostname
   dns_zone                                              = var.dns_zone
   region                                                = var.region
@@ -61,6 +65,14 @@ module "iam_galleri_lambda_role" {
 #   name        = "invitations-frontend"
 #   environment = var.environment
 # }
+
+# Setups up an eks cluster we can use to host the mesh sandbox for test environments and fhir validator
+module "eks" {
+  source      = "./modules/eks"
+  environment = var.environment
+  subnet_ids  = module.vpc.fargate_subnet_ids
+  vpc_id      = module.vpc.vpc_id
+}
 
 module "s3_bucket" {
   source                  = "./modules/s3"
@@ -755,6 +767,68 @@ module "create_episode_record_dynamodb_stream" {
   starting_position                  = "LATEST"
   batch_size                         = 200
   maximum_batching_window_in_seconds = 300
+  filter                             = { eventName : ["MODIFY"] }
+}
+
+# Add Episode History
+module "add_episode_history_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "addEpisodeHistoryLambda"
+  lambda_timeout       = 900
+  memory_size          = 1024
+  lambda_s3_object_key = "add_episode_history.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "add_episode_history_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.add_episode_history_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "add_episode_history_dynamodb_stream" {
+  source                             = "./modules/dynamodb_stream"
+  enabled                            = true
+  event_source_arn                   = module.episode_table.dynamodb_stream_arn
+  function_name                      = module.add_episode_history_lambda.lambda_function_name
+  starting_position                  = "LATEST"
+  batch_size                         = 200
+  maximum_batching_window_in_seconds = 30
+}
+
+module "appointments_event_cancelled_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "appointmentsEventCancelledLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "appointments_event_cancelled_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "appointments_event_cancelled_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.appointments_event_cancelled_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "appointments_event_cancelled_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.proccessed_appointments.bucket_id
+  bucket_arn    = module.proccessed_appointments.bucket_arn
+  lambda_arn    = module.appointments_event_cancelled_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records-"
 }
 
 # User Accounts Lambda
@@ -812,8 +886,37 @@ module "gtms_status_update_lambda_trigger" {
   bucket_id     = module.processed_gtms_withdrawal.bucket_id
   bucket_arn    = module.processed_gtms_withdrawal.bucket_arn
   lambda_arn    = module.gtms_status_update_lambda.lambda_arn
-  filter_prefix = "validRecords/valid_records_update"
+  filter_prefix = "validRecords/valid_records_withdrawal"
 }
+
+module "validate_gtms_withdrawal_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "validateGtmsWithdrawalLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "validate_gtms_withdrawal_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "validate_gtms_withdrawal_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.validate_gtms_withdrawal_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "validate_gtms_withdrawal_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.gtms_withdrawal.bucket_id
+  bucket_arn = module.gtms_withdrawal.bucket_arn
+  lambda_arn = module.validate_gtms_withdrawal_lambda.lambda_arn
+}
+
 
 module "poll_mesh_mailbox_lambda" {
   source               = "./modules/lambda"
@@ -921,12 +1024,12 @@ module "create_invitation_batch_cloudwatch" {
 module "create_invitation_batch_dynamodb_stream" {
   source                             = "./modules/dynamodb_stream"
   enabled                            = true
-  event_source_arn                   = module.episode_table.dynamodb_stream_arn
+  event_source_arn                   = module.episode_history_table.dynamodb_stream_arn
   function_name                      = module.create_invitation_batch_lambda.lambda_function_name
   starting_position                  = "LATEST"
   batch_size                         = 200
   maximum_batching_window_in_seconds = 300
-  filter_event_name                  = "INSERT"
+  filter                             = { dynamodb : { NewImage : { Episode_Event : { S : ["Invited"] } } } }
 }
 
 # GTMS MESH lambda
@@ -1047,7 +1150,7 @@ module "gtms_upload_clinic_data_lambda_trigger" {
   bucket_id     = module.processed_clinic_data_bucket.bucket_id
   bucket_arn    = module.processed_clinic_data_bucket.bucket_arn
   lambda_arn    = module.gtms_upload_clinic_data_lambda.lambda_arn
-  filter_prefix = "validRecords/valid_records_add-"
+  filter_prefix = "validRecords/clinic_create_or_update_"
 }
 
 # GPS public key jwks
@@ -1094,7 +1197,7 @@ module "cis2_signed_jwt" {
   lambda_s3_object_key = "cis2_signed_jwt_lambda.zip"
   environment_vars = {
     ENVIRONMENT             = "${var.environment}",
-    CIS2_CLIENT_ID          = "${var.CIS2_ID}",
+    CIS2_ID                 = "${var.CIS2_ID}",
     CIS2_TOKEN_ENDPOINT_URL = "${var.CIS2_TOKEN_ENDPOINT_URL}",
     CIS2_PUBLIC_KEY_ID      = "${var.CIS2_PUBLIC_KEY_ID}",
     CIS2_KEY_NAME           = "${var.CIS2_KNAME}"
@@ -1215,6 +1318,45 @@ module "send_GTMS_invitation_batch_lambda_trigger" {
   bucket_id  = module.invited_participant_batch.bucket_id
   bucket_arn = module.invited_participant_batch.bucket_arn
   lambda_arn = module.send_GTMS_invitation_batch_lambda.lambda_arn
+}
+
+# Send Invitation Batch to Raw Message Queue
+module "send_invitation_batch_to_raw_message_queue_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "sendInvitationBatchToRawMessageQueueLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "send_invitation_batch_to_raw_message_queue_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT   = "${var.environment}"
+    SQS_QUEUE_URL = module.notify_raw_message_queue_sqs.sqs_queue_url
+  }
+}
+
+module "send_invitation_batch_to_raw_message_queue_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.send_invitation_batch_to_raw_message_queue_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "send_invitation_batch_to_raw_message_queue_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.gtms_invited_participant_batch.bucket_id
+  bucket_arn = module.gtms_invited_participant_batch.bucket_arn
+  lambda_arn = module.send_invitation_batch_to_raw_message_queue_lambda.lambda_arn
+}
+
+# Notify Raw Message Queue
+module "notify_raw_message_queue_sqs" {
+  source                         = "./modules/sqs"
+  environment                    = var.environment
+  name                           = "notifyRawMessageQueue.fifo"
+  is_fifo_queue                  = true
+  is_content_based_deduplication = true
 }
 
 # Delete Caas feed records
@@ -1593,7 +1735,8 @@ module "population_table" {
   secondary_write_capacity = null
   secondary_read_capacity  = null
   environment              = var.environment
-  projection_type          = "ALL"
+  # non_key_attributes     = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+  projection_type = "ALL"
   attributes = [{
     name = "PersonId"
     type = "S"
@@ -1753,7 +1896,7 @@ module "episode_table" {
   source                   = "./modules/dynamodb"
   billing_mode             = "PROVISIONED"
   stream_enabled           = true
-  stream_view_type         = "NEW_IMAGE"
+  stream_view_type         = "NEW_AND_OLD_IMAGES"
   table_name               = "Episode"
   hash_key                 = "Batch_Id"
   range_key                = "Participant_Id"
@@ -1782,6 +1925,29 @@ module "episode_table" {
   ]
   tags = {
     Name        = "Dynamodb Table Episode"
+    Environment = var.environment
+  }
+}
+
+module "episode_history_table" {
+  source           = "./modules/dynamodb"
+  billing_mode     = "PROVISIONED"
+  stream_enabled   = true
+  stream_view_type = "NEW_AND_OLD_IMAGES"
+  table_name       = "EpisodeHistory"
+  hash_key         = "Participant_Id"
+  read_capacity    = 10
+  write_capacity   = 10
+  environment      = var.environment
+
+  attributes = [
+    {
+      name = "Participant_Id"
+      type = "S"
+    }
+  ]
+  tags = {
+    Name        = "Dynamodb Table Episode History"
     Environment = var.environment
   }
 }

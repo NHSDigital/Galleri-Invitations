@@ -49,7 +49,7 @@ jobs:
           fetch-depth: 0 # Full history is needed to scan all commits
       - name: "Scan secrets"
         uses: ./.github/actions/scan-secrets
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: cache-gitleaks
         with:
           path: |
