@@ -48,10 +48,17 @@ export const handler = async (event) => {
   const appointmentItems = appointmentResponse.Items[0];
   console.log(`appointmentItems for appointment: ${JSON.stringify(appointmentItems)} loaded.`);
   // console.log(`appointmentItems for appointment: ${JSON.stringify(appointmentItems.Appointment_Id)} loaded.`);
+
+  const appointmentParticipant = await lookUp(dbClient, payloadParticipantID, "Appointments", "Participant_Id", "S", false);
+  const appointmentParticipantItems = appointmentParticipant.Items[0];
+  console.log(`appointmentItems for appointment: ${JSON.stringify(appointmentParticipantItems)} loaded.`);
+
+
   let date = new Date();
+  const dateTime = new Date(Date.now()).toISOString();
   if ((payloadAppointmentDateTime > date.toISOString()) && payloadEventType === 'BOOKED' && episodeItems) {
     logger.info(true);
-    if (!appointmentItems && payloadAppointmentID !== null) { // new appointment ID, and no existing = ADD
+    if (!appointmentItems && payloadAppointmentID !== null && !appointmentParticipantItems) { // new appointment ID, and no existing = ADD
       console.info(true);
       date.setDate(date.getDate() + DATEPARAM);
       if (payloadAppointmentDateTime > date.toISOString()) { //greater than date param, e.g. 5
@@ -77,7 +84,6 @@ export const handler = async (event) => {
           episodeEvent,
         );
       }
-
     } else if (appointmentItems && (payloadAppointmentID === appointmentItems?.['Appointment_Id']?.['S'])) {  //same appointmentID = UPDATE
       console.info(true);
       if (payloadAppointmentDateTime > date.toISOString()) { //greater than date param, e.g. 5
@@ -106,11 +112,24 @@ export const handler = async (event) => {
     } else { // has appointment id and different one supplied, REJECT
       //REJECT
       console.info(false);
+      const confirmation = await pushCsvToS3(
+        `${bucket}`,
+        `invalid_appointment_data/invalidRecord_${dateTime}.json`,
+        csvString,
+        s3
+      );
+      return confirmation;
     }
-
   } else {
     console.info(false);
     //REJECT
+    const confirmation = await pushCsvToS3(
+      `${bucket}`,
+      `invalid_booked_event/invalidRecord_${dateTime}.json`,
+      csvString,
+      s3
+    );
+    return confirmation;
   }
 
 };

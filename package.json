@@ -25,13 +25,14 @@
     "csv": "^6.3.8",
     "csv-parser": "^3.0.0",
     "csv-stringify": "^6.4.4",
+    "date-fns": "^3.6.0",
     "dayjs": "^1.11.10",
     "jsonschema": "^1.4.1",
     "jsonwebtoken": "^9.0.2",
+    "lodash.isequal": "^4.5.0",
     "loglevel": "^1.9.1",
     "nhs-mesh-client": "^1.0.8",
     "randexp": "^0.5.3",
-    "lodash.isequal": "^4.5.0",
-    "date-fns": "^3.6.0"
+    "winston": "^3.13.0"
   }
 }
