@@ -406,7 +406,8 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 #             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_RECEIVER_MAILBOX_PASSWORD*",
 #             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_RECEIVER_KEY*",
 #             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_RECEIVER_CERT*",
-#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SENDER_CERT*"
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SENDER_CERT*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_INT_1*"
 #           ]
 #         }
 #      ],
@@ -566,6 +567,8 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CAAS_MESH_MAILBOX_ID*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CAAS_MESH_MAILBOX_PASSWORD*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CAAS_MESH_CERT*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_INT_1*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_CLIENT_ID*"
           ]
         },
         {
