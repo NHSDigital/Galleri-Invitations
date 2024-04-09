@@ -1,27 +1,22 @@
-# Create a new VPC
-resource "aws_vpc" "eks_vpc" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-  tags = {
-    Name = "${var.environment}-${var.name}"
-  }
+data "aws_partition" "current" {}
+data "aws_caller_identity" "current" {}
+
+data "aws_iam_session_context" "current" {
+  arn = data.aws_caller_identity.current.arn
 }
 
-# Create subnets
-resource "aws_subnet" "eks_subnet" {
-  count = 2
 
-  vpc_id                  = aws_vpc.eks_vpc.id
-  cidr_block              = count.index == 0 ? "10.0.1.0/24" : "10.0.2.0/24"
-  availability_zone       = element(data.aws_availability_zones.available.names, count.index)
-  map_public_ip_on_launch = true
 
-  tags = {
-    Name                                                   = "${var.environment}_${var.name}_eks_subnet_${count.index}"
-    "kubernetes.io/cluster/${var.environment}-${var.name}" = "shared"
-    "kubernetes.io/role/elb"                               = "1"
-  }
+
+# Fetch availability zones
+data "aws_availability_zones" "available" {}
+
+output "cluster_endpoint" {
+  value = aws_eks_cluster.eks_cluster.endpoint
+}
+
+output "cluster_identity_oidc_issuer" {
+  value = aws_eks_cluster.eks_cluster.identity[0].oidc[0].issuer
 }
 
 # EKS cluster IAM role
@@ -53,9 +48,8 @@ resource "aws_iam_role_policy_attachment" "eks_service_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
 }
 
-# Fargate profile IAM role
-resource "aws_iam_role" "fargate_profile_role" {
-  name = "${var.environment}-${var.name}"
+resource "aws_iam_role" "eks_node_group_role" {
+  name = "${var.environment}-${var.name}-eks-nodes"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -64,16 +58,26 @@ resource "aws_iam_role" "fargate_profile_role" {
         Action = "sts:AssumeRole"
         Effect = "Allow"
         Principal = {
-          Service = "eks-fargate-pods.amazonaws.com"
+          Service = "ec2.amazonaws.com"
         }
       },
     ]
   })
 }
 
-resource "aws_iam_role_policy_attachment" "fargate_pod_execution_role_policy" {
-  role       = aws_iam_role.fargate_profile_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy"
+resource "aws_iam_role_policy_attachment" "node_policy" {
+  role       = aws_iam_role.eks_node_group_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "cni_policy" {
+  role       = aws_iam_role.eks_node_group_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+}
+
+resource "aws_iam_role_policy_attachment" "registry_policy" {
+  role       = aws_iam_role.eks_node_group_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
 # EKS Cluster
@@ -82,7 +86,7 @@ resource "aws_eks_cluster" "eks_cluster" {
   role_arn = aws_iam_role.eks_cluster_role.arn
 
   vpc_config {
-    subnet_ids = aws_subnet.eks_subnet[*].id
+    subnet_ids = var.subnet_ids
   }
 
   depends_on = [
@@ -91,36 +95,21 @@ resource "aws_eks_cluster" "eks_cluster" {
   ]
 }
 
-# Fargate Profile
-resource "aws_eks_fargate_profile" "default" {
-  cluster_name           = aws_eks_cluster.eks_cluster.name
-  fargate_profile_name   = "${var.environment}-${var.name}-default"
-  pod_execution_role_arn = aws_iam_role.fargate_profile_role.arn
-  subnet_ids             = aws_subnet.eks_subnet[*].id
+resource "aws_eks_node_group" "eks_node_group" {
+  cluster_name    = aws_eks_cluster.eks_cluster.name
+  node_group_name = "${var.environment}-${var.name}"
+  node_role_arn   = aws_iam_role.eks_node_group_role.arn
+  subnet_ids      = var.subnet_ids
 
-  selector {
-    namespace = "default"
+  scaling_config {
+    desired_size = 2
+    max_size     = 3
+    min_size     = 1
   }
-}
 
-resource "aws_eks_fargate_profile" "kube_system" {
-  cluster_name           = aws_eks_cluster.eks_cluster.name
-  fargate_profile_name   = "${var.environment}-${var.name}-kube-system"
-  pod_execution_role_arn = aws_iam_role.fargate_profile_role.arn
-  subnet_ids             = aws_subnet.eks_subnet[*].id
+  instance_types = ["t3.medium"] # Modify as per your requirements
 
-  selector {
-    namespace = "kube-system"
-  }
-}
-
-# Fetch availability zones
-data "aws_availability_zones" "available" {}
-
-output "cluster_endpoint" {
-  value = aws_eks_cluster.eks_cluster.endpoint
-}
-
-output "cluster_identity_oidc_issuer" {
-  value = aws_eks_cluster.eks_cluster.identity[0].oidc[0].issuer
+  depends_on = [
+    aws_eks_cluster.eks_cluster,
+  ]
 }
