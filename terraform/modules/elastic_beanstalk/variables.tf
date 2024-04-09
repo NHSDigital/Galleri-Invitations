@@ -93,6 +93,14 @@ variable "NEXT_PUBLIC_GENERATE_INVITES" {
 
 }
 
+variable "NEXT_PUBLIC_GET_USER_ROLE" {
+
+}
+
+variable "NEXT_PUBLIC_CIS2_SIGNED_JWT" {
+
+}
+
 variable "USERS" {
   description = "A list of users who can access the system via local login"
 }
@@ -112,6 +120,12 @@ variable "NEXTAUTH_SECRET" {
 }
 
 variable "NEXTAUTH_URL" {
+}
+
+variable "GALLERI_ACTIVITY_CODE" {
+}
+
+variable "GALLERI_ACTIVITY_NAME" {
 }
 
 variable "hostname" {

@@ -1,0 +1,10 @@
+{
+  "name": "validateGtmsWithdrawalLambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "validateGtmsWithdrawalLambda.js",
+  "author": "",
+  "dependencies": {
+    "jsonschema": "^1.4.1"
+  }
+}
