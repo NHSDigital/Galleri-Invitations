@@ -108,7 +108,7 @@ export const handler = async (event) => {
         }
       } else { // has appointment id and different one supplied, REJECT
         //REJECT
-        logger.error('payload invalid');
+        logger.error('Error: payload invalid');
         const confirmation = await pushCsvToS3(
           `${bucket}`,
           `invalid_appointment_data/invalidRecord_${dateTime}.json`,
@@ -118,7 +118,7 @@ export const handler = async (event) => {
         return confirmation;
       }
     } else {
-      logger.error('payload invalid');
+      logger.error('Error: payload invalid');
       //REJECT
       const confirmation = await pushCsvToS3(
         `${bucket}`,
@@ -248,7 +248,7 @@ export const transactionalWrite = async (
   eventType,
   episodeEvent,
 ) => {
-  const timeNow = String(Date.now());
+  const timeNow = String(Date.now().toISOString());
   const params = {
     TransactItems: [
       {
