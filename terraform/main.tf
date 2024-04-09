@@ -1814,10 +1814,3 @@ module "appointment_table" {
     Environment = var.environment
   }
 }
-// Parameter Store
-
-resource "aws_ssm_parameter" "appointment_cancelled" {
-  name  = "appointment_cancelled"
-  type  = "StringList"
-  value = ["Yes", "841ebf60-4ffa-45d3-874b-b3e9db895c70", "Appointment", "Clinic"]
-}
