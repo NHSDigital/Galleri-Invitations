@@ -1350,6 +1350,45 @@ module "send_GTMS_invitation_batch_lambda_trigger" {
   lambda_arn = module.send_GTMS_invitation_batch_lambda.lambda_arn
 }
 
+# Send Invitation Batch to Raw Message Queue
+module "send_invitation_batch_to_raw_message_queue_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "sendInvitationBatchToRawMessageQueueLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "send_invitation_batch_to_raw_message_queue_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT   = "${var.environment}"
+    SQS_QUEUE_URL = module.notify_raw_message_queue_sqs.sqs_queue_url
+  }
+}
+
+module "send_invitation_batch_to_raw_message_queue_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.send_invitation_batch_to_raw_message_queue_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "send_invitation_batch_to_raw_message_queue_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.gtms_invited_participant_batch.bucket_id
+  bucket_arn = module.gtms_invited_participant_batch.bucket_arn
+  lambda_arn = module.send_invitation_batch_to_raw_message_queue_lambda.lambda_arn
+}
+
+# Notify Raw Message Queue
+module "notify_raw_message_queue_sqs" {
+  source                         = "./modules/sqs"
+  environment                    = var.environment
+  name                           = "notifyRawMessageQueue.fifo"
+  is_fifo_queue                  = true
+  is_content_based_deduplication = true
+}
+
 # Delete Caas feed records
 module "caas_feed_delete_records_lambda" {
   source               = "./modules/lambda"
