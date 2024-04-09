@@ -129,7 +129,7 @@ export const handler = async (event) => {
       return confirmation;
     }
   } catch (err) {
-    const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
+    const message = `Error: processing object ${key} in bucket ${bucket}: ${err}`;
     logger.error(message);
     throw new Error(message);
   }
@@ -156,7 +156,7 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
     );
     return response.Body.transformToString();
   } catch (err) {
-    console.error(`Failed to read from ${bucketName}/${key}`);
+    console.error(`Error: Failed to read from ${bucketName}/${key}`);
     throw err;
   }
 };
@@ -289,14 +289,14 @@ export const transactionalWrite = async (
     const command = new TransactWriteItemsCommand(params);
     const response = await client.send(command);
     if (response.$metadata.httpStatusCode !== 200) {
-      console.error(`Error occurred while trying to update db with item: ${participantId}`);
+      console.error(`Error: occurred while trying to update db with item: ${participantId}`);
       return false;
     } else {
       console.log(`Successfully updated db with item: ${participantId}`);
       return true;
     }
   } catch (error) {
-    console.error("Transactional write failed:", error);
+    console.error("Error: Transactional write failed:", error);
   }
 };
 
