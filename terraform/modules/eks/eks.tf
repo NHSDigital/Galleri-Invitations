@@ -1,44 +1,32 @@
-provider "kubernetes" {
-}
-
-resource "aws_eks_cluster" "cluster" {
-  name     = "${var.environment}-${var.name}"
-  role_arn = aws_iam_role.eks.arn
-
-  vpc_config {
-    subnet_ids = var.subnet_ids
-  }
-
-  depends_on = [
-    aws_iam_role_policy_attachment.eks_AmazonEKSClusterPolicy,
-    aws_iam_role_policy_attachment.eks_AmazonEKSServicePolicy,
-  ]
-}
-
-resource "aws_eks_fargate_profile" "default_namespace" {
-  cluster_name           = aws_eks_cluster.cluster.name
-  fargate_profile_name   = "${var.environment}-${var.name}-default"
-  pod_execution_role_arn = aws_iam_role.fargate_pod_execution.arn
-  subnet_ids             = var.subnet_ids
-
-  selector {
-    namespace = "default"
+# Create a new VPC
+resource "aws_vpc" "eks_vpc" {
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+  tags = {
+    Name = "${var.environment}-${var.name}"
   }
 }
 
-resource "aws_eks_fargate_profile" "system_namespace" {
-  cluster_name           = aws_eks_cluster.cluster.name
-  fargate_profile_name   = "${var.environment}-${var.name}-kube-system"
-  pod_execution_role_arn = aws_iam_role.fargate_pod_execution.arn
-  subnet_ids             = var.subnet_ids
+# Create subnets
+resource "aws_subnet" "eks_subnet" {
+  count = 2
 
-  selector {
-    namespace = "kube-system"
+  vpc_id                  = aws_vpc.eks_vpc.id
+  cidr_block              = count.index == 0 ? "10.0.1.0/24" : "10.0.2.0/24"
+  availability_zone       = element(data.aws_availability_zones.available.names, count.index)
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name                                                   = "${var.environment}_${var.name}_eks_subnet_${count.index}"
+    "kubernetes.io/cluster/${var.environment}-${var.name}" = "shared"
+    "kubernetes.io/role/elb"                               = "1"
   }
 }
 
-resource "aws_iam_role" "eks" {
-  name = "${var.environment}_${var.name}_eks_role"
+# EKS cluster IAM role
+resource "aws_iam_role" "eks_cluster_role" {
+  name = "${var.environment}-${var.name}-eks"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -54,13 +42,20 @@ resource "aws_iam_role" "eks" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "eks_AmazonEKSClusterPolicy" {
+# Attach IAM policies to the EKS cluster role
+resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
+  role       = aws_iam_role.eks_cluster_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.eks.name
 }
 
-resource "aws_iam_role" "fargate_pod_execution" {
-  name = "${var.environment}_${var.name}_fargate_pod_execution_role"
+resource "aws_iam_role_policy_attachment" "eks_service_policy" {
+  role       = aws_iam_role.eks_cluster_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
+}
+
+# Fargate profile IAM role
+resource "aws_iam_role" "fargate_profile_role" {
+  name = "${var.environment}-${var.name}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -76,69 +71,56 @@ resource "aws_iam_role" "fargate_pod_execution" {
   })
 }
 
-
-
-
-# resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy" {
-#   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-#   role       = aws_iam_role.eks.name
-# }
-
-# resource "aws_iam_role_policy_attachment" "AmazonEKSServicePolicy" {
-#   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
-#   role       = aws_iam_role.eks.name
-# }
-
-# resource "aws_iam_role_policy_attachment" "AmazonEKSVPCResourceController" {
-#   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
-#   role       = aws_iam_role.eks.name
-# }
-
-
-
-
-
-
-resource "aws_iam_role_policy_attachment" "fargate_pod_execution_AmazonEKSFargatePodExecutionRolePolicy" {
+resource "aws_iam_role_policy_attachment" "fargate_pod_execution_role_policy" {
+  role       = aws_iam_role.fargate_profile_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy"
-  role       = aws_iam_role.fargate_pod_execution.name
 }
 
+# EKS Cluster
+resource "aws_eks_cluster" "eks_cluster" {
+  name     = "${var.environment}-${var.name}"
+  role_arn = aws_iam_role.eks_cluster_role.arn
 
-resource "aws_iam_role_policy_attachment" "eks_AmazonEKSServicePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
-  role       = aws_iam_role.eks.name
+  vpc_config {
+    subnet_ids = aws_subnet.eks_subnet[*].id
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.eks_cluster_policy,
+    aws_iam_role_policy_attachment.eks_service_policy,
+  ]
 }
 
-resource "aws_security_group" "cluster" {
-  name        = "${var.environment}-${var.name}"
-  description = "Security group for Elastic Beanstalk environment"
-  vpc_id      = var.vpc_id
+# Fargate Profile
+resource "aws_eks_fargate_profile" "default" {
+  cluster_name           = aws_eks_cluster.eks_cluster.name
+  fargate_profile_name   = "${var.environment}-${var.name}-default"
+  pod_execution_role_arn = aws_iam_role.fargate_profile_role.arn
+  subnet_ids             = aws_subnet.eks_subnet[*].id
+
+  selector {
+    namespace = "default"
+  }
 }
 
-resource "aws_security_group_rule" "https" {
-  security_group_id = aws_security_group.cluster.id
-  type              = "ingress"
-  from_port         = 443
-  to_port           = 443
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
+resource "aws_eks_fargate_profile" "kube_system" {
+  cluster_name           = aws_eks_cluster.eks_cluster.name
+  fargate_profile_name   = "${var.environment}-${var.name}-kube-system"
+  pod_execution_role_arn = aws_iam_role.fargate_profile_role.arn
+  subnet_ids             = aws_subnet.eks_subnet[*].id
+
+  selector {
+    namespace = "kube-system"
+  }
 }
 
-resource "aws_security_group_rule" "ssh" {
-  security_group_id = aws_security_group.cluster.id
-  type              = "ingress"
-  from_port         = 22
-  to_port           = 22
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
+# Fetch availability zones
+data "aws_availability_zones" "available" {}
+
+output "cluster_endpoint" {
+  value = aws_eks_cluster.eks_cluster.endpoint
 }
 
-resource "aws_security_group_rule" "egress" {
-  security_group_id = aws_security_group.cluster.id
-  type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  cidr_blocks       = ["0.0.0.0/0"]
+output "cluster_identity_oidc_issuer" {
+  value = aws_eks_cluster.eks_cluster.identity[0].oidc[0].issuer
 }
