@@ -38,28 +38,27 @@ export const handler = async (event) => {
   const payloadAppointmentID = js?.['Appointment']?.['AppointmentID'];
   const payloadEventType = js?.['Appointment']?.['EventType']; //BOOKED
   const payloadAppointmentDateTime = js?.['Appointment']?.['AppointmentDateTime'];
+  const payloadAppointmentReplaces = js?.['Appointment']?.['Replaces'];
 
   const episodeResponse = await lookUp(dbClient, payloadParticipantID, "Episode", "Participant_Id", "S", true);
   const episodeItems = episodeResponse.Items[0];
-  console.log(`episodeItems for participant: ${JSON.stringify(episodeItems)} loaded.`);
-  // console.log(`episodeItems for participant: ${JSON.stringify(episodeItems.Participant_Id)} loaded.`);
+  console.log(`episodeItems for participant: ${JSON.stringify(episodeItems.Participant_Id)} loaded.`);
 
   const appointmentResponse = await lookUp(dbClient, payloadAppointmentID, "Appointments", "Appointment_Id", "S", true);
   const appointmentItems = appointmentResponse.Items[0];
-  console.log(`appointmentItems for appointment: ${JSON.stringify(appointmentItems)} loaded.`);
-  // console.log(`appointmentItems for appointment: ${JSON.stringify(appointmentItems.Appointment_Id)} loaded.`);
+  console.log(`appointmentItems for appointment: ${JSON.stringify(appointmentItems.Appointment_Id)} loaded.`);
 
   const appointmentParticipant = await lookUp(dbClient, payloadParticipantID, "Appointments", "Participant_Id", "S", false);
   const appointmentParticipantItems = appointmentParticipant.Items[0];
-  console.log(`appointmentItems for appointment: ${JSON.stringify(appointmentParticipantItems)} loaded.`);
+  console.log(`appointmentParticipantItems for appointment: ${JSON.stringify(appointmentParticipantItems.Appointment_Id)} loaded.`);
 
 
   let date = new Date();
   const dateTime = new Date(Date.now()).toISOString();
   if ((payloadAppointmentDateTime > date.toISOString()) && payloadEventType === 'BOOKED' && episodeItems) {
-    logger.info(true);
+    console.info('first check');
     if (!appointmentItems && payloadAppointmentID !== null && !appointmentParticipantItems) { // new appointment ID, and no existing = ADD
-      console.info(true);
+      console.info('second check');
       date.setDate(date.getDate() + DATEPARAM);
       if (payloadAppointmentDateTime > date.toISOString()) { //greater than date param, e.g. 5
         const episodeEvent = 'Appointment Booked Letter';
@@ -84,8 +83,8 @@ export const handler = async (event) => {
           episodeEvent,
         );
       }
-    } else if (appointmentItems && (payloadAppointmentID === appointmentItems?.['Appointment_Id']?.['S'])) {  //same appointmentID = UPDATE
-      console.info(true);
+    } else if (!appointmentItems && appointmentParticipantItems && (payloadAppointmentReplaces === appointmentParticipantItems?.['Appointment_Id']?.['S'])) {  //same appointmentID = UPDATE
+      console.info('second check');
       if (payloadAppointmentDateTime > date.toISOString()) { //greater than date param, e.g. 5
         const episodeEvent = 'Appointment Rebooked Letter';
         console.log(episodeEvent);
