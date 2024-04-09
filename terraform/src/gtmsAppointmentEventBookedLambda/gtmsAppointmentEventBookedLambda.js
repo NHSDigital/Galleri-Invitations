@@ -54,9 +54,9 @@ export const handler = async (event) => {
   const dateTime = new Date(Date.now()).toISOString();
   try {
     if ((payloadAppointmentDateTime > date.toISOString()) && payloadEventType === 'BOOKED' && episodeItems) {
-      console.info('first check');
+      console.info('Payload EventType is Booked and has a valid appointment date');
       if (!appointmentItems && payloadAppointmentID !== null && !appointmentParticipantItems) { // new appointment ID, and no existing = ADD
-        console.info('second check');
+        console.info('Identified payload is for booked appointment');
         date.setDate(date.getDate() + DATEPARAM);
         if (payloadAppointmentDateTime > date.toISOString()) { //greater than date param, e.g. 5
           const episodeEvent = 'Appointment Booked Letter';
@@ -82,7 +82,7 @@ export const handler = async (event) => {
           );
         }
       } else if (!appointmentItems && appointmentParticipantItems && (payloadAppointmentReplaces === appointmentParticipantItems?.['Appointment_Id']?.['S'])) {  //same appointmentID = UPDATE
-        console.info('second check');
+        console.info('Identified payload is for rebooked appointment');
         if (payloadAppointmentDateTime > date.toISOString()) { //greater than date param, e.g. 5
           const episodeEvent = 'Appointment Rebooked Letter';
           logger.info(episodeEvent);
