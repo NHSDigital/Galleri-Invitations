@@ -248,7 +248,7 @@ export const transactionalWrite = async (
   eventType,
   episodeEvent,
 ) => {
-  const timeNow = String(Date.now().toISOString());
+  const timeNow = String(new Date(Date.now()).toISOString());
   const params = {
     TransactItems: [
       {
