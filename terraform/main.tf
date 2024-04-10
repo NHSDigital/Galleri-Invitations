@@ -1372,15 +1372,7 @@ module "caas_feed_delete_records_lambda_cloudwatch" {
   lambda_function_name = module.caas_feed_delete_records_lambda.lambda_function_name
   retention_days       = 14
 }
-
-# replaced by group trigger for bucket
-# module "caas_feed_delete_records_lambda_trigger" {
-#   source        = "./modules/lambda_trigger"
-#   bucket_id     = module.validated_records_bucket.bucket_id
-#   bucket_arn    = module.validated_records_bucket.bucket_arn
-#   lambda_arn    = module.caas_feed_delete_records_lambda.lambda_arn
-#   filter_prefix = "validRecords/valid_records_delete-"
-# }
+# trigger replaced by group trigger for bucket
 
 # Dynamodb tables
 module "sdrs_table" {
@@ -1519,14 +1511,6 @@ module "caas_feed_add_records_lambda_cloudwatch" {
   retention_days       = 14
 }
 
-# module "caas_feed_add_records_lambda_trigger" {
-#   source        = "./modules/lambda_trigger"
-#   bucket_id     = module.validated_records_bucket.bucket_id
-#   bucket_arn    = module.validated_records_bucket.bucket_arn
-#   lambda_arn    = module.caas_feed_add_records_lambda.lambda_arn
-#   filter_prefix = "validRecords/valid_records_add-"
-# }
-
 module "caas_data_triggers" {
   name       = "caas_data_trigger"
   source     = "./modules/lambda_s3_trigger"
@@ -1575,14 +1559,7 @@ module "caas_feed_update_records_lambda_cloudwatch" {
   lambda_function_name = module.caas_feed_update_records_lambda.lambda_function_name
   retention_days       = 14
 }
-
-# module "caas_feed_update_records_lambda_trigger" {
-#  source        = "./modules/lambda_trigger"
-#  bucket_id     = module.validated_records_bucket.bucket_id
-#  bucket_arn    = module.validated_records_bucket.bucket_arn
-#  lambda_arn    = module.caas_feed_update_records_lambda.lambda_arn
-#  filter_prefix = "validRecords/valid_records_update-"
-# }
+# trigger replaced by group trigger for bucket
 
 # Dynamodb tables
 module "participating_icb_table" {
