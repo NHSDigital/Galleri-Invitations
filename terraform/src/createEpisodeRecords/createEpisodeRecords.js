@@ -63,7 +63,7 @@ function createEpisodeRecord(record){
         S: `${record.gpPracticeCode.S}`
       },
       'Episode_Created_By': {
-        S: `UserName` // need to pull in username when able to access
+        S: `${record.created_by.S}`
       },
       'Episode_Creation': {
         S: createTime
