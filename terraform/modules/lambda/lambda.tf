@@ -31,3 +31,7 @@ resource "aws_s3_object" "lambda_s3_object" {
 
   etag = filemd5(data.archive_file.lambda_archive.output_path)
 }
+
+resource "aws_cloudwatch_log_group" "lambda_log_group" {
+  name = "/aws/lambda/${var.lambda_function_name}"
+}

@@ -239,12 +239,12 @@ module "data_filter_gridall_imd_lambda" {
   }
 }
 
-module "data_filter_gridall_imd_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.data_filter_gridall_imd_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "data_filter_gridall_imd_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.data_filter_gridall_imd_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 
 # LSOA loader
@@ -264,12 +264,12 @@ module "lsoa_loader_lambda" {
   }
 }
 
-module "lsoa_loader_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.lsoa_loader_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "lsoa_loader_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.lsoa_loader_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 
 # clinic information
@@ -287,12 +287,12 @@ module "clinic_information_lambda" {
   }
 }
 
-module "clinic_information_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.clinic_information_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "clinic_information_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.clinic_information_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "clinic_information_api_gateway" {
   source            = "./modules/api-gateway"
@@ -322,12 +322,12 @@ module "clinic_icb_list_lambda" {
   }
 }
 
-module "clinic_icb_list_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.clinic_icb_list_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "clinic_icb_list_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.clinic_icb_list_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "clinic_icb_list_api_gateway" {
   source            = "./modules/api-gateway"
@@ -356,12 +356,12 @@ module "participating_icb_list_lambda" {
   }
 }
 
-module "participating_icb_list_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.participating_icb_list_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "participating_icb_list_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.participating_icb_list_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "participating_icb_list_api_gateway" {
   source                 = "./modules/api-gateway"
@@ -388,12 +388,12 @@ module "clinic_summary_list_lambda" {
   }
 }
 
-module "clinic_summary_list_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.clinic_summary_list_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "clinic_summary_list_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.clinic_summary_list_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "clinic_summary_list_api_gateway" {
   source            = "./modules/api-gateway"
@@ -422,12 +422,12 @@ module "invitation_parameters_lambda" {
   }
 }
 
-module "invitation_parameters_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.invitation_parameters_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "invitation_parameters_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.invitation_parameters_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "invitation_parameters_api_gateway" {
   source                 = "./modules/api-gateway"
@@ -454,12 +454,12 @@ module "invitation_parameters_put_forecast_uptake_lambda" {
   }
 }
 
-module "invitation_parameters_put_forecast_uptake_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.invitation_parameters_put_forecast_uptake_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "invitation_parameters_put_forecast_uptake_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.invitation_parameters_put_forecast_uptake_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "invitation_parameters_put_forecast_uptake_api_gateway" {
   source                    = "./modules/api-gateway"
@@ -488,12 +488,12 @@ module "invitation_parameters_put_quintiles_lambda" {
   }
 }
 
-module "invitation_parameters_put_quintiles_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.invitation_parameters_put_quintiles_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "invitation_parameters_put_quintiles_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.invitation_parameters_put_quintiles_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "invitation_parameters_put_quintiles_api_gateway" {
   source                    = "./modules/api-gateway"
@@ -520,12 +520,12 @@ module "target_fill_to_percentage_put_lambda" {
   }
 }
 
-module "target_fill_to_percentage_put_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.target_fill_to_percentage_put_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "target_fill_to_percentage_put_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.target_fill_to_percentage_put_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "target_fill_to_percentage_put_api_gateway" {
   source                    = "./modules/api-gateway"
@@ -557,12 +557,12 @@ module "target_fill_to_percentage_get_lambda" {
   }
 }
 
-module "target_fill_to_percentage_get_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.target_fill_to_percentage_get_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "target_fill_to_percentage_get_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.target_fill_to_percentage_get_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "target_fill_to_percentage_get_api_gateway" {
   source                 = "./modules/api-gateway"
@@ -586,12 +586,12 @@ module "lsoa_in_range_lambda" {
   }
 }
 
-module "lsoa_in_range_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.lsoa_in_range_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "lsoa_in_range_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.lsoa_in_range_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "lsoa_in_range_api_gateway" {
   source            = "./modules/api-gateway"
@@ -619,12 +619,12 @@ module "participants_in_lsoa_lambda" {
   }
 }
 
-module "participants_in_lsoa_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.participants_in_lsoa_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "participants_in_lsoa_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.participants_in_lsoa_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 # Calculate number of participatnts to invite
 module "calculate_number_to_invite_lambda" {
@@ -640,12 +640,12 @@ module "calculate_number_to_invite_lambda" {
   }
 }
 
-module "calculate_number_to_invite_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  lambda_function_name = module.calculate_number_to_invite_lambda.lambda_function_name
-  environment          = var.environment
-  retention_days       = 14
-}
+# module "calculate_number_to_invite_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   lambda_function_name = module.calculate_number_to_invite_lambda.lambda_function_name
+#   environment          = var.environment
+#   retention_days       = 14
+# }
 
 module "calculate_number_to_invite_api_gateway" {
   source                    = "./modules/api-gateway"
@@ -677,12 +677,12 @@ module "generate_invites_lambda" {
   }
 }
 
-module "generate_invites_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  lambda_function_name = module.generate_invites_lambda.lambda_function_name
-  environment          = var.environment
-  retention_days       = 14
-}
+# module "generate_invites_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   lambda_function_name = module.generate_invites_lambda.lambda_function_name
+#   environment          = var.environment
+#   retention_days       = 14
+# }
 
 module "generate_invites_api_gateway" {
   source                    = "./modules/api-gateway"
@@ -715,12 +715,12 @@ module "gp_practices_loader_lambda" {
   }
 }
 
-module "gp_practices_loader_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.gp_practices_loader_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "gp_practices_loader_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.gp_practices_loader_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "gp_practices_loader_lambda_trigger" {
   source     = "./modules/lambda_trigger"
@@ -744,12 +744,12 @@ module "create_episode_record_lambda" {
   }
 }
 
-module "create_episode_record_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.create_episode_record_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "create_episode_record_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.create_episode_record_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "create_episode_record_dynamodb_stream" {
   source                             = "./modules/dynamodb_stream"
@@ -777,12 +777,12 @@ module "add_episode_history_lambda" {
   }
 }
 
-module "add_episode_history_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.add_episode_history_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "add_episode_history_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.add_episode_history_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "add_episode_history_dynamodb_stream" {
   source                             = "./modules/dynamodb_stream"
@@ -808,12 +808,12 @@ module "appointments_event_cancelled_lambda" {
   }
 }
 
-module "appointments_event_cancelled_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.appointments_event_cancelled_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "appointments_event_cancelled_lambda_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.appointments_event_cancelled_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "appointments_event_cancelled_lambda_trigger" {
   source        = "./modules/lambda_trigger"
@@ -838,12 +838,12 @@ module "user_accounts_lambda" {
   }
 }
 
-module "user_accounts_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.user_accounts_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "user_accounts_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.user_accounts_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "user_accounts_lambda_trigger" {
   source     = "./modules/lambda_trigger"
@@ -866,12 +866,12 @@ module "gtms_status_update_lambda" {
   }
 }
 
-module "gtms_status_update_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.gtms_status_update_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "gtms_status_update_lambda_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.gtms_status_update_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "gtms_status_update_lambda_trigger" {
   source        = "./modules/lambda_trigger"
@@ -895,12 +895,12 @@ module "validate_gtms_withdrawal_lambda" {
   }
 }
 
-module "validate_gtms_withdrawal_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.validate_gtms_withdrawal_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "validate_gtms_withdrawal_lambda_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.validate_gtms_withdrawal_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "validate_gtms_withdrawal_lambda_trigger" {
   source     = "./modules/lambda_trigger"
@@ -947,12 +947,12 @@ module "validate_gtms_appointment_lambda" {
   }
 }
 
-module "validate_gtms_appointment_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.validate_gtms_appointment_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "validate_gtms_appointment_lambda_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.validate_gtms_appointment_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "validate_gtms_appointment_lambda_trigger" {
   source     = "./modules/lambda_trigger"
@@ -976,12 +976,12 @@ module "validate_appointment_common_data_lambda" {
   }
 }
 
-module "validate_appointment_common_data_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.validate_appointment_common_data_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "validate_appointment_common_data_lambda_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.validate_appointment_common_data_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "validate_appointment_common_data_lambda_trigger" {
   source        = "./modules/lambda_trigger"
@@ -1006,12 +1006,12 @@ module "create_invitation_batch_lambda" {
   }
 }
 
-module "create_invitation_batch_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.create_invitation_batch_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "create_invitation_batch_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.create_invitation_batch_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "create_invitation_batch_dynamodb_stream" {
   source                             = "./modules/dynamodb_stream"
@@ -1048,12 +1048,12 @@ module "gtms_mesh_mailbox_lambda" {
   }
 }
 
-module "gtms_mesh_mailbox_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.gtms_mesh_mailbox_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "gtms_mesh_mailbox_lambda_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.gtms_mesh_mailbox_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 # Get User Role Lambda
 module "get_user_role_lambda" {
@@ -1070,12 +1070,12 @@ module "get_user_role_lambda" {
   }
 }
 
-module "get_user_role_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.get_user_role_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "get_user_role_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.get_user_role_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 module "get_user_role_api_gateway" {
   source                 = "./modules/api-gateway"
   environment            = var.environment
@@ -1100,12 +1100,12 @@ module "validate_clinic_data_lambda" {
   }
 }
 
-module "validate_clinic_data_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.validate_clinic_data_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "validate_clinic_data_lambda_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.validate_clinic_data_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "validate_clinic_data_lambda_trigger" {
   source        = "./modules/lambda_trigger"
@@ -1130,12 +1130,12 @@ module "gtms_upload_clinic_data_lambda" {
   }
 }
 
-module "gtms_upload_clinic_data_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.gtms_upload_clinic_data_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "gtms_upload_clinic_data_lambda_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.gtms_upload_clinic_data_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "gtms_upload_clinic_data_lambda_trigger" {
   source        = "./modules/lambda_trigger"
@@ -1161,12 +1161,12 @@ module "gps_jwks_lambda" {
   }
 }
 
-module "gps_jwks_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.gps_jwks_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "gps_jwks_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.gps_jwks_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "gps_jwks_api_gateway" {
   source                 = "./modules/api-gateway"
@@ -1196,12 +1196,12 @@ module "cis2_signed_jwt" {
   }
 }
 
-module "cis2_signed_jwt_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.cis2_signed_jwt.lambda_function_name
-  retention_days       = 14
-}
+# module "cis2_signed_jwt_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.cis2_signed_jwt.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "cis2_signed_jwt_api_gateway" {
   source                 = "./modules/api-gateway"
@@ -1227,12 +1227,12 @@ module "validate_clinic_capacity_lambda" {
   }
 }
 
-module "validate_clinic_capacity_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.validate_clinic_capacity_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "validate_clinic_capacity_lambda_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.validate_clinic_capacity_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 
 module "validate_clinic_capacity_lambda_trigger" {
@@ -1259,12 +1259,12 @@ module "gtms_upload_clinic_capacity_data_lambda" {
   }
 }
 
-module "gtms_upload_clinic_capacity_data_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.gtms_upload_clinic_capacity_data_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "gtms_upload_clinic_capacity_data_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.gtms_upload_clinic_capacity_data_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "gtms_upload_clinic_capacity_data_trigger" {
   source        = "./modules/lambda_trigger"
@@ -1298,12 +1298,12 @@ module "send_GTMS_invitation_batch_lambda" {
   }
 }
 
-module "send_GTMS_invitation_batch_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.send_GTMS_invitation_batch_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "send_GTMS_invitation_batch_lambda_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.send_GTMS_invitation_batch_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "send_GTMS_invitation_batch_lambda_trigger" {
   source     = "./modules/lambda_trigger"
@@ -1328,12 +1328,12 @@ module "send_invitation_batch_to_raw_message_queue_lambda" {
   }
 }
 
-module "send_invitation_batch_to_raw_message_queue_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.send_invitation_batch_to_raw_message_queue_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "send_invitation_batch_to_raw_message_queue_lambda_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.send_invitation_batch_to_raw_message_queue_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "send_invitation_batch_to_raw_message_queue_lambda_trigger" {
   source     = "./modules/lambda_trigger"
@@ -1366,12 +1366,12 @@ module "caas_feed_delete_records_lambda" {
   }
 }
 
-module "caas_feed_delete_records_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.caas_feed_delete_records_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "caas_feed_delete_records_lambda_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.caas_feed_delete_records_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 # trigger replaced by group trigger for bucket
 
 # Dynamodb tables
@@ -1454,12 +1454,12 @@ data "aws_secretsmanager_secret_version" "caas_mesh_mailbox_password" {
 }
 #END of MESH keys
 
-module "poll_mesh_mailbox_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.poll_mesh_mailbox_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "poll_mesh_mailbox_lambda_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.poll_mesh_mailbox_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "validate_caas_feed_lambda" {
   source               = "./modules/lambda"
@@ -1475,12 +1475,12 @@ module "validate_caas_feed_lambda" {
   }
 }
 
-module "validate_caas_feed_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.validate_caas_feed_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "validate_caas_feed_lambda_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.validate_caas_feed_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "validate_caas_feed_lambda_trigger" {
   source        = "./modules/lambda_trigger"
@@ -1504,12 +1504,12 @@ module "caas_feed_add_records_lambda" {
   }
 }
 
-module "caas_feed_add_records_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.caas_feed_add_records_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "caas_feed_add_records_lambda_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.caas_feed_add_records_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "caas_data_triggers" {
   name       = "caas_data_trigger"
@@ -1553,12 +1553,12 @@ module "caas_feed_update_records_lambda" {
   }
 }
 
-module "caas_feed_update_records_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.caas_feed_update_records_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "caas_feed_update_records_lambda_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.caas_feed_update_records_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 # trigger replaced by group trigger for bucket
 
 # Dynamodb tables
@@ -1592,12 +1592,12 @@ module "process_appointment_event_type_lambda" {
   }
 }
 
-module "process_appointment_event_type_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.process_appointment_event_type_lambda.lambda_function_name
-  retention_days       = 14
-}
+# module "process_appointment_event_type_lambda_cloudwatch" {
+#   source               = "./modules/cloudwatch"
+#   environment          = var.environment
+#   lambda_function_name = module.process_appointment_event_type_lambda.lambda_function_name
+#   retention_days       = 14
+# }
 
 module "process_appointment_event_type_lambda_trigger" {
   source        = "./modules/lambda_trigger"
