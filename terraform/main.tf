@@ -1546,7 +1546,7 @@ module "caas_data_triggers" {
       filter_suffix = null
     },
     {
-      lambda_arn = module.caas_feed_delete_records_lambda_trigger.lambda_arn,
+      lambda_arn = module.caas_feed_delete_records_lambda.lambda_arn,
       # bucket_events = ["s3:ObjectRemoved:*"],
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records_delete-",
