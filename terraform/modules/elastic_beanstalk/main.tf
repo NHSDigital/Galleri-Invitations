@@ -265,6 +265,18 @@ resource "aws_elastic_beanstalk_environment" "screens" {
 
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_GET_USER_ROLE"
+    value     = var.NEXT_PUBLIC_GET_USER_ROLE
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_CIS2_SIGNED_JWT"
+    value     = var.NEXT_PUBLIC_CIS2_SIGNED_JWT
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
     name      = "USERS"
     value = jsonencode([
       {
@@ -326,6 +338,18 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "NEXTAUTH_URL"
     value     = "https://${var.environment}.${var.hostname}"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "GALLERI_ACTIVITY_CODE"
+    value     = "B1824"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "GALLERI_ACTIVITY_NAME"
+    value     = "Galleri Blood Test"
   }
 
   setting {
