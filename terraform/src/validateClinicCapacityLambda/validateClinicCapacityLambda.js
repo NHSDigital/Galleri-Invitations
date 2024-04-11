@@ -39,7 +39,7 @@ export const handler = async (event) => {
     return `Finished validating object ${key} in bucket ${bucket}`;
 
   } catch (err) {
-    const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
+    const message = `Error: processing object ${key} in bucket ${bucket}: ${err}`;
     console.error(message);
     throw new Error(message);
   };
@@ -99,7 +99,7 @@ export async function validateRecord(record, client) {
       if (!validation.valid) {    // validate the JSON Schema
         validationResults.success = false;
         validationResults.message = `Invalid JSON Schema`;
-        console.error("errors : ", validation.errors);
+        console.error("Error: ", validation.errors);
         return validationResults;
       } else {
         record.ClinicScheduleSummary.ClinicScheduleSummary.forEach((clinic) => {
