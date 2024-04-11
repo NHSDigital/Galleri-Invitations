@@ -25,27 +25,24 @@ export const handler = async (event) => {
     console.log(`Finished validating object ${key} in bucket ${bucket}`);
     console.log('----------------------------------------------------------------');
 
-      //Timestamp
-      const timeNow = Date.now();
+    console.log(`Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${bucket}`);
 
-      console.log(`Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${bucket}`);
+    // Valid Records Arrangement
+    if (validationResult.success) {
+      // Deposit to S3 bucket
+      await pushToS3(`${ENVIRONMENT}-processed-inbound-gtms-clinic-schedule-summary`, `validRecords/${key}`, jsonString, s3);
+    }
+    else {
+      await pushToS3(`${ENVIRONMENT}-processed-inbound-gtms-clinic-schedule-summary`, `invalidRecords/${key}`, jsonString, s3);
+      console.warn("PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Capacity BELOW:\n" + validationResult.errors, null, 2);
+    }
+    return `Finished validating object ${key} in bucket ${bucket}`;
 
-      // Valid Records Arrangement
-      if (validationResult.success) {
-        // Deposit to S3 bucket
-        await pushToS3(bucket, `validRecords/valid_records-${timeNow}.csv`, jsonString, s3);
-      }
-      else {
-        await pushToS3(bucket, `invalidRecords/invalid_records-${timeNow}.csv`, jsonString, s3);
-        console.warn("PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Capacity BELOW:\n" + validationResult.errors, null, 2);
-      }
-      return `Finished validating object ${key} in bucket ${bucket}`;
-
-    } catch (err) {
-        const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
-        console.error(message);
-        throw new Error(message);
-    };
+  } catch (err) {
+    const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
+    console.error(message);
+    throw new Error(message);
+  };
 };
 
 
@@ -91,13 +88,13 @@ export async function validateRecord(record, client) {
   console.log("record:", record);
 
   const numberOfClinics = record.ClinicScheduleSummary.ClinicScheduleSummary.length;
-  console.log("length:",numberOfClinics);
+  console.log("length:", numberOfClinics);
   let count = 0;
 
-  while ( count < numberOfClinics ){
+  while (count < numberOfClinics) {
     const clinicValidation = await isClinicIDvalid(record.ClinicScheduleSummary.ClinicScheduleSummary[count].ClinicID, client);
 
-    if(clinicValidation.Count === 1){
+    if (clinicValidation.Count === 1) {
       const validation = validate(record, ClinicSchemaGTMS);
       if (!validation.valid) {    // validate the JSON Schema
         validationResults.success = false;
@@ -106,13 +103,13 @@ export async function validateRecord(record, client) {
         return validationResults;
       } else {
         record.ClinicScheduleSummary.ClinicScheduleSummary.forEach((clinic) => {
-          if(clinic.Schedule.length !== SIX_WEEK_HORIZON) {
+          if (clinic.Schedule.length !== SIX_WEEK_HORIZON) {
             validationResults.success = false;
             validationResults.message = "Six week horizon is exceeded or not met";
             return validationResults;
           } else {
             clinic.Schedule.forEach((scheduleElement) => {
-              if(!isMonday(new Date(scheduleElement.WeekCommencingDate))) {
+              if (!isMonday(new Date(scheduleElement.WeekCommencingDate))) {
                 validationResults.success = false;
                 validationResults.message = "Week Commencing Date is not a Monday";
                 return validationResults;
