@@ -1,5 +1,5 @@
 # environment name
-environment             = "training"
+environment             = "pre-prod-2"
 dns_zone                = "pre-prod"
 CIS2_KNAME              = "CIS2_INT_1"
 CIS2_ID                 = "CIS2_CLIENT_ID"
