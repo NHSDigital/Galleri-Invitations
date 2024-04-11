@@ -474,6 +474,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added appointmentEventCancelledLambda to this policy as lambda role exceeded policy limit
 # Added processAppointmentEventTypeLambda to this policy as lambda role exceeded policy limit
 # Added sendInvitationBatchToRawMessageQueueLambda to this policy as lambda role exceeded policy limit
+# Added sendEnrichedMessageToNotifyQueueLambda to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
   path        = "/"
@@ -576,11 +577,25 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
         },
         {
           "Action" : [
-            "sqs:SendMessage"
+            "sqs:SendMessage",
+            "sqs:ReceiveMessage",
+            "sqs:DeleteMessage",
+            "sqs:GetQueueAttributes"
           ],
           "Effect" : "Allow",
           "Resource" : [
             "arn:aws:sqs:eu-west-2:${var.account_id}:${var.environment}-notifyRawMessageQueue.fifo",
+          ]
+        },
+        {
+          "Action" : [
+            "sqs:SendMessage",
+            "sqs:DeleteMessage",
+            "sqs:GetQueueAttributes"
+          ],
+          "Effect" : "Allow",
+          "Resource" : [
+            "arn:aws:sqs:eu-west-2:${var.account_id}:${var.environment}-notifyEnrichedMessageQueue.fifo",
           ]
         }
       ],
