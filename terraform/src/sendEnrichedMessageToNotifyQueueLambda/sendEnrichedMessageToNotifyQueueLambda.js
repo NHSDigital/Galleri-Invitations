@@ -1,9 +1,11 @@
 //IMPORTS
 import { SQSClient, SendMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
+import { DynamoDBClient, QueryCommand, GetItemCommand } from "@aws-sdk/client-dynamodb";
 
 //VARIABLES
 const ENVIRONMENT = process.env.ENVIRONMENT;
 const sqs = new SQSClient({});
+const dynamodb = new DynamoDBClient({region: "eu-west-2"});
 
 //HANDLER
 export const handler = async (event) => {
@@ -36,15 +38,37 @@ export async function processRecords(records, client) {
       const routingId = '841ebf60-4ffa-45d3-874b-b3e9db895c70';
       const tables = 'appointment,clinic';
 
-      // Retrieve relevant fields from DynamoDB
-      const participantId = messageBody.participantId;
-
-
-
-
       // Enrich message
       if(tables.includes('appointment') && tables.includes('clinic')) {
-        // Include fields from appointment and clinic table
+        // Retrieve relevant fields from DynamoDB
+        const participantId = messageBody.participantId;
+
+        const params = {
+          TableName: `${ENVIRONMENT}-Appointments`,
+          KeyConditionExpression: 'Participant_Id =:pk',
+          ExpressionAttributeValues: {
+            ":pk": { S: participantId },
+        }
+        };
+
+        const command = new QueryCommand(params);
+
+        try {
+          const response = await client.send(command);
+          if (response.Items && response.Items.length > 0) {
+            const firstItem = response.Items[0];
+            const fieldValue = firstItem['Clinic_Id'].S; // Assuming it's a string type
+            console.log(`Value of ${fieldName}: ${fieldValue}`);
+            return fieldValue;
+          } else {
+              console.log("No item found");
+              return null;
+          }
+        } catch (error) {
+          console.error('Failed to access DynamoDB table');
+          throw error;
+        }
+
       } else {
         messageBody.routingId = routingId;
       };
