@@ -1,11 +1,25 @@
+# locals {
+#   // Extracts all Lambda ARNs and deduplicates them.
+#   unique_lambda_arns = toset([for trigger in var.triggers : trigger.lambda_arn])
+# }
+
+# variable "triggers" {
+#   description = "List of triggers for the Lambda function"
+#   type = list(object({
+#     lambda_arn    = string
+#     bucket_events = list(string)
+#     filter_prefix = string
+#     filter_suffix = string
+#   }))
+# }
+
 locals {
-  // Extracts all Lambda ARNs and deduplicates them.
-  unique_lambda_arns = toset([for trigger in var.triggers : trigger.lambda_arn])
+  unique_lambda_arns = { for trigger_id, trigger in var.triggers : trigger_id => trigger.lambda_arn }
 }
 
 variable "triggers" {
-  description = "List of triggers for the Lambda function"
-  type = list(object({
+  description = "Map of triggers for the Lambda function, keyed by a unique identifier"
+  type = map(object({
     lambda_arn    = string
     bucket_events = list(string)
     filter_prefix = string
