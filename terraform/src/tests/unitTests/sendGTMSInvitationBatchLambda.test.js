@@ -8,8 +8,7 @@ import {
 import {
   retrieveAndParseJSON,
   sendMessageToMesh,
-  readMeshMessage,
-  handleReceivedMessage,
+  handleSentMessageFile,
   getSecret,
   getJSONFromS3,
   pushJsonToS3,
@@ -76,7 +75,7 @@ describe("Integration Tests", () => {
   describe("sendMessageToMesh", () => {
     test("should send message to MESH and return pre-send message object length and sent message ID", async () => {
       // Mock data
-      const sendFuncMock = jest.fn().mockResolvedValue("message_id_123");
+      const sendFuncMock = jest.fn().mockResolvedValue(202);
       const KEY_PREFIX = "invitation_batch_";
       const timestamp = "2023-10-26T12:00:00.000Z";
       const CONFIG = {
@@ -90,7 +89,6 @@ describe("Integration Tests", () => {
         receiverCert: "test_receiver_cert",
         receiverKey: "test_receiver_key",
         receiverMailboxID: "test_receiver_mailbox_id",
-        receiverMailboxPassword: "test_receiver_mailbox_password",
       };
       const JSONMsgObj = [{ name: "John" }, { name: "Jane" }];
 
@@ -111,129 +109,156 @@ describe("Integration Tests", () => {
         expect.any(Function),
         expect.any(Function)
       );
-      expect(result).toEqual({
-        preSendMsgObjectLength: 2,
-        sentMsgID: "message_id_123",
-      });
+      expect(result).toEqual({ sentMsgStatus: 202 });
     });
-  });
 
-  describe("readMeshMessage", () => {
-    test("should read message from MESH and return status and message object", async () => {
+    test("should throw error if sending message fails", async () => {
+      // Mock send function to throw error
+      const sendFuncMock = jest
+        .fn()
+        .mockRejectedValue(new Error("Failed to send message"));
+
       // Mock data
-      const readMsgFuncMock = jest.fn().mockResolvedValue({
-        status: 200,
-        data: [{ name: "John" }, { name: "Jane" }],
-      });
+      const KEY_PREFIX = "invitation_batch_";
+      const timestamp = "2023-10-26T12:00:00.000Z";
       const CONFIG = {
         url: "https://msg.intspineservices.nhs.uk",
         sharedKey: "test_shared_key",
+        sandbox: "false",
+        senderCert: "test_sender_cert",
+        senderKey: "test_sender_key",
         senderMailboxID: "test_sender_mailbox_id",
         senderMailboxPassword: "test_sender_mailbox_password",
+        receiverCert: "test_receiver_cert",
+        receiverKey: "test_receiver_key",
         receiverMailboxID: "test_receiver_mailbox_id",
-        receiverMailboxPassword: "test_receiver_mailbox_password",
       };
-      const sentMsgID = "message_id_123";
+      const JSONMsgObj = [{ name: "John" }, { name: "Jane" }];
 
-      // Call the function being tested
-      const result = await readMeshMessage(readMsgFuncMock, CONFIG, sentMsgID);
-
-      // Assertions
-      expect(readMsgFuncMock).toHaveBeenCalledWith(
-        CONFIG,
-        sentMsgID,
-        expect.any(Function)
-      );
-      expect(result).toEqual({
-        postReceiveReadMsgStatus: 200,
-        postReceiveMsgObject: [{ name: "John" }, { name: "Jane" }],
-      });
+      // Call the function being tested and expect it to throw error
+      await expect(
+        sendMessageToMesh(
+          sendFuncMock,
+          KEY_PREFIX,
+          timestamp,
+          CONFIG,
+          JSONMsgObj
+        )
+      ).rejects.toThrow("Failed to send message");
     });
   });
+  describe("handleSentMessageFile function", () => {
+    // Mocks for dependencies
+    const pushJsonFuncMock = jest.fn();
+    const deleteObjectFuncMock = jest.fn();
+    const KEY_PREFIX = "test_prefix";
+    const timestamp = "2023-05-02T12:00:00Z";
+    const JSONMsgObj = { message: "Test message" };
+    const bucket = "test_bucket";
+    const key = "test_key";
+    const clientMock = jest.fn();
+    beforeEach(() => {
+      pushJsonFuncMock.mockClear();
+      deleteObjectFuncMock.mockClear();
+      clientMock.mockClear();
+    });
 
-  describe("handleReceivedMessage", () => {
-    test("should push JSON to S3 and delete object if conditions are met", async () => {
-      // Mock data
-      const pushJsonFuncMock = jest.fn().mockResolvedValue(200);
-      const deleteObjectFuncMock = jest.fn().mockResolvedValue(200);
-      const KEY_PREFIX = "invitation_batch_";
-      const timestamp = "2023-10-26T12:00:00.000Z";
-      const preSendMsgObjectLength = 5;
-      const postReceiveMsgObject = [
-        { name: "John" },
-        { name: "Jane" },
-        { name: "Alice" },
-        { name: "Bob" },
-        { name: "Eve" },
-      ];
-      const postReceiveReadMsgStatus = 200;
-      const bucket = "test-bucket";
-      const key = "test-key";
-      const mockClient = new S3Client({}); // Mock S3 client
+    test("should push JSON object to S3 and delete original object if sentMsgStatus is 202", async () => {
+      // Mock pushJsonFunc to return 200 status code
+      pushJsonFuncMock.mockReturnValueOnce(200);
+      // Mock deleteObjectFunc
+      deleteObjectFuncMock.mockReturnValueOnce(200);
 
-      // Call the function being tested
-      await handleReceivedMessage(
+      // Call the function
+      await handleSentMessageFile(
         pushJsonFuncMock,
         deleteObjectFuncMock,
         KEY_PREFIX,
         timestamp,
-        preSendMsgObjectLength,
-        postReceiveMsgObject,
-        postReceiveReadMsgStatus,
+        JSONMsgObj,
+        202,
         bucket,
         key,
-        mockClient
+        clientMock
       );
 
       // Assertions
       expect(pushJsonFuncMock).toHaveBeenCalledWith(
-        mockClient,
-        "undefined-sent-gtms-invited-participant-batch",
-        "sent-invitation_batch_2023-10-26T12:00:00.000Z.json",
-        postReceiveMsgObject
+        clientMock,
+        expect.any(String),
+        expect.any(String),
+        JSONMsgObj
       );
       expect(deleteObjectFuncMock).toHaveBeenCalledWith(
         bucket,
         key,
-        mockClient
+        clientMock
       );
     });
 
-    test("should not push JSON to S3 or delete object if conditions are not met", async () => {
-      // Mock data
-      const pushJsonFuncMock = jest.fn().mockResolvedValue(200);
-      const deleteObjectFuncMock = jest.fn().mockResolvedValue(200);
-      const KEY_PREFIX = "invitation_batch_";
-      const timestamp = "2023-10-26T12:00:00.000Z";
-      const preSendMsgObjectLength = 5;
-      const postReceiveMsgObject = [
-        { name: "John" },
-        { name: "Jane" },
-        { name: "Alice" },
-        { name: "Bob" },
-      ];
-      const postReceiveReadMsgStatus = 404; // Assume the status is not 200
-      const bucket = "test-bucket";
-      const key = "test-key";
-      const client = {}; // Mock S3 client
-
-      // Call the function being tested
-      await handleReceivedMessage(
+    test("should not push JSON object to S3 and delete original object if sentMsgStatus is not 202", async () => {
+      // Call the function with sentMsgStatus other than 202
+      await handleSentMessageFile(
         pushJsonFuncMock,
         deleteObjectFuncMock,
         KEY_PREFIX,
         timestamp,
-        preSendMsgObjectLength,
-        postReceiveMsgObject,
-        postReceiveReadMsgStatus,
+        JSONMsgObj,
+        200, // Assume sentMsgStatus is not 202
         bucket,
         key,
-        client
+        clientMock
       );
 
-      // Assertions
+      // Expect pushJsonFunc and deleteObjectFunc not to be called
       expect(pushJsonFuncMock).not.toHaveBeenCalled();
       expect(deleteObjectFuncMock).not.toHaveBeenCalled();
+    });
+
+    test("should throw error if pushJsonFunc fails", async () => {
+      // Mock pushJsonFunc to throw error
+      pushJsonFuncMock.mockImplementationOnce(() => {
+        throw new Error("Failed to push JSON to S3");
+      });
+
+      // Call the function and expect it to throw error
+      await expect(
+        handleSentMessageFile(
+          pushJsonFuncMock,
+          deleteObjectFuncMock,
+          KEY_PREFIX,
+          timestamp,
+          JSONMsgObj,
+          202,
+          bucket,
+          key,
+          clientMock
+        )
+      ).rejects.toThrow("Failed to push JSON to S3");
+    });
+
+    test("should throw error if deleteObjectFunc fails", async () => {
+      // Mock pushJsonFunc to return 200 status code
+      pushJsonFuncMock.mockReturnValueOnce(200);
+      // Mock deleteObjectFunc to throw error
+      deleteObjectFuncMock.mockImplementationOnce(() => {
+        throw new Error("Failed to delete object from S3");
+      });
+
+      // Call the function and expect it to throw error
+      await expect(
+        handleSentMessageFile(
+          pushJsonFuncMock,
+          deleteObjectFuncMock,
+          KEY_PREFIX,
+          timestamp,
+          JSONMsgObj,
+          202,
+          bucket,
+          key,
+          clientMock
+        )
+      ).rejects.toThrow("Failed to delete object from S3");
     });
   });
 
@@ -516,7 +541,7 @@ describe("Integration Tests", () => {
       const consoleLogSpy = jest.spyOn(console, "log").mockImplementation();
 
       // Call the function
-      const messageId = await sendUncompressed(
+      const messageStatus = await sendUncompressed(
         mockConfig,
         mockMsg,
         mockFilename,
@@ -530,7 +555,7 @@ describe("Integration Tests", () => {
       );
 
       // Expect the function to return the message_id
-      expect(messageId).toBe("123456789");
+      expect(messageStatus).toBe(202);
 
       // Restore the console.log function
       consoleLogSpy.mockRestore();
