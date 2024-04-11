@@ -991,6 +991,50 @@ module "validate_appointment_common_data_lambda_trigger" {
   filter_prefix = "validRecords/valid_records_add-"
 }
 
+ProcessEventNotification
+module "process_event_notification_dynamodb_stream" {
+  source                             = "./modules/dynamodb_stream"
+  enabled                            = true
+  event_source_arn                   = module.episode_history_table.dynamodb_stream_arn
+  function_name                      = module.process_event_notification_lambda.lambda_function_name
+  starting_position                  = "LATEST"
+  batch_size                         = 200
+  maximum_batching_window_in_seconds = 300
+  filter                             = { dynamodb : { NewImage : { Episode_Event : { S : [ {"anything-but": ["Invited"] } ] } } } }
+}
+
+# ProcessEventNotification lambda
+module "process_event_notification_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "processEventNotificationLambda"
+  lambda_timeout       = 900
+  memory_size          = 1024
+  lambda_s3_object_key = "process_event_notification_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "process_event_notification_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.process_event_notification_lambda.lambda_function_name
+  retention_days       = 14
+}
+module "process_event_notification_api_gateway" {
+  source                 = "./modules/api-gateway"
+  environment            = var.environment
+  lambda_invoke_arn      = module.process_event_notification_lambda.lambda_invoke_arn
+  path_part              = "process-event-notification"
+  method_http_parameters = {}
+  lambda_function_name   = module.process_event_notification_lambda.lambda_function_name
+}
+
+
+
 # Create GTMS Invitation Batch
 module "create_invitation_batch_lambda" {
   source               = "./modules/lambda"
