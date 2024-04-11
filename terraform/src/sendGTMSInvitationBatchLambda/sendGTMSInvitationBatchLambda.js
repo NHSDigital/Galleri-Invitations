@@ -58,7 +58,7 @@ export const handler = async (event, context) => {
     senderMailboxPassword: process.env.MESH_SENDER_MAILBOX_PASSWORD,
     receiverCert: MESH_RECEIVER_CERT,
     receiverKey: MESH_RECEIVER_KEY,
-    receiverMailboxID: process.env.MESH_RECEIVER_MAILBOX_ID,
+    receiverMailboxID: process.env.GTMS_MESH_RECEIVER_MAILBOX_ID,
   });
   const KEY_PREFIX = "invitation_batch_";
   const timestamp = new Date(Date.now()).toISOString();
