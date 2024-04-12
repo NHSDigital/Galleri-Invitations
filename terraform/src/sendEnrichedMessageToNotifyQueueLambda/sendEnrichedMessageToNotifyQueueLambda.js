@@ -1,11 +1,20 @@
 //IMPORTS
 import { SQSClient, SendMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
 import { DynamoDBClient, QueryCommand, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import { format } from 'date-fns';
 
 //VARIABLES
 const ENVIRONMENT = process.env.ENVIRONMENT;
 const sqs = new SQSClient({});
 const dynamodb = new DynamoDBClient({region: "eu-west-2"});
+const ParticipantIdField = 'Participant_Id';
+const ClinicIdField = 'Clinic_Id';
+const AppointmentDateTimeField = 'Appointment_Date_Time';
+const PhlebotomySiteClinicIdField = 'ClinicId';
+const PhlebotomySiteClinicName = 'ClinicName';
+const PhlebotomySiteAddress = 'Address';
+const PhlebotomySitePostcode = 'PostCode';
+const PhlebotomySiteDirections = 'Directions';
 
 //HANDLER
 export const handler = async (event) => {
@@ -43,32 +52,56 @@ export async function processRecords(records, client) {
         // Retrieve relevant fields from DynamoDB
         const participantId = messageBody.participantId;
 
-        const params = {
-          TableName: `${ENVIRONMENT}-Appointments`,
-          KeyConditionExpression: 'Participant_Id =:pk',
-          ExpressionAttributeValues: {
-            ":pk": { S: participantId },
-        }
-        };
-
-        const command = new QueryCommand(params);
-
         try {
-          const response = await client.send(command);
-          if (response.Items && response.Items.length > 0) {
-            const firstItem = response.Items[0];
-            const fieldValue = firstItem['Clinic_Id'].S; // Assuming it's a string type
-            console.log(`Value of ${fieldName}: ${fieldValue}`);
-            return fieldValue;
-          } else {
-              console.log("No item found");
-              return null;
+          // Appointments details
+          const appointmentsParams = {
+            TableName: `${ENVIRONMENT}-Appointments`,
+            KeyConditionExpression: `${ParticipantIdField} =:pk`,
+            ExpressionAttributeValues: {
+              ":pk": { S: participantId },
           }
+          };
+
+          const appointmentsCommand = new QueryCommand(appointmentsParams);
+          const appointmentsResponse = await dynamodb.send(appointmentsCommand);
+          const clinicId = appointmentsResponse.Items[0][ClinicIdField].S; // Assuming it's a string type
+
+          const appointmentDate = new Date(appointmentsResponse.Items[0][AppointmentDateTimeField].S);
+          const appointmentDateLong = format(appointmentDate, 'eeee dd MMMM yyyy');
+          const appointmentDateShort = format(appointmentDate, 'dd/MM/yyyy');
+          const appointmentTime = format(appointmentDate, 'hh:mmaaa');
+
+          messageBody.appointmentDateLong = appointmentDateLong;
+          messageBody.appointmentDateShort = appointmentDateShort;
+          messageBody.appointmentTime = appointmentTime;
+
+          // Clinic details
+          const phlebotomySiteParams = {
+            TableName: `${ENVIRONMENT}-PhlebotomySite`,
+            KeyConditionExpression: `${PhlebotomySiteClinicIdField} =:pk`,
+            ExpressionAttributeValues: {
+              ":pk": { S: clinicId },
+          }
+          };
+
+          const phlebotomySiteCommand = new QueryCommand(phlebotomySiteParams);
+          const phlebotomySiteResponse = await dynamodb.send(phlebotomySiteCommand);
+          const clinicName = phlebotomySiteResponse.Items[0][PhlebotomySiteClinicName].S; // Assuming it's a string type
+          const address = phlebotomySiteResponse.Items[0][PhlebotomySiteAddress].S;
+          const postcode = phlebotomySiteResponse.Items[0][PhlebotomySitePostcode].S;
+          const directions = phlebotomySiteResponse.Items[0][PhlebotomySiteDirections].S;
+
+          messageBody.clinicName = clinicName;
+          messageBody.clinicAddress = address;
+          messageBody.clinicPostcode = postcode;
+          messageBody.clinicDirections = directions;
+
         } catch (error) {
-          console.error('Failed to access DynamoDB table');
+          console.error('Error querying DynamoDB');
           throw error;
         }
 
+        messageBody.routingId = routingId;
       } else {
         messageBody.routingId = routingId;
       };
@@ -101,6 +134,8 @@ export async function processRecords(records, client) {
         console.error(`Failed to delete message: ${record.messageId}`);
         throw error;
       }
+
+      recordsSuccessfullySent++;
     } catch (error) {
       console.error('Error:', error);
     }

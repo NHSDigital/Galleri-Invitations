@@ -3,5 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "main": "sendEnrichedMessageToNotifyQueueLambda.js",
-  "author": ""
+  "author": "",
+  "dependencies": {
+    "date-fns": "^3.6.0"
+  }
 }
