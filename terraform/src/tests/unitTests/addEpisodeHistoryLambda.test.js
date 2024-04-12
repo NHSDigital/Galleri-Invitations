@@ -54,7 +54,7 @@ describe("formatEpisodeHistoryRecord", () => {
           S: `Episode_Event_1`,
         },
         ":episode_event_updated": {
-          N: String(Date.now()),
+          S: `20`,
         },
         ":episode_event_description": {
           S: `Episode_Event_Description_1`,
@@ -69,7 +69,7 @@ describe("formatEpisodeHistoryRecord", () => {
           S: `Episode_Status_1`,
         },
         ":episode_status_updated": {
-          N: `10`,
+          S: `10`,
         },
       },
       TableName: `undefined-EpisodeHistory`,
@@ -83,7 +83,8 @@ describe("formatEpisodeHistoryRecord", () => {
       Episode_Event_Notes: { S: "Episode_Event_Notes_1" },
       Episode_Event_Updated_By: { S: "Episode_Event_Updated_By_1" },
       Episode_Status: { S: "Episode_Status_1" },
-      Episode_Status_Updated: { N: "10" },
+      Episode_Status_Updated: { S: "10" },
+      Episode_Event_Updated: { S: "20" },
     };
 
     const actual = formatEpisodeHistoryRecord(mockRecord);
