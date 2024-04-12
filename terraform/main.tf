@@ -1624,7 +1624,13 @@ module "event_type_triggers" {
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records-ABORTED",
       filter_suffix = null
-    }
+    },
+    {
+      lambda_arn    = module.appointments_event_cancelled_lambda.lambda_arn,
+      bucket_events = ["s3:ObjectCreated:*"],
+      filter_prefix = "validRecords/valid_records-CANCELLED",
+      filter_suffix = null
+    },
   ]
 }
 
