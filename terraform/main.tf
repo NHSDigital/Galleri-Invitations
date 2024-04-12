@@ -1601,12 +1601,31 @@ module "process_appointment_event_type_lambda_cloudwatch" {
   retention_days       = 14
 }
 
-module "process_appointment_event_type_lambda_trigger" {
-  source        = "./modules/lambda_trigger"
-  bucket_id     = module.proccessed_appointments.bucket_id
-  bucket_arn    = module.proccessed_appointments.bucket_arn
-  lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn
-  filter_prefix = "validRecords/valid_records-"
+module "event_type_triggers" {
+  name       = "event_type_triggers"
+  source     = "./modules/lambda_s3_trigger"
+  bucket_arn = module.proccessed_appointments.bucket_arn
+  bucket_id  = module.proccessed_appointments.bucket_id
+  triggers = [
+    {
+      lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn,
+      bucket_events = ["s3:ObjectCreated:*"],
+      filter_prefix = "validRecords/valid_records-COMPLETE",
+      filter_suffix = null
+    },
+    {
+      lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn,
+      bucket_events = ["s3:ObjectCreated:*"],
+      filter_prefix = "validRecords/valid_records-NO_SHOW",
+      filter_suffix = null
+    },
+    {
+      lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn,
+      bucket_events = ["s3:ObjectCreated:*"],
+      filter_prefix = "validRecords/valid_records-ABORTED",
+      filter_suffix = null
+    }
+  ]
 }
 
 module "gp_practice_table" {
