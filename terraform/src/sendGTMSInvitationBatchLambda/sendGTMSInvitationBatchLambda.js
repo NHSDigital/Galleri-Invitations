@@ -79,6 +79,7 @@ export const handler = async (event, context) => {
       CONFIG,
       JSONMsgObj
     );
+    console.info("ABOUT TO TRIGGER HANLDESENTMESSAGEFILE FUNCTION");
     await handleSentMessageFile(
       pushJsonToS3,
       deleteObjectFromS3,
@@ -142,6 +143,8 @@ export const handleSentMessageFile = async (
   key,
   client
 ) => {
+  console.info("INSIDE HANDLE SENT MESSAGE : ", sentMsgStatus);
+  console.info("INSIDE HANDLE SENT MESSAGE : ", JSONMsgObj);
   if (sentMsgStatus === 202) {
     console.info(
       "Message sent confirmation received with status 202, ready to push file to sent Bucket"
@@ -258,6 +261,7 @@ export async function sendUncompressed(
     } else {
       console.log(`Successfully sent ${filename} to GTMS mailbox`);
       console.info("TEMPORARY CONFIRMATION AFTER SENDING MESSAGE: ", message);
+      console.info("SENT MESSAGE CONFIRMATION STATUS", message.status);
       return message.status;
     }
   } catch (error) {
