@@ -1979,257 +1979,377 @@ module "appointment_table" {
   }
 }
 // Parameter Store
-
-resource "aws_ssm_parameter" "appointment_cancelled" {
-  name  = "appointment_cancelled"
-  type  = "StringList"
-  value = ["Yes,841ebf60-4ffa-45d3-874b-b3e9db895c70,Appointment,Clinic"]
-}
-
 resource "aws_ssm_parameter" "invited-notify" {
   name  = "invited-notify"
   type  = "String"
   value = "True"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "invited-routing-id" {
   name  = "invited-routing-id"
   type  = "String"
   value = "a91601f5-ed53-4472-bbaa-580f418c7091"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "invited-tables" {
   name  = "invited-tables"
   type  = "StringList"
-  value = [""]
+  value = "Null"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "withdrawn-notify" {
   name  = "withdrawn-notify"
   type  = "String"
   value = "True"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "withdrawn-routing-id" {
   name  = "withdrawn-routing-id"
   type  = "String"
   value = "Unavailable"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "withdrawn-tables" {
   name  = "withdrawn-tables"
   type  = "StringList"
-  value = [""]
+  value = "Null"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "appointment-booked-notify" {
   name  = "appointment-booked-notify"
   type  = "String"
   value = "True"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "appointment-booked-routing-id" {
   name  = "appointment-booked-routing-id"
   type  = "String"
   value = "4c4c4c06-0f6d-465a-ab6a-ca358c2721b0"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "appointment-booked-tables" {
   name  = "appointment-booked-tables"
   type  = "StringList"
-  value = ["appointment, phlebotomy"]
+  value = "appointment, phlebotomy"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "appointment-rebooked-notify" {
   name  = "appointment-rebooked-notify"
   type  = "String"
   value = "True"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "appointment-rebooked-routing-id" {
   name  = "appointment-rebooked-routing-id"
   type  = "String"
   value = "Unavailable"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "appointment-rebooked-tables" {
   name  = "appointment-rebooked-tables"
   type  = "StringList"
-  value = ["appointment, phlebotomy"]
+  value = "appointment, phlebotomy"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "appointment-cancelled-nhs-notify" {
   name  = "appointment-cancelled-nhs-notify"
   type  = "String"
   value = "True"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "appointment-cancelled-nhs-routing-id" {
   name  = "appointment-cancelled-nhs-routing-id"
   type  = "String"
   value = "841ebf60-4ffa-45d3-874b-b3e9db895c70"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "appointment-cancelled-nhs-tables" {
   name  = "appointment-cancelled-nhs-tables"
   type  = "StringList"
-  value = ["appointment, phlebotomy"]
+  value = "appointment, phlebotomy"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "appointment-attended-sample-taken-notify" {
   name  = "appointment-attended-sample-taken-notify"
   type  = "String"
   value = "True"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "appointment-attended-sample-taken-routing-id" {
   name  = "appointment-attended-sample-taken-routing-id"
   type  = "String"
   value = "Unavailable"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "appointment-attended-sample-taken-tables" {
   name  = "appointment-attended-sample-taken-tables"
   type  = "StringList"
-  value = [""]
+  value = "Null"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "appointment-not-attended-notify" {
   name  = "appointment-not-attended-notify"
   type  = "String"
   value = "False"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "appointment-not-attended-routing-id" {
   name  = "appointment-not-attended-routing-id"
   type  = "String"
   value = "N/A"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "appointment-not-attended-tables" {
   name  = "appointment-not-attended-tables"
   type  = "StringList"
-  value = [""]
+  value = "Null"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "result-no-csd-notify" {
   name  = "result-no-csd-notify"
   type  = "String"
   value = "True"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "result-no-csd-routing-id" {
   name  = "result-no-csd-routing-id"
   type  = "String"
   value = "Unavailable"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "result-no-csd-tables" {
   name  = "result-no-csd-tables"
   type  = "StringList"
-  value = ["appointment, phlebotomy"]
+  value = "appointment, phlebotomy"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "result-cancelled-test-notify" {
   name  = "result-cancelled-test-notify"
   type  = "String"
   value = "True"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "result-cancelled-test-routing-id" {
   name  = "result-cancelled-test-routing-id"
   type  = "String"
   value = "Unavailable"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "result-cancelled-test-tables" {
   name  = "result-cancelled-test-tables"
   type  = "StringList"
-  value = ["appointment, phlebotomy"]
+  value = "appointment, phlebotomy"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "referred-notify" {
   name  = "referred-notify"
   type  = "String"
   value = "True"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "referred-routing-id" {
   name  = "referred-routing-id"
   type  = "String"
   value = "Unavailable"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "referred-tables" {
   name  = "referred-tables"
   type  = "StringList"
-  value = [""]
+  value = "Null"
+  tags = {
+    Environment = var.environment
+  }
 }
 resource "aws_ssm_parameter" "consultation-call-no-consent-notify" {
   name  = "consultation-call-no-consent-notify"
   type  = "String"
   value = "True"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "consultation-call-no-consent-routing-id" {
   name  = "consultation-call-no-consent-routing-id"
   type  = "String"
   value = "Unavailable"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "consultation-call-no-consent-tables" {
   name  = "consultation-call-no-consent-tables"
   type  = "StringList"
-  value = [""]
+  value = "Null"
+  tags = {
+    Environment = var.environment
+  }
 }
 resource "aws_ssm_parameter" "unable-to-contact-csd-notify" {
   name  = "unable-to-contact-csd-notify"
   type  = "String"
   value = "True"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "unable-to-contact-csd-routing-id" {
   name  = "unable-to-contact-csd-routing-id"
   type  = "String"
   value = "Unavailable"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "unable-to-contact-csd--tables" {
   name  = "unable-to-contact-csd-tables"
   type  = "StringList"
-  value = [""]
+  value = "Null"
+  tags = {
+    Environment = var.environment
+  }
 }
 resource "aws_ssm_parameter" "private-referral-notify" {
   name  = "private-referral-notify"
   type  = "String"
   value = "True"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "private-referral-routing-id" {
   name  = "private-referral-routing-id"
   type  = "String"
   value = "Unavailable"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "private-referral-tables" {
   name  = "private-referral-tables"
   type  = "StringList"
-  value = [""]
+  value = "Null"
+  tags = {
+    Environment = var.environment
+  }
 }
 resource "aws_ssm_parameter" "contact-escalation-notify" {
   name  = "contact-escalation-notify"
   type  = "String"
   value = "True"
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "aws_ssm_parameter" "contact-escalation-routing-id" {
   name  = "contact-escalation-routing-id"
   type  = "String"
   value = "Unavailable"
+  tags = {
+    Environment = var.environment
+  }
+
 }
 
 resource "aws_ssm_parameter" "contact-escalation-tables" {
   name  = "contact-escalation-tables"
   type  = "StringList"
-  value = [""]
+  value = "Null"
+  tags = {
+    Environment = var.environment
+  }
 }
