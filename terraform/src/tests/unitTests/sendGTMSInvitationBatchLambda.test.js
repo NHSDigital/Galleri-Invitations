@@ -14,7 +14,6 @@ import {
   pushJsonToS3,
   deleteObjectFromS3,
   sendUncompressed,
-  readMsg,
   readSecret,
 } from "../../sendGTMSInvitationBatchLambda/sendGTMSInvitationBatchLambda";
 import {
@@ -338,51 +337,6 @@ describe("Integration Tests", () => {
         readSecret(fetchSecretMock, secretName, clientMock)
       ).rejects.toThrowError("Failed to fetch secret");
       expect(fetchSecretMock).toHaveBeenCalledWith(secretName, clientMock);
-    });
-  });
-
-  describe("readMsg", () => {
-    const mockConfig = {
-      url: "example",
-      mailboxID: "example",
-      mailboxPassword: "example",
-      sharedKey: "example",
-      agent: "example",
-    };
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-    test("test readMsg", async () => {
-      const msgID = "123ID";
-      const logSpy = jest.spyOn(global.console, "log");
-      //pass in mocked readMessage function from globally mocked nhs-mesh-client module
-      const result = await readMsg(mockConfig, msgID, readMessage);
-      console.log(result.data);
-      expect(logSpy).toHaveBeenCalled();
-      expect(logSpy).toHaveBeenCalledTimes(1);
-      expect(result.data).toStrictEqual({ nhs_num: "123", name: "bolo" });
-    });
-
-    test("should throw an error if retrieveMessage function fails", async () => {
-      const config = {
-        url: "test-url",
-        receiverMailboxID: "test-receiver-mailbox-id",
-        receiverMailboxPassword: "test-receiver-mailbox-password",
-        sharedKey: "test-shared-key",
-        receiverAgent: "test-receiver-agent",
-      };
-      const msgID = "test-message-id";
-      const mockResponse = { status: 200, data: "test-message-data" };
-      const retrieveMessageMock = jest.fn().mockResolvedValue(mockResponse);
-      // Arrange
-      const errorMessage = "Failed to retrieve message";
-      const error = new Error(errorMessage);
-      retrieveMessageMock.mockRejectedValue(error);
-
-      // Act & Assert
-      await expect(readMsg(config, msgID, retrieveMessageMock)).rejects.toThrow(
-        errorMessage
-      );
     });
   });
 
