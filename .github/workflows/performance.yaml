@@ -161,7 +161,7 @@ jobs:
       invitations_branch: "${{ github.event.inputs.invitations_branch }}"
       frontend_branch: "${{ github.event.inputs.frontend_branch }}"
     secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
+      AWS_ACCOUNT_ID: ${{ secrets.PRE_PROD_AWS_ACCOUNT_ID }}
       USERS: ${{ secrets.USERS }}
       CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
       NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
@@ -180,7 +180,7 @@ jobs:
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
     secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
+      AWS_ACCOUNT_ID: ${{ secrets.PRE_PROD_AWS_ACCOUNT_ID }}
 
   acceptance-stage: # Recommended maximum execution time is 10 minutes
     needs: [metadata, test-stage, build-stage, data-stage]
@@ -196,7 +196,7 @@ jobs:
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
     secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
+      AWS_ACCOUNT_ID: ${{ secrets.PRE_PROD_AWS_ACCOUNT_ID }}
 
   performance-stage:
     needs: [metadata, build-stage, data-stage]
