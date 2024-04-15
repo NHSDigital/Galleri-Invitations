@@ -144,6 +144,10 @@ export const handleSentMessageFile = async (
   client
 ) => {
   console.info("INSIDE HANDLE SENT MESSAGE : ", sentMsgStatus);
+  console.info(
+    "INSIDE HANDLE SENT MESSAGE : TYPE OF MESSAGE CONFIRMATION STATUS",
+    typeof message.status
+  );
   console.info("INSIDE HANDLE SENT MESSAGE : ", JSONMsgObj);
   if (sentMsgStatus === 202) {
     console.info(
@@ -262,6 +266,10 @@ export async function sendUncompressed(
       console.log(`Successfully sent ${filename} to GTMS mailbox`);
       console.info("TEMPORARY CONFIRMATION AFTER SENDING MESSAGE: ", message);
       console.info("SENT MESSAGE CONFIRMATION STATUS", message.status);
+      console.info(
+        "TYPE OF MESSAGE CONFIRMATION STATUS",
+        typeof message.status
+      );
       return message.status;
     }
   } catch (error) {
