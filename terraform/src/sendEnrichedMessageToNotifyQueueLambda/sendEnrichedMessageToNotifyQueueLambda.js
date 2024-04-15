@@ -20,7 +20,7 @@ const PhlebotomySiteDirections = 'Directions';
 export const handler = async (event) => {
   try {
     const batchOfMessages = event.Records;
-    await processRecords(batchOfMessages, sqs, dynamodb)
+    await processRecords(batchOfMessages, sqs, dynamodb, ENVIRONMENT)
   } catch (error) {
     console.error('Error occurred whilst processing the batch of messages from SQS');
     console.error('Error:', error);
@@ -28,10 +28,11 @@ export const handler = async (event) => {
 };
 
 //FUNCTIONS
-export async function processRecords(records, sqsClient, dynamoDbClient) {
+export async function processRecords(records, sqsClient, dynamoDbClient, environment) {
   const totalRecords = records.length;
   let recordsSuccessfullySent = 0;
   let recordsFailedToSend = 0;
+  console.log(records);
 
   for (let record of records) {
     try {
@@ -52,16 +53,19 @@ export async function processRecords(records, sqsClient, dynamoDbClient) {
         const participantId = messageBody.participantId;
 
         try {
-          const appointmentsQueryResponse = await queryTable(dynamoDbClient,'Appointments',ParticipantIdField,participantId);
-          const appointmentDate = new Date(appointmentsQueryResponse[0][AppointmentDateTimeField].S);
+          const appointmentsQueryResponse = await queryTable(dynamoDbClient,'Appointments',ParticipantIdField,participantId,environment);
+          const latestAppointment = appointmentsQueryResponse.sort((a,b) => {
+            return new Date(b.Appointment_Date_Time.S) - new Date(a.Appointment_Date_Time.S);
+          })[0];
+          const appointmentDate = new Date(latestAppointment[AppointmentDateTimeField].S);
 
           messageBody.appointmentDateLong = format(appointmentDate, 'eeee dd MMMM yyyy');
           messageBody.appointmentDateShort = format(appointmentDate, 'dd/MM/yyyy');
           messageBody.appointmentTime = format(appointmentDate, 'hh:mmaaa');
 
           if(tables.includes('clinic')) {
-            const clinicId = appointmentsQueryResponse[0][ClinicIdField].S;
-            const phlebotomySiteQueryResponse = await queryTable(dynamoDbClient,'PhlebotomySite',PhlebotomySiteClinicIdField,clinicId);
+            const clinicId = latestAppointment[ClinicIdField].S;
+            const phlebotomySiteQueryResponse = await queryTable(dynamoDbClient,'PhlebotomySite',PhlebotomySiteClinicIdField,clinicId,environment);
 
             messageBody.clinicName = phlebotomySiteQueryResponse[0][PhlebotomySiteClinicName].S;
             messageBody.clinicAddress = phlebotomySiteQueryResponse[0][PhlebotomySiteAddress].S;
@@ -118,9 +122,9 @@ export async function processRecords(records, sqsClient, dynamoDbClient) {
   console.log(`Total records in the batch: ${totalRecords} - Records successfully processed/sent: ${recordsSuccessfullySent} - Records failed to send: ${recordsFailedToSend}`);
 };
 
-export async function queryTable(dynamoDbClient,tableName,pKeyField,pKeyValue) {
+export async function queryTable(dynamoDbClient,tableName,pKeyField,pKeyValue,environment) {
   const params = {
-    TableName: `${ENVIRONMENT}-${tableName}`,
+    TableName: `${environment}-${tableName}`,
     KeyConditionExpression: `${pKeyField} =:pk`,
     ExpressionAttributeValues: {
       ":pk": { S: pKeyValue },
@@ -130,6 +134,9 @@ export async function queryTable(dynamoDbClient,tableName,pKeyField,pKeyValue) {
   try {
     const queryCommand = new QueryCommand(params);
     const response = await dynamoDbClient.send(queryCommand);
+    if (response.Items.length === 0) {
+      throw new Error(`No items returned when querying ${tableName} with value ${pKeyValue}`);
+    }
     return response.Items;
   } catch (error) {
     console.error(`Error with querying the DynamoDB table ${tableName}`);
