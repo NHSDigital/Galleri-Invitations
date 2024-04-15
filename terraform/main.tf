@@ -118,13 +118,12 @@ module "eks" {
       principal_arn     = "arn:aws:iam::136293001324:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_Admin_603cb786ef89bc37"
 
       policy_associations = {
-        example = {
+        eksAdmin = {
           policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy"
-          access_scope = {
-            namespaces = ["default", "kube-system"]
-            type       = "namespace"
-          }
-        }
+        },
+        clusterAdmin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+        },
       }
     }
   }
