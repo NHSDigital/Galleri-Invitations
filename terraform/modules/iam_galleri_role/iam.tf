@@ -406,7 +406,8 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 #             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_RECEIVER_MAILBOX_PASSWORD*",
 #             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_RECEIVER_KEY*",
 #             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_RECEIVER_CERT*",
-#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SENDER_CERT*"
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SENDER_CERT*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_INT_1*"
 #           ]
 #         }
 #      ],
@@ -473,6 +474,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added validateAppointmentCommonDataLambda to this policy as lambda role exceeded policy limit
 # Added appointmentEventCancelledLambda to this policy as lambda role exceeded policy limit
 # Added processAppointmentEventTypeLambda to this policy as lambda role exceeded policy limit
+# Added sendInvitationBatchToRawMessageQueueLambda to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
   path        = "/"
@@ -566,6 +568,8 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CAAS_MESH_MAILBOX_ID*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CAAS_MESH_MAILBOX_PASSWORD*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CAAS_MESH_CERT*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_INT_1*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_CLIENT_ID*"
           ]
         },
         {
@@ -573,6 +577,15 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           "Action" : "secretsmanager:ListSecrets",
           "Resource" : "*"
         },
+        {
+          "Action" : [
+            "sqs:SendMessage"
+          ],
+          "Effect" : "Allow",
+          "Resource" : [
+            "arn:aws:sqs:eu-west-2:${var.account_id}:${var.environment}-notifyRawMessageQueue.fifo",
+          ]
+        }
       ],
       "Version" : "2012-10-17"
   })
@@ -688,6 +701,37 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
       "Version" : "2012-10-17"
   })
 }
+
+# Policy required by sendInvitationBatchToRawMessageQueueLambda
+# resource "aws_iam_policy" "iam_policy_for_send_invitation_batch_to_raw_message_queue_lambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_send_invitation_batch_to_raw_message_queue_lambda_role"
+#   path        = "/"
+#   description = "AWS IAM Policy for managing aws lambda send invitation batch to raw message queue role"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+#           "Action" : [
+#             "sqs:SendMessage"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : [
+#           "arn:aws:sqs:eu-west-2:${var.account_id}:${var.environment}-notifyRawMessageQueue.fifo",
+#         ]
+#       }
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+# }
 
 # Policy required by addEpisodeHistory
 # resource "aws_iam_policy" "iam_policy_for_add_episode_history_lambda" {
@@ -1026,6 +1070,12 @@ resource "aws_iam_role_policy_attachment" "generate_invites_policy" {
   role       = aws_iam_role.galleri_lambda_role.name
   policy_arn = aws_iam_policy.iam_policy_for_generate_invites_lambda.arn
 }
+
+# Role exceeded quota for PoliciesPerRole: 10
+# resource "aws_iam_role_policy_attachment" "send_invitation_batch_to_raw_message_queue_lambda_policy" {
+#   role       = aws_iam_role.galleri_lambda_role.name
+#   policy_arn = aws_iam_policy.iam_policy_for_send_invitation_batch_to_raw_message_queue_lambda.arn
+# }
 
 # Role exceeded quota for PoliciesPerRole: 10
 # resource "aws_iam_role_policy_attachment" "create_episode_record_policy" {
