@@ -146,10 +146,10 @@ export const handleSentMessageFile = async (
   console.info("INSIDE HANDLE SENT MESSAGE : ", sentMsgStatus);
   console.info(
     "INSIDE HANDLE SENT MESSAGE : TYPE OF MESSAGE CONFIRMATION STATUS",
-    typeof message.status
+    typeof sentMsgStatus
   );
   console.info("INSIDE HANDLE SENT MESSAGE : ", JSONMsgObj);
-  if (sentMsgStatus === 202) {
+  if (sentMsgStatus === "202") {
     console.info(
       "Message sent confirmation received with status 202, ready to push file to sent Bucket"
     );
