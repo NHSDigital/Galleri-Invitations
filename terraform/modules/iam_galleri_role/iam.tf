@@ -406,7 +406,8 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 #             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_RECEIVER_MAILBOX_PASSWORD*",
 #             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_RECEIVER_KEY*",
 #             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_RECEIVER_CERT*",
-#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SENDER_CERT*"
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SENDER_CERT*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_INT_1*"
 #           ]
 #         }
 #      ],
@@ -464,12 +465,16 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added validate Caas Feed to this policy as lambda role exceeded policy limit
 # Added Sending Invitaiton batch to GTMS to this plicy as lambda role exceeded policy limit
 # Added UserAccounts to this policy as lambda role exceeded policy limit
+# Added addEpisodeHistory to this policy as lambda role exceeded policy limit
 # Added caasFeedDeleteRecords to this policy as lambda role exceeded policy limit
 # Added gtms upload clinic capacity data to this policy as lambda role exceeded policy limit
 # Added validateGtmsAppointment to this policy as lambda role exceeded policy limit
 # Added gtmsStatusUpdateLambda to this policy as lambda role exceeded policy limit
 # Added caasFeedAdd to this policy as lambda role exceeded policy limit
 # Added validateAppointmentCommonDataLambda to this policy as lambda role exceeded policy limit
+# Added appointmentEventCancelledLambda to this policy as lambda role exceeded policy limit
+# Added processAppointmentEventTypeLambda to this policy as lambda role exceeded policy limit
+# Added sendInvitationBatchToRawMessageQueueLambda to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
   path        = "/"
@@ -502,7 +507,9 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Appointments",
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-PhlebotomySite/*/*",
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Appointments/*/*",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-EpisodeHistory",
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Episode",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-EpisodeHistory/*/*",
           ]
         },
         {
@@ -561,6 +568,8 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CAAS_MESH_MAILBOX_ID*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CAAS_MESH_MAILBOX_PASSWORD*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CAAS_MESH_CERT*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_INT_1*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_CLIENT_ID*"
           ]
         },
         {
@@ -568,6 +577,15 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           "Action" : "secretsmanager:ListSecrets",
           "Resource" : "*"
         },
+        {
+          "Action" : [
+            "sqs:SendMessage"
+          ],
+          "Effect" : "Allow",
+          "Resource" : [
+            "arn:aws:sqs:eu-west-2:${var.account_id}:${var.environment}-notifyRawMessageQueue.fifo",
+          ]
+        }
       ],
       "Version" : "2012-10-17"
   })
@@ -684,6 +702,79 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
   })
 }
 
+# Policy required by sendInvitationBatchToRawMessageQueueLambda
+# resource "aws_iam_policy" "iam_policy_for_send_invitation_batch_to_raw_message_queue_lambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_send_invitation_batch_to_raw_message_queue_lambda_role"
+#   path        = "/"
+#   description = "AWS IAM Policy for managing aws lambda send invitation batch to raw message queue role"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+#           "Action" : [
+#             "sqs:SendMessage"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : [
+#           "arn:aws:sqs:eu-west-2:${var.account_id}:${var.environment}-notifyRawMessageQueue.fifo",
+#         ]
+#       }
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+# }
+
+# Policy required by addEpisodeHistory
+# resource "aws_iam_policy" "iam_policy_for_add_episode_history_lambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_add_episode_history_lambda_role"
+#   path        = "/"
+#   description = "AWS IAM Policy for managing aws lambda create episode record role"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+#           "Sid" : "AllowEpisodeDynamodbAccess",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "dynamodb:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Episode"
+#           ]
+#         },
+#         {
+#           "Sid" : "AllowEpisodeHistoryDynamodbAccess",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "dynamodb:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-EpisodeHistory"
+#           ]
+#         },
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+# }
+
 # resource "aws_iam_policy" "iam_policy_for_gtms_upload_clinic_capacity_data_lambda" {
 #   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_gtms_upload_clinic_capacity_data_lambda_role"
 #   path        = "/"
@@ -797,6 +888,51 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
 #             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Population/*/*",
 #             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Postcode"
 #             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GpPractice"
+#           ]
+#         },
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+# }
+
+# # Policy required by processAppointmentEventTypeLambda
+# resource "aws_iam_policy" "iam_policy_for_process_appointment_event_type_lambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_process_appointment_event_type_lambda_role"
+#   path        = "/"
+#   description = "AWS IAM Policy for caas feed add lambda"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+#           "Sid" : "AllowS3Access",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "s3:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:s3:::${var.environment}-proccessed-appointments/*",
+#           ]
+#         },
+#         {
+#           "Sid" : "AllowDyanmodbAccess",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "dynamodb:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Appointments/*/*"
+#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Population/*/*",
+#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Postcode"
+#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GpPractice"
 #           ]
 #         },
 #       ],
@@ -936,6 +1072,12 @@ resource "aws_iam_role_policy_attachment" "generate_invites_policy" {
 }
 
 # Role exceeded quota for PoliciesPerRole: 10
+# resource "aws_iam_role_policy_attachment" "send_invitation_batch_to_raw_message_queue_lambda_policy" {
+#   role       = aws_iam_role.galleri_lambda_role.name
+#   policy_arn = aws_iam_policy.iam_policy_for_send_invitation_batch_to_raw_message_queue_lambda.arn
+# }
+
+# Role exceeded quota for PoliciesPerRole: 10
 # resource "aws_iam_role_policy_attachment" "create_episode_record_policy" {
 #   role       = aws_iam_role.galleri_lambda_role.name
 #   policy_arn = aws_iam_policy.iam_policy_for_create_episode_record_lambda.arn
@@ -947,6 +1089,12 @@ resource "aws_iam_role_policy_attachment" "generate_invites_policy" {
 #   policy_arn = aws_iam_policy.iam_policy_for_validate_gtms_appointment_lambda.arn
 # }
 
+# Role exceeded quota for PoliciesPerRole: 10
+# resource "aws_iam_role_policy_attachment" "process_appointment_event_type_lambda" {
+#   role       = aws_iam_role.galleri_lambda_role.name
+#   policy_arn = aws_iam_policy.iam_policy_for_process_appointment_event_type_lambda.arn
+# }
+
 # resource "aws_iam_role_policy_attachment" "secrets_lambda_policy" {
 #   role       = aws_iam_role.github-oidc-invitations-role.name
 #   policy_arn = aws_iam_policy.iam_policy_for_participants_in_lsoa_lambda.arn
@@ -956,6 +1104,12 @@ resource "aws_iam_role_policy_attachment" "generate_invites_policy" {
 #resource "aws_iam_role_policy_attachment" "gp_practice_loader_lambda" {
 #  role       = aws_iam_role.galleri_lambda_role.name
 #  policy_arn = aws_iam_policy.gp_practice_loader_lambda.arn
+#}
+
+# Role exceeded quota for PoliciesPerRole: 10
+# resource "aws_iam_role_policy_attachment" "add_episode_history_policy" {
+#   role       = aws_iam_role.galleri_lambda_role.name
+#   policy_arn = aws_iam_policy.iam_policy_for_add_episode_history_lambda.arn
 #}
 
 # Role exceeded quota for PoliciesPerRole: 10

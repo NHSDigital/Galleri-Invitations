@@ -52,20 +52,7 @@ resource "aws_route_table_association" "my_rta" {
   route_table_id = aws_route_table.my_rt.id
 }
 
-# connect gateway to subnet
 resource "aws_route_table_association" "my_rta_b" {
   subnet_id      = aws_subnet.my_subnet_b.id
   route_table_id = aws_route_table.my_rt.id
 }
-
-# # create elastic ip so we can give the instance a public IP
-# resource "aws_eip" "eip1" {
-#   vpc                       = true
-#   associate_with_private_ip = var.private_ip_1
-#   depends_on = [
-#     aws_internet_gateway.my_igw
-#   ]
-#   tags = {
-#     Name = var.eip1
-#   }
-# }
