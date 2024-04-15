@@ -1024,16 +1024,6 @@ module "process_event_notification_cloudwatch" {
   lambda_function_name = module.process_event_notification_lambda.lambda_function_name
   retention_days       = 14
 }
-module "process_event_notification_api_gateway" {
-  source                 = "./modules/api-gateway"
-  environment            = var.environment
-  lambda_invoke_arn      = module.process_event_notification_lambda.lambda_invoke_arn
-  path_part              = "process-event-notification"
-  method_http_parameters = {}
-  lambda_function_name   = module.process_event_notification_lambda.lambda_function_name
-}
-
-
 
 # Create GTMS Invitation Batch
 module "create_invitation_batch_lambda" {
