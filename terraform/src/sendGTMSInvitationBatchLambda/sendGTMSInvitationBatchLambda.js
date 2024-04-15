@@ -61,7 +61,6 @@ export const handler = async (event, context) => {
     receiverKey: MESH_RECEIVER_KEY,
     receiverMailboxID: GTMS_MESH_RECEIVER_MAILBOX_ID,
   });
-  console.info("TEMPORARY CONFIG : ", CONFIG);
   const KEY_PREFIX = "invitation_batch_";
   const timestamp = new Date(Date.now()).toISOString();
 
@@ -79,7 +78,6 @@ export const handler = async (event, context) => {
       CONFIG,
       JSONMsgObj
     );
-    console.info("ABOUT TO TRIGGER HANLDESENTMESSAGEFILE FUNCTION");
     await handleSentMessageFile(
       pushJsonToS3,
       deleteObjectFromS3,
@@ -118,7 +116,6 @@ export const sendMessageToMesh = async (
   JSONMsgObj
 ) => {
   const { length: preSendMsgObjectLength } = JSONMsgObj;
-  console.info("TEMPORARY CONFIG INSIDE sendMessageToMesh : ", CONFIG);
   const sentMsgStatus = await sendFunc(
     CONFIG,
     JSONMsgObj,
@@ -127,7 +124,7 @@ export const sendMessageToMesh = async (
     sendMessage
   );
   console.log("PRESEND JSON OBJECT LENGTH", preSendMsgObjectLength);
-  return { sentMsgStatus };
+  return sentMsgStatus;
 };
 
 // If the status after sending the JSON message is 202, push the sent object to SENT Bucket and delete the fetched
@@ -143,16 +140,7 @@ export const handleSentMessageFile = async (
   key,
   client
 ) => {
-  console.info("INSIDE HANDLE SENT MESSAGE : ", sentMsgStatus);
-  console.info(
-    "INSIDE HANDLE SENT MESSAGE : TYPE OF MESSAGE CONFIRMATION STATUS",
-    typeof sentMsgStatus
-  );
-  console.info("INSIDE HANDLE SENT MESSAGE : ", JSONMsgObj);
-  if (sentMsgStatus === "202") {
-    console.info(
-      "Message sent confirmation received with status 202, ready to push file to sent Bucket"
-    );
+  if (sentMsgStatus === 202) {
     const pushJsonToS3Status = await pushJsonFunc(
       client,
       SENT_BUCKET,
@@ -233,7 +221,6 @@ export async function sendUncompressed(
 ) {
   console.log(`Sending ${filename} to GTMS Mailbox`);
   try {
-    console.info("TEMPORARY config INSIDE sendUncompressed : ", config);
     let healthCheck = await performHandshake({
       url: config.url,
       mailboxID: config.senderMailboxID,
@@ -264,12 +251,6 @@ export async function sendUncompressed(
       );
     } else {
       console.log(`Successfully sent ${filename} to GTMS mailbox`);
-      console.info("TEMPORARY CONFIRMATION AFTER SENDING MESSAGE: ", message);
-      console.info("SENT MESSAGE CONFIRMATION STATUS", message.status);
-      console.info(
-        "TYPE OF MESSAGE CONFIRMATION STATUS",
-        typeof message.status
-      );
       return message.status;
     }
   } catch (error) {

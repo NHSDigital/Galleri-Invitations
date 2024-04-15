@@ -8,7 +8,7 @@ import {
 import {
   retrieveAndParseJSON,
   sendMessageToMesh,
-  // handleSentMessageFile,
+  handleSentMessageFile,
   getSecret,
   getJSONFromS3,
   pushJsonToS3,
@@ -108,7 +108,7 @@ describe("Integration Tests", () => {
         expect.any(Function),
         expect.any(Function)
       );
-      expect(result).toEqual({ sentMsgStatus: 202 });
+      expect(result).toEqual(202);
     });
 
     test("should throw error if sending message fails", async () => {
@@ -146,120 +146,120 @@ describe("Integration Tests", () => {
       ).rejects.toThrow("Failed to send message");
     });
   });
-  // describe("handleSentMessageFile function", () => {
-  //   // Mocks for dependencies
-  //   const pushJsonFuncMock = jest.fn();
-  //   const deleteObjectFuncMock = jest.fn();
-  //   const KEY_PREFIX = "test_prefix";
-  //   const timestamp = "2023-05-02T12:00:00Z";
-  //   const JSONMsgObj = { message: "Test message" };
-  //   const bucket = "test_bucket";
-  //   const key = "test_key";
-  //   const clientMock = jest.fn();
-  //   beforeEach(() => {
-  //     pushJsonFuncMock.mockClear();
-  //     deleteObjectFuncMock.mockClear();
-  //     clientMock.mockClear();
-  //   });
+  describe("handleSentMessageFile function", () => {
+    // Mocks for dependencies
+    const pushJsonFuncMock = jest.fn();
+    const deleteObjectFuncMock = jest.fn();
+    const KEY_PREFIX = "test_prefix";
+    const timestamp = "2023-05-02T12:00:00Z";
+    const JSONMsgObj = { message: "Test message" };
+    const bucket = "test_bucket";
+    const key = "test_key";
+    const clientMock = jest.fn();
+    beforeEach(() => {
+      pushJsonFuncMock.mockClear();
+      deleteObjectFuncMock.mockClear();
+      clientMock.mockClear();
+    });
 
-  //   test("should push JSON object to S3 and delete original object if sentMsgStatus is 202", async () => {
-  //     // Mock pushJsonFunc to return 200 status code
-  //     pushJsonFuncMock.mockReturnValueOnce(200);
-  //     // Mock deleteObjectFunc
-  //     deleteObjectFuncMock.mockReturnValueOnce(200);
+    test("should push JSON object to S3 and delete original object if sentMsgStatus is 202", async () => {
+      // Mock pushJsonFunc to return 200 status code
+      pushJsonFuncMock.mockReturnValueOnce(200);
+      // Mock deleteObjectFunc
+      deleteObjectFuncMock.mockReturnValueOnce(200);
 
-  //     // Call the function
-  //     await handleSentMessageFile(
-  //       pushJsonFuncMock,
-  //       deleteObjectFuncMock,
-  //       KEY_PREFIX,
-  //       timestamp,
-  //       JSONMsgObj,
-  //       202,
-  //       bucket,
-  //       key,
-  //       clientMock
-  //     );
+      // Call the function
+      await handleSentMessageFile(
+        pushJsonFuncMock,
+        deleteObjectFuncMock,
+        KEY_PREFIX,
+        timestamp,
+        JSONMsgObj,
+        202,
+        bucket,
+        key,
+        clientMock
+      );
 
-  //     // Assertions
-  //     expect(pushJsonFuncMock).toHaveBeenCalledWith(
-  //       clientMock,
-  //       expect.any(String),
-  //       expect.any(String),
-  //       JSONMsgObj
-  //     );
-  //     expect(deleteObjectFuncMock).toHaveBeenCalledWith(
-  //       bucket,
-  //       key,
-  //       clientMock
-  //     );
-  //   });
+      // Assertions
+      expect(pushJsonFuncMock).toHaveBeenCalledWith(
+        clientMock,
+        expect.any(String),
+        expect.any(String),
+        JSONMsgObj
+      );
+      expect(deleteObjectFuncMock).toHaveBeenCalledWith(
+        bucket,
+        key,
+        clientMock
+      );
+    });
 
-  //   test("should not push JSON object to S3 and delete original object if sentMsgStatus is not 202", async () => {
-  //     // Call the function with sentMsgStatus other than 202
-  //     await handleSentMessageFile(
-  //       pushJsonFuncMock,
-  //       deleteObjectFuncMock,
-  //       KEY_PREFIX,
-  //       timestamp,
-  //       JSONMsgObj,
-  //       200, // Assume sentMsgStatus is not 202
-  //       bucket,
-  //       key,
-  //       clientMock
-  //     );
+    test("should not push JSON object to S3 and delete original object if sentMsgStatus is not 202", async () => {
+      // Call the function with sentMsgStatus other than 202
+      await handleSentMessageFile(
+        pushJsonFuncMock,
+        deleteObjectFuncMock,
+        KEY_PREFIX,
+        timestamp,
+        JSONMsgObj,
+        200, // Assume sentMsgStatus is not 202
+        bucket,
+        key,
+        clientMock
+      );
 
-  //     // Expect pushJsonFunc and deleteObjectFunc not to be called
-  //     expect(pushJsonFuncMock).not.toHaveBeenCalled();
-  //     expect(deleteObjectFuncMock).not.toHaveBeenCalled();
-  //   });
+      // Expect pushJsonFunc and deleteObjectFunc not to be called
+      expect(pushJsonFuncMock).not.toHaveBeenCalled();
+      expect(deleteObjectFuncMock).not.toHaveBeenCalled();
+    });
 
-  //   test("should throw error if pushJsonFunc fails", async () => {
-  //     // Mock pushJsonFunc to throw error
-  //     pushJsonFuncMock.mockImplementationOnce(() => {
-  //       throw new Error("Failed to push JSON to S3");
-  //     });
+    test("should throw error if pushJsonFunc fails", async () => {
+      // Mock pushJsonFunc to throw error
+      pushJsonFuncMock.mockImplementationOnce(() => {
+        throw new Error("Failed to push JSON to S3");
+      });
 
-  //     // Call the function and expect it to throw error
-  //     await expect(
-  //       handleSentMessageFile(
-  //         pushJsonFuncMock,
-  //         deleteObjectFuncMock,
-  //         KEY_PREFIX,
-  //         timestamp,
-  //         JSONMsgObj,
-  //         202,
-  //         bucket,
-  //         key,
-  //         clientMock
-  //       )
-  //     ).rejects.toThrow("Failed to push JSON to S3");
-  //   });
+      // Call the function and expect it to throw error
+      await expect(
+        handleSentMessageFile(
+          pushJsonFuncMock,
+          deleteObjectFuncMock,
+          KEY_PREFIX,
+          timestamp,
+          JSONMsgObj,
+          202,
+          bucket,
+          key,
+          clientMock
+        )
+      ).rejects.toThrow("Failed to push JSON to S3");
+    });
 
-  //   test("should throw error if deleteObjectFunc fails", async () => {
-  //     // Mock pushJsonFunc to return 200 status code
-  //     pushJsonFuncMock.mockReturnValueOnce(200);
-  //     // Mock deleteObjectFunc to throw error
-  //     deleteObjectFuncMock.mockImplementationOnce(() => {
-  //       throw new Error("Failed to delete object from S3");
-  //     });
+    test("should throw error if deleteObjectFunc fails", async () => {
+      // Mock pushJsonFunc to return 200 status code
+      pushJsonFuncMock.mockReturnValueOnce(200);
+      // Mock deleteObjectFunc to throw error
+      deleteObjectFuncMock.mockImplementationOnce(() => {
+        throw new Error("Failed to delete object from S3");
+      });
 
-  //     // Call the function and expect it to throw error
-  //     await expect(
-  //       handleSentMessageFile(
-  //         pushJsonFuncMock,
-  //         deleteObjectFuncMock,
-  //         KEY_PREFIX,
-  //         timestamp,
-  //         JSONMsgObj,
-  //         202,
-  //         bucket,
-  //         key,
-  //         clientMock
-  //       )
-  //     ).rejects.toThrow("Failed to delete object from S3");
-  //   });
-  // });
+      // Call the function and expect it to throw error
+      await expect(
+        handleSentMessageFile(
+          pushJsonFuncMock,
+          deleteObjectFuncMock,
+          KEY_PREFIX,
+          timestamp,
+          JSONMsgObj,
+          202,
+          bucket,
+          key,
+          clientMock
+        )
+      ).rejects.toThrow("Failed to delete object from S3");
+    });
+  });
 
   describe("getSecret", () => {
     afterEach(() => {
