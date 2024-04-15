@@ -17,6 +17,7 @@ const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
 const WORKFLOW_ID = process.env.WORKFLOW_ID;
 const SENT_BUCKET = `${ENVIRONMENT}-sent-gtms-invited-participant-batch`;
+const GTMS_MESH_RECEIVER_MAILBOX_ID = process.env.GTMS_MESH_RECEIVER_MAILBOX_ID;
 
 //HANDLER
 export const handler = async (event, context) => {
@@ -58,8 +59,9 @@ export const handler = async (event, context) => {
     senderMailboxPassword: process.env.MESH_SENDER_MAILBOX_PASSWORD,
     receiverCert: MESH_RECEIVER_CERT,
     receiverKey: MESH_RECEIVER_KEY,
-    receiverMailboxID: process.env.GTMS_MESH_RECEIVER_MAILBOX_ID,
+    receiverMailboxID: GTMS_MESH_RECEIVER_MAILBOX_ID,
   });
+  console.info("TEMPORARY CONFIG : ", CONFIG);
   const KEY_PREFIX = "invitation_batch_";
   const timestamp = new Date(Date.now()).toISOString();
 
@@ -77,7 +79,6 @@ export const handler = async (event, context) => {
       CONFIG,
       JSONMsgObj
     );
-    // const { postReceiveReadMsgStatus, postReceiveMsgObject } = await readMeshMessage(readMsg, CONFIG, sentMsgID);
     await handleSentMessageFile(
       pushJsonToS3,
       deleteObjectFromS3,
@@ -116,6 +117,7 @@ export const sendMessageToMesh = async (
   JSONMsgObj
 ) => {
   const { length: preSendMsgObjectLength } = JSONMsgObj;
+  console.info("TEMPORARY CONFIG INSIDE sendMessageToMesh : ", CONFIG);
   const sentMsgStatus = await sendFunc(
     CONFIG,
     JSONMsgObj,
@@ -141,6 +143,9 @@ export const handleSentMessageFile = async (
   client
 ) => {
   if (sentMsgStatus === 202) {
+    console.info(
+      "Message sent confirmation received with status 202, ready to push file to sent Bucket"
+    );
     const pushJsonToS3Status = await pushJsonFunc(
       client,
       SENT_BUCKET,
@@ -221,6 +226,7 @@ export async function sendUncompressed(
 ) {
   console.log(`Sending ${filename} to GTMS Mailbox`);
   try {
+    console.info("TEMPORARY config INSIDE sendUncompressed : ", config);
     let healthCheck = await performHandshake({
       url: config.url,
       mailboxID: config.senderMailboxID,
@@ -251,25 +257,9 @@ export async function sendUncompressed(
       );
     } else {
       console.log(`Successfully sent ${filename} to GTMS mailbox`);
+      console.info("TEMPORARY CONFIRMATION AFTER SENDING MESSAGE: ", message);
       return message.status;
     }
-  } catch (error) {
-    throw error;
-  }
-}
-
-//Reads message data based on message ID
-export async function readMsg(config, msgID, retrieveMessage) {
-  try {
-    let messages = await retrieveMessage({
-      url: config.url,
-      mailboxID: config.receiverMailboxID,
-      mailboxPassword: config.receiverMailboxPassword,
-      sharedKey: config.sharedKey,
-      messageID: msgID,
-      agent: config.receiverAgent,
-    });
-    return messages;
   } catch (error) {
     throw error;
   }
