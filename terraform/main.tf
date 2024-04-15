@@ -117,15 +117,15 @@ module "eks" {
       kubernetes_groups = []
       principal_arn     = "arn:aws:iam::136293001324:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_Admin_603cb786ef89bc37"
 
-      # policy_associations = {
-      #   example = {
-      #     policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
-      #     access_scope = {
-      #       namespaces = ["default", "kube-system"]
-      #       type       = "namespace"
-      #     }
-      #   }
-      # }
+      policy_associations = {
+        example = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy"
+          access_scope = {
+            namespaces = ["default", "kube-system"]
+            type       = "namespace"
+          }
+        }
+      }
     }
   }
 
