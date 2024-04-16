@@ -119,7 +119,7 @@ jobs:
       CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
       NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
 
-  post-build-stage:
+  post-build-stage: # Recommended maximum execution time is 5 minutes
     needs: [metadata, build-stage]
     uses: ./.github/workflows/post-build.yaml
     with:
