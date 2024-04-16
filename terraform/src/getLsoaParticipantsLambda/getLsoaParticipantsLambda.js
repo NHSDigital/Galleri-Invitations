@@ -47,7 +47,7 @@ export async function queryEligiblePopulation(client, lsoaCode, tableItems) {
       },
     },
     KeyConditionExpression: "LsoaCode = :code",
-    ProjectionExpression: "PersonId, Invited, date_of_death, removal_date, identified_to_be_invited, removal_reason, superseded_by_nhs_number",
+    ProjectionExpression: "PersonId, Invited, date_of_death, reason_for_removal_effective_from_date, identified_to_be_invited, reason_for_removal, superseded_by_nhs_number",
     TableName: `${ENVIRONMENT}-Population`,
     IndexName: "LsoaCode-index",
   };
@@ -76,7 +76,7 @@ export async function getPopulation(lsoaList, client) {
       response.forEach((person) => {
         if (
           person?.date_of_death?.S == "NULL" &&
-          person?.removal_date?.S == "NULL"
+          person?.reason_for_removal_effective_from_date?.S == "NULL"
         ) {
           ++eligiblePopulation;
           if (person?.Invited?.S == "true" || person?.identified_to_be_invited.BOOL) {
@@ -116,9 +116,9 @@ export async function getEligiblePopulation(lsoaList, client) {
           !person?.identified_to_be_invited?.BOOL &&
           person?.Invited?.S == "false" &&
           person?.date_of_death?.S == "NULL" &&
-          person?.removal_date?.S == "NULL" &&
+          person?.reason_for_removal_effective_from_date?.S == "NULL" &&
           person?.superseded_by_nhs_number?.N == 0 &&
-          person?.removal_reason?.S == "NULL"
+          person?.reason_for_removal?.S == "NULL"
         ) {
           populationArray.push({
             personId: person?.PersonId.S,
