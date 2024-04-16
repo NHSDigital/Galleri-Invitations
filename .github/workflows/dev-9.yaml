@@ -115,6 +115,7 @@ jobs:
   commit-stage: # Recommended maximum execution time is 2 minutes
     needs: [metadata]
     uses: ./.github/workflows/stage-1-commit.yaml
+    if: needs.metadata.outputs.tf_action != 'destroy'
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
@@ -128,6 +129,7 @@ jobs:
   test-stage: # Recommended maximum execution time is 5 minutes
     needs: [metadata, commit-stage]
     uses: ./.github/workflows/stage-2-test.yaml
+    if: needs.metadata.outputs.tf_action != 'destroy'
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
@@ -161,7 +163,7 @@ jobs:
   post-build-stage:
     needs: [metadata, test-stage, build-stage]
     uses: ./.github/workflows/post-build.yaml
-    if: needs.metadata.outputs.database_seeding == 'yes' && needs.metadata.outputs.tf_action != 'destroy'
+    if: needs.metadata.outputs.tf_action != 'destroy'
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
