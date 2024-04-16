@@ -4,181 +4,193 @@ import { SQSClient, SendMessageCommand, DeleteMessageCommand } from '@aws-sdk/cl
 import { queryTable, processRecords } from '../../sendEnrichedMessageToNotifyQueueLambda/sendEnrichedMessageToNotifyQueueLambda';
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 
+const InputRecords = [
+  {
+    receiptHandle: 'receiptHandle2',
+    body: '{"participantId":"NHS-EU44-JN48","nhsNumber":"9000232300","episodeEvent":"Appointment Booked Letter"}',
+  },
+  {
+    receiptHandle: 'receiptHandle3',
+    body: '{"participantId":"NHS-JL65-PZ85","nhsNumber":"9000089789","episodeEvent":"Appointment Booked Text"}',
+  },
+  {
+    receiptHandle: 'receiptHandle4',
+    body: '{"participantId":"NHS-DD72-EV47","nhsNumber":"9000031959","episodeEvent":"Appointment Rebooked Letter"}',
+  },
+  {
+    receiptHandle: 'receiptHandle5',
+    body: '{"participantId":"NHS-CV02-RM34","nhsNumber":"9000001763","episodeEvent":"Appointment Rebooked Text"}',
+  },
+  {
+    receiptHandle: 'receiptHandle6',
+    body: '{"participantId":"NHS-CV02-RM34","nhsNumber":"9000001763","episodeEvent":"Appointment Cancelled by NHS"}',
+  },
+  {
+    receiptHandle: 'receiptHandle7',
+    body: '{"participantId":"NHS-CV02-RM34","nhsNumber":"9000001763","episodeEvent":"Appointment Cancelled by Participant"}',
+  },
+  {
+    receiptHandle: 'receiptHandle8',
+    body: '{"participantId":"NHS-CV02-RM34","nhsNumber":"9000001763","episodeEvent":"Appointment Cancelled by Participant - Withdrawn"}',
+  },
+  {
+    receiptHandle: 'receiptHandle1',
+    body: '{"participantId":"NHS-PY70-FH15","nhsNumber":"9000203188","episodeEvent":"Invited"}',
+  },
+  {
+    receiptHandle: 'receiptHandle9',
+    body: '{"participantId":"NHS-CV02-RM34","nhsNumber":"9000001763","episodeEvent":"Withdrawn"}',
+  },
+];
+
+const ItemsFromAppointments = [
+  {
+    Participant_Id: {
+      "S": 'NHS-EU44-JN48'
+    },
+    Appointment_Id: {
+      "S": '1'
+    },
+    Appointment_Date_Time:
+    {
+      "S": '2024-04-20T10:30:00.000Z'
+    },
+    Clinic_Id: {
+      "S": 'clinic1'
+    }
+  },
+  {
+    Participant_Id: {
+      "S": 'NHS-EU44-JN48',
+    },
+    Appointment_Id: {
+      "S": '2'
+    },
+    Appointment_Date_Time: {
+      "S": '2024-04-25T11:00:00.000Z'
+    },
+    Clinic_Id: {
+      "S": 'clinic2'
+    }
+  },
+  {
+    Participant_Id: {
+      "S": 'NHS-PY70-FH15',
+    },
+    Appointment_Id: {
+      "S": '3'
+    },
+    Appointment_Date_Time: {
+      "S": '2024-04-25T11:00:00.000Z'
+    },
+    Clinic_Id: {
+      "S": 'clinic1'
+    }
+  },
+  {
+    Participant_Id: {
+      "S": 'NHS-JL65-PZ85',
+    },
+    Appointment_Id: {
+      "S": '4'
+    },
+    Appointment_Date_Time: {
+      "S": '2024-04-25T11:00:00.000Z'
+    },
+    Clinic_Id: {
+      "S": 'clinic2'
+    }
+  },
+  {
+    Participant_Id: {
+      "S": 'NHS-DD72-EV47',
+    },
+    Appointment_Id: {
+      "S": '5'
+    },
+    Appointment_Date_Time: {
+      "S": '2024-04-25T11:00:00.000Z'
+    },
+    Clinic_Id: {
+      "S": 'clinic1'
+    }
+  },
+  {
+    Participant_Id: {
+      "S": 'NHS-CV02-RM34',
+    },
+    Appointment_Id: {
+      "S": '6'
+    },
+    Appointment_Date_Time: {
+      "S": '2024-04-25T11:00:00.000Z'
+    },
+    Clinic_Id: {
+      "S": 'clinic2'
+    }
+  }
+];
+
+const ItemFromClinics = [
+  {
+    ClinicId: {
+      "S": "clinic1"
+    },
+    ClinicName: {
+      "S": "Phlebotomy clinic 1"
+    },
+    Address: {
+      "S": "1 infelicity Street, Gondor MK42 9DJ"
+    },
+    Directions: {
+      "S": "These will contain directions to the site"
+    },
+    PostCode: {
+      "S": "MK42 9DJ"
+    },
+  },
+  {
+    ClinicId: {
+      "S": "clinic2"
+    },
+    ClinicName: {
+      "S": "Phlebotomy clinic 2"
+    },
+    Address: {
+      "S": "1 unangry Road, Gondor TA1 2PX"
+    },
+    Directions: {
+      "S": "These will contain directions to the site"
+    },
+    PostCode: {
+      "S": "TA1 2PX"
+    },
+  }
+];
 
 describe('processRecords', () => {
+  let mockDynamoDbClient;
+  let mockSQSClient;
+  let mockSSMClient;
+
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
+    mockDynamoDbClient = mockClient(new DynamoDBClient({}));
+    mockSQSClient = mockClient(new SQSClient({}));
+    mockSSMClient = mockClient(new SSMClient());
+
   });
 
-  const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
-  const mockSQSClient = mockClient(new SQSClient({}));
-  const mockSSMClient = mockClient(new SSMClient());
-  const InputRecords = [
-    {
-      receiptHandle: 'receiptHandle2',
-      body: '{"participantId":"NHS-EU44-JN48","nhsNumber":"9000232300","episodeEvent":"Appointment Booked Letter"}',
-    },
-    {
-      receiptHandle: 'receiptHandle3',
-      body: '{"participantId":"NHS-JL65-PZ85","nhsNumber":"9000089789","episodeEvent":"Appointment Booked Text"}',
-    },
-    {
-      receiptHandle: 'receiptHandle4',
-      body: '{"participantId":"NHS-DD72-EV47","nhsNumber":"9000031959","episodeEvent":"Appointment Rebooked Letter"}',
-    },
-    {
-      receiptHandle: 'receiptHandle5',
-      body: '{"participantId":"NHS-CV02-RM34","nhsNumber":"9000001763","episodeEvent":"Appointment Rebooked Text"}',
-    },
-    {
-      receiptHandle: 'receiptHandle6',
-      body: '{"participantId":"NHS-CV02-RM34","nhsNumber":"9000001763","episodeEvent":"Appointment Cancelled by NHS"}',
-    },
-    {
-      receiptHandle: 'receiptHandle7',
-      body: '{"participantId":"NHS-CV02-RM34","nhsNumber":"9000001763","episodeEvent":"Appointment Cancelled by Participant"}',
-    },
-    {
-      receiptHandle: 'receiptHandle8',
-      body: '{"participantId":"NHS-CV02-RM34","nhsNumber":"9000001763","episodeEvent":"Appointment Cancelled by Participant - Withdrawn"}',
-    },
-    {
-      receiptHandle: 'receiptHandle1',
-      body: '{"participantId":"NHS-PY70-FH15","nhsNumber":"9000203188","episodeEvent":"Invited"}',
-    },
-    {
-      receiptHandle: 'receiptHandle9',
-      body: '{"participantId":"NHS-CV02-RM34","nhsNumber":"9000001763","episodeEvent":"Withdrawn"}',
-    },
-  ];
+  afterEach(() => {
+    mockDynamoDbClient.reset();
+    mockSQSClient.reset();
+    mockSSMClient.reset();
+  });
 
-  const ItemsFromAppointments = [
-    {
-      Participant_Id: {
-        "S": 'NHS-EU44-JN48'
-      },
-      Appointment_Id: {
-        "S": '1'
-      },
-      Appointment_Date_Time:
-      {
-        "S": '2024-04-20T10:30:00.000Z'
-      },
-      Clinic_Id: {
-        "S": 'clinic1'
-      }
-    },
-    {
-      Participant_Id: {
-        "S": 'NHS-EU44-JN48',
-      },
-      Appointment_Id: {
-        "S": '2'
-      },
-      Appointment_Date_Time: {
-        "S": '2024-04-25T11:00:00.000Z'
-      },
-      Clinic_Id: {
-        "S": 'clinic2'
-      }
-    },
-    {
-      Participant_Id: {
-        "S": 'NHS-PY70-FH15',
-      },
-      Appointment_Id: {
-        "S": '3'
-      },
-      Appointment_Date_Time: {
-        "S": '2024-04-25T11:00:00.000Z'
-      },
-      Clinic_Id: {
-        "S": 'clinic1'
-      }
-    },
-    {
-      Participant_Id: {
-        "S": 'NHS-JL65-PZ85',
-      },
-      Appointment_Id: {
-        "S": '4'
-      },
-      Appointment_Date_Time: {
-        "S": '2024-04-25T11:00:00.000Z'
-      },
-      Clinic_Id: {
-        "S": 'clinic2'
-      }
-    },
-    {
-      Participant_Id: {
-        "S": 'NHS-DD72-EV47',
-      },
-      Appointment_Id: {
-        "S": '5'
-      },
-      Appointment_Date_Time: {
-        "S": '2024-04-25T11:00:00.000Z'
-      },
-      Clinic_Id: {
-        "S": 'clinic1'
-      }
-    },
-    {
-      Participant_Id: {
-        "S": 'NHS-CV02-RM34',
-      },
-      Appointment_Id: {
-        "S": '6'
-      },
-      Appointment_Date_Time: {
-        "S": '2024-04-25T11:00:00.000Z'
-      },
-      Clinic_Id: {
-        "S": 'clinic2'
-      }
-    }
-  ];
 
-  const ItemFromClinics = [
-    {
-      ClinicId: {
-        "S": "clinic1"
-      },
-      ClinicName: {
-        "S": "Phlebotomy clinic 1"
-      },
-      Address: {
-        "S": "1 infelicity Street, Gondor MK42 9DJ"
-      },
-      Directions: {
-        "S": "These will contain directions to the site"
-      },
-      PostCode: {
-        "S": "MK42 9DJ"
-      },
-    },
-    {
-      ClinicId: {
-        "S": "clinic2"
-      },
-      ClinicName: {
-        "S": "Phlebotomy clinic 2"
-      },
-      Address: {
-        "S": "1 unangry Road, Gondor TA1 2PX"
-      },
-      Directions: {
-        "S": "These will contain directions to the site"
-      },
-      PostCode: {
-        "S": "TA1 2PX"
-      },
-    }
-  ];
 
   test('Successfully enriched message with appointment and clinic fields', async () => {
-    const logSpy = jest.spyOn(global.console, "log");
+    let logSpy = jest.spyOn(global.console, "log");
 
     // Mocks for DynamoDB
     mockDynamoDbClient.on(QueryCommand, {
@@ -245,7 +257,6 @@ describe('processRecords', () => {
 
     // Expects
     const MessageSentToEnrichedQueue = JSON.parse(mockSQSClient.commandCalls(SendMessageCommand)[0].args[0].input.MessageBody);
-    console.log(MessageSentToEnrichedQueue);
 
     // Check message is enriched with the right appointment/clinic details
     expect(MessageSentToEnrichedQueue.participantId).toEqual('NHS-EU44-JN48');
@@ -273,16 +284,139 @@ describe('processRecords', () => {
 
   });
 
-  test('Successfully enrich message without personalisation', () => {
+  test('Successfully enrich message without personalisation', async () => {
+    let logSpy = jest.spyOn(global.console, "log");
+
+    // Mocks for DynamoDB
+    mockDynamoDbClient.on(QueryCommand, {
+      TableName: `dev-Appointments`,
+      KeyConditionExpression: `Participant_Id =:pk`,
+      ExpressionAttributeValues: {
+        ":pk": { S: 'NHS-PY70-FH15' },
+    }}).resolves({
+      $metadata: { httpStatusCode: 200 },
+      Items: ItemsFromAppointments.slice(0,2),
+    });
+
+    mockDynamoDbClient.on(QueryCommand, {
+      TableName: `dev-PhlebotomySite`,
+      KeyConditionExpression: `ClinicId =:pk`,
+      ExpressionAttributeValues: {
+        ":pk": { S: 'clinic1' },
+    }}).resolves({
+      $metadata: { httpStatusCode: 200 },
+      Items: [ItemFromClinics[0]],
+    });
+
+    // Mock for SQS SendMessageCommand
+    mockSQSClient.on(SendMessageCommand).resolves({
+      $metadata: { httpStatusCode: 200 },
+      MessageId: '123',
+    });
+
+    // Mock for SQS DeleteMessageCommand
+    mockSQSClient.on(DeleteMessageCommand).resolves({
+      $metadata: { httpStatusCode: 200 },
+      MessageId: '456',
+    });
+
+    // Mocks for SSM client
+    mockSSMClient.on(GetParameterCommand,
+      {
+        Name: 'invited-tables'
+      }
+    ).resolves({
+      $metadata: { httpStatusCode: 200 },
+      Parameter: {
+        Name: 'invited-tables',
+        Value: 'Null',
+        Type: "String",
+      },
+    });
+
+    mockSSMClient.on(GetParameterCommand,
+      {
+        Name: 'invited-routing-id'
+      }
+    ).resolves({
+      $metadata: { httpStatusCode: 200 },
+      Parameter: {
+        Name: 'invited-routing-id',
+        Value: 'a91601f5-ed53-4472-bbaa-580f418c7091',
+        Type: "String",
+      },
+    });
+
+    // Run function
+    await processRecords([InputRecords[7]], mockSQSClient, mockDynamoDbClient, mockSSMClient, 'dev');
+
+    // Expects
+    const MessageSentToEnrichedQueue = JSON.parse(mockSQSClient.commandCalls(SendMessageCommand)[0].args[0].input.MessageBody);
+
+    // Check message is enriched with the right appointment/clinic details
+    expect(MessageSentToEnrichedQueue.participantId).toEqual('NHS-PY70-FH15');
+    expect(MessageSentToEnrichedQueue.nhsNumber).toEqual('9000203188');
+    expect(MessageSentToEnrichedQueue.episodeEvent).toEqual('Invited');
+    expect(MessageSentToEnrichedQueue).not.toHaveProperty('appointmentDateLong');
+    expect(MessageSentToEnrichedQueue).not.toHaveProperty('appointmentDateShort');
+    expect(MessageSentToEnrichedQueue).not.toHaveProperty('appointmentTime');
+    expect(MessageSentToEnrichedQueue).not.toHaveProperty('clinicName');
+    expect(MessageSentToEnrichedQueue).not.toHaveProperty('clinicAddress');
+    expect(MessageSentToEnrichedQueue).not.toHaveProperty('clinicPostcode');
+    expect(MessageSentToEnrichedQueue).not.toHaveProperty('clinicDirections');
+    expect(MessageSentToEnrichedQueue.routingId).toEqual('a91601f5-ed53-4472-bbaa-580f418c7091');
+
+    // Check correct message has been deleted
+    expect(mockSQSClient.commandCalls(DeleteMessageCommand)[0].args[0].input.ReceiptHandle).toEqual("receiptHandle1");
+
+    expect(logSpy).toHaveBeenCalledWith('Sent enriched message with participant Id: NHS-PY70-FH15 to the enriched message queue.');
+    expect(logSpy).toHaveBeenCalledWith('Deleted message with participant Id: NHS-PY70-FH15 from the raw message queue.');
+    expect(logSpy).toHaveBeenCalledWith('Total records in the batch: 1 - Records successfully processed/sent: 1 - Records failed to send: 0');
+
 
   });
 
-  test('Successfully enrich message with only appointment fields', () => {
+});
 
+describe('Failures', () => {
+  test('Failed to enrich message', async () => {
+    let logSpy = jest.spyOn(global.console, "log");
+    const mockDynamoDbClient2 = mockClient(new DynamoDBClient({}));
+    const mockSQSClient2 = mockClient(new SQSClient({}));
+    const mockSSMClient2 = mockClient(new SSMClient());
+
+  // Mocks for SSM client
+  mockSSMClient2.on(GetParameterCommand,
+    {
+      Name: 'appointment-booked-text-tables'
+    }
+  ).resolves({
+    $metadata: { httpStatusCode: 200 },
+    Parameter: {
+      Name: 'appointment-booked-text-tables',
+      Value: 'Null',
+      Type: "String",
+    },
   });
 
-  test('Failed to enrich message', () => {
+  mockSSMClient2.on(GetParameterCommand,
+    {
+      Name: 'appointment-booked-text-routing-id'
+    }
+  ).resolves({
+    $metadata: { httpStatusCode: 200 },
+    Parameter: {
+      Name: 'appointment-booked-text-routing-id',
+      Value: 'a91601f5-ed53-4472-bbaa-580f418c7091',
+      Type: "String",
+    },
+  });
 
+  // Run function
+  await processRecords([InputRecords[1]], mockSQSClient2, mockDynamoDbClient2, mockSSMClient2, 'dev');
+
+  // Expects
+  expect(logSpy).toHaveBeenCalledWith('Total records in the batch: 1 - Records successfully processed/sent: 0 - Records failed to send: 1');
   });
 });
 
