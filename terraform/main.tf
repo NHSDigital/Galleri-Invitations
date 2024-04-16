@@ -2033,8 +2033,8 @@ resource "aws_ssm_parameter" "withdrawn-tables" {
   }
 }
 
-resource "aws_ssm_parameter" "appointment-booked-notify" {
-  name  = "appointment-booked-notify"
+resource "aws_ssm_parameter" "appointment-booked-letter-notify" {
+  name  = "appointment-booked-letter-notify"
   type  = "String"
   value = "True"
   tags = {
@@ -2042,8 +2042,8 @@ resource "aws_ssm_parameter" "appointment-booked-notify" {
   }
 }
 
-resource "aws_ssm_parameter" "appointment-booked-routing-id" {
-  name  = "appointment-booked-routing-id"
+resource "aws_ssm_parameter" "appointment-booked-letter-routing-id" {
+  name  = "appointment-booked-letter-routing-id"
   type  = "String"
   value = "4c4c4c06-0f6d-465a-ab6a-ca358c2721b0"
   tags = {
@@ -2051,8 +2051,8 @@ resource "aws_ssm_parameter" "appointment-booked-routing-id" {
   }
 }
 
-resource "aws_ssm_parameter" "appointment-booked-tables" {
-  name  = "appointment-booked-tables"
+resource "aws_ssm_parameter" "appointment-booked-letter-tables" {
+  name  = "appointment-booked-letter-tables"
   type  = "StringList"
   value = "appointment, phlebotomy"
   tags = {
@@ -2060,8 +2060,8 @@ resource "aws_ssm_parameter" "appointment-booked-tables" {
   }
 }
 
-resource "aws_ssm_parameter" "appointment-rebooked-notify" {
-  name  = "appointment-rebooked-notify"
+resource "aws_ssm_parameter" "appointment-booked-text-notify" {
+  name  = "appointment-booked-text-notify"
   type  = "String"
   value = "True"
   tags = {
@@ -2069,8 +2069,8 @@ resource "aws_ssm_parameter" "appointment-rebooked-notify" {
   }
 }
 
-resource "aws_ssm_parameter" "appointment-rebooked-routing-id" {
-  name  = "appointment-rebooked-routing-id"
+resource "aws_ssm_parameter" "appointment-booked-text-routing-id" {
+  name  = "appointment-booked-text-routing-id"
   type  = "String"
   value = "Unavailable"
   tags = {
@@ -2078,8 +2078,62 @@ resource "aws_ssm_parameter" "appointment-rebooked-routing-id" {
   }
 }
 
-resource "aws_ssm_parameter" "appointment-rebooked-tables" {
-  name  = "appointment-rebooked-tables"
+resource "aws_ssm_parameter" "appointment-booked-text-tables" {
+  name  = "appointment-booked-text-tables"
+  type  = "StringList"
+  value = "appointment, phlebotomy"
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "aws_ssm_parameter" "appointment-rebooked-letter-notify" {
+  name  = "appointment-rebooked-letter-notify"
+  type  = "String"
+  value = "True"
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "aws_ssm_parameter" "appointment-rebooked-letter-routing-id" {
+  name  = "appointment-rebooked-letter-routing-id"
+  type  = "String"
+  value = "Unavailable"
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "aws_ssm_parameter" "appointment-rebooked-letter-tables" {
+  name  = "appointment-rebooked-letter-tables"
+  type  = "StringList"
+  value = "appointment, phlebotomy"
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "aws_ssm_parameter" "appointment-rebooked-text-notify" {
+  name  = "appointment-rebooked-text-notify"
+  type  = "String"
+  value = "True"
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "aws_ssm_parameter" "appointment-rebooked-text-routing-id" {
+  name  = "appointment-rebooked-text-routing-id"
+  type  = "String"
+  value = "Unavailable"
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "aws_ssm_parameter" "appointment-rebooked-text-tables" {
+  name  = "appointment-rebooked-text-tables"
   type  = "StringList"
   value = "appointment, phlebotomy"
   tags = {
@@ -2113,6 +2167,60 @@ resource "aws_ssm_parameter" "appointment-cancelled-nhs-tables" {
     Environment = var.environment
   }
 }
+resource "aws_ssm_parameter" "appointment-cancelled-participant-notify" {
+  name  = "appointment-cancelled-participant-notify"
+  type  = "String"
+  value = "True"
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-participant-routing-id" {
+  name  = "appointment-cancelled-participant-routing-id"
+  type  = "String"
+  value = "841ebf60-4ffa-45d3-874b-b3e9db895c70"
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-participant-tables" {
+  name  = "appointment-cancelled-participant-tables"
+  type  = "StringList"
+  value = "appointment, phlebotomy"
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-participant-withdrawn-notify" {
+  name  = "appointment-cancelled-participant-withdrawn-notify"
+  type  = "String"
+  value = "True"
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-participant-withdrawn-routing-id" {
+  name  = "appointment-cancelled-participant-withdrawn-routing-id"
+  type  = "String"
+  value = "841ebf60-4ffa-45d3-874b-b3e9db895c70"
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-participant-withdrawn-tables" {
+  name  = "appointment-cancelled-participant-withdrawn-tables"
+  type  = "StringList"
+  value = "Null"
+  tags = {
+    Environment = var.environment
+  }
+}
+
 
 resource "aws_ssm_parameter" "appointment-attended-sample-taken-notify" {
   name  = "appointment-attended-sample-taken-notify"
