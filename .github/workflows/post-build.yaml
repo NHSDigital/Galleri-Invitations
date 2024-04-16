@@ -55,9 +55,16 @@ jobs:
         with:
           ref: "${{ env.invitations-branch }}"
           fetch-depth: 0 # Full history is needed to scan all commits
-      - name: deploy to k8s
-        run: |
-          sudo apt install kubectl
-          aws eks update-kubeconfig --name ${{ env.environment }}-eks-cluster
-          pwd
-          kubectl apply -f ./scripts/test_data/k8s/mesh-sandbox.yaml
+      - name: "Deploy to Kubernetes"
+        uses: ./.github/actions/kubernetes
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.aws-region }}
+          aws-bucket-name: ${{ env.aws-bucket-name }}
+          aws-bucket-key-name: ${{ env.aws-bucket-key-name }}
+          environment: ${{ env.environment }}
+          TF_VAR_USERS: ${{ secrets.USERS }}
+          TF_VAR_CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
+          TF_VAR_NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}
+        timeout-minutes: 15
