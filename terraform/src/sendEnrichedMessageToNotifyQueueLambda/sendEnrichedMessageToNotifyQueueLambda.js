@@ -1,26 +1,28 @@
 //IMPORTS
 import { SQSClient, SendMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
 import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
+import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 import { format } from 'date-fns';
 
 //VARIABLES
 const ENVIRONMENT = process.env.ENVIRONMENT;
 const sqs = new SQSClient({});
 const dynamodb = new DynamoDBClient({region: "eu-west-2"});
-const ParticipantIdField = 'Participant_Id';
-const ClinicIdField = 'Clinic_Id';
-const AppointmentDateTimeField = 'Appointment_Date_Time';
-const PhlebotomySiteClinicIdField = 'ClinicId';
-const PhlebotomySiteClinicName = 'ClinicName';
-const PhlebotomySiteAddress = 'Address';
-const PhlebotomySitePostcode = 'PostCode';
-const PhlebotomySiteDirections = 'Directions';
+const ssm = new SSMClient();
+const participantIdField = 'Participant_Id';
+const clinicIdField = 'Clinic_Id';
+const appointmentDateTimeField = 'Appointment_Date_Time';
+const phlebotomySiteClinicIdField = 'ClinicId';
+const phlebotomySiteClinicName = 'ClinicName';
+const phlebotomySiteAddress = 'Address';
+const phlebotomySitePostcode = 'PostCode';
+const phlebotomySiteDirections = 'Directions';
 
 //HANDLER
 export const handler = async (event) => {
   try {
     const batchOfMessages = event.Records;
-    await processRecords(batchOfMessages, sqs, dynamodb, ENVIRONMENT)
+    await processRecords(batchOfMessages, sqs, dynamodb, ssm, ENVIRONMENT)
   } catch (error) {
     console.error('Error occurred whilst processing the batch of messages from SQS');
     console.error('Error:', error);
@@ -28,24 +30,23 @@ export const handler = async (event) => {
 };
 
 //FUNCTIONS
-export async function processRecords(records, sqsClient, dynamoDbClient, environment) {
+export async function processRecords(records, sqsClient, dynamoDbClient, ssmClient, environment) {
   const totalRecords = records.length;
   let recordsSuccessfullySent = 0;
   let recordsFailedToSend = 0;
-  console.log(records);
 
   for (let record of records) {
     try {
       const messageBody = JSON.parse(record.body);
 
-      // Retrieve episodeEvent parameters from parameter store
-      const eventType = messageBody.episodeEvent;
+      // Retrieve tables and routing Id from SSM Parameter store
+      const eventType = `${messageBody.episodeEvent.toLowerCase().replace(/ /g, "-")}`;
+      const tables = await getParameterValue(`${eventType}-tables`,ssmClient);
+      const routingId = await getParameterValue(`${eventType}-routing-id`,ssmClient);
 
-      // <Retrieve from parameter store code>
-
-      // Values I get back from parameter store - Dummy values for now
-      const routingId = '841ebf60-4ffa-45d3-874b-b3e9db895c70';
-      const tables = 'appointment,clinic';
+      if (routingId == 'Null' || routingId == 'Unavailable') {
+        throw new Error(`RoutingId for event ${eventType} is returned as ${routingId}, processing of message stopped.`);
+      }
 
       // Enrich message
       if(tables.includes('appointment')) {
@@ -53,28 +54,28 @@ export async function processRecords(records, sqsClient, dynamoDbClient, environ
         const participantId = messageBody.participantId;
 
         try {
-          const appointmentsQueryResponse = await queryTable(dynamoDbClient,'Appointments',ParticipantIdField,participantId,environment);
+          const appointmentsQueryResponse = await queryTable(dynamoDbClient,'Appointments',participantIdField,participantId,environment);
           const latestAppointment = appointmentsQueryResponse.sort((a,b) => {
             return new Date(b.Appointment_Date_Time.S) - new Date(a.Appointment_Date_Time.S);
           })[0];
-          const appointmentDate = new Date(latestAppointment[AppointmentDateTimeField].S);
+          const appointmentDate = new Date(latestAppointment[appointmentDateTimeField].S);
 
           messageBody.appointmentDateLong = format(appointmentDate, 'eeee dd MMMM yyyy');
           messageBody.appointmentDateShort = format(appointmentDate, 'dd/MM/yyyy');
           messageBody.appointmentTime = format(appointmentDate, 'hh:mmaaa');
 
-          if(tables.includes('clinic')) {
-            const clinicId = latestAppointment[ClinicIdField].S;
-            const phlebotomySiteQueryResponse = await queryTable(dynamoDbClient,'PhlebotomySite',PhlebotomySiteClinicIdField,clinicId,environment);
+          if(tables.includes('phlebotomy')) {
+            const clinicId = latestAppointment[clinicIdField].S;
+            const phlebotomySiteQueryResponse = await queryTable(dynamoDbClient,'PhlebotomySite',phlebotomySiteClinicIdField,clinicId,environment);
 
-            messageBody.clinicName = phlebotomySiteQueryResponse[0][PhlebotomySiteClinicName].S;
-            messageBody.clinicAddress = phlebotomySiteQueryResponse[0][PhlebotomySiteAddress].S;
-            messageBody.clinicPostcode = phlebotomySiteQueryResponse[0][PhlebotomySitePostcode].S;
-            messageBody.clinicDirections = phlebotomySiteQueryResponse[0][PhlebotomySiteDirections].S;
+            messageBody.clinicName = phlebotomySiteQueryResponse[0][phlebotomySiteClinicName].S;
+            messageBody.clinicAddress = phlebotomySiteQueryResponse[0][phlebotomySiteAddress].S;
+            messageBody.clinicPostcode = phlebotomySiteQueryResponse[0][phlebotomySitePostcode].S;
+            messageBody.clinicDirections = phlebotomySiteQueryResponse[0][phlebotomySiteDirections].S;
           }
 
         } catch (error) {
-          console.error('Error querying DynamoDB');
+          console.error('Error: Error querying DynamoDB');
           throw error;
         }
 
@@ -94,7 +95,7 @@ export async function processRecords(records, sqsClient, dynamoDbClient, environ
         await sqsClient.send(sendMessageCommand);
         console.log(`Sent enriched message with participant Id: ${messageBody.participantId} to the enriched message queue.`);
       } catch (error) {
-        console.error(`Failed to send message: ${record.messageId}`);
+        console.error(`Error: Failed to send message: ${record.messageId}`);
         throw error;
       }
 
@@ -108,7 +109,7 @@ export async function processRecords(records, sqsClient, dynamoDbClient, environ
         await sqsClient.send(deleteMessageCommand);
         console.log(`Deleted message with participant Id: ${messageBody.participantId} from the raw message queue.`);
       } catch (error) {
-        console.error(`Failed to delete message: ${record.messageId}`);
+        console.error(`Error: Failed to delete message: ${record.messageId}`);
         throw error;
       }
 
@@ -135,11 +136,26 @@ export async function queryTable(dynamoDbClient,tableName,pKeyField,pKeyValue,en
     const queryCommand = new QueryCommand(params);
     const response = await dynamoDbClient.send(queryCommand);
     if (response.Items.length === 0) {
-      throw new Error(`No items returned when querying ${tableName} with value ${pKeyValue}`);
+      throw new Error(`Error: No items returned when querying ${tableName} with value ${pKeyValue}`);
     }
     return response.Items;
   } catch (error) {
-    console.error(`Error with querying the DynamoDB table ${tableName}`);
+    console.error(`Error: Error with querying the DynamoDB table ${tableName}`);
     throw error;
   }
 };
+
+export async function getParameterValue(parameterName,ssmClient) {
+  const params = {
+    Name: parameterName,
+    WithDecryption: true
+  };
+
+  try {
+    const response = await ssmClient.send(new GetParameterCommand(params));
+    return response.Parameter.Value;
+  } catch (error) {
+    console.error(`Error: Error retrieving parameter ${parameterName}`);
+    throw error;
+  }
+}
