@@ -106,11 +106,6 @@ export async function validateRecord(record, client) {
         return validationResults;
       } else {
         record.ClinicScheduleSummary.ClinicScheduleSummary.forEach((clinic) => {
-          if(clinic.Schedule.length !== SIX_WEEK_HORIZON) {
-            validationResults.success = false;
-            validationResults.message = "Six week horizon is exceeded or not met";
-            return validationResults;
-          } else {
             clinic.Schedule.forEach((scheduleElement) => {
               if(!isMonday(new Date(scheduleElement.WeekCommencingDate))) {
                 validationResults.success = false;
@@ -118,7 +113,6 @@ export async function validateRecord(record, client) {
                 return validationResults;
               }
             });
-          }
         });
       }
     }
