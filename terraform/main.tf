@@ -3,6 +3,11 @@ terraform {
     dynamodb_table = "terraform-state-lock-dynamo"
     encrypt        = true
   }
+  required_providers {
+    null = {
+      source = "hashicorp/null"
+    }
+  }
 }
 
 provider "aws" {
