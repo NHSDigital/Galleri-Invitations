@@ -108,7 +108,7 @@ jobs:
     secrets: inherit
 
   build-stage: # Recommended maximum execution time is 10 minutes
-    needs: [metadata]
+    needs: [metadata, test-stage]
     uses: ./.github/workflows/stage-3-build.yaml
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
