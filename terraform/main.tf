@@ -1516,27 +1516,27 @@ module "caas_data_triggers" {
   source     = "./modules/lambda_s3_trigger"
   bucket_arn = module.validated_records_bucket.bucket_arn
   bucket_id  = module.validated_records_bucket.bucket_id
-  triggers = [
-    {
+  triggers = {
+    add_records = {
       lambda_arn    = module.caas_feed_add_records_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records_add-",
       filter_suffix = null
     },
-    {
+    update_records = {
       lambda_arn    = module.caas_feed_update_records_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records_update-",
       filter_suffix = null
     },
-    {
+    delete_records = {
       lambda_arn = module.caas_feed_delete_records_lambda.lambda_arn,
       # bucket_events = ["s3:ObjectRemoved:*"],
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records_delete-",
       filter_suffix = null
     }
-  ]
+  }
 }
 
 module "caas_feed_update_records_lambda" {
