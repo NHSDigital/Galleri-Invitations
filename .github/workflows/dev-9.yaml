@@ -158,6 +158,23 @@ jobs:
       CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
       NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
 
+  post-build-stage:
+    needs: [metadata, test-stage, build-stage]
+    uses: ./.github/workflows/post-build.yaml
+    if: needs.metadata.outputs.database_seeding == 'yes' && needs.metadata.outputs.tf_action != 'destroy'
+    with:
+      build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
+      build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
+      build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
+      nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
+      python_version: "${{ needs.metadata.outputs.python_version }}"
+      terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
+      version: "${{ needs.metadata.outputs.version }}"
+      environment: "${{ needs.metadata.outputs.environment }}"
+      environment_type: "${{ needs.metadata.outputs.environment_type }}"
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
+
   data-stage: # Recommended maximum execution time is 10 minutes
     needs: [metadata, test-stage, build-stage]
     uses: ./.github/workflows/stage-4-load-data.yaml

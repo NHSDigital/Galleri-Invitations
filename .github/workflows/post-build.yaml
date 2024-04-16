@@ -1,0 +1,61 @@
+name: "Post Build stage"
+
+on:
+  workflow_call:
+    inputs:
+      build_datetime:
+        description: "Build datetime, set by the CI/CD pipeline workflow"
+        required: true
+        type: string
+      build_timestamp:
+        description: "Build timestamp, set by the CI/CD pipeline workflow"
+        required: true
+        type: string
+      build_epoch:
+        description: "Build epoch, set by the CI/CD pipeline workflow"
+        required: true
+        type: string
+      nodejs_version:
+        description: "Node.js version, set by the CI/CD pipeline workflow"
+        required: true
+        type: string
+      python_version:
+        description: "Python version, set by the CI/CD pipeline workflow"
+        required: true
+        type: string
+      environment:
+        description: "the environment to deploy terraform into"
+        required: true
+        type: string
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+
+env:
+  aws-region: ${{ vars.aws_region }}
+  aws-bucket-name: ${{ vars.aws_bucket_name }}
+  aws-bucket-key-name: ${{ vars.aws_bucket_key_name }}
+  environment: ${{ inputs.environment }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+
+jobs:
+  build:
+    permissions:
+      id-token: write # This is required for aws oidc connection
+      contents: read # This is required for actions/checkout
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          ref: "${{ env.invitations-branch }}"
+          fetch-depth: 0 # Full history is needed to scan all commits
+      - name: Install kubectl
+        run: |
+          apt install kubectl
+      - name: deploy to k8s
+        run: |
+          aws eks update-kubeconfig --name ${{ env.environment }}-eks-cluster
+          pwd
+          kubectl apply -f ./scripts/test_data/k8s/mesh-sandbox.yaml
