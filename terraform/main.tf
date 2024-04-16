@@ -10,6 +10,9 @@ terraform {
     tls = {
       source = "hashicorp/tls"
     }
+    time = {
+      source = "hashicorp/time"
+    }
   }
 }
 
