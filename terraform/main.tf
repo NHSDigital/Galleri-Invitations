@@ -7,6 +7,9 @@ terraform {
     null = {
       source = "hashicorp/null"
     }
+    tls = {
+      source = "hashicorp/tls"
+    }
   }
 }
 
