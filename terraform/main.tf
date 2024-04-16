@@ -1620,25 +1620,25 @@ module "event_type_triggers" {
       lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records-COMPLETE",
-      filter_suffix = null
+      filter_suffix = ""
     },
     {
       lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records-NO_SHOW",
-      filter_suffix = null
+      filter_suffix = ""
     },
     {
       lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records-ABORTED",
-      filter_suffix = null
+      filter_suffix = ""
     },
     {
       lambda_arn    = module.appointments_event_cancelled_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records-CANCELLED",
-      filter_suffix = null
+      filter_suffix = ""
     },
   ]
 }
