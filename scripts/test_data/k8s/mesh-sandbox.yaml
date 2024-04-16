@@ -30,6 +30,9 @@ spec:
             requests:
               cpu: "300m"
               memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "2048Mi"
           image: quay.io/andrew_cleveland-cic/mesh_sandbox:latest
           ports:
             - containerPort: 443
