@@ -135,8 +135,9 @@ jobs:
       version: "${{ needs.metadata.outputs.version }}"
       invitations_branch: "${{ github.event.inputs.invitations_branch }}"
     secrets: inherit
+
   test-stage: # Recommended maximum execution time is 5 minutes
-    needs: [metadata, commit-stage]
+    needs: [metadata]
     uses: ./.github/workflows/stage-2-test.yaml
     if: needs.metadata.outputs.tf_action != 'destroy' && needs.metadata.outputs.skip_default_checks == 'yes'
     with:
