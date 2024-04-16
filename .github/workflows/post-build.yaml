@@ -55,11 +55,9 @@ jobs:
         with:
           ref: "${{ env.invitations-branch }}"
           fetch-depth: 0 # Full history is needed to scan all commits
-      - name: Install kubectl
-        run: |
-          apt install kubectl
       - name: deploy to k8s
         run: |
+          sudo apt install kubectl
           aws eks update-kubeconfig --name ${{ env.environment }}-eks-cluster
           pwd
           kubectl apply -f ./scripts/test_data/k8s/mesh-sandbox.yaml
