@@ -2141,8 +2141,8 @@ resource "aws_ssm_parameter" "appointment-rebooked-text-tables" {
   }
 }
 
-resource "aws_ssm_parameter" "appointment-cancelled-nhs-notify" {
-  name  = "appointment-cancelled-nhs-notify"
+resource "aws_ssm_parameter" "appointment-cancelled-by-nhs-notify" {
+  name  = "appointment-cancelled-by-nhs-notify"
   type  = "String"
   value = "True"
   tags = {
@@ -2150,8 +2150,8 @@ resource "aws_ssm_parameter" "appointment-cancelled-nhs-notify" {
   }
 }
 
-resource "aws_ssm_parameter" "appointment-cancelled-nhs-routing-id" {
-  name  = "appointment-cancelled-nhs-routing-id"
+resource "aws_ssm_parameter" "appointment-cancelled-by-nhs-routing-id" {
+  name  = "appointment-cancelled-by-nhs-routing-id"
   type  = "String"
   value = "841ebf60-4ffa-45d3-874b-b3e9db895c70"
   tags = {
@@ -2159,16 +2159,16 @@ resource "aws_ssm_parameter" "appointment-cancelled-nhs-routing-id" {
   }
 }
 
-resource "aws_ssm_parameter" "appointment-cancelled-nhs-tables" {
-  name  = "appointment-cancelled-nhs-tables"
+resource "aws_ssm_parameter" "appointment-cancelled-by-nhs-tables" {
+  name  = "appointment-cancelled-by-nhs-tables"
   type  = "StringList"
   value = "appointment, phlebotomy"
   tags = {
     Environment = var.environment
   }
 }
-resource "aws_ssm_parameter" "appointment-cancelled-participant-notify" {
-  name  = "appointment-cancelled-participant-notify"
+resource "aws_ssm_parameter" "appointment-cancelled-by-participant-notify" {
+  name  = "appointment-cancelled-by-participant-notify"
   type  = "String"
   value = "True"
   tags = {
@@ -2176,8 +2176,8 @@ resource "aws_ssm_parameter" "appointment-cancelled-participant-notify" {
   }
 }
 
-resource "aws_ssm_parameter" "appointment-cancelled-participant-routing-id" {
-  name  = "appointment-cancelled-participant-routing-id"
+resource "aws_ssm_parameter" "appointment-cancelled-by-participant-routing-id" {
+  name  = "appointment-cancelled-by-participant-routing-id"
   type  = "String"
   value = "841ebf60-4ffa-45d3-874b-b3e9db895c70"
   tags = {
@@ -2185,8 +2185,8 @@ resource "aws_ssm_parameter" "appointment-cancelled-participant-routing-id" {
   }
 }
 
-resource "aws_ssm_parameter" "appointment-cancelled-participant-tables" {
-  name  = "appointment-cancelled-participant-tables"
+resource "aws_ssm_parameter" "appointment-cancelled-by-participant-tables" {
+  name  = "appointment-cancelled-by-participant-tables"
   type  = "StringList"
   value = "appointment, phlebotomy"
   tags = {
@@ -2194,8 +2194,8 @@ resource "aws_ssm_parameter" "appointment-cancelled-participant-tables" {
   }
 }
 
-resource "aws_ssm_parameter" "appointment-cancelled-participant-withdrawn-notify" {
-  name  = "appointment-cancelled-participant-withdrawn-notify"
+resource "aws_ssm_parameter" "appointment-cancelled-by-participant-withdrawn-notify" {
+  name  = "appointment-cancelled-by-participant-withdrawn-notify"
   type  = "String"
   value = "True"
   tags = {
@@ -2203,8 +2203,8 @@ resource "aws_ssm_parameter" "appointment-cancelled-participant-withdrawn-notify
   }
 }
 
-resource "aws_ssm_parameter" "appointment-cancelled-participant-withdrawn-routing-id" {
-  name  = "appointment-cancelled-participant-withdrawn-routing-id"
+resource "aws_ssm_parameter" "appointment-cancelled-by-participant-withdrawn-routing-id" {
+  name  = "appointment-cancelled-by-participant-withdrawn-routing-id"
   type  = "String"
   value = "841ebf60-4ffa-45d3-874b-b3e9db895c70"
   tags = {
@@ -2212,8 +2212,8 @@ resource "aws_ssm_parameter" "appointment-cancelled-participant-withdrawn-routin
   }
 }
 
-resource "aws_ssm_parameter" "appointment-cancelled-participant-withdrawn-tables" {
-  name  = "appointment-cancelled-participant-withdrawn-tables"
+resource "aws_ssm_parameter" "appointment-cancelled-by-participant-withdrawn-tables" {
+  name  = "appointment-cancelled-by-participant-withdrawn-tables"
   type  = "StringList"
   value = "Null"
   tags = {
