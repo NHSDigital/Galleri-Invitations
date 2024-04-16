@@ -13,6 +13,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mesh-sandbox-deployment
+automountServiceAccountToken: false
 spec:
   replicas: 1
   selector:
@@ -25,6 +26,10 @@ spec:
     spec:
       containers:
         - name: mesh-sandbox
+          resources:
+            requests:
+              cpu: "300m"
+              memory: "256Mi"
           image: quay.io/andrew_cleveland-cic/mesh_sandbox:latest
           ports:
             - containerPort: 443
