@@ -445,8 +445,10 @@ export const formatDynamoDbRecord = async (record) => {
         email_address: {S: record.email_address},
         preferred_language: {S: record.preferred_language},
         is_interpreter_required: {BOOL: Boolean(record.is_interpreter_required)},
+        Invited: {S: "false"},
+        identified_to_be_invited: {BOOL: false},
         action: {S: record.action},
-      }
+      },
     }
   }
 }
