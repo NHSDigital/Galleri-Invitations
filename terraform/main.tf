@@ -827,13 +827,30 @@ module "gtms_appointment_event_booked_lambda_cloudwatch" {
   retention_days       = 14
 }
 
+# TODO: shift over to bucket group
+# module "gtms_appointment_event_booked_lambda_trigger" {
+#   source        = "./modules/lambda_trigger"
+#   bucket_id     = module.proccessed_appointments.bucket_id
+#   bucket_arn    = module.proccessed_appointments.bucket_arn
+#   lambda_arn    = module.gtms_appointment_event_booked_lambda.lambda_arn
+#   filter_prefix = "validRecords/valid_records-BOOKED"
+# }
+
 module "gtms_appointment_event_booked_lambda_trigger" {
-  source        = "./modules/lambda_trigger"
-  bucket_id     = module.proccessed_appointments.bucket_id
-  bucket_arn    = module.proccessed_appointments.bucket_arn
-  lambda_arn    = module.gtms_appointment_event_booked_lambda.lambda_arn
-  filter_prefix = "validRecords/valid_records-BOOKED"
+  name       = "gtms_event_trigger"
+  source     = "./modules/lambda_s3_trigger"
+  bucket_arn = module.proccessed_appointments.bucket_arn
+  bucket_id  = module.proccessed_appointments.bucket_id
+  triggers = {
+    booked_records = {
+      lambda_arn    = module.gtms_appointment_event_booked_lambda.lambda_arn,
+      bucket_events = ["s3:ObjectCreated:*"],
+      filter_prefix = "validRecords/valid_records-BOOKED",
+      filter_suffix = ""
+    },
+  }
 }
+
 
 module "appointments_event_cancelled_lambda" {
   source               = "./modules/lambda"
