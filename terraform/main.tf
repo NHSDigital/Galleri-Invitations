@@ -3,6 +3,17 @@ terraform {
     dynamodb_table = "terraform-state-lock-dynamo"
     encrypt        = true
   }
+  required_providers {
+    null = {
+      source = "hashicorp/null"
+    }
+    tls = {
+      source = "hashicorp/tls"
+    }
+    time = {
+      source = "hashicorp/time"
+    }
+  }
 }
 
 provider "aws" {
@@ -1521,20 +1532,20 @@ module "caas_data_triggers" {
       lambda_arn    = module.caas_feed_add_records_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records_add-",
-      filter_suffix = null
+      filter_suffix = ""
     },
     update_records = {
       lambda_arn    = module.caas_feed_update_records_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records_update-",
-      filter_suffix = null
+      filter_suffix = ""
     },
     delete_records = {
       lambda_arn = module.caas_feed_delete_records_lambda.lambda_arn,
       # bucket_events = ["s3:ObjectRemoved:*"],
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records_delete-",
-      filter_suffix = null
+      filter_suffix = ""
     }
   }
 }
@@ -1733,7 +1744,7 @@ module "population_table" {
   secondary_write_capacity = null
   secondary_read_capacity  = null
   environment              = var.environment
-  # non_key_attributes     = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+  # non_key_attributes     = ["Invited", "date_of_death", "reason_for_removal_effective_from_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
   projection_type = "ALL"
   attributes = [{
     name = "PersonId"
@@ -1765,14 +1776,14 @@ module "population_table" {
       name               = "LsoaCode-index"
       hash_key           = "LsoaCode"
       range_key          = null
-      non_key_attributes = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+      non_key_attributes = ["Invited", "date_of_death", "reason_for_removal_effective_from_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
       projection_type    = "INCLUDE"
     },
     {
       name               = "BatchId-index"
       hash_key           = "Batch_Id"
       range_key          = null
-      non_key_attributes = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+      non_key_attributes = ["Invited", "date_of_death", "reason_for_removal_effective_from_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
       projection_type    = "INCLUDE"
     },
     {
