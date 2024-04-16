@@ -95,9 +95,9 @@ export const handler = async (event) => {
 
     // Logging the invalid records
     if (outputUnsuccess.length > 0) {
-      console.warn(
-        "PLEASE FIND THE INVALID CAAS RECORDS FROM THE PROCESSED CAAS FEED BELOW:\n" +
-        JSON.stringify(outputUnsuccess, null, 2)
+      console.error(
+        `Error: PLEASE FIND THE INVALID CAAS RECORDS FROM THE PROCESSED CAAS FEED in the file here:
+        ${ENVIRONMENT}-galleri-processed-caas-data/invalidRecords/invalid_records-${slicedKey}.csv`
       );
     } else {
       console.log("NO INVALID RECORDS FOUND IN THE PROCESSED CAAS FEED");
@@ -105,7 +105,7 @@ export const handler = async (event) => {
 
     return `Finished validating object ${key} in bucket ${bucket}`;
   } catch (err) {
-    const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
+    const message = `Error: processing object ${key} in bucket ${bucket}: ${err}`;
     console.error(message);
     throw new Error(message);
   }
@@ -122,7 +122,7 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
 
     return response.Body.transformToString();
   } catch (err) {
-    console.log("Failed: ", err);
+    console.error(`Error: Failed to read from ${bucketName}/${key}`);
     throw err;
   }
 };
@@ -140,7 +140,7 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
     console.log("Succeeded");
     return response;
   } catch (err) {
-    console.log("Failed: ", err);
+    console.error(`Error: Failed to push to ${bucketName}/${key}. Error Message: ${err}`);
     throw err;
   }
 };
@@ -170,8 +170,13 @@ export const parseCsvToArray = async (csvString) => {
 export const convertArrayOfObjectsToCSV = (data) => {
   const csvContent = [];
 
-  if (!Array.isArray(data) || data.length === 0) {
-    console.error("Data is empty or not an array.");
+  //reporting Error for not an array
+  if (!Array.isArray(data)) {
+    console.error("Error: Data is not an array");
+    return "";
+  }
+  if (data.length === 0) {
+    console.info("Data is empty");
     return "";
   }
 
