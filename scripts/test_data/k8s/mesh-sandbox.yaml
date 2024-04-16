@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mesh-sandbox-mailboxes
+data:
+  mailboxes.jsonl: |
+    {"mailbox_id": "X26ABC1", "mailbox_name": "TESTMB1", "billing_entity": "England", "ods_code": "X26", "org_code": "X26", "password": "password"}
+    {"mailbox_id": "X26ABC2", "mailbox_name": "TESTMB2", "billing_entity": "Wales", "ods_code": "X26", "org_code": "X26", "password": "password"}
+    {"mailbox_id": "X26ABC3", "mailbox_name": "TESTMB3", "billing_entity": "England", "ods_code": "X27", "org_code": "X27", "password": "password"}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mesh-sandbox-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mesh-sandbox
+  template:
+    metadata:
+      labels:
+        app: mesh-sandbox
+    spec:
+      containers:
+        - name: mesh-sandbox
+          image: quay.io/andrew_cleveland-cic/mesh_sandbox:latest
+          ports:
+            - containerPort: 443
+          env:
+            - name: SHARED_KEY
+              value: "TestKey"
+            - name: SSL
+              value: "yes"
+          volumeMounts:
+            - name: mailboxes-jsonl
+              mountPath: "/app/mesh_sandbox/store/data/mailboxes.jsonl"
+              subPath: mailboxes.jsonl
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 443
+              scheme: HTTPS
+            initialDelaySeconds: 3
+            periodSeconds: 3
+            timeoutSeconds: 10
+      volumes:
+        - name: mailboxes-jsonl
+          configMap:
+            name: mesh-sandbox-mailboxes
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mesh-sandbox-service
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 443
+      targetPort: 443
+      protocol: TCP
+  selector:
+    app: mesh-sandbox
