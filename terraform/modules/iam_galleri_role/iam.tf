@@ -597,6 +597,11 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           "Resource" : [
             "arn:aws:sqs:eu-west-2:${var.account_id}:${var.environment}-notifyEnrichedMessageQueue.fifo",
           ]
+        },
+        {
+          "Action" : "ssm:GetParameter",
+          "Effect" : "Allow",
+          "Resource" : "arn:aws:ssm:eu-west-2:${var.account_id}:parameter/*"
         }
       ],
       "Version" : "2012-10-17"
