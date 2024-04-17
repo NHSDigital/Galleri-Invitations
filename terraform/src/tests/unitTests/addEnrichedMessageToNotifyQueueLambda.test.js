@@ -1,7 +1,7 @@
 import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { SQSClient, SendMessageCommand, DeleteMessageCommand } from '@aws-sdk/client-sqs';
-import { queryTable, processRecords } from '../../sendEnrichedMessageToNotifyQueueLambda/sendEnrichedMessageToNotifyQueueLambda';
+import { queryTable, processRecords, formatEpisodeType } from '../../sendEnrichedMessageToNotifyQueueLambda/sendEnrichedMessageToNotifyQueueLambda';
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 
 const InputRecords = [
@@ -178,7 +178,6 @@ describe('processRecords', () => {
     mockDynamoDbClient = mockClient(new DynamoDBClient({}));
     mockSQSClient = mockClient(new SQSClient({}));
     mockSSMClient = mockClient(new SSMClient());
-
   });
 
   afterEach(() => {
@@ -280,8 +279,6 @@ describe('processRecords', () => {
   });
 
   test('Successfully enrich multiple messages', () => {
-
-
   });
 
   test('Successfully enrich message without personalisation', async () => {
@@ -483,5 +480,12 @@ describe('queryTable', () => {
     } catch(error) {
       expect(error.message).toEqual("InternalServerError: DynamoDB encountered an internal server error");
     };
+  });
+});
+
+describe('formatEpisodeType', () => {
+  test('Successfully format episode type from message for lookup', () => {
+    const formattedValue = formatEpisodeType('Appointment Cancelled by Participant - Withdrawn');
+    expect(formattedValue).toEqual('appointment-cancelled-by-participant-withdrawn');
   });
 });
