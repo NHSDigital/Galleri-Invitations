@@ -372,52 +372,57 @@ describe('processRecords', () => {
     expect(logSpy).toHaveBeenCalledWith('Sent enriched message with participant Id: NHS-PY70-FH15 to the enriched message queue.');
     expect(logSpy).toHaveBeenCalledWith('Deleted message with participant Id: NHS-PY70-FH15 from the raw message queue.');
     expect(logSpy).toHaveBeenCalledWith('Total records in the batch: 1 - Records successfully processed/sent: 1 - Records failed to send: 0');
-
-
   });
 
-});
-
-describe('Failures', () => {
-  test('Failed to enrich message', async () => {
+  test('Failed to enrich message due to no appointments for participant', async () => {
     let logSpy = jest.spyOn(global.console, "log");
-    const mockDynamoDbClient2 = mockClient(new DynamoDBClient({}));
-    const mockSQSClient2 = mockClient(new SQSClient({}));
-    const mockSSMClient2 = mockClient(new SSMClient());
 
-  // Mocks for SSM client
-  mockSSMClient2.on(GetParameterCommand,
-    {
-      Name: 'appointment-booked-text-tables'
-    }
-  ).resolves({
-    $metadata: { httpStatusCode: 200 },
-    Parameter: {
-      Name: 'appointment-booked-text-tables',
-      Value: 'Null',
-      Type: "String",
-    },
-  });
+    // Mocks for DynamoDB
+    mockDynamoDbClient.on(QueryCommand, {
+      TableName: `dev-Appointments`,
+      KeyConditionExpression: `Participant_Id =:pk`,
+      ExpressionAttributeValues: {
+        ":pk": { S: 'NHS-JL65-PZ85' },
+    }}).resolves({
+      $metadata: { httpStatusCode: 200 },
+      Items: [],
+    });
 
-  mockSSMClient2.on(GetParameterCommand,
-    {
-      Name: 'appointment-booked-text-routing-id'
-    }
-  ).resolves({
-    $metadata: { httpStatusCode: 200 },
-    Parameter: {
-      Name: 'appointment-booked-text-routing-id',
-      Value: 'a91601f5-ed53-4472-bbaa-580f418c7091',
-      Type: "String",
-    },
-  });
+    // Mocks for SSM client
+    mockSSMClient.on(GetParameterCommand,
+      {
+        Name: 'appointment-booked-text-tables'
+      }
+    ).resolves({
+      $metadata: { httpStatusCode: 200 },
+      Parameter: {
+        Name: 'appointment-booked-text-tables',
+        Value: 'appointment, phlebotomy',
+        Type: "String",
+      },
+    });
 
-  // Run function
-  await processRecords([InputRecords[1]], mockSQSClient2, mockDynamoDbClient2, mockSSMClient2, 'dev');
+    mockSSMClient.on(GetParameterCommand,
+      {
+        Name: 'appointment-booked-text-routing-id'
+      }
+    ).resolves({
+      $metadata: { httpStatusCode: 200 },
+      Parameter: {
+        Name: 'appointment-booked-text-routing-id',
+        Value: 'a91601f5-ed53-4472-bbaa-580f418c7091',
+        Type: "String",
+      },
+    });
 
-  // Expects
-  expect(logSpy).toHaveBeenCalledWith('Total records in the batch: 1 - Records successfully processed/sent: 0 - Records failed to send: 1');
-  });
+    // Run function
+    await processRecords([InputRecords[1]], mockSQSClient, mockDynamoDbClient, mockSSMClient, 'dev');
+
+    // Expects
+    expect(mockSQSClient.commandCalls(DeleteMessageCommand).length).toEqual(0);
+    expect(mockSQSClient.commandCalls(SendMessageCommand).length).toEqual(0);
+    expect(logSpy).toHaveBeenCalledWith('Total records in the batch: 1 - Records successfully processed/sent: 0 - Records failed to send: 1');
+    });
 });
 
 describe('queryTable', () => {
