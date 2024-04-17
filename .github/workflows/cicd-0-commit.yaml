@@ -125,7 +125,7 @@ jobs:
       CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
       NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
 
-  data-stage: # Recommended maximum execution time is 10 minutes
+  data-stage: # Recommended maximum execution time is 30 minutes
     needs: [metadata, test-stage, build-stage]
     uses: ./.github/workflows/stage-4-load-data.yaml
     with:
