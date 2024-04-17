@@ -186,8 +186,6 @@ describe('processRecords', () => {
     mockSSMClient.reset();
   });
 
-
-
   test('Successfully enriched message with appointment and clinic fields', async () => {
     let logSpy = jest.spyOn(global.console, "log");
 
@@ -209,7 +207,7 @@ describe('processRecords', () => {
         ":pk": { S: 'clinic2' },
     }}).resolves({
       $metadata: { httpStatusCode: 200 },
-      Items: [ItemFromClinics[0]],
+      Items: [ItemFromClinics[1]],
     });
 
     // Mock for SQS SendMessageCommand
@@ -264,9 +262,9 @@ describe('processRecords', () => {
     expect(MessageSentToEnrichedQueue.appointmentDateLong).toEqual("Thursday 25 April 2024");
     expect(MessageSentToEnrichedQueue.appointmentDateShort).toEqual("25/04/2024");
     expect(MessageSentToEnrichedQueue.appointmentTime).toEqual("12:00pm");
-    expect(MessageSentToEnrichedQueue.clinicName).toEqual("Phlebotomy clinic 1");
-    expect(MessageSentToEnrichedQueue.clinicAddress).toEqual("1 infelicity Street, Gondor MK42 9DJ");
-    expect(MessageSentToEnrichedQueue.clinicPostcode).toEqual("MK42 9DJ");
+    expect(MessageSentToEnrichedQueue.clinicName).toEqual("Phlebotomy clinic 2");
+    expect(MessageSentToEnrichedQueue.clinicAddress).toEqual("1 unangry Road, Gondor TA1 2PX");
+    expect(MessageSentToEnrichedQueue.clinicPostcode).toEqual("TA1 2PX");
     expect(MessageSentToEnrichedQueue.clinicDirections).toEqual("These will contain directions to the site");
     expect(MessageSentToEnrichedQueue.routingId).toEqual('4c4c4c06-0f6d-465a-ab6a-ca358c2721b0');
 
@@ -276,9 +274,6 @@ describe('processRecords', () => {
     expect(logSpy).toHaveBeenCalledWith('Sent enriched message with participant Id: NHS-EU44-JN48 to the enriched message queue.');
     expect(logSpy).toHaveBeenCalledWith('Deleted message with participant Id: NHS-EU44-JN48 from the raw message queue.');
     expect(logSpy).toHaveBeenCalledWith('Total records in the batch: 1 - Records successfully processed/sent: 1 - Records failed to send: 0');
-  });
-
-  test('Successfully enrich multiple messages', () => {
   });
 
   test('Successfully enrich message without personalisation', async () => {
@@ -419,6 +414,47 @@ describe('processRecords', () => {
     expect(mockSQSClient.commandCalls(DeleteMessageCommand).length).toEqual(0);
     expect(mockSQSClient.commandCalls(SendMessageCommand).length).toEqual(0);
     expect(logSpy).toHaveBeenCalledWith('Total records in the batch: 1 - Records successfully processed/sent: 0 - Records failed to send: 1');
+    });
+
+    test('Successfully process multiple messages', async () => {
+      let logSpy = jest.spyOn(global.console, "log");
+
+      // Mocks for SSM client
+      mockSSMClient.on(GetParameterCommand).resolves({
+        $metadata: { httpStatusCode: 200 },
+        Parameter: {
+          Value: 'Null',
+          Type: "String",
+        },
+      });
+
+      mockSSMClient.on(GetParameterCommand).resolves({
+        $metadata: { httpStatusCode: 200 },
+        Parameter: {
+          Value: 'a91601f5-ed53-4472-bbaa-580f418c7091',
+          Type: "String",
+        },
+      });
+
+      // Mock for SQS SendMessageCommand
+      mockSQSClient.on(SendMessageCommand).resolves({
+        $metadata: { httpStatusCode: 200 },
+        MessageId: '123',
+      });
+
+      // Mock for SQS DeleteMessageCommand
+      mockSQSClient.on(DeleteMessageCommand).resolves({
+        $metadata: { httpStatusCode: 200 },
+        MessageId: '456',
+      });
+
+      // Run function
+      await processRecords(InputRecords, mockSQSClient, mockDynamoDbClient, mockSSMClient, 'dev');
+
+      // Expects
+      expect(mockSQSClient.commandCalls(DeleteMessageCommand).length).toEqual(9);
+      expect(mockSQSClient.commandCalls(SendMessageCommand).length).toEqual(9);
+      expect(logSpy).toHaveBeenCalledWith('Total records in the batch: 9 - Records successfully processed/sent: 9 - Records failed to send: 0');
     });
 });
 
