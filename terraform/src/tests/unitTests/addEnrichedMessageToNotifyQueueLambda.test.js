@@ -271,8 +271,8 @@ describe('processRecords', () => {
     // Check correct message has been deleted
     expect(mockSQSClient.commandCalls(DeleteMessageCommand)[0].args[0].input.ReceiptHandle).toEqual("receiptHandle2");
 
-    expect(logSpy).toHaveBeenCalledWith('Sent enriched message with participant Id: NHS-EU44-JN48 to the enriched message queue.');
-    expect(logSpy).toHaveBeenCalledWith('Deleted message with participant Id: NHS-EU44-JN48 from the raw message queue.');
+    expect(logSpy).toHaveBeenCalledWith('Sent enriched message for participant Id: NHS-EU44-JN48 with episode event Appointment Booked Letter to the enriched message queue.');
+    expect(logSpy).toHaveBeenCalledWith('Deleted message with id undefined for participant Id: NHS-EU44-JN48 with episode event Appointment Booked Letter from the raw message queue.');
     expect(logSpy).toHaveBeenCalledWith('Total records in the batch: 1 - Records successfully processed/sent: 1 - Records failed to send: 0');
   });
 
@@ -361,8 +361,8 @@ describe('processRecords', () => {
     // Check correct message has been deleted
     expect(mockSQSClient.commandCalls(DeleteMessageCommand)[0].args[0].input.ReceiptHandle).toEqual("receiptHandle1");
 
-    expect(logSpy).toHaveBeenCalledWith('Sent enriched message with participant Id: NHS-PY70-FH15 to the enriched message queue.');
-    expect(logSpy).toHaveBeenCalledWith('Deleted message with participant Id: NHS-PY70-FH15 from the raw message queue.');
+    expect(logSpy).toHaveBeenCalledWith('Sent enriched message for participant Id: NHS-PY70-FH15 with episode event Invited to the enriched message queue.');
+    expect(logSpy).toHaveBeenCalledWith('Deleted message with id undefined for participant Id: NHS-PY70-FH15 with episode event Invited from the raw message queue.');
     expect(logSpy).toHaveBeenCalledWith('Total records in the batch: 1 - Records successfully processed/sent: 1 - Records failed to send: 0');
   });
 
@@ -488,7 +488,7 @@ describe('sendMessageToQueue', () => {
     await sendMessageToQueue(mockMessage, mockRecord, mockQueue, mockSQSClient);
 
     // Expects
-    expect(logSpy).toHaveBeenCalledWith(`Sent enriched message with participant Id: NHS-QC89-DD11 to the enriched message queue.`);
+    expect(logSpy).toHaveBeenCalledWith(`Sent enriched message for participant Id: NHS-QC89-DD11 with episode event Invited to the enriched message queue.`);
     expect(mockSQSClient.commandCalls(SendMessageCommand).length).toEqual(1);
   });
 
@@ -507,7 +507,7 @@ describe('sendMessageToQueue', () => {
     try {
       await sendMessageToQueue(mockMessage, mockRecord, mockQueue, mockSQSClient);
     } catch (error) {
-      expect(logSpy).toHaveBeenCalledWith(`Error: Failed to send message: 12345`);
+      expect(logSpy).toHaveBeenCalledWith('Error: Failed to send message: 12345 for participant Id: NHS-QC89-DD11 with episode event Invited');
     }
   });
 });
@@ -535,14 +535,14 @@ describe('deleteMessageInQueue', () => {
       nhsNumber:"9000203188",
       episodeEvent:"Invited",
     };
-    const mockRecord = { receiptHandle: '12345'};
+    const mockRecord = { messageId: '12345', receiptHandle: '12345'};
     const mockQueue = 'https://sqs.eu-west-2.amazonaws.com/123456/dev-notifyRawMessageQueue.fifo';
 
 
     await deleteMessageInQueue(mockMessage,mockRecord,mockQueue,mockSQSClient);
 
     // Expects
-    expect(logSpy).toHaveBeenCalledWith(`Deleted message with participant Id: NHS-QC89-DD11 from the raw message queue.`);
+    expect(logSpy).toHaveBeenCalledWith(`Deleted message with id 12345 for participant Id: NHS-QC89-DD11 with episode event Invited from the raw message queue.`);
     expect(mockSQSClient.commandCalls(DeleteMessageCommand).length).toEqual(1);
   });
 
@@ -560,7 +560,7 @@ describe('deleteMessageInQueue', () => {
     try {
       await deleteMessageInQueue(mockMessage,mockRecord,mockQueue,mockSQSClient);
     } catch (error) {
-      expect(logSpy).toHaveBeenCalledWith(`Error: Failed to delete message: 12345`);
+      expect(logSpy).toHaveBeenCalledWith(`Error: Failed to delete message: 12345 for participant Id: NHS-QC89-DD11 with episode event Invited`);
     }
   });
 

@@ -45,7 +45,7 @@ export async function processRecords(records, sqsClient, dynamoDbClient, ssmClie
       const routingId = await getParameterValue(`${eventType}-routing-id`,ssmClient);
 
       if (routingId == 'Null' || routingId == 'Unavailable') {
-        throw new Error(`RoutingId for event ${eventType} is returned as ${routingId}, processing of message stopped.`);
+        throw new Error(`RoutingId for event ${eventType} is returned as ${routingId}, processing of message stopped for participant Id: ${messageBody.participantId} with episode event ${eventType}`);
       }
 
       const enrichedMessage = await enrichMessage(messageBody,tables,routingId,dynamoDbClient,environment);
@@ -95,7 +95,7 @@ if(tables.includes('appointment')) {
 
     return message;
   } catch (error) {
-    console.error('Error: Error querying DynamoDB');
+    console.error(`Error: Error querying DynamoDB for participant Id: ${participantId} with episode event ${message.episodeEvent}`);
     throw error;
   }
 } else {
@@ -112,9 +112,9 @@ export async function sendMessageToQueue(message,record,queue,sqsClient) {
 
 try {
   await sqsClient.send(sendMessageCommand);
-  console.log(`Sent enriched message with participant Id: ${message.participantId} to the enriched message queue.`);
+  console.log(`Sent enriched message for participant Id: ${message.participantId} with episode event ${message.episodeEvent} to the enriched message queue.`);
 } catch (error) {
-  console.error(`Error: Failed to send message: ${record.messageId}`);
+  console.error(`Error: Failed to send message: ${record.messageId} for participant Id: ${message.participantId} with episode event ${message.episodeEvent}`);
   throw error;
 }
 };
@@ -127,9 +127,9 @@ export async function deleteMessageInQueue(message,record,queue,sqsClient) {
 
   try {
     await sqsClient.send(deleteMessageCommand);
-    console.log(`Deleted message with participant Id: ${message.participantId} from the raw message queue.`);
+    console.log(`Deleted message with id ${record.messageId} for participant Id: ${message.participantId} with episode event ${message.episodeEvent} from the raw message queue.`);
   } catch (error) {
-    console.error(`Error: Failed to delete message: ${record.messageId}`);
+    console.error(`Error: Failed to delete message: ${record.messageId} for participant Id: ${message.participantId} with episode event ${message.episodeEvent}`);
     throw error;
   }
 }
