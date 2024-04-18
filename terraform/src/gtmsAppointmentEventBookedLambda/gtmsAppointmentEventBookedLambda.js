@@ -51,15 +51,23 @@ export const handler = async (event) => {
   //bring back most recent appointment, with timestamp
 
   const appointmentParticipant = await lookUp(dbClient, payloadParticipantID, "Appointments", "Participant_Id", "S", false); //Check participant has any appointments
-  const sortedApptParticipants = appointmentParticipant.sort(function (x, y) {
-    return new Date(x.Timestamp.S) < new Date(y.Timestamp.S) ? 1 : -1;
+  console.log('appointmentParticipant');
+  console.log(JSON.stringify(appointmentParticipant));
+
+  const apptArr = appointmentParticipant?.Items;
+  const sortedApptParticipants = apptArr?.sort(function (x, y) {
+    return new Date(x?.['Timestamp']?.['S']) < new Date(y?.['Timestamp']?.['S']) ? 1 : -1;
   });
-  const appointmentParticipantItems = sortedApptParticipants.Items[0];
-  logger.info(`appointmentParticipantItems for appointment: ${JSON.stringify(appointmentParticipant)} loaded.`);
+  console.log('SortedApptParticipants');
+  console.log(sortedApptParticipants);
+  const appointmentParticipantItems = sortedApptParticipants[0];
+  logger.info(`appointmentParticipantItems for appointment: ${JSON.stringify(appointmentParticipantItems)} loaded.`);
   // logger.info(`appointmentParticipantItems for appointment: ${JSON.stringify(appointmentParticipantItems?.Appointment_Id)} loaded.`);
 
   let date = new Date();
+  console.log(date);
   const dateTime = new Date(Date.now()).toISOString();
+  console.log(dateTime);
   try {
     if ((payloadAppointmentDateTime > date.toISOString()) && payloadEventType === 'BOOKED' && episodeItems) {
       console.info('Payload EventType is Booked and has a valid appointment date');
@@ -261,7 +269,7 @@ export const transactionalWrite = async (
   episodeEvent,
   timestamp,
 ) => {
-  const timeNow = String(new Date(Date.now()).toISOString());
+  const timeNow = String(dayjs(new Date(Date.now()).toISOString()).format("YYYY-MM-DD"));
   const params = {
     TransactItems: [
       {
@@ -274,7 +282,7 @@ export const transactionalWrite = async (
           TableName: `${ENVIRONMENT}-Episode`,
           ExpressionAttributeValues: {
             ":episodeEvent": { S: episodeEvent },
-            ":timeNow": { N: timeNow },
+            ":timeNow": { S: timeNow },
             ":eventDescription": { S: "NULL" },
             ":open": { S: "Open" },
             ":null": { S: "Null" },
@@ -288,7 +296,7 @@ export const transactionalWrite = async (
             Participant_Id: { S: participantId },
             Appointment_Id: { S: appointmentId },
           },
-          UpdateExpression: `SET event_type = :eventType, Timestamp = :timestamp`,
+          UpdateExpression: `SET event_type = :eventType, Time_stamp = :timestamp`,
           TableName: `${ENVIRONMENT}-Appointments`,
           ExpressionAttributeValues: {
             ":eventType": { S: eventType },
@@ -298,6 +306,8 @@ export const transactionalWrite = async (
       },
     ],
   };
+
+  console.log(params);
 
   try {
     const command = new TransactWriteItemsCommand(params);
