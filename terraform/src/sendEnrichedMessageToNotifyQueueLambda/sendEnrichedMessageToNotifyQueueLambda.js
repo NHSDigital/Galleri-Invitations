@@ -145,7 +145,7 @@ export async function queryTable(dynamoDbClient,tableName,pKeyField,pKeyValue,en
 
 // Converts the Episode Type given by the message from the queue into a format used to lookup the event in the parameter store
 export function formatEpisodeType(type) {
-  return type.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return type.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-)|(-$)/g, "");
 };
 
 export async function getParameterValue(parameterName,ssmClient) {
