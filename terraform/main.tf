@@ -1387,7 +1387,7 @@ module "send_enriched_message_to_notify_queue_lambda_cloudwatch" {
 }
 
 module "send_enriched_message_to_notify_queue_SQS_trigger" {
-  source           = "./modules/sqs_lambda_trigger"
+  source           = "./modules/lambda_sqs_trigger"
   event_source_arn = module.notify_raw_message_queue_sqs.sqs_queue_arn
   lambda_arn       = module.send_enriched_message_to_notify_queue_lambda.lambda_arn
 }
