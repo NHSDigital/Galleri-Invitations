@@ -1,7 +1,7 @@
 import { mockClient } from 'aws-sdk-client-mock';
 import { DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { SQSClient, SendMessageCommand, DeleteMessageCommand } from '@aws-sdk/client-sqs';
-import { queryTable, processRecords, formatEpisodeType } from '../../sendEnrichedMessageToNotifyQueueLambda/sendEnrichedMessageToNotifyQueueLambda';
+import { queryTable, processRecords, formatEpisodeType, sendMessageToQueue, deleteMessageInQueue, enrichMessage } from '../../sendEnrichedMessageToNotifyQueueLambda/sendEnrichedMessageToNotifyQueueLambda';
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
 
 const InputRecords = [
@@ -456,6 +456,114 @@ describe('processRecords', () => {
       expect(mockSQSClient.commandCalls(SendMessageCommand).length).toEqual(9);
       expect(logSpy).toHaveBeenCalledWith('Total records in the batch: 9 - Records successfully processed/sent: 9 - Records failed to send: 0');
     });
+});
+
+describe('sendMessageToQueue', () => {
+  let mockSQSClient;
+
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    mockSQSClient = mockClient(new SQSClient({}));
+  });
+
+  afterEach(() => {
+    mockSQSClient.reset();
+  });
+
+  test('Successful message sent', async () => {
+    let logSpy = jest.spyOn(global.console, "log");
+    mockSQSClient.on(SendMessageCommand).resolves({
+      $metadata: { httpStatusCode: 200 },
+      MessageId: '123',
+    });
+    const mockMessage = {
+      participantId:"NHS-QC89-DD11",
+      nhsNumber:"9000203188",
+      episodeEvent:"Invited",
+      routingId:"4c4c4c06-0f6d-465a-ab6a-ca358c2721b0"
+    }
+    const mockRecord = { messageId: '12345'};
+    const mockQueue = 'https://sqs.eu-west-2.amazonaws.com/123456/dev-notifyEnrichedMessageQueue.fifo';
+
+    await sendMessageToQueue(mockMessage, mockRecord, mockQueue, mockSQSClient);
+
+    // Expects
+    expect(logSpy).toHaveBeenCalledWith(`Sent enriched message with participant Id: NHS-QC89-DD11 to the enriched message queue.`);
+    expect(mockSQSClient.commandCalls(SendMessageCommand).length).toEqual(1);
+  });
+
+  test('Message unsuccessfully sent', async () => {
+    let logSpy = jest.spyOn(global.console, "error");
+    mockSQSClient.on(SendMessageCommand).rejects(new Error('Failed to send message'));
+    const mockMessage = {
+      participantId:"NHS-QC89-DD11",
+      nhsNumber:"9000203188",
+      episodeEvent:"Invited",
+      routingId:"4c4c4c06-0f6d-465a-ab6a-ca358c2721b0"
+    }
+    const mockRecord = { messageId: '12345'};
+    const mockQueue = 'https://sqs.eu-west-2.amazonaws.com/123456/dev-notifyEnrichedMessageQueue.fifo';
+
+    try {
+      await sendMessageToQueue(mockMessage, mockRecord, mockQueue, mockSQSClient);
+    } catch (error) {
+      expect(logSpy).toHaveBeenCalledWith(`Error: Failed to send message: 12345`);
+    }
+  });
+});
+
+describe('deleteMessageInQueue', () => {
+  let mockSQSClient;
+
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    mockSQSClient = mockClient(new SQSClient({}));
+  });
+
+  afterEach(() => {
+    mockSQSClient.reset();
+  });
+
+  test('Successful message deleted', async () => {
+    let logSpy = jest.spyOn(global.console, "log");
+    mockSQSClient.on(DeleteMessageCommand).resolves({
+      $metadata: { httpStatusCode: 200 },
+      MessageId: '456',
+    });
+    const mockMessage = {
+      participantId:"NHS-QC89-DD11",
+      nhsNumber:"9000203188",
+      episodeEvent:"Invited",
+    };
+    const mockRecord = { receiptHandle: '12345'};
+    const mockQueue = 'https://sqs.eu-west-2.amazonaws.com/123456/dev-notifyRawMessageQueue.fifo';
+
+
+    await deleteMessageInQueue(mockMessage,mockRecord,mockQueue,mockSQSClient);
+
+    // Expects
+    expect(logSpy).toHaveBeenCalledWith(`Deleted message with participant Id: NHS-QC89-DD11 from the raw message queue.`);
+    expect(mockSQSClient.commandCalls(DeleteMessageCommand).length).toEqual(1);
+  });
+
+  test('Message unsuccessfully deleted', async () => {
+    let logSpy = jest.spyOn(global.console, "error");
+    mockSQSClient.on(DeleteMessageCommand).rejects(new Error('Failed to send message'));
+    const mockMessage = {
+      participantId:"NHS-QC89-DD11",
+      nhsNumber:"9000203188",
+      episodeEvent:"Invited",
+    };
+    const mockRecord = { messageId: '12345', receiptHandle: '12345'};
+    const mockQueue = 'https://sqs.eu-west-2.amazonaws.com/123456/dev-notifyRawMessageQueue.fifo';
+
+    try {
+      await deleteMessageInQueue(mockMessage,mockRecord,mockQueue,mockSQSClient);
+    } catch (error) {
+      expect(logSpy).toHaveBeenCalledWith(`Error: Failed to delete message: 12345`);
+    }
+  });
+
 });
 
 describe('queryTable', () => {

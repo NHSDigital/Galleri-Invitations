@@ -48,68 +48,11 @@ export async function processRecords(records, sqsClient, dynamoDbClient, ssmClie
         throw new Error(`RoutingId for event ${eventType} is returned as ${routingId}, processing of message stopped.`);
       }
 
-      // Enrich message
-      messageBody.routingId = routingId;
+      const enrichedMessage = await enrichMessage(messageBody,tables,routingId,dynamoDbClient,environment);
 
-      if(tables.includes('appointment')) {
-        // Retrieve relevant fields from DynamoDB
-        const participantId = messageBody.participantId;
+      await sendMessageToQueue(enrichedMessage,record,process.env.ENRICHED_MESSAGE_QUEUE_URL,sqsClient);
 
-        try {
-          const appointmentsQueryResponse = await queryTable(dynamoDbClient,'Appointments',participantIdField,participantId,environment);
-          const latestAppointment = appointmentsQueryResponse.sort((a,b) => {
-            return new Date(b.Appointment_Date_Time.S) - new Date(a.Appointment_Date_Time.S);
-          })[0];
-          const appointmentDate = new Date(latestAppointment[appointmentDateTimeField].S);
-
-          messageBody.appointmentDateLong = format(appointmentDate, 'eeee dd MMMM yyyy');
-          messageBody.appointmentDateShort = format(appointmentDate, 'dd/MM/yyyy');
-          messageBody.appointmentTime = format(appointmentDate, 'hh:mmaaa');
-
-          if(tables.includes('phlebotomy')) {
-            const clinicId = latestAppointment[clinicIdField].S;
-            const phlebotomySiteQueryResponse = await queryTable(dynamoDbClient,'PhlebotomySite',phlebotomySiteClinicIdField,clinicId,environment);
-
-            messageBody.clinicName = phlebotomySiteQueryResponse[0][phlebotomySiteClinicName].S;
-            messageBody.clinicAddress = phlebotomySiteQueryResponse[0][phlebotomySiteAddress].S;
-            messageBody.clinicPostcode = phlebotomySiteQueryResponse[0][phlebotomySitePostcode].S;
-            messageBody.clinicDirections = phlebotomySiteQueryResponse[0][phlebotomySiteDirections].S;
-          }
-
-        } catch (error) {
-          console.error('Error: Error querying DynamoDB');
-          throw error;
-        }
-      };
-
-      // Send to notifyEnrichedMessageQueue
-      const sendMessageCommand = new SendMessageCommand({
-        QueueUrl: process.env.ENRICHED_MESSAGE_QUEUE_URL,
-        MessageBody: JSON.stringify(messageBody),
-        MessageGroupId: 'enrichedMessage'
-      });
-
-      try {
-        await sqsClient.send(sendMessageCommand);
-        console.log(`Sent enriched message with participant Id: ${messageBody.participantId} to the enriched message queue.`);
-      } catch (error) {
-        console.error(`Error: Failed to send message: ${record.messageId}`);
-        throw error;
-      }
-
-      // Delete message from notifyRawMessageQueue
-      const deleteMessageCommand = new DeleteMessageCommand({
-        QueueUrl: process.env.RAW_MESSAGE_QUEUE_URL,
-        ReceiptHandle: record.receiptHandle
-      });
-
-      try {
-        await sqsClient.send(deleteMessageCommand);
-        console.log(`Deleted message with participant Id: ${messageBody.participantId} from the raw message queue.`);
-      } catch (error) {
-        console.error(`Error: Failed to delete message: ${record.messageId}`);
-        throw error;
-      }
+      await deleteMessageInQueue(messageBody,record,process.env.RAW_MESSAGE_QUEUE_URL,sqsClient);
 
       recordsSuccessfullySent++;
     } catch (error) {
@@ -120,6 +63,76 @@ export async function processRecords(records, sqsClient, dynamoDbClient, ssmClie
 
   console.log(`Total records in the batch: ${totalRecords} - Records successfully processed/sent: ${recordsSuccessfullySent} - Records failed to send: ${recordsFailedToSend}`);
 };
+
+export async function enrichMessage(message,tables,routingId,dynamoDbClient,environment) {
+// Enrich message
+message.routingId = routingId;
+
+if(tables.includes('appointment')) {
+  // Retrieve relevant fields from DynamoDB
+  const participantId = message.participantId;
+
+  try {
+    const appointmentsQueryResponse = await queryTable(dynamoDbClient,'Appointments',participantIdField,participantId,environment);
+    const latestAppointment = appointmentsQueryResponse.sort((a,b) => {
+      return new Date(b.Appointment_Date_Time.S) - new Date(a.Appointment_Date_Time.S);
+    })[0];
+    const appointmentDate = new Date(latestAppointment[appointmentDateTimeField].S);
+
+    message.appointmentDateLong = format(appointmentDate, 'eeee dd MMMM yyyy');
+    message.appointmentDateShort = format(appointmentDate, 'dd/MM/yyyy');
+    message.appointmentTime = format(appointmentDate, 'hh:mmaaa');
+
+    if(tables.includes('phlebotomy')) {
+      const clinicId = latestAppointment[clinicIdField].S;
+      const phlebotomySiteQueryResponse = await queryTable(dynamoDbClient,'PhlebotomySite',phlebotomySiteClinicIdField,clinicId,environment);
+
+      message.clinicName = phlebotomySiteQueryResponse[0][phlebotomySiteClinicName].S;
+      message.clinicAddress = phlebotomySiteQueryResponse[0][phlebotomySiteAddress].S;
+      message.clinicPostcode = phlebotomySiteQueryResponse[0][phlebotomySitePostcode].S;
+      message.clinicDirections = phlebotomySiteQueryResponse[0][phlebotomySiteDirections].S;
+    }
+
+    return message;
+  } catch (error) {
+    console.error('Error: Error querying DynamoDB');
+    throw error;
+  }
+} else {
+  return message;
+}
+};
+
+export async function sendMessageToQueue(message,record,queue,sqsClient) {
+  const sendMessageCommand = new SendMessageCommand({
+    QueueUrl: queue,
+    MessageBody: JSON.stringify(message),
+    MessageGroupId: 'enrichedMessage'
+});
+
+try {
+  await sqsClient.send(sendMessageCommand);
+  console.log(`Sent enriched message with participant Id: ${message.participantId} to the enriched message queue.`);
+} catch (error) {
+  console.error(`Error: Failed to send message: ${record.messageId}`);
+  throw error;
+}
+};
+
+export async function deleteMessageInQueue(message,record,queue,sqsClient) {
+  const deleteMessageCommand = new DeleteMessageCommand({
+    QueueUrl: queue,
+    ReceiptHandle: record.receiptHandle
+  });
+
+  try {
+    await sqsClient.send(deleteMessageCommand);
+    console.log(`Deleted message with participant Id: ${message.participantId} from the raw message queue.`);
+  } catch (error) {
+    console.error(`Error: Failed to delete message: ${record.messageId}`);
+    throw error;
+  }
+}
 
 export async function queryTable(dynamoDbClient,tableName,pKeyField,pKeyValue,environment) {
   const params = {
