@@ -53,7 +53,7 @@ const ItemsFromAppointments = [
     },
     Appointment_Date_Time:
     {
-      "S": '2024-04-20T10:30:00.000Z'
+      "S": '2024-04-20T10:30:00.000'
     },
     Clinic_Id: {
       "S": 'clinic1'
@@ -67,7 +67,7 @@ const ItemsFromAppointments = [
       "S": '2'
     },
     Appointment_Date_Time: {
-      "S": '2024-04-25T11:00:00.000Z'
+      "S": '2024-04-25T11:00:00.000'
     },
     Clinic_Id: {
       "S": 'clinic2'
@@ -81,7 +81,7 @@ const ItemsFromAppointments = [
       "S": '3'
     },
     Appointment_Date_Time: {
-      "S": '2024-04-25T11:00:00.000Z'
+      "S": '2024-04-25T11:00:00.000'
     },
     Clinic_Id: {
       "S": 'clinic1'
@@ -95,7 +95,7 @@ const ItemsFromAppointments = [
       "S": '4'
     },
     Appointment_Date_Time: {
-      "S": '2024-04-25T11:00:00.000Z'
+      "S": '2024-04-25T11:00:00.000'
     },
     Clinic_Id: {
       "S": 'clinic2'
@@ -109,7 +109,7 @@ const ItemsFromAppointments = [
       "S": '5'
     },
     Appointment_Date_Time: {
-      "S": '2024-04-25T11:00:00.000Z'
+      "S": '2024-04-25T11:00:00.000'
     },
     Clinic_Id: {
       "S": 'clinic1'
@@ -123,7 +123,7 @@ const ItemsFromAppointments = [
       "S": '6'
     },
     Appointment_Date_Time: {
-      "S": '2024-04-25T11:00:00.000Z'
+      "S": '2024-04-25T11:00:00.000'
     },
     Clinic_Id: {
       "S": 'clinic2'
@@ -261,7 +261,7 @@ describe('processRecords', () => {
     expect(MessageSentToEnrichedQueue.episodeEvent).toEqual('Appointment Booked Letter');
     expect(MessageSentToEnrichedQueue.appointmentDateLong).toEqual("Thursday 25 April 2024");
     expect(MessageSentToEnrichedQueue.appointmentDateShort).toEqual("25/04/2024");
-    expect(MessageSentToEnrichedQueue.appointmentTime).toEqual("12:00pm");
+    expect(MessageSentToEnrichedQueue.appointmentTime).toEqual("11:00am");
     expect(MessageSentToEnrichedQueue.clinicName).toEqual("Phlebotomy clinic 2");
     expect(MessageSentToEnrichedQueue.clinicAddress).toEqual("1 unangry Road, Gondor TA1 2PX");
     expect(MessageSentToEnrichedQueue.clinicPostcode).toEqual("TA1 2PX");
