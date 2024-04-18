@@ -1223,6 +1223,42 @@ module "cis2_signed_jwt_api_gateway" {
   lambda_function_name   = module.cis2_signed_jwt.lambda_function_name
 }
 
+# Authenticator Lambda
+module "authenticator_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "authenticatorLambda"
+  lambda_timeout       = 900
+  memory_size          = 1024
+  lambda_s3_object_key = "authenticator_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT             = "${var.environment}",
+    CIS2_ID                 = "${var.CIS2_ID}",
+    CIS2_TOKEN_ENDPOINT_URL = "${var.CIS2_TOKEN_ENDPOINT_URL}",
+    CIS2_PUBLIC_KEY_ID      = "${var.CIS2_PUBLIC_KEY_ID}",
+    CIS2_KEY_NAME           = "${var.CIS2_KNAME}"
+  }
+}
+
+module "authenticator_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.authenticator_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "authenticator_lambda_api_gateway" {
+  source                 = "./modules/api-gateway"
+  environment            = var.environment
+  lambda_invoke_arn      = module.authenticator_lambda.lambda_invoke_arn
+  path_part              = "authenticator-lambda"
+  method_http_parameters = {}
+  lambda_function_name   = module.authenticator_lambda.lambda_function_name
+}
+
+
 # GTMS validate clinic capacity
 module "validate_clinic_capacity_lambda" {
   source               = "./modules/lambda"

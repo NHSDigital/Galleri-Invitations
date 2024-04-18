@@ -1,0 +1,11 @@
+{
+  "name": "authenticatorLambda",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "authenticatorLambda.js",
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^9.0.1"
+  }
+}
