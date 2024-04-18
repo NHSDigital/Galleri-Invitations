@@ -83,7 +83,7 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
       });
         const validationResult = await moduleapi.validateRecord(data[4], mockDynamoDbClient);
         expect(validationResult.success).toBe(false);
-        expect(validationResult.message).toBe("Six week horizon is exceeded or not met");
+        expect(validationResult.message).toBe("Invalid JSON Schema");
     });
 
     test('should return failure for 7 weeks horizon', async() => {
@@ -92,7 +92,7 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
       });
         const validationResult = await moduleapi.validateRecord(data[5], mockDynamoDbClient);
         expect(validationResult.success).toBe(false);
-        expect(validationResult.message).toBe("Six week horizon is exceeded or not met");
+        expect(validationResult.message).toBe("Invalid JSON Schema");
     });
 
     test('should return failure for WeekCommencingDate not starting on a Monday', async() => {

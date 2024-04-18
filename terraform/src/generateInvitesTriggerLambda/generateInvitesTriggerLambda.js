@@ -14,7 +14,8 @@ const SUCCESSFULL_REPSONSE = 200;
 export const handler = async (event, context) => {
   const eventJson = JSON.parse(event.body);
   const personIdentifiedArray = eventJson.selectedParticipants;
-  const clinicInfo = eventJson.clinicInfo;
+  const { clinicInfo } = eventJson;
+  const { createdBy } = clinicInfo;
 
   let responseObject = {
     headers: {
@@ -32,9 +33,10 @@ export const handler = async (event, context) => {
 
     const responsePopulation = await updatePersonsToBeInvited(
       personIdentifiedArray,
+      createdBy,
       client
     );
-    console.log(`responsePopulation = ${responsePopulation.length}`)
+    console.log(`responsePopulation = ${responsePopulation.length}`);
     const responsePhlebotomySite = await updateClinicFields(
       clinicInfo,
       personIdentifiedArray.length,
@@ -46,15 +48,17 @@ export const handler = async (event, context) => {
         (element) => element.value === SUCCESSFULL_REPSONSE
       )
     ) {
-      console.log(`All ${responsePopulation.length} persons successfully updated`);
+      console.log(
+        `All ${responsePopulation.length} persons successfully updated`
+      );
       personUpdated = true;
-    }
-    else {
-      const successfulRecords = responsePopulation.reduce(
-        (curr, acc) => {if (curr.value === SUCCESSFULL_REPSONSE) return acc + 1}
-        ,0
-      )
-      console.log(`Only ${successfulRecords}/${responsePopulation.length} persons were successfully updated. Contact third line support to investigate`);
+    } else {
+      const successfulRecords = responsePopulation.reduce((curr, acc) => {
+        if (curr.value === SUCCESSFULL_REPSONSE) return acc + 1;
+      }, 0);
+      console.log(
+        `Error: Only ${successfulRecords}/${responsePopulation.length} persons were successfully updated. Contact third line support to investigate`
+      );
     }
 
     if (responsePhlebotomySite == SUCCESSFULL_REPSONSE) {
@@ -82,7 +86,7 @@ export const handler = async (event, context) => {
 // METHODS
 // create a batch id
 // assign it to records array
-export async function updatePersonsToBeInvited(recordArray, client) {
+export async function updatePersonsToBeInvited(recordArray, createdBy, client) {
   const batchId = await generateBatchID(client);
 
   const validParticipants = recordArray.filter((record) => {
@@ -90,13 +94,13 @@ export async function updatePersonsToBeInvited(recordArray, client) {
   });
   return Promise.allSettled(
     validParticipants.map(async (record) => {
-      return updateRecord(record, batchId, client);
+      return updateRecord(record, batchId, client, createdBy);
     })
   );
 }
 
 // Takes single record and update that individual to have a identifiedToBeInvited field = true
-export async function updateRecord(record, batchId, client) {
+export async function updateRecord(record, batchId, client, createdBy) {
   const lsoaCodeReturn = await getLsoaCode(record, client);
   const items = lsoaCodeReturn.Items;
   const lsoaCode = items[0].LsoaCode.S;
@@ -104,7 +108,8 @@ export async function updateRecord(record, batchId, client) {
   const input = {
     ExpressionAttributeNames: {
       "#IDENTIFIED_TO_BE_UPDATED": "identified_to_be_invited",
-      "#BATCH_ID": "Batch_Id"
+      "#BATCH_ID": "Batch_Id",
+      "#CREATED_BY": "created_by",
     },
     ExpressionAttributeValues: {
       ":to_be_invited": {
@@ -112,6 +117,9 @@ export async function updateRecord(record, batchId, client) {
       },
       ":batch": {
         S: `${batchId}`,
+      },
+      ":created": {
+        S: `${createdBy}`,
       },
     },
     Key: {
@@ -125,13 +133,14 @@ export async function updateRecord(record, batchId, client) {
     TableName: `${ENVIRONMENT}-Population`,
     UpdateExpression: `SET
       #IDENTIFIED_TO_BE_UPDATED = :to_be_invited,
-      #BATCH_ID = :batch`,
+      #BATCH_ID = :batch,
+      #CREATED_BY = :created`,
   };
 
   const command = new UpdateItemCommand(input);
   const response = await client.send(command);
-  if ((response.$metadata.httpStatusCode) != 200){
-    console.log(`record update failed for person ${record}`)
+  if (response.$metadata.httpStatusCode != 200) {
+    console.log(`record update failed for person ${record}`);
   }
   return response.$metadata.httpStatusCode;
 }
@@ -229,12 +238,12 @@ export const generateBatchID = async (client) => {
     let batchId;
     let found;
     do {
-      batchUuid = uuid4()
-      batchId = `IB-${batchUuid}`
-      console.log("Checking if batchId exists in Episode table")
+      batchUuid = uuid4();
+      batchId = `IB-${batchUuid}`;
+      console.log("Checking if batchId exists in Episode table");
       found = await lookupBatchId(batchId, `Population`, client);
     } while (found == 400);
-    console.log(`batchId = ${batchId}`)
+    console.log(`batchId = ${batchId}`);
     return batchId;
   } catch (err) {
     console.error("Error generating batch id.");
@@ -259,8 +268,9 @@ export async function lookupBatchId(batchId, table, dbClient) {
 
   const command = new QueryCommand(input);
   const response = await dbClient.send(command);
-  if (!response.Items.length){ // if response is empty, no matching participantId
-    return 200
+  if (!response.Items.length) {
+    // if response is empty, no matching participantId
+    return 200;
   }
   return 400;
-};
+}
