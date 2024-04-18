@@ -6,7 +6,8 @@
       "items": {
         "required": [
           "participantId",
-          "nhsNumber"
+          "nhsNumber",
+          "dateOfBirth"
         ],
         "type": "object",
         "properties": {
@@ -19,19 +20,15 @@
             "type": "string",
             "pattern": "^[0-9]{10}$",
             "description": "NHS number of the invitee, to be persisted in the NHSI system and used for participant search and other appropriate operations."
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date",
+            "x-go-type": "string",
+            "description": "There will be no validation of the DOB on receipt to GTMS. DOB received from GPS will not be stored in GTMS, but it will be kept in the audit of the raw fields of the incoming message. The date of birth used in the message to GPS will come from PDS. PDS can hold incomplete data for DOB, but by the time it's received in GTMS it will conform to the specified format (it will have day and month filled in, if missing)."
           }
         }
-      },
-      "example": [
-        {
-          "participantId": "NHS-AB12-CD34",
-          "nhsNumber": "9434765919"
-        },
-        {
-          "participantId": "NHS-AB12-CD56",
-          "nhsNumber": "9434765920"
-        }
-      ]
+      }
     },
     "ClinicCreateOrUpdate": {
       "required": [
@@ -39,7 +36,8 @@
         "ClinicName",
         "Address",
         "Postcode",
-        "Directions"
+        "Directions",
+        "Timestamp"
       ],
       "type": "object",
       "properties": {
@@ -50,13 +48,21 @@
           "example": "C1C-A1A"
         },
         "ODSCode": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
+          "nullable": true,
           "pattern": "^.{0,10}$",
           "description": "ODS code of the clinic"
         },
         "ICBCode": {
-          "type": "string",
-          "pattern": "^.{0,255}$",
+          "type": [
+            "string",
+            "null"
+          ],
+          "nullable": true,
+          "pattern": "^[a-zA-Z0-9\\s&'*(),.#\\-\"]{0,255}$",
           "description": "ICB code of the clinic"
         },
         "ClinicName": {
@@ -75,9 +81,16 @@
           "description": "Clinic postcode"
         },
         "Directions": {
+          "description": "Directions to the clinic",
+          "minLength": 0,
+          "maxLength": 2000,
+          "type": "string"
+        },
+        "Timestamp": {
+          "description": "Time message was generated. RFC 3339, always sent in UTC (Z), will be nanosecond precision e.g.: 2006-01-02T15:04:05.999999999Z",
           "type": "string",
-          "pattern": "^[a-zA-Z0-9\\s&'*(),.#\\-\"]{0,2000}$",
-          "description": "Directions to the clinic"
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$"
         }
       },
       "example": {
@@ -87,69 +100,129 @@
         "ClinicName": "GRAIL Test Clinic",
         "Address": "210 Euston Rd, London NW1 2DA",
         "Postcode": "NW1 2DA",
-        "Directions": "Closest London Underground station is Euston Square."
+        "Directions": "Closest London Underground station is Euston Square.",
+        "Timestamp": "2006-01-02T15:04:05.999999999Z"
       }
     },
     "ClinicScheduleSummary": {
       "required": [
-        "ClinicScheduleSummary"
+        "ClinicScheduleSummary",
+        "Timestamp"
       ],
       "type": "object",
       "properties": {
         "ClinicScheduleSummary": {
           "type": "array",
           "items": {
-            "type": "object",
-            "required": [
-              "ClinicID",
-              "Schedule"
-            ],
-            "properties": {
-              "ClinicID": {
-                "type": "string",
-                "description": "Persistent unique ID for clinic",
-                "pattern": "^[A-Z][0-9][A-Z]-[A-Z][0-9][A-Z]$"
-              },
-              "Schedule": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "required": [
-                    "WeekCommencingDate",
-                    "Availability"
-                  ],
-                  "properties": {
-                    "WeekCommencingDate": {
-                      "type": "string",
-                      "description": "ISO8601, yyyy-mm-dd date. Week commencing date (always monday).",
-                      "format": "date"
-                    },
-                    "Availability": {
-                      "type": "number",
-                      "description": "number of available slots",
-                      "minimum": 0,
-                      "maximum": 10000
-                    }
-                  }
-                }
-              }
-            }
+            "$ref": "#/definitions/ClinicSchedule"
           }
+        },
+        "Timestamp": {
+          "description": "Time message was generated. RFC 3339, always sent in UTC (Z), will be nanosecond precision e.g.: 2006-01-02T15:04:05.999999999Z",
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$"
         }
       },
-      "example": {
-        "ClinicScheduleSummary": [
-          {
-            "ClinicID": "C1C-A1A",
-            "Schedule": [
-              {
-                "WeekCommencingDate": "2023-09-04T00:00:00.000Z",
-                "Availability": 5
-              }
-            ]
-          }
-        ]
-      }
+      "examples": [
+        {
+          "ClinicScheduleSummary": [
+            {
+              "ClinicID": "C1C-A1A",
+              "Schedule": [
+                {
+                  "WeekCommencingDate": "2023-09-04",
+                  "Availability": 5
+                },
+                {
+                  "WeekCommencingDate": "2023-09-11",
+                  "Availability": 4
+                },
+                {
+                  "WeekCommencingDate": "2023-09-18",
+                  "Availability": 0
+                },
+                {
+                  "WeekCommencingDate": "2023-09-25",
+                  "Availability": 1
+                },
+                {
+                  "WeekCommencingDate": "2023-10-02",
+                  "Availability": 2
+                },
+                {
+                  "WeekCommencingDate": "2023-10-09",
+                  "Availability": 0
+                }
+              ]
+            }
+          ],
+          "Timestamp": "2006-01-02T15:04:05.999999999Z"
+        },
+        {
+          "ClinicScheduleSummary": [
+            {
+              "ClinicID": "C1C-A1A",
+              "Schedule": [
+                {
+                  "WeekCommencingDate": "2023-09-04",
+                  "Availability": 5
+                },
+                {
+                  "WeekCommencingDate": "2023-09-11",
+                  "Availability": 4
+                },
+                {
+                  "WeekCommencingDate": "2023-09-18",
+                  "Availability": 0
+                },
+                {
+                  "WeekCommencingDate": "2023-09-25",
+                  "Availability": 1
+                },
+                {
+                  "WeekCommencingDate": "2023-10-02",
+                  "Availability": 2
+                },
+                {
+                  "WeekCommencingDate": "2023-10-09",
+                  "Availability": 0
+                }
+              ]
+            },
+            {
+              "ClinicID": "A1A-B1B",
+              "Schedule": [
+                {
+                  "WeekCommencingDate": "2023-09-04",
+                  "Availability": 0
+                },
+                {
+                  "WeekCommencingDate": "2023-09-11",
+                  "Availability": 0
+                },
+                {
+                  "WeekCommencingDate": "2023-09-18",
+                  "Availability": 0
+                },
+                {
+                  "WeekCommencingDate": "2023-09-25",
+                  "Availability": 0
+                },
+                {
+                  "WeekCommencingDate": "2023-10-02",
+                  "Availability": 0
+                },
+                {
+                  "WeekCommencingDate": "2023-10-09",
+                  "Availability": 0
+                }
+              ]
+            }
+          ],
+          "Timestamp": "2006-01-02T15:04:05.999999999Z"
+        }
+      ]
     },
     "Appointment": {
       "required": [
@@ -160,56 +233,83 @@
         "Channel",
         "EventType",
         "AppointmentAccessibility",
-        "CommunicationAccessibility",
-        "NotificationPreferences"
+        "CommunicationsAccessibility",
+        "NotificationPreferences",
+        "InvitationNHSNumber",
+        "PDSNHSNumber",
+        "DateOfBirth",
+        "Timestamp"
       ],
       "type": "object",
       "properties": {
         "ParticipantID": {
           "type": "string",
-          "format": "^NHS-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]$"
+          "pattern": "^NHS-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]$"
         },
         "AppointmentID": {
           "type": "string",
-          "format": "^.{0,255}$"
+          "pattern": "^.{0,255}$"
         },
         "ClinicID": {
           "type": "string",
-          "format": "^[A-Z][0-9][A-Z]-[A-Z][0-9][A-Z]$"
+          "pattern": "^[A-Z][0-9][A-Z]-[A-Z][0-9][A-Z]$"
         },
         "AppointmentDateTime": {
           "type": "string",
-          "format": "^[A-Z][0-9][A-Z]-[A-Z][0-9][A-Z]$",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
           "description": "RFC 3339 date time\n1) when the appointment was booked for in all events BUT the completed event\n2) in the completed event it's specifically overridden to be the time when appointment was started (attended)\n"
         },
         "BloodCollectionDate": {
-          "type": "string",
-          "format": "^\\d{4}-\\d{2}-\\d{2}$",
-          "description": "Sent only in the appointment completed event. Required in the appointment completed event\n"
+          "type": [
+            "string",
+            "null"
+          ],
+          "nullable": true,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "Sent only in the appointment completed event. Required in the appointment completed event"
         },
         "PrimaryPhoneNumber": {
-          "type": "string",
-          "format": "^0?[1235789]\\d{8,9}$",
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^0?[1235789]\\d{8,9}$",
+          "nullable": true,
           "description": "Resend as BOOKED if this is updated separate from booking flow. If participant choose they don't have a phone number this field will be blank"
         },
         "SecondaryPhoneNumber": {
-          "type": "string",
-          "format": "^0?[1235789]\\d{8,9}$",
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^0?[1235789]\\d{8,9}$",
+          "nullable": true,
           "description": "Resend as BOOKED if this is updated separate from booking flow. If participant choose they don't have a phone number this field will be blank"
         },
         "Email": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
           "format": "email",
+          "nullable": true,
           "description": "Resend as BOOKED if this is updated separate from booking flow"
         },
         "Replaces": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
           "nullable": true,
-          "format": "^.{0,255}$",
+          "pattern": "^.{0,255}$",
           "description": "UUID for appointment being replaced (optional). Required if it's rebooked"
         },
         "CancellationReason": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
           "nullable": true,
           "enum": [
             "CANT_FIND_A_SUITABLE_LOCATION",
@@ -234,7 +334,10 @@
           "description": "Populated for all events. Online and call centre will be used for bookings and cancellations. Clinic will be used for no shows, aborted and completed"
         },
         "BloodNotCollectedReason": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
           "nullable": true,
           "enum": [
             "PARTICIPANT_DECISION",
@@ -258,39 +361,49 @@
         "AppointmentAccessibility": {
           "$ref": "#/definitions/SiteAccessibilityOptions"
         },
-        "CommunicationAccessibility": {
-          "$ref": "#/definitions/CommunicationAccessibility"
+        "CommunicationsAccessibility": {
+          "$ref": "#/definitions/CommunicationsAccessibility"
         },
         "NotificationPreferences": {
           "$ref": "#/definitions/NotificationPreferences"
         },
         "GrailID": {
-          "type": "string",
-          "format": "^NHS[0-9][A-HJ-NP-Z0-9]{6}$",
+          "type": [
+            "string",
+            "null"
+          ],
+          "nullable": true,
+          "pattern": "^NHS[1-9][A-HJ-NP-Z0-9]{6}$",
           "description": "Populated only in appointment COMPLETED event"
         },
         "InvitationNHSNumber": {
           "type": "string",
-          "format": "^[0-9]{10}$",
+          "pattern": "^[0-9]{10}$",
           "description": "Populated for all events. The NHS number in the message will be the  one received from GPS in the invite message"
         },
         "PDSNHSNumber": {
           "type": "string",
-          "format": "^[0-9]{10}$",
+          "pattern": "^[0-9]{10}$",
           "description": "Populated for all events. The NHS number in the message will be the PDS NHS number."
         },
         "DateOfBirth": {
           "type": "string",
-          "format": "^\\d{4}-\\d{2}-\\d{2}$",
-          "description": "We'll be sending DOB from PDS, always the most recent one. Please note that there is logic at the point of consuming the date of birth from PDS. If the DOB from PDS only has year, then day and month will be populated with 01 value. If the date of birth from PDS only has month and year then the day will be populated with the 01 value. "
+          "format": "date",
+          "x-go-type": "string",
+          "description": "DOB sent from PDS. ISO8601 - YYYY-MM-DD"
+        },
+        "Timestamp": {
+          "description": "Time message was generated. RFC 3339, always sent in UTC (Z), will be nanosecond precision e.g.: 2006-01-02T15:04:05.999999999Z",
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$"
         }
       },
       "example": {
         "ParticipantID": "NHS-AB12-CD34",
         "AppointmentID": "00000000-0000-0000-0000-000000000000",
         "ClinicID": "D7E-G2H",
-        "AppointmentDateTime": "2006-01-02T15:04:05.000Z",
-        "BloodCollectionDate": "2006-01-02",
+        "AppointmentDateTime": "2006-01-02T15:04:05Z",
         "PrimaryPhoneNumber": "01999999999",
         "SecondaryPhoneNumber": "01999999999",
         "Email": "me@example.com",
@@ -307,7 +420,7 @@
           "stepFreeAccess": true,
           "wheelchairAccess": true
         },
-        "CommunicationAccessibility": {
+        "CommunicationsAccessibility": {
           "signLanguage": true,
           "braille": false,
           "interpreter": false,
@@ -316,14 +429,19 @@
         "NotificationPreferences": {
           "canEmail": true,
           "canSMS": false
-        }
+        },
+        "InvitationNHSNumber": "9434765919",
+        "PDSNHSNumber": "9658218903",
+        "DateOfBirth": "1950-01-01",
+        "Timestamp": "2006-01-02T15:04:05.999999999Z"
       }
     },
     "Withdrawal": {
       "required": [
         "ParticipantID",
         "Withdrawn",
-        "Reason"
+        "Reason",
+        "Timestamp"
       ],
       "type": "object",
       "properties": {
@@ -333,7 +451,8 @@
         },
         "Withdrawn": {
           "type": "boolean",
-          "description": "NHS number of the invitee, to be persisted in the NHSI system and used for participant search and other appropriate operations."
+          "enum": [true],
+          "description": "Only ever true. The withdrawal is currently not reversible."
         },
         "Reason": {
           "type": "string",
@@ -343,12 +462,19 @@
             "LEFT_COUNTRY",
             "WITHDREW_CONSENT"
           ]
+        },
+        "Timestamp": {
+          "description": "Time message was generated. RFC 3339, always sent in UTC (Z), will be nanosecond precision e.g.: 2006-01-02T15:04:05.999999999Z",
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$"
         }
       },
       "example": {
         "ParticipantID": "NHS-AB12-CD34",
         "Withdrawn": true,
-        "Reason": "CLINICAL_REASON"
+        "Reason": "CLINICAL_REASON",
+        "Timestamp": "2006-01-02T15:04:05.999999999Z"
       }
     },
     "SiteAccessibilityOptions": {
@@ -384,7 +510,7 @@
         "wheelchairAccess"
       ]
     },
-    "CommunicationAccessibility": {
+    "CommunicationsAccessibility": {
       "title": "Contact requirements",
       "type": "object",
       "description": "Participant accessibility requirements for receiving communications",
@@ -410,7 +536,11 @@
     },
     "InterpreterLanguage": {
       "title": "Interpreter languages",
-      "type": "string",
+      "type": [
+        "string",
+        "null"
+      ],
+      "nullable": true,
       "description": "Interpreter languages available for participants",
       "enum": [
         "ARABIC",
@@ -422,7 +552,8 @@
         "POLISH",
         "PORTUGUESE",
         "PUNJABI",
-        "URDU"
+        "URDU",
+        null
       ]
     },
     "NotificationPreferences": {
@@ -440,6 +571,54 @@
       "required": [
         "canSMS",
         "canEmail"
+      ]
+    },
+    "WeekAvailability": {
+      "title": "Week availability",
+      "description": "Clinic availability for a week",
+      "type": "object",
+      "properties": {
+        "WeekCommencingDate": {
+          "type": "string",
+          "description": "ISO8601, YYYY-MM-DD date. Week commencing date (always Monday).",
+          "format": "date",
+          "x-go-type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "Availability": {
+          "type": "integer",
+          "description": "number of available slots",
+          "minimum": 0,
+          "maximum": 10000
+        }
+      },
+      "required": [
+        "WeekCommencingDate",
+        "Availability"
+      ]
+    },
+    "ClinicSchedule": {
+      "title": "Clinic schedule",
+      "description": "Schedule per clinic for multiple weeks",
+      "type": "object",
+      "properties": {
+        "ClinicID": {
+          "type": "string",
+          "description": "Persistent unique ID for clinic",
+          "pattern": "^[A-Z][0-9][A-Z]-[A-Z][0-9][A-Z]$"
+        },
+        "Schedule": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "items": {
+            "$ref": "#/definitions/WeekAvailability"
+          }
+        }
+      },
+      "required": [
+        "ClinicID",
+        "Schedule"
       ]
     }
   },
@@ -462,14 +641,20 @@
     "SiteAccessibilityOptions": {
       "$ref": "#/definitions/SiteAccessibilityOptions"
     },
-    "CommunicationAccessibility": {
-      "$ref": "#/definitions/CommunicationAccessibility"
+    "CommunicationsAccessibility": {
+      "$ref": "#/definitions/CommunicationsAccessibility"
     },
     "InterpreterLanguage": {
       "$ref": "#/definitions/InterpreterLanguage"
     },
     "NotificationPreferences": {
       "$ref": "#/definitions/NotificationPreferences"
+    },
+    "WeekAvailability": {
+      "$ref": "#/definitions/WeekAvailability"
+    },
+    "ClinicSchedule": {
+      "$ref": "#/definitions/ClinicSchedule"
     }
   }
 }

@@ -115,7 +115,6 @@ export async function validateRecord(record, client) {
                 return validationResults;
               }
             });
-          }
         });
       }
     }

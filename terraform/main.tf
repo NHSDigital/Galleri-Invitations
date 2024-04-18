@@ -3,6 +3,17 @@ terraform {
     dynamodb_table = "terraform-state-lock-dynamo"
     encrypt        = true
   }
+  required_providers {
+    null = {
+      source = "hashicorp/null"
+    }
+    tls = {
+      source = "hashicorp/tls"
+    }
+    time = {
+      source = "hashicorp/time"
+    }
+  }
 }
 
 provider "aws" {
@@ -1286,15 +1297,14 @@ module "send_GTMS_invitation_batch_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "send_GTMS_invitation_batch_lambda.zip"
   environment_vars = {
-    ENVIRONMENT                    = "${var.environment}",
-    MESH_SANDBOX                   = "false",
-    WORKFLOW_ID                    = "API-GTMS-INVITATION-BATCH-TEST",
-    MESH_URL                       = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
-    MESH_SHARED_KEY                = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
-    MESH_SENDER_MAILBOX_ID         = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_id.secret_string)["MESH_SENDER_MAILBOX_ID"],
-    MESH_SENDER_MAILBOX_PASSWORD   = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_password.secret_string)["MESH_SENDER_MAILBOX_PASSWORD"],
-    MESH_RECEIVER_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_id.secret_string)["MESH_RECEIVER_MAILBOX_ID"],
-    MESH_RECEIVER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_password.secret_string)["MESH_RECEIVER_MAILBOX_PASSWORD"]
+    ENVIRONMENT                   = "${var.environment}",
+    MESH_SANDBOX                  = "false",
+    WORKFLOW_ID                   = "GPS_INVITATIONS",
+    MESH_URL                      = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
+    MESH_SHARED_KEY               = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
+    MESH_SENDER_MAILBOX_ID        = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_mailbox_id.secret_string)["GTMS_MESH_MAILBOX_ID"],
+    MESH_SENDER_MAILBOX_PASSWORD  = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_mailbox_password.secret_string)["GTMS_MESH_MAILBOX_PASSWORD"],
+    GTMS_MESH_RECEIVER_MAILBOX_ID = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_receiver_mailbox_id.secret_string)["GTMS_MESH_RECEIVER_MAILBOX_ID"],
   }
 }
 
@@ -1452,6 +1462,10 @@ data "aws_secretsmanager_secret_version" "caas_mesh_mailbox_id" {
 data "aws_secretsmanager_secret_version" "caas_mesh_mailbox_password" {
   secret_id = "CAAS_MESH_MAILBOX_PASSWORD"
 }
+
+data "aws_secretsmanager_secret_version" "gtms_mesh_receiver_mailbox_id" {
+  secret_id = "GTMS_MESH_RECEIVER_MAILBOX_ID"
+}
 #END of MESH keys
 
 module "poll_mesh_mailbox_lambda_cloudwatch" {
@@ -1516,27 +1530,27 @@ module "caas_data_triggers" {
   source     = "./modules/lambda_s3_trigger"
   bucket_arn = module.validated_records_bucket.bucket_arn
   bucket_id  = module.validated_records_bucket.bucket_id
-  triggers = [
-    {
+  triggers = {
+    add_records = {
       lambda_arn    = module.caas_feed_add_records_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records_add-",
-      filter_suffix = null
+      filter_suffix = ""
     },
-    {
+    update_records = {
       lambda_arn    = module.caas_feed_update_records_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records_update-",
-      filter_suffix = null
+      filter_suffix = ""
     },
-    {
+    delete_records = {
       lambda_arn = module.caas_feed_delete_records_lambda.lambda_arn,
       # bucket_events = ["s3:ObjectRemoved:*"],
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records_delete-",
-      filter_suffix = null
+      filter_suffix = ""
     }
-  ]
+  }
 }
 
 module "caas_feed_update_records_lambda" {
@@ -1733,7 +1747,7 @@ module "population_table" {
   secondary_write_capacity = null
   secondary_read_capacity  = null
   environment              = var.environment
-  # non_key_attributes     = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+  # non_key_attributes     = ["Invited", "date_of_death", "reason_for_removal_effective_from_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
   projection_type = "ALL"
   attributes = [{
     name = "PersonId"
@@ -1765,14 +1779,14 @@ module "population_table" {
       name               = "LsoaCode-index"
       hash_key           = "LsoaCode"
       range_key          = null
-      non_key_attributes = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+      non_key_attributes = ["Invited", "date_of_death", "reason_for_removal_effective_from_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
       projection_type    = "INCLUDE"
     },
     {
       name               = "BatchId-index"
       hash_key           = "Batch_Id"
       range_key          = null
-      non_key_attributes = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+      non_key_attributes = ["Invited", "date_of_death", "reason_for_removal_effective_from_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
       projection_type    = "INCLUDE"
     },
     {
