@@ -10,6 +10,7 @@ import {
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
 import winston from "winston";
+import dayjs from "dayjs";
 
 //VARIABLES
 const dbClient = new DynamoDBClient();
@@ -37,18 +38,25 @@ export const handler = async (event) => {
   const payloadEventType = js?.['Appointment']?.['EventType']; //BOOKED
   const payloadAppointmentDateTime = js?.['Appointment']?.['AppointmentDateTime'];
   const payloadAppointmentReplaces = js?.['Appointment']?.['Replaces']; //replaces existing appointment id
+  const payloadTimestamp = dayjs(js?.['Timestamp']).format("YYYY-MM-DD"); //most recent
 
   const episodeResponse = await lookUp(dbClient, payloadParticipantID, "Episode", "Participant_Id", "S", true);
   const episodeItems = episodeResponse.Items[0];
   logger.info(`episodeItems for participant: ${JSON.stringify(episodeItems?.Participant_Id)} loaded.`);
+  //doesnt pull associated appointment id as in scenario it is new but links to existing
 
   const appointmentResponse = await lookUp(dbClient, payloadAppointmentID, "Appointments", "Appointment_Id", "S", true);
   const appointmentItems = appointmentResponse.Items[0];
   logger.info(`appointmentItems for appointment: ${JSON.stringify(appointmentItems?.Appointment_Id)} loaded.`);
+  //bring back most recent appointment, with timestamp
 
   const appointmentParticipant = await lookUp(dbClient, payloadParticipantID, "Appointments", "Participant_Id", "S", false); //Check participant has any appointments
-  const appointmentParticipantItems = appointmentParticipant.Items[0];
-  logger.info(`appointmentParticipantItems for appointment: ${JSON.stringify(appointmentParticipantItems?.Appointment_Id)} loaded.`);
+  const sortedApptParticipants = appointmentParticipant.sort(function (x, y) {
+    return new Date(x.Timestamp.S) < new Date(y.Timestamp.S) ? 1 : -1;
+  });
+  const appointmentParticipantItems = sortedApptParticipants.Items[0];
+  logger.info(`appointmentParticipantItems for appointment: ${JSON.stringify(appointmentParticipant)} loaded.`);
+  // logger.info(`appointmentParticipantItems for appointment: ${JSON.stringify(appointmentParticipantItems?.Appointment_Id)} loaded.`);
 
   let date = new Date();
   const dateTime = new Date(Date.now()).toISOString();
@@ -68,6 +76,7 @@ export const handler = async (event) => {
             payloadAppointmentID,
             payloadEventType,
             episodeEvent,
+            payloadTimestamp,
           );
         } else {
           const episodeEvent = 'Appointment Booked Text';
@@ -79,6 +88,7 @@ export const handler = async (event) => {
             payloadAppointmentID,
             payloadEventType,
             episodeEvent,
+            payloadTimestamp,
           );
         }
       } else if (!appointmentItems && appointmentParticipantItems && (payloadAppointmentReplaces === appointmentParticipantItems?.['Appointment_Id']?.['S'])) {  //same appointmentID = UPDATE
@@ -93,6 +103,7 @@ export const handler = async (event) => {
             payloadAppointmentID,
             payloadEventType,
             episodeEvent,
+            payloadTimestamp,
           );
         } else {
           const episodeEvent = 'Appointment Rebooked Text';
@@ -104,6 +115,7 @@ export const handler = async (event) => {
             payloadAppointmentID,
             payloadEventType,
             episodeEvent,
+            payloadTimestamp,
           );
         }
       } else { // has appointment id and different one supplied, REJECT
@@ -247,6 +259,7 @@ export const transactionalWrite = async (
   appointmentId,
   eventType,
   episodeEvent,
+  timestamp,
 ) => {
   const timeNow = String(new Date(Date.now()).toISOString());
   const params = {
@@ -275,10 +288,11 @@ export const transactionalWrite = async (
             Participant_Id: { S: participantId },
             Appointment_Id: { S: appointmentId },
           },
-          UpdateExpression: `SET event_type = :eventType`,
+          UpdateExpression: `SET event_type = :eventType, Timestamp = :timestamp`,
           TableName: `${ENVIRONMENT}-Appointments`,
           ExpressionAttributeValues: {
             ":eventType": { S: eventType },
+            ":timestamp": { S: timestamp },
           },
         },
       },
