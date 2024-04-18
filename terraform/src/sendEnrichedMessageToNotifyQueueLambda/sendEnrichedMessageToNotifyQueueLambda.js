@@ -136,7 +136,7 @@ export async function queryTable(dynamoDbClient,tableName,pKeyField,pKeyValue,en
     const queryCommand = new QueryCommand(params);
     const response = await dynamoDbClient.send(queryCommand);
     if (response.Items.length === 0) {
-      throw new Error(`Error: No items returned when querying ${tableName} with value ${pKeyValue}`);
+      throw new Error(`No items returned when querying ${tableName} with value ${pKeyValue}`);
     }
     return response.Items;
   } catch (error) {
