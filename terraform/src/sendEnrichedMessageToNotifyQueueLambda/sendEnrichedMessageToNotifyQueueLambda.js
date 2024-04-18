@@ -49,6 +49,8 @@ export async function processRecords(records, sqsClient, dynamoDbClient, ssmClie
       }
 
       // Enrich message
+      messageBody.routingId = routingId;
+
       if(tables.includes('appointment')) {
         // Retrieve relevant fields from DynamoDB
         const participantId = messageBody.participantId;
@@ -78,10 +80,6 @@ export async function processRecords(records, sqsClient, dynamoDbClient, ssmClie
           console.error('Error: Error querying DynamoDB');
           throw error;
         }
-
-        messageBody.routingId = routingId;
-      } else {
-        messageBody.routingId = routingId;
       };
 
       // Send to notifyEnrichedMessageQueue
