@@ -64,7 +64,7 @@ export const handler = async (event) => {
       if (filteredRejectedRecords.length > 0) {
         const timeNow = Date.now();
         const fileName = `validRecords/rejectedRecords/update/rejectedRecords-${timeNow}.csv`
-        console.log(`${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-${bucket}/${fileName}`);
+        console.error(`Error: ${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-${bucket}/${fileName}`);
         // Generate the CSV format
         const rejectedRecordsString = generateCsvString(
           `nhs_number,rejected,reason`,
@@ -84,7 +84,7 @@ export const handler = async (event) => {
   }
   catch (error) {
     console.error(
-      "Error with CaaS Feed extraction, procession or uploading",
+      "Error: with CaaS Feed extraction, procession or uploading",
       error
     );
   }
@@ -325,7 +325,7 @@ export async function updateRecordInTable(client, table, partitionKey, partition
   const command = new UpdateItemCommand(input);
   const response = await client.send(command);
   if ((response.$metadata.httpStatusCode) != 200){
-    console.log(`record update failed for person ${partitionKey}`);
+    console.error(`Error: record update failed for person ${partitionKey}`);
   }
   return response.$metadata.httpStatusCode;
 }
@@ -518,8 +518,7 @@ export const getLsoa = async (record, dbClient) => {
       return lsoaObject;
     }
   } catch (err) {
-    console.error(`Error trying to get LSOA from external tables.`);
-    console.error(err);
+    console.error(`Error: trying to get LSOA from external tables. Error Message: ${err}`);
     return err;
   }
 }
@@ -553,7 +552,7 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
 
     return response.Body.transformToString();
   } catch (err) {
-    console.log(`Failed to read from ${bucketName}/${key}`);
+    console.error(`Error: Failed to read from ${bucketName}/${key}`);
     throw err;
   }
 };
@@ -571,7 +570,7 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
     console.log(`Successfully pushed to ${bucketName}/${key}`);
     return response;
   } catch (err) {
-    console.log(`Failed to push to ${bucketName}/${key}. Error Message: ${err}`);
+    console.error(`Error: Failed to push to ${bucketName}/${key}. Error Message: ${err}`);
     throw err;
   }
 };

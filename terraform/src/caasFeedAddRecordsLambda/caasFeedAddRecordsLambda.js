@@ -68,7 +68,7 @@ export const handler = async (event) => {
       if (filteredRejectedRecords) {
         const timeNow = Date.now();
         const fileName = `validRecords/rejectedRecords/rejectedRecords-${timeNow}.csv`
-        console.log(`${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${bucket}/${fileName}`);
+        console.error(`Error: ${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${bucket}/${fileName}`);
         // Generate the CSV format
         const rejectedRecordsString = generateCsvString(
           `nhs_number,rejected,reason`,
@@ -86,7 +86,7 @@ export const handler = async (event) => {
     }
   } catch (error) {
     console.error(
-      "Error with CaaS Feed extraction, procession or uploading",
+      "Error: with CaaS Feed extraction, procession or uploading",
       error
     );
   }
@@ -105,7 +105,7 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
 
     return response.Body.transformToString();
   } catch (err) {
-    console.log(`Failed to read from ${bucketName}/${key}`);
+    console.error(`Error: Failed to read from ${bucketName}/${key}`);
     throw err;
   }
 };
@@ -123,7 +123,7 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
     console.log(`Successfully pushed to ${bucketName}/${key}`);
     return response;
   } catch (err) {
-    console.log(`Failed to push to ${bucketName}/${key}. Error Message: ${err}`);
+    console.error(`Error: Failed to push to ${bucketName}/${key}. Error Message: ${err}`);
     throw err;
   }
 };
@@ -196,8 +196,7 @@ export const checkDynamoTable = async (dbClient, attribute, table, attributeName
     };
     return false;
   } catch (err) {
-    console.error(`Error checking the ${attribute} in ${table} table.`);
-    console.error(err);
+    console.error(`Error checking the ${attribute} in ${table} table. Error Message: ${err}`);
     return err;
   }
 }
@@ -244,8 +243,7 @@ export const generateParticipantID = async (dbClient) => {
     participantIdStore.participantId = true;
     return participantId;
   } catch (err) {
-    console.error("Error generating participant id.");
-    console.error(err);
+    console.error(`Error: generating participant id. Error Message: ${err}`);
     return err;
   }
 };
@@ -280,8 +278,7 @@ export const getLsoa = async (record, dbClient) => {
       return lsoaObject;
     }
   } catch (err) {
-    console.error(`Error trying to get LSOA from external tables.`);
-    console.error(err);
+    console.error(`Error: trying to get LSOA from external tables. Error Message: ${err}`);
     return err;
   }
 }
@@ -445,8 +442,10 @@ export const formatDynamoDbRecord = async (record) => {
         email_address: {S: record.email_address},
         preferred_language: {S: record.preferred_language},
         is_interpreter_required: {BOOL: Boolean(record.is_interpreter_required)},
+        Invited: {S: "false"},
+        identified_to_be_invited: {BOOL: false},
         action: {S: record.action},
-      }
+      },
     }
   }
 }

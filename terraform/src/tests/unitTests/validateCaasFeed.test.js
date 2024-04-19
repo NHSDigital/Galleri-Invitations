@@ -201,7 +201,7 @@ describe('validateCaasFeed function', () => {
   });
 
   test("Failed response when error occurs getting file to bucket", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
+    const logSpy = jest.spyOn(global.console, "error");
     const errorMsg = new Error("Mocked error");
     const mockClient = {
       send: jest.fn().mockRejectedValue(errorMsg),
@@ -214,7 +214,7 @@ describe('validateCaasFeed function', () => {
     }
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith("Failed: ", errorMsg);
+    expect(logSpy).toHaveBeenCalledWith("Error: Failed to read from aaaaaaa/aaaaaaa");
   });
 
   test("Successful response from sending file to bucket", async () => {
@@ -236,7 +236,7 @@ describe('validateCaasFeed function', () => {
     expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
   });
   test("Failed response when error occurs sending file to bucket", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
+    const logSpy = jest.spyOn(global.console, "error");
     const errorMsg = new Error("Mocked error");
     const mockClient = {
       send: jest.fn().mockRejectedValue(errorMsg),
@@ -248,7 +248,7 @@ describe('validateCaasFeed function', () => {
     }
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith("Failed: ", errorMsg);
+    expect(logSpy).toHaveBeenCalledWith("Error: Failed to push to galleri-ons-data/test.txt. Error Message: Error: Mocked error");
   });
 
   const testCsvString = `"nhs_number","dob","dod"\n"000","10/01/1991","11/01/1991"\n"111","01/09/2000","15/11/2023"`;
