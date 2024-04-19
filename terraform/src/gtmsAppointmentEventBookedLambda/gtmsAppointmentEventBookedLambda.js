@@ -10,7 +10,6 @@ import {
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
 import winston from "winston";
-import dayjs from "dayjs";
 
 //VARIABLES
 const dbClient = new DynamoDBClient();

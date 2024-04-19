@@ -6,7 +6,6 @@
   "author": "",
   "dependencies": {
     "csv-parser": "^3.0.0",
-    "dayjs": "^1.11.10",
     "stream": "^0.0.2",
     "winston": "^3.13.0"
   }
