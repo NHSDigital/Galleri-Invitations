@@ -31,7 +31,6 @@ export const handler = async (event) => {
 
   const csvString = await readCsvFromS3(bucket, key, s3);
   const js = JSON.parse(csvString); //convert string retrieved from S3 to object
-  console.log(js);
 
   const payloadParticipantID = js?.['Appointment']?.['ParticipantID'];
   const payloadAppointmentID = js?.['Appointment']?.['AppointmentID'];
@@ -39,12 +38,11 @@ export const handler = async (event) => {
   const payloadAppointmentDateTime = js?.['Appointment']?.['AppointmentDateTime'];
   const payloadAppointmentReplaces = js?.['Appointment']?.['Replaces']; //replaces existing appointment id
   const payloadTimestamp = js?.['Appointment']?.['Timestamp']; //most recent
-  console.log('payloadTimestamp: ', payloadTimestamp);
 
   const episodeResponse = await lookUp(dbClient, payloadParticipantID, "Episode", "Participant_Id", "S", true);
   const episodeItems = episodeResponse.Items[0];
   logger.info(`episodeItems for participant: ${JSON.stringify(episodeItems?.Participant_Id)} loaded.`);
-  //doesnt pull associated appointment id as in scenario it is new but links to existing
+  //doesn't pull associated appointment id as in scenario it is new but links to existing
 
   const appointmentResponse = await lookUp(dbClient, payloadAppointmentID, "Appointments", "Appointment_Id", "S", true);
   const appointmentItems = appointmentResponse.Items[0];
@@ -52,28 +50,16 @@ export const handler = async (event) => {
   //bring back most recent appointment, with timestamp
 
   const appointmentParticipant = await lookUp(dbClient, payloadParticipantID, "Appointments", "Participant_Id", "S", false); //Check participant has any appointments
-  console.log('appointmentParticipant');
-  console.log(JSON.stringify(appointmentParticipant));
-
   const apptArr = appointmentParticipant?.Items;
   const sortedApptParticipants = apptArr?.sort(function (x, y) {
     return new Date(x?.['Timestamp']?.['S']) < new Date(y?.['Timestamp']?.['S']) ? 1 : -1;
   });
-  console.log('SortedApptParticipants');
-  console.log(sortedApptParticipants);
   const appointmentParticipantItems = sortedApptParticipants[0];
-  logger.info(`appointmentParticipantItems for appointment: ${JSON.stringify(appointmentParticipantItems)} loaded.`);
-  // logger.info(`appointmentParticipantItems for appointment: ${JSON.stringify(appointmentParticipantItems?.Appointment_Id)} loaded.`);
+  logger.info(`appointmentParticipantItems for appointment: ${JSON.stringify(appointmentParticipantItems?.Appointment_Id)} loaded.`);
 
   let date = new Date();
-  console.log(date);
   const dateTime = new Date(Date.now()).toISOString();
-  console.log(dateTime);
   try {
-    console.log(appointmentParticipantItems);
-    console.log(payloadTimestamp);
-    console.log(appointmentParticipantItems?.['Time_stamp']?.['S']);
-    console.log((payloadTimestamp > appointmentParticipantItems?.['Appointment']?.['Time_stamp']?.['S']));
     if ((payloadAppointmentDateTime > date.toISOString()) && payloadEventType === 'BOOKED' && episodeItems) {
       console.info('Payload EventType is Booked and has a valid appointment date');
       if (!appointmentItems && payloadAppointmentID !== null && !appointmentParticipantItems) { // new appointment ID, and no existing = ADD
@@ -275,7 +261,6 @@ export const transactionalWrite = async (
   timestamp,
 ) => {
   const timeNow = String((new Date(Date.now()).toISOString()));
-  console.log(timestamp);
   const params = {
     TransactItems: [
       {
@@ -312,8 +297,6 @@ export const transactionalWrite = async (
       },
     ],
   };
-
-  console.log(params);
 
   try {
     const command = new TransactWriteItemsCommand(params);
