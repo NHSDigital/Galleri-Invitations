@@ -556,6 +556,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SHARED_KEY_1*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:GTMS_MESH_MAILBOX_ID*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:GTMS_MESH_MAILBOX_PASSWORD*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:GTMS_MESH_RECEIVER_MAILBOX_ID*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:GTMS_MESH_CERT*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SENDER_KEY*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SENDER_MAILBOX_ID*",
