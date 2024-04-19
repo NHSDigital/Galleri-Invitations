@@ -805,6 +805,44 @@ module "add_episode_history_dynamodb_stream" {
   maximum_batching_window_in_seconds = 30
 }
 
+module "gtms_appointment_event_booked_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gtmsAppointmentEventBookedLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "gtms_appointment_event_booked_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}",
+    DATEPARAM   = "5"
+  }
+}
+
+module "gtms_appointment_event_booked_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gtms_appointment_event_booked_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "gtms_appointment_event_booked_lambda_trigger" {
+  name       = "gtms_event_trigger"
+  source     = "./modules/lambda_s3_trigger"
+  bucket_arn = module.proccessed_appointments.bucket_arn
+  bucket_id  = module.proccessed_appointments.bucket_id
+  triggers = {
+    booked_records = {
+      lambda_arn    = module.gtms_appointment_event_booked_lambda.lambda_arn,
+      bucket_events = ["s3:ObjectCreated:*"],
+      filter_prefix = "validRecords/valid_records-BOOKED",
+      filter_suffix = ""
+    },
+  }
+}
+
+
 module "appointments_event_cancelled_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
