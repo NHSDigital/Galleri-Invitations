@@ -22,12 +22,12 @@ export const handler = async (event) => {
   const code = event.queryStringParameters.code;
   console.log("Code :", code);
   const signedJWT = await getCIS2SignedJWT();
-  console.log("signedJWT :", signedJWT);
-  const { tokens } = await getTokens(code, signedJWT);
+  console.log("signedJWT :", signedJWT.body);
+  const { tokens } = await getTokens(code, signedJWT.body);
   console.log("tokens :", tokens);
   const userInfo = await getUserinfo(tokens);
   console.log("userInfo :", userInfo);
-  return userInfo;
+  return { statusCode: 200, body: JSON.stringify(userInfo) };
 };
 
 export async function getCIS2SignedJWT() {
@@ -104,10 +104,11 @@ export const createResponse = (httpStatusCode, body) => {
 };
 
 export async function getTokens(authCode, signedJWT) {
+  const cis2ClientID = await getSecret(CLIENT_ID, smClient);
   const body = {
     grant_type: "authorization_code",
     redirect_uri: CIS2_REDIRECT_URL,
-    client_id: process.env.CIS2_ID || "undefined",
+    client_id: cis2ClientID || "undefined",
     client_assertion_type:
       "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
     client_assertion: signedJWT || "undefined",
