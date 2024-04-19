@@ -1499,6 +1499,71 @@ module "sdrs_table" {
   }
 }
 
+module "inbound_nrds_galleritestresult_step1_success" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step1-success"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step1_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step1-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step2_success" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step2-success"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step2_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step2-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+
+module "inbound_nrds_galleritestresult_step3_success" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step3-success"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step3_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step3-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step4_success" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step4-success"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step4_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step4-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
 #MESH keys
 
 data "aws_secretsmanager_secret_version" "mesh_url" {
