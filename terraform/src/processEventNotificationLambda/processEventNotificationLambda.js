@@ -61,7 +61,7 @@ export async function getParameterStore(episodeEvent) {
     console.log("Parameter value:", Parameter.Value);
     return Parameter.Value;
   } catch (error) {
-    console.error("Error retrieving parameter value:", error);
+    console.error("Error:", error);
     throw error;
   }
 }
@@ -83,7 +83,7 @@ export async function getParticipantFromDB(participantId) {
     );
     return item;
   } catch (error) {
-    console.error("Error querying participant from database:", error);
+    console.error("Error:", error);
     throw error;
   }
 }
@@ -105,7 +105,7 @@ export async function sendToSQS(item, episodeEvent) {
     await sqsClient.send(new SendMessageCommand(messageParams));
     console.log("Sent item to SQS queue:", JSON.stringify(messageBody));
   } catch (error) {
-    console.error("Error sending item to SQS queue:", error);
+    console.error("Error:", error);
     throw error;
   }
 }
