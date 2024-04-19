@@ -1011,7 +1011,7 @@ module "process_event_notification_dynamodb_stream" {
   starting_position                  = "LATEST"
   batch_size                         = 200
   maximum_batching_window_in_seconds = 300
-  filter                             = { dynamodb : { NewImage : { Episode_Event : { S : [ {"anything-but": ["Invited"] } ] } } } }
+  filter                             = { dynamodb : { NewImage : { Episode_Event : { S : [{ "anything-but" : ["Invited"] }] } } } }
 }
 
 # ProcessEventNotification lambda
