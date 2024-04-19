@@ -1992,3 +1992,29 @@ module "appointment_table" {
     Environment = var.environment
   }
 }
+
+module "notify_send_message_status_table" {
+  source         = "./modules/dynamodb"
+  billing_mode   = "PROVISIONED"
+  table_name     = "NotifySendMessageStatus"
+  hash_key       = "Participant_Id"
+  range_key      = "Message_Sent"
+  read_capacity  = 10
+  write_capacity = 10
+  environment    = var.environment
+
+  attributes = [
+    {
+      name = "Participant_Id"
+      type = "S"
+    },
+    {
+      name = "Message_Sent"
+      type = "S"
+    }
+  ]
+  tags = {
+    Name        = "Dynamodb Table Notify Send Message Status"
+    Environment = var.environment
+  }
+}
