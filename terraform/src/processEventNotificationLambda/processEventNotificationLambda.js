@@ -7,74 +7,105 @@ const sqsClient = new SQSClient({ region: "eu-west-2" });
 const ssmClient = new SSMClient({ region: "eu-west-2" });
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
-// Lambda handler function
 export const handler = async (event, context) => {
-  console.log("No. of episodes inserted: ", event.Records.length);
+  try {
+    console.log("No. of episodes inserted: ", event.Records.length);
 
-  const parameterStoreValue = await getParameterStore();
+    const parameterStoreValue = await getParameterStore(
+      event.Records[0]?.dynamodb?.NewImage?.Episode_Event?.S
+    );
+    let episodeEvent;
 
-  if (parameterStoreValue === "true") {
-    try {
+    if (parameterStoreValue === "True") {
       for (const record of event.Records) {
-        const participantId = record.participantId;
-        const tableParams = {
-          TableName: `${ENVIRONMENT}-Population`,
-          KeyConditionExpression: "participantId = :participantId",
-          ExpressionAttributeValues: {
-            ":participantId": { S: participantId },
-          },
-          ProjectionExpression: "participantId, nhsNumber, episodeEvent",
-        };
+        const participantId = record?.dynamodb?.NewImage?.Participant_Id?.S;
 
-        const { Items } = await dynamoDBClient.send(
-          new QueryCommand(tableParams)
-        );
-
-        for (const item of Items) {
-          const messageBody = {
-            participantId: item.participantId,
-            nhsNumber: item.nhsNumber,
-            episodeEvent: item.episodeEvent,
-          };
-
-          const messageParams = {
-            QueueUrl: process.env.SQS_QUEUE_URL,
-            MessageBody: JSON.stringify(messageBody),
-          };
-
-          await sqsClient.send(new SendMessageCommand(messageParams));
-          console.log("Sent item to SQS queue:", item);
+        if (!participantId) {
+          console.log("ParticipantId not found in record:", record);
+          continue;
         }
 
-        console.log("Retrieved items:", Items);
+        episodeEvent = record.dynamodb.NewImage.Episode_Event.S;
+
+        const item = await getParticipantFromDB(participantId);
+
+        if (item) {
+          await sendToSQS(item, episodeEvent);
+          console.log("Sent item to SQS queue:", item);
+        } else {
+          console.log("No item found for participantId:", participantId);
+        }
       }
 
       return { statusCode: 200, body: "Items sent to SQS queue successfully" };
-    } catch (error) {
-      console.error("Error:", error);
-      throw error;
+    } else {
+      console.log(
+        "Parameter value was not true so exiting processEventNotificationLambda"
+      );
+      throw new Error("Parameter value was not true");
     }
-  } else {
-    console.log(
-      "Parameter value was not true so exiting processEventNotificationLambda"
-    );
+  } catch (error) {
+    console.error("Error:", error);
+    throw error;
   }
 };
 
-// Function to retrieve parameter value from Parameter Store
-export async function getParameterStore() {
-  const parameterStoreParams = {
-    Name: "notify",
-  };
-
+export async function getParameterStore(episodeEvent) {
   try {
+    const parameterName = `${episodeEvent
+      ?.replace(/\s+/g, "-")
+      ?.toLowerCase()}-notify`;
     const { Parameter } = await ssmClient.send(
-      new GetParameterCommand(parameterStoreParams)
+      new GetParameterCommand({ Name: parameterName })
     );
     console.log("Parameter value:", Parameter.Value);
     return Parameter.Value;
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error retrieving parameter value:", error);
+    throw error;
+  }
+}
+
+export async function getParticipantFromDB(participantId) {
+  try {
+    const {
+      Items: [item],
+    } = await dynamoDBClient.send(
+      new QueryCommand({
+        TableName: `${ENVIRONMENT}-Population`,
+        ExpressionAttributeValues: {
+          ":id": { S: participantId },
+        },
+        KeyConditionExpression: "PersonId = :id",
+        Limit: 1,
+        ProjectionExpression: "PersonId, participantId, nhsNumber",
+      })
+    );
+    return item;
+  } catch (error) {
+    console.error("Error querying participant from database:", error);
+    throw error;
+  }
+}
+
+export async function sendToSQS(item, episodeEvent) {
+  try {
+    const messageBody = {
+      participantId: item.participantId,
+      nhsNumber: item.nhsNumber,
+      episodeEvent,
+    };
+
+    const messageParams = {
+      QueueUrl: process.env.SQS_QUEUE_URL,
+      MessageBody: JSON.stringify(messageBody),
+      MessageGroupId: "notInvitedParticipant",
+    };
+
+    await sqsClient.send(new SendMessageCommand(messageParams));
+    console.log("Sent item to SQS queue:", JSON.stringify(messageBody));
+  } catch (error) {
+    console.error("Error sending item to SQS queue:", error);
     throw error;
   }
 }

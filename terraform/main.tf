@@ -1002,7 +1002,7 @@ module "validate_appointment_common_data_lambda_trigger" {
   filter_prefix = "validRecords/valid_records_add-"
 }
 
-ProcessEventNotification
+# ProcessEventNotification
 module "process_event_notification_dynamodb_stream" {
   source                             = "./modules/dynamodb_stream"
   enabled                            = true
@@ -1025,7 +1025,8 @@ module "process_event_notification_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "process_event_notification_lambda.zip"
   environment_vars = {
-    ENVIRONMENT = "${var.environment}"
+    ENVIRONMENT   = "${var.environment}"
+    SQS_QUEUE_URL = module.notify_raw_message_queue_sqs.sqs_queue_url
   }
 }
 
