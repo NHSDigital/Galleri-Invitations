@@ -1397,6 +1397,46 @@ module "notify_raw_message_queue_sqs" {
   name                           = "notifyRawMessageQueue.fifo"
   is_fifo_queue                  = true
   is_content_based_deduplication = true
+  visibility_timeout_seconds     = 100
+}
+
+# Send Enriched Message to Notify Queue
+module "send_enriched_message_to_notify_queue_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "sendEnrichedMessageToNotifyQueueLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "send_enriched_message_to_notify_queue_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                = "${var.environment}"
+    RAW_MESSAGE_QUEUE_URL      = module.notify_raw_message_queue_sqs.sqs_queue_url
+    ENRICHED_MESSAGE_QUEUE_URL = module.notify_enriched_message_queue_sqs.sqs_queue_url
+  }
+}
+
+module "send_enriched_message_to_notify_queue_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.send_enriched_message_to_notify_queue_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "send_enriched_message_to_notify_queue_SQS_trigger" {
+  source           = "./modules/lambda_sqs_trigger"
+  event_source_arn = module.notify_raw_message_queue_sqs.sqs_queue_arn
+  lambda_arn       = module.send_enriched_message_to_notify_queue_lambda.lambda_arn
+}
+
+# Notify Enriched Message Queue
+module "notify_enriched_message_queue_sqs" {
+  source                         = "./modules/sqs"
+  environment                    = var.environment
+  name                           = "notifyEnrichedMessageQueue.fifo"
+  is_fifo_queue                  = true
+  is_content_based_deduplication = true
 }
 
 # Delete Caas feed records

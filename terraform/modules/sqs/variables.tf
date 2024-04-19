@@ -12,4 +12,9 @@ variable "is_content_based_deduplication" {
   default = false
 }
 
+variable "visibility_timeout_seconds" {
+  type    = number
+  default = 30
+}
+
 variable "environment" {}
