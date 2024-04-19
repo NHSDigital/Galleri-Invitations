@@ -32,13 +32,15 @@ export const handler = async (event) => {
 
   const csvString = await readCsvFromS3(bucket, key, s3);
   const js = JSON.parse(csvString); //convert string retrieved from S3 to object
+  console.log(js);
 
   const payloadParticipantID = js?.['Appointment']?.['ParticipantID'];
   const payloadAppointmentID = js?.['Appointment']?.['AppointmentID'];
   const payloadEventType = js?.['Appointment']?.['EventType']; //BOOKED
   const payloadAppointmentDateTime = js?.['Appointment']?.['AppointmentDateTime'];
   const payloadAppointmentReplaces = js?.['Appointment']?.['Replaces']; //replaces existing appointment id
-  const payloadTimestamp = dayjs(js?.['Timestamp']).format("YYYY-MM-DD"); //most recent
+  const payloadTimestamp = js?.['Appointment']?.['Timestamp']; //most recent
+  console.log('payloadTimestamp: ', payloadTimestamp);
 
   const episodeResponse = await lookUp(dbClient, payloadParticipantID, "Episode", "Participant_Id", "S", true);
   const episodeItems = episodeResponse.Items[0];
@@ -69,6 +71,10 @@ export const handler = async (event) => {
   const dateTime = new Date(Date.now()).toISOString();
   console.log(dateTime);
   try {
+    console.log(appointmentParticipantItems);
+    console.log(payloadTimestamp);
+    console.log(appointmentParticipantItems?.['Time_stamp']?.['S']);
+    console.log((payloadTimestamp > appointmentParticipantItems?.['Appointment']?.['Time_stamp']?.['S']));
     if ((payloadAppointmentDateTime > date.toISOString()) && payloadEventType === 'BOOKED' && episodeItems) {
       console.info('Payload EventType is Booked and has a valid appointment date');
       if (!appointmentItems && payloadAppointmentID !== null && !appointmentParticipantItems) { // new appointment ID, and no existing = ADD
@@ -99,7 +105,7 @@ export const handler = async (event) => {
             payloadTimestamp,
           );
         }
-      } else if (!appointmentItems && appointmentParticipantItems && (payloadAppointmentReplaces === appointmentParticipantItems?.['Appointment_Id']?.['S'])) {  //same appointmentID = UPDATE
+      } else if (!appointmentItems && appointmentParticipantItems && (payloadAppointmentReplaces === appointmentParticipantItems?.['Appointment_Id']?.['S']) && (payloadTimestamp > appointmentParticipantItems?.['Time_stamp']?.['S'])) {  //same appointmentID = UPDATE
         console.info('Identified payload is for rebooked appointment');
         if (payloadAppointmentDateTime > date.toISOString()) { //greater than date param, e.g. 5
           const episodeEvent = 'Appointment Rebooked Letter';
@@ -269,7 +275,8 @@ export const transactionalWrite = async (
   episodeEvent,
   timestamp,
 ) => {
-  const timeNow = String(dayjs(new Date(Date.now()).toISOString()).format("YYYY-MM-DD"));
+  const timeNow = String((new Date(Date.now()).toISOString()));
+  console.log(timestamp);
   const params = {
     TransactItems: [
       {
