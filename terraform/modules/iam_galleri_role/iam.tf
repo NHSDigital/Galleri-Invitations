@@ -585,7 +585,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           "Effect" : "Allow",
           "Resource" : [
             "arn:aws:sqs:eu-west-2:${var.account_id}:${var.environment}-notifyRawMessageQueue.fifo",
-          ],
+          ]
         },
         {
           "Action" : "ssm:GetParameter",
