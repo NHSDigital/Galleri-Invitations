@@ -1335,6 +1335,79 @@ module "cis2_signed_jwt_api_gateway" {
   lambda_function_name   = module.cis2_signed_jwt.lambda_function_name
 }
 
+# Session Management
+
+module "session_manager_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "sessionManagerLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "session_manager_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "session_manager_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.session_manager_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "session_manager_lambda_api_gateway" {
+  source                    = "./modules/api-gateway"
+  environment               = var.environment
+  lambda_invoke_arn         = module.session_manager_lambda.lambda_invoke_arn
+  path_part                 = "session_manager_lambda"
+  method_http_parameters    = {}
+  lambda_api_gateway_method = "POST"
+  lambda_function_name      = module.session_manager_lambda.lambda_function_name
+  method                    = "/*/POST/*"
+}
+
+# DynamoDB Table for Session Management
+
+module "session_table" {
+  source      = "./modules/dynamodb"
+  table_name  = "Sessions"
+  hash_key    = "sessionId"
+  range_key   = "userId"
+  environment = var.environment
+  attributes = [
+    {
+      name = "sessionId"
+      type = "S"
+    },
+    {
+      name = "userId"
+      type = "S"
+    },
+    {
+      name = "sessionData"
+      type = "S"
+    },
+    {
+      name = "expirationTime"
+      type = "N"
+    }
+  ]
+  global_secondary_index = [
+    {
+      name      = "sessionIdIndex"
+      hash_key  = "sessionData"
+      range_key = "expirationTime"
+    }
+  ]
+  tags = {
+    Name        = "Dynamodb Table User Sessions"
+    Environment = var.environment
+  }
+}
+
 # GTMS validate clinic capacity
 module "validate_clinic_capacity_lambda" {
   source               = "./modules/lambda"
