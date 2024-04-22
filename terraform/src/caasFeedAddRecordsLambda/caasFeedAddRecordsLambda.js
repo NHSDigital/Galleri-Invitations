@@ -179,7 +179,7 @@ const processingData = async (record) => {
       }
     }
   } else {
-    console.error(`Rejecting record ${record.nhs_number} the record already exists in table`);
+    console.error(`Error: Rejecting record ${record.nhs_number} the record already exists in table`);
     return {
       rejectedRecordNhsNumber: record.nhs_number,
       rejected: true,
