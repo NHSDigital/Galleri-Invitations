@@ -24,7 +24,8 @@ export const handler = async (event) => {
     let msg;
     if (batchArray.length) {
       const timestamp = (new Date(Date.now())).toISOString();
-      await pushJsonToS3(s3, BUCKET, `${KEY_PREFIX}${timestamp}.json`, batchArray);
+      const invitationBatch = { InvitedParticipantBatch: batchArray };
+      await pushJsonToS3(s3, BUCKET, `${KEY_PREFIX}${timestamp}.json`, invitationBatch);
       msg = "Finished creating invitation batch.";
     } else {
       msg = "Empty invitation batch not saved to S3.";
