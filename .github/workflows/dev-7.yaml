@@ -139,13 +139,19 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     needs: [metadata]
+    env:
+      version_bump: "PATCH"
     timeout-minutes: 3
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
+      - name: "Bump patch version"
+        uses: ./.github/actions/versioning
+        with:
+          version_bump: ${{ env.version_bump }}
       - name: "create tagged versions of lambdas"
         run: |
-          echo "TODO first: create release versions of lambdas"
+          echo "TODO: create release versions of lambdas"
       - name: "create tagged versions of frontend"
         run: |
           echo "TODO: create release versions of lambdas"
