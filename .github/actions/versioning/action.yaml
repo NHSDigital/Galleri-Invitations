@@ -11,7 +11,7 @@ runs:
     - name: "Tag with next release version"
       shell: bash
       run: |
-        ./scripts/pipeline/version.sh ${{ pr_name }} ${{ env.version_bump }}
+        ./scripts/pipeline/version.sh ${{ env.pr_name }} ${{ env.version_bump }}
     # - name: "create tagged versions of lambdas"
     #   run: |
     #     echo "TODO: create release versions of lambdas"
