@@ -203,7 +203,7 @@ jobs:
       AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
 
   acceptance-stage: # Recommended maximum execution time is 10 minutes
-    needs: [metadata, test-stage, build-stage, data-stage]
+    needs: [metadata, build-stage, data-stage]
     uses: ./.github/workflows/stage-5-acceptance.yaml
     if: needs.metadata.outputs.test == 'yes' && (needs.data-stage.result == 'success' || needs.data-stage.result == 'skipped')
     with:

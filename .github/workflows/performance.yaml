@@ -147,7 +147,7 @@ jobs:
     secrets: inherit
 
   build-stage: # Recommended maximum execution time is 10 minutes
-    needs: [metadata, test-stage]
+    needs: [metadata]
     uses: ./.github/workflows/stage-3-build.yaml
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
@@ -177,7 +177,7 @@ jobs:
       AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
 
   data-stage: # Recommended maximum execution time is 10 minutes
-    needs: [metadata, test-stage, build-stage]
+    needs: [metadata, build-stage]
     uses: ./.github/workflows/stage-4-load-data.yaml
     if: needs.metadata.outputs.database_seeding == 'yes'
     with:
@@ -192,7 +192,7 @@ jobs:
     secrets: inherit
 
   acceptance-stage: # Recommended maximum execution time is 10 minutes
-    needs: [metadata, test-stage, build-stage, data-stage]
+    needs: [metadata, build-stage, data-stage]
     uses: ./.github/workflows/stage-5-acceptance.yaml
     if: needs.metadata.outputs.test == 'yes' && (needs.data-stage.result == 'success' || needs.data-stage.result == 'skipped')
     with:
