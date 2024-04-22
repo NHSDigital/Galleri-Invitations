@@ -7,10 +7,6 @@ SKIP_VERSION_BUMP=false
 VERSION=$(git describe --tags --abbrev=0)
 VERSION_TO_BUMP=$2
 
-if [ -z $PR_NAME ]; then
-    PR_NAME="New PR on $(date)"
-fi
-
 if [ -z $VERSION ]; then
     NEW_VERSION="0.1.0"
     SKIP_VERSION_BUMP=true

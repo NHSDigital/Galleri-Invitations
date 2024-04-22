@@ -11,6 +11,9 @@ runs:
     - name: "Tag with next release version"
       shell: bash
       run: |
+        if [ -z $env.pr_name ]; then
+            env.pr_name="New PR on $(date)"
+        fi
         ./scripts/pipeline/version.sh ${{ env.pr_name }} ${{ env.version_bump }}
     # - name: "create tagged versions of lambdas"
     #   run: |
