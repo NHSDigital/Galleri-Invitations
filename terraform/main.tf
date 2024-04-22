@@ -805,6 +805,44 @@ module "add_episode_history_dynamodb_stream" {
   maximum_batching_window_in_seconds = 30
 }
 
+module "gtms_appointment_event_booked_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gtmsAppointmentEventBookedLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "gtms_appointment_event_booked_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}",
+    DATEPARAM   = "5"
+  }
+}
+
+module "gtms_appointment_event_booked_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gtms_appointment_event_booked_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "gtms_appointment_event_booked_lambda_trigger" {
+  name       = "gtms_event_trigger"
+  source     = "./modules/lambda_s3_trigger"
+  bucket_arn = module.proccessed_appointments.bucket_arn
+  bucket_id  = module.proccessed_appointments.bucket_id
+  triggers = {
+    booked_records = {
+      lambda_arn    = module.gtms_appointment_event_booked_lambda.lambda_arn,
+      bucket_events = ["s3:ObjectCreated:*"],
+      filter_prefix = "validRecords/valid_records-BOOKED",
+      filter_suffix = ""
+    },
+  }
+}
+
+
 module "appointments_event_cancelled_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
@@ -1359,6 +1397,46 @@ module "notify_raw_message_queue_sqs" {
   name                           = "notifyRawMessageQueue.fifo"
   is_fifo_queue                  = true
   is_content_based_deduplication = true
+  visibility_timeout_seconds     = 100
+}
+
+# Send Enriched Message to Notify Queue
+module "send_enriched_message_to_notify_queue_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "sendEnrichedMessageToNotifyQueueLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "send_enriched_message_to_notify_queue_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                = "${var.environment}"
+    RAW_MESSAGE_QUEUE_URL      = module.notify_raw_message_queue_sqs.sqs_queue_url
+    ENRICHED_MESSAGE_QUEUE_URL = module.notify_enriched_message_queue_sqs.sqs_queue_url
+  }
+}
+
+module "send_enriched_message_to_notify_queue_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.send_enriched_message_to_notify_queue_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "send_enriched_message_to_notify_queue_SQS_trigger" {
+  source           = "./modules/lambda_sqs_trigger"
+  event_source_arn = module.notify_raw_message_queue_sqs.sqs_queue_arn
+  lambda_arn       = module.send_enriched_message_to_notify_queue_lambda.lambda_arn
+}
+
+# Notify Enriched Message Queue
+module "notify_enriched_message_queue_sqs" {
+  source                         = "./modules/sqs"
+  environment                    = var.environment
+  name                           = "notifyEnrichedMessageQueue.fifo"
+  is_fifo_queue                  = true
+  is_content_based_deduplication = true
 }
 
 # Delete Caas feed records
@@ -1419,6 +1497,71 @@ module "sdrs_table" {
     Name        = "Dynamodb Table Sdrs"
     Environment = var.environment
   }
+}
+
+module "inbound_nrds_galleritestresult_step1_success" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step1-success"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step1_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step1-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step2_success" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step2-success"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step2_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step2-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+
+module "inbound_nrds_galleritestresult_step3_success" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step3-success"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step3_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step3-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step4_success" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step4-success"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step4_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step4-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
 }
 
 #MESH keys
