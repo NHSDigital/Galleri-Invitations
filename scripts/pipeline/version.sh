@@ -25,7 +25,7 @@ fi
 echo OLD VERSION - $VERSION
 echo NEW VERSION - $NEW_VERSION
 
-git config --global user.name "NHSDigital"
-git config --global user.email "NHSDigital@noreply.github.com"
+git config --global user.name "galleri-invitations"
+git config --global user.email "galleri-invitations@noreply.github.com"
 git tag $NEW_VERSION -m "initial version"
 git push origin $NEW_VERSION
