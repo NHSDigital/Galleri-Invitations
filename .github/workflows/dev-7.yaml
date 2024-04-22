@@ -148,6 +148,7 @@ jobs:
       - name: "Bump patch version"
         uses: ./.github/actions/versioning
         with:
+          pr_name: ${{ github.event.pull_request.title }}
           version_bump: ${{ env.version_bump }}
       - name: "create tagged versions of lambdas"
         run: |
