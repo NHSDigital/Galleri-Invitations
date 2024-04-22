@@ -34,9 +34,6 @@ export const handler = async (event, context) => {
       );
 
       if (Object.keys(result.Items).length === 0) {
-        console.log(
-          `Entry JSON did not match any ClinicIds in PhlebotomySite table`
-        );
         const dateTime = new Date(Date.now()).toISOString();
         //reject record, push to s3 failedRecords folder
         let response = await pushCsvToS3(
@@ -47,15 +44,15 @@ export const handler = async (event, context) => {
         );
         if (response.$metadata.httpStatusCode !== 200) {
           console.error(
-            "ERROR: uploading not founded ClinicIds " +
-              `invalidData/invalidRecord_${dateTime}.json` +
-              " to s3 failedRecords folder"
+            "ERROR: uploading items to s3 failedRecords folder " +
+              +`invalidData/invalidRecord_${dateTime}.json` +
+              ` ${response.$metadata.error} `
           );
         } else {
           console.error(
-            "ERROR: clinicIds not found " +
-              `invalidData/invalidRecord_${dateTime}.json ` +
-              "entry JSON did not match any ClinicIds in PhlebotomySite table "
+            "ERROR: entry JSON did not match any ClinicIds in PhlebotomySite table " +
+              +`invalidData/invalidRecord_${dateTime}.json ` +
+              `${response.$metadata.error}`
           );
         }
       } else {
@@ -79,14 +76,25 @@ export const handler = async (event, context) => {
             s3
           );
           if (response.$metadata.httpStatusCode !== 200) {
-            console.error("Error uploading item ");
+            console.error(
+              "ERROR: uploading items to s3 failedRecords folder " +
+                +`invalidData/invalidRecord_${dateTime}.json` +
+                ` ${response.$metadata.error} `
+            );
+          } else {
+            console.error(
+              "ERROR: clinicIds record is not found or data is not consistent " +
+                JSON.stringify(result["Items"]) +
+                `invalidData/invalidRecord_${dateTime}.json ` +
+                `${response.$metadata.error}`
+            );
+            console.log(JSON.stringify(result["Items"]));
           }
-          console.log(JSON.stringify(result["Items"]));
         }
       }
     }
   } catch (error) {
-    console.error("Error occurred:", error);
+    console.error("ERROR: occurred to read readCsvFromS3", error);
   }
 };
 
@@ -192,7 +200,7 @@ export const saveObjToPhlebotomyTable = async (
   try {
     const response = await client.send(command);
     if (response.$metadata.httpStatusCode !== 200) {
-      console.error(`Error updating item: ${JSON.stringify(MeshObj)}`);
+      console.error(`ERROR: updating item ${JSON.stringify(MeshObj)}`);
       return false;
     } else {
       console.log(
@@ -201,6 +209,6 @@ export const saveObjToPhlebotomyTable = async (
       return true;
     }
   } catch (error) {
-    console.error(`Error: ${error}`);
+    console.error(`ERROR: updating Clinic items ${error}`);
   }
 };
