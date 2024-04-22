@@ -28,5 +28,5 @@ echo NEW VERSION - $NEW_VERSION
 
 git config --global user.name "galleri-invitations"
 git config --global user.email "galleri-invitations@noreply.github.com"
-git tag $NEW_VERSION -m $TAG_MESSAGE
+git tag $NEW_VERSION -m "$TAG_MESSAGE"
 git push origin $NEW_VERSION
