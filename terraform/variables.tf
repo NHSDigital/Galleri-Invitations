@@ -14,7 +14,7 @@ variable "environment" {
 
 variable "frontend_repo_location" {
   description = "The location of the Galler-Frontend repo on the filesystem"
-  default     = "/home/runner/work/Galleri-Invitations/Galleri-Invitations/Galleri-Frontend"
+  default     = "/Users/michaelweller/Git/NHS/Galleri-Frontend"
 }
 
 variable "USERS" {
@@ -61,6 +61,22 @@ variable "CIS2_PUBLIC_KEY_ID" {
 
 variable "CIS2_KNAME" {
   description = "The CIS2 private key secret name in AWS secrets manager"
+}
+
+variable "NOTIFY_API_KEY" {
+  description = "The NHS Notify API Key"
+}
+
+variable "NOTIFY_TOKEN_ENDPOINT_URL" {
+  description = "The NHS Notify token endpoint URL"
+}
+
+variable "NOTIFY_PUBLIC_KEY_ID" {
+  description = "The NHS Notify public key id (kid)"
+}
+
+variable "NOTIFY_KNAME" {
+  description = "The NHS_NOTIFY_KNAME private key secret name in AWS secrets manager"
 }
 
 variable "region" {

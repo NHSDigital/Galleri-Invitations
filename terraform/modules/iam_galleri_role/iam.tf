@@ -476,6 +476,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added processAppointmentEventTypeLambda to this policy as lambda role exceeded policy limit
 # Added sendInvitationBatchToRawMessageQueueLambda to this policy as lambda role exceeded policy limit
 # Added sendEnrichedMessageToNotifyQueueLambda to this policy as lambda role exceeded policy limit
+# Added sendSingleNotifyMessageLambda to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
   path        = "/"
@@ -571,7 +572,9 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CAAS_MESH_MAILBOX_PASSWORD*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CAAS_MESH_CERT*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_INT_1*",
-            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_CLIENT_ID*"
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_CLIENT_ID*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:NHS_NOTIFY_API_KEY*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:COMMS_MANAGER_PRIVATE_KEY_TEST_1*",
           ]
         },
         {
@@ -589,6 +592,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           "Effect" : "Allow",
           "Resource" : [
             "arn:aws:sqs:eu-west-2:${var.account_id}:${var.environment}-notifyRawMessageQueue.fifo",
+            "arn:aws:sqs:eu-west-2:${var.account_id}:${var.environment}-notifyEnrichedMessageQueue.fifo",
           ]
         },
         {

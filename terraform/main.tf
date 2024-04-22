@@ -1437,6 +1437,44 @@ module "notify_enriched_message_queue_sqs" {
   name                           = "notifyEnrichedMessageQueue.fifo"
   is_fifo_queue                  = true
   is_content_based_deduplication = true
+  visibility_timeout_seconds     = 100
+}
+
+# Send Single Notify Message
+module "send_single_notify_message_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "sendSingleNotifyMessageLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "send_single_notify_message_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                = "${var.environment}"
+    API_KEY                    = "${var.NOTIFY_API_KEY}"
+    PRIVATE_KEY_NAME           = "${var.NOTIFY_KNAME}"
+    PUBLIC_KEY_ID              = "${var.NOTIFY_PUBLIC_KEY_ID}"
+    TOKEN_ENDPOINT_URL         = "${var.NOTIFY_TOKEN_ENDPOINT_URL}"
+    ENRICHED_MESSAGE_QUEUE_URL = module.notify_enriched_message_queue_sqs.sqs_queue_url
+  }
+}
+
+module "send_single_notify_message_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.send_single_notify_message_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "send_single_notify_message_SQS_trigger" {
+  source           = "./modules/lambda_sqs_trigger"
+  event_source_arn = module.notify_enriched_message_queue_sqs.sqs_queue_arn
+  lambda_arn       = module.send_single_notify_message_lambda.lambda_arn
+}
+
+data "aws_secretsmanager_secret_version" "nhs_notify_api_key" {
+  secret_id = "NHS_NOTIFY_API_KEY"
 }
 
 # Delete Caas feed records
