@@ -136,11 +136,10 @@ jobs:
       invitations_branch: "${{ github.event.inputs.invitations_branch }}"
     secrets: inherit
 
-  publish:
+  publish-stage:
     runs-on: ubuntu-latest
     needs: [metadata]
     env:
-      pr_name: ${{ github.event.pull_request.title }}
       version_bump: "PATCH"
     timeout-minutes: 3
     steps:
@@ -149,7 +148,6 @@ jobs:
       - name: "Bump patch version"
         uses: ./.github/actions/versioning
         with:
-          pr_name: ${{ env.pr_name }}
           version_bump: ${{ env.version_bump }}
       - name: "create tagged versions of lambdas"
         run: |
