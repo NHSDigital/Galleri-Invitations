@@ -187,7 +187,6 @@ const processingData = async (record) => {
     }
   }
 
-  
 }
 
 // returns true if item exists in dynamodb table
