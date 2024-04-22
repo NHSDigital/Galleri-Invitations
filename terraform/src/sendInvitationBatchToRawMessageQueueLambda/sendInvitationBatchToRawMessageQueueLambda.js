@@ -12,7 +12,7 @@ export const handler = async (event, context) => {
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
   try {
-    const JSONObj = await retrieveAndParseJSON(getJSONFromS3, bucket, key, s3);
+    const JSONObj = await retrieveAndParesJSON(getJSONFromS3, bucket, key, s3);
     await processJSONObj(JSONObj, sqs);
   } catch (error) {
     console.error('Error occurred whilst processing JSON file from S3');
@@ -24,11 +24,11 @@ export const handler = async (event, context) => {
 // Process JSON file and send to SQS queue
 export async function processJSONObj(jsonObj, client) {
 
-  const totalRecords = jsonObj.length;
+  const totalRecords = jsonObj.InvitedParticipantBatch.length;
   let recordsSuccessfullySent = 0;
   let recordsFailedToSent = 0;
 
-  for (let record of jsonObj) {
+  for (let record of jsonObj.InvitedParticipantBatch) {
     const messageBody = {
       participantId: record.participantId,
       nhsNumber: record.nhsNumber,
