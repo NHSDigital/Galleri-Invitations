@@ -53,7 +53,7 @@ jobs:
         uses: actions/checkout@v4
       - name: "create tagged versions of lambdas"
         run: |
-          echo "TODO: create release versions of lambdas"
+          echo "TODO first: create release versions of lambdas"
       - name: "create tagged versions of frontend"
         run: |
           echo "TODO: create release versions of lambdas"
