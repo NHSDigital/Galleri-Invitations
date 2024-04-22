@@ -12,7 +12,7 @@ export const handler = async (event, context) => {
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
   try {
-    const JSONObj = await retrieveAndParesJSON(getJSONFromS3, bucket, key, s3);
+    const JSONObj = await retrieveAndParseJSON(getJSONFromS3, bucket, key, s3);
     await processJSONObj(JSONObj, sqs);
   } catch (error) {
     console.error('Error occurred whilst processing JSON file from S3');
