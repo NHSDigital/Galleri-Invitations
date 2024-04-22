@@ -178,13 +178,16 @@ const processingData = async (record) => {
         return await generateRecord(record, client);
       }
     }
+  } else {
+    console.error(`Rejecting record ${record.nhs_number} the record already exists in table`);
+    return {
+      rejectedRecordNhsNumber: record.nhs_number,
+      rejected: true,
+      reason: `Rejecting record ${record.nhs_number} the record already exists in table`
+    }
   }
 
-  return {
-    rejectedRecordNhsNumber: record.nhs_number,
-    rejected: true,
-    reason: `Rejecting record ${record.nhs_number} the record already exists in table`
-  }
+  
 }
 
 // returns true if item exists in dynamodb table
