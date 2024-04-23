@@ -44,15 +44,15 @@ export const handler = async (event, context) => {
         );
         if (response.$metadata.httpStatusCode !== 200) {
           console.error(
-            "ERROR: uploading items to s3 failedRecords folder " +
+            "Error: uploading items to s3 failedRecords folder " +
               +`invalidData/invalidRecord_${dateTime}.json` +
               ` ${response.$metadata.error} `
           );
         } else {
           console.error(
-            "ERROR: entry JSON did not match any ClinicIds in PhlebotomySite table " +
+            "Error: entry JSON did not match any ClinicIds in PhlebotomySite table " +
               +`invalidData/invalidRecord_${dateTime}.json ` +
-              `${response.$metadata.error}`
+              `${response}`
           );
         }
       } else {
@@ -77,13 +77,13 @@ export const handler = async (event, context) => {
           );
           if (response.$metadata.httpStatusCode !== 200) {
             console.error(
-              "ERROR: uploading items to s3 failedRecords folder " +
+              "Error: uploading items to s3 failedRecords folder " +
                 +`invalidData/invalidRecord_${dateTime}.json` +
                 ` ${response.$metadata.error} `
             );
           } else {
             console.error(
-              "ERROR: clinicIds record is not found or data is not consistent " +
+              "Error: clinicIds record is not found or data is not consistent " +
                 JSON.stringify(result["Items"]) +
                 `invalidData/invalidRecord_${dateTime}.json ` +
                 `${response.$metadata.error}`
@@ -94,7 +94,7 @@ export const handler = async (event, context) => {
       }
     }
   } catch (error) {
-    console.error("ERROR: occurred to read readCsvFromS3", error);
+    console.error("Error: occurred to read readCsvFromS3", error);
   }
 };
 
@@ -200,7 +200,7 @@ export const saveObjToPhlebotomyTable = async (
   try {
     const response = await client.send(command);
     if (response.$metadata.httpStatusCode !== 200) {
-      console.error(`ERROR: updating item ${JSON.stringify(MeshObj)}`);
+      console.error(`Error: updating item ${JSON.stringify(MeshObj)}`);
       return false;
     } else {
       console.log(
@@ -209,6 +209,6 @@ export const saveObjToPhlebotomyTable = async (
       return true;
     }
   } catch (error) {
-    console.error(`ERROR: updating Clinic items ${error}`);
+    console.error(`Error: updating Clinic items ${error}`);
   }
 };
