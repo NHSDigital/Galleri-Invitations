@@ -45,15 +45,13 @@ export const handler = async (event, context) => {
         if (response.$metadata.httpStatusCode !== 200) {
           console.error(
             "Error: uploading items to s3 failedRecords folder " +
-              +`invalidData/invalidRecord_${dateTime}.json` +
-              ` ${response.$metadata.error} `
+              +`invalidData/invalidRecord_${dateTime}.json`
           );
         } else {
-          console.log("response");
-          console.log(response);
           console.error(
-            `Error: entry JSON did not match any ClinicIds in PhlebotomySite table. invalidData/invalidRecord_${dateTime}.json ` +
-              `${response.$metadata.err}`
+            `Error: entry JSON did not match any ClinicIds in PhlebotomySite table. ` +
+              `invalidData/invalidRecord_${dateTime}.json empty result ` +
+              `${JSON.stringify(result["Items"])}`
           );
         }
       } else {
@@ -79,17 +77,14 @@ export const handler = async (event, context) => {
           if (response.$metadata.httpStatusCode !== 200) {
             console.error(
               "Error: uploading items to s3 failedRecords folder " +
-                +`invalidData/invalidRecord_${dateTime}.json` +
-                ` ${response.$metadata.error} `
+                +`invalidData/invalidRecord_${dateTime}.json`
             );
           } else {
             console.error(
               "Error: clinicIds record is not found or data is not consistent " +
-                JSON.stringify(result["Items"]) +
                 `invalidData/invalidRecord_${dateTime}.json ` +
-                `${response.$metadata.error}`
+                `${JSON.stringify(result["Items"])}`
             );
-            console.log(JSON.stringify(result["Items"]));
           }
         }
       }
