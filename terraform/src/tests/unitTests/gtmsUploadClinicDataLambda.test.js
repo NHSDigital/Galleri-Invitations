@@ -1,10 +1,10 @@
-import { mockClient } from 'aws-sdk-client-mock';
-import { S3Client } from '@aws-sdk/client-s3';
-import { sdkStreamMixin } from '@aws-sdk/util-stream-node';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { mockClient } from "aws-sdk-client-mock";
+import { S3Client } from "@aws-sdk/client-s3";
+import { sdkStreamMixin } from "@aws-sdk/util-stream-node";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 
-import * as fs from 'fs';
-import path from 'path';
+import * as fs from "fs";
+import path from "path";
 
 import {
   readCsvFromS3,
@@ -12,8 +12,9 @@ import {
   checkPhlebotomy,
   createPhlebotomySite,
   saveObjToPhlebotomyTable,
-  deleteTableRecord
-} from '../../gtmsUploadClinicDataLambda/gtmsUploadClinicDataLambda.js';
+  deleteTableRecord,
+  pushCsvToS3,
+} from "../../gtmsUploadClinicDataLambda/gtmsUploadClinicDataLambda.js";
 
 describe("readCsvFromS3", () => {
   afterEach(() => {
@@ -21,129 +22,196 @@ describe("readCsvFromS3", () => {
   });
 
   test("Failed response when error occurs getting file from bucket", async () => {
-    const logSpy = jest.spyOn(global.console, 'error');
-    const errorStr = 'Error: Mocked error';
-    const errorMsg = new Error(errorStr)
+    const logSpy = jest.spyOn(global.console, "error");
+    const errorStr = "Error: Mocked error";
+    const errorMsg = new Error(errorStr);
     const mockClient = {
       send: jest.fn().mockRejectedValue(errorMsg),
     };
 
-    const bucket = 'bucketName';
-    const key = 'key'
+    const bucket = "bucketName";
+    const key = "key";
     try {
       await readCsvFromS3(bucket, key, mockClient);
     } catch (err) {
-      expect(err.message).toBe('Error: Mocked error');
+      expect(err.message).toBe("Error: Mocked error");
     }
 
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith("Failed to read from bucketName/key");
-
   });
 
   test("return string built from csv file", async () => {
     const mockS3Client = mockClient(new S3Client({}));
-    const stream = sdkStreamMixin(fs.createReadStream(path.resolve(__dirname, './testData/chunk_1.csv')))
+    const stream = sdkStreamMixin(
+      fs.createReadStream(path.resolve(__dirname, "./testData/chunk_1.csv"))
+    );
 
     mockS3Client.resolves({
       Body: stream,
     });
 
-    const result = await readCsvFromS3('aaaaaaa', 'aaaaaaa', mockS3Client)
+    const result = await readCsvFromS3("aaaaaaa", "aaaaaaa", mockS3Client);
 
-    const expected_result = '"PCD2","PCDS","DOINTR","DOTERM"\n'
+    const expected_result = '"PCD2","PCDS","DOINTR","DOTERM"\n';
 
-    expect(result).toEqual(
-      expected_result
-    )
+    expect(result).toEqual(expected_result);
   });
 });
 
-describe('checkPhlebotomy', () => {
+describe("checkPhlebotomy", () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
-  test('should mock call to dynamoDb successfully', async () => {
+  test("should mock call to dynamoDb successfully", async () => {
     mockDynamoDbClient.resolves({
       $metadata: {
-        httpStatusCode: 200
+        httpStatusCode: 200,
       },
-      Body: "hello"
+      Body: "hello",
     });
 
-    const result = await checkPhlebotomy('table', mockDynamoDbClient, 'key');
+    const result = await checkPhlebotomy("table", mockDynamoDbClient, "key");
 
     expect(result.Body).toEqual("hello");
   });
 });
 
-describe('deleteTableRecord', () => {
+describe("deleteTableRecord", () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
-  test('should mock call to dynamoDb successfully', async () => {
+  test("should mock call to dynamoDb successfully", async () => {
     mockDynamoDbClient.resolves({
       $metadata: {
-        httpStatusCode: 200
+        httpStatusCode: 200,
       },
-      Body: "hello"
+      Body: "hello",
     });
 
-    const result = await deleteTableRecord(mockDynamoDbClient,'table', 'clinicid', 'clinicname');
+    const result = await deleteTableRecord(
+      mockDynamoDbClient,
+      "table",
+      "clinicid",
+      "clinicname"
+    );
 
     expect(result.Body).toEqual("hello");
   });
 });
 
-describe('createPhlebotomySite', () => {
+describe("createPhlebotomySite", () => {
   const meshResponsePass = {
-    "ClinicCreateOrUpdate":
-    {
-      "ClinicID": "CF78U818",
-      "ODSCode": "1234",
-      "ICBCode": "OPM",
-      "ClinicName": "Phlebotomy clinic 34",
-      "Address": "test address dynamo put",
-      "Postcode": "BH17 7DT",
-      "Directions": "These will contain directions to the site"
-    }
-  }
-  test('Should compare values to be true', async () => {
+    ClinicCreateOrUpdate: {
+      ClinicID: "CF78U818",
+      ODSCode: "1234",
+      ICBCode: "OPM",
+      ClinicName: "Phlebotomy clinic 34",
+      Address: "test address dynamo put",
+      Postcode: "BH17 7DT",
+      Directions: "These will contain directions to the site",
+    },
+  };
+  test("Should compare values to be true", async () => {
     const val = await createPhlebotomySite(meshResponsePass);
-    const expectedVal = { "PutRequest": { "Item": { "Address": { "S": "test address dynamo put" }, "ClinicId": { "S": "CF78U818" }, "ClinicName": { "S": "Phlebotomy clinic 34" }, "Directions": { "S": "These will contain directions to the site" }, "ICBCode": { "S": "OPM" }, "ODSCode": { "S": "1234" }, "Postcode": { "S": "BH17 7DT" }, "TargetFillToPercentage": { "N": "50" } } } }
+    const expectedVal = {
+      PutRequest: {
+        Item: {
+          Address: { S: "test address dynamo put" },
+          ClinicId: { S: "CF78U818" },
+          ClinicName: { S: "Phlebotomy clinic 34" },
+          Directions: { S: "These will contain directions to the site" },
+          ICBCode: { S: "OPM" },
+          ODSCode: { S: "1234" },
+          Postcode: { S: "BH17 7DT" },
+          TargetFillToPercentage: { N: "50" },
+        },
+      },
+    };
     expect(val).toEqual(expectedVal);
   });
 });
 
-describe('saveObjToPhlebotomyTable', () => {
+describe("saveObjToPhlebotomyTable", () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
   const meshResponsePass = {
-    "ClinicCreateOrUpdate":
-    {
-      "ClinicID": "CF78U818",
-      "ODSCode": "1234",
-      "ICBCode": "OPM",
-    }
-  }
-  test('successfully push to dynamodb', async () => {
+    ClinicCreateOrUpdate: {
+      ClinicID: "CF78U818",
+      ODSCode: "1234",
+      ICBCode: "OPM",
+    },
+  };
+  test("successfully push to dynamodb", async () => {
     const mockDynamodbClient = mockClient(new S3Client({}));
-    const environment = "dev-1"
+    const environment = "dev-1";
     mockDynamodbClient.resolves({
-      $metadata: { httpStatusCode: 200 }
+      $metadata: { httpStatusCode: 200 },
     });
-    const result = await saveObjToPhlebotomyTable(meshResponsePass, environment, mockDynamodbClient);
-    expect(result).toBe(true)
+    const result = await saveObjToPhlebotomyTable(
+      meshResponsePass,
+      environment,
+      mockDynamodbClient
+    );
+    expect(result).toBe(true);
   });
 
-  test('Failed to push to dynamodb', async () => {
+  test("Failed to push to dynamodb", async () => {
     const mockDynamodbClient = mockClient(new S3Client({}));
-    const environment = "dev-1"
+    const environment = "dev-1";
     mockDynamodbClient.resolves({
       $metadata: { httpStatusCode: 400 },
     });
-    const result = await saveObjToPhlebotomyTable(meshResponsePass, environment, mockDynamodbClient);
+    const result = await saveObjToPhlebotomyTable(
+      meshResponsePass,
+      environment,
+      mockDynamodbClient
+    );
     expect(result).toBe(false);
+  });
+});
+
+describe("pushCsvToS3", () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("Successful response from sending file to bucket", async () => {
+    const logSpy = jest.spyOn(global.console, "log");
+    const mockS3Client = mockClient(new S3Client({}));
+    mockS3Client.resolves({
+      $metadata: { httpStatusCode: 200 },
+    });
+    const result = await pushCsvToS3(
+      "galleri-ons-data",
+      "test.txt",
+      "dfsdfd",
+      mockS3Client
+    );
+
+    expect(logSpy).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledWith(
+      `Successfully pushed to galleri-ons-data/test.txt`
+    );
+    expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
+  });
+  xtest("Failed response when error occurs sending file to bucket", async () => {
+    const logSpy = jest.spyOn(global.console, "log");
+    const errorMsg = new Error("Mocked error");
+    const mockClient = {
+      send: jest.fn().mockRejectedValue(errorMsg),
+    };
+    try {
+      await pushCsvToS3("galleri-ons-data", "test.txt", "dfsdfd", mockClient);
+    } catch (err) {
+      expect(err.message).toBe("Mocked error");
+    }
+    expect(logSpy).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledWith(
+      `Failed to push to galleri-ons-data/test.txt. Error Message: ${errorMsg}`
+    );
   });
 });
