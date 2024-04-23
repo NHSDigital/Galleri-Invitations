@@ -39,7 +39,7 @@ export const handler = async (event, context) => {
         let response = await pushCsvToS3(
           bucket,
           `invalidData/invalidRecord_${dateTime}.json`,
-          JSON.stringify(wrappedElement),
+          JSON.stringify(csvString),
           s3
         );
         if (response.$metadata.httpStatusCode !== 200) {
@@ -72,7 +72,7 @@ export const handler = async (event, context) => {
           let response = await pushCsvToS3(
             bucket,
             `invalidData/invalidRecord_${dateTime}.json`,
-            JSON.stringify(wrappedElement),
+            JSON.stringify(csvString),
             s3
           );
           if (response.$metadata.httpStatusCode !== 200) {
