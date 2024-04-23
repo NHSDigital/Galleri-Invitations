@@ -53,17 +53,14 @@ export const handler = async (event, context) => {
             );
             if (response.$metadata.httpStatusCode !== 200) {
               console.error(
-                "ERROR: uploading items to s3 failedRecords folder " +
-                  +`invalidData/invalidRecord_${dateTime}.json` +
-                  ` ${response.$metadata.error} `
+                "Error: uploading items to s3 invalidData folder " +
+                  `invalidData/invalidRecord_${dateTime}.json`
               );
             } else {
               console.error(
-                "ERROR:" +
-                  `Failed to insert item after delete: ${JSON.stringify(js)}`,
-                clinicId +
+                `Error: Failed to insert item after delete. Save the message into a directory ` +
                   `invalidData/invalidRecord_${dateTime}.json ` +
-                  `${response.$metadata.error}`
+                  `${JSON.stringify(js)}`
               );
             }
           } else {
@@ -73,10 +70,9 @@ export const handler = async (event, context) => {
           }
         } else {
           console.error(
-            "ERROR: deleting and updating record with ClinicId ",
-            clinicId +
-              `invalidData/invalidRecord_${dateTime}.json ` +
-              `${response.$metadata.error}`
+            "Error: deleting and updating record with ClinicId " +
+              clinicId +
+              `${JSON.stringify(js)}`
           );
         }
       }
@@ -95,16 +91,14 @@ export const handler = async (event, context) => {
         );
         if (response.$metadata.httpStatusCode !== 200) {
           console.error(
-            "ERROR: uploading items to s3 failedRecords folder " +
-              +`invalidData/invalidRecord_${dateTime}.json` +
-              ` ${response.$metadata.error} `
+            "Error: uploading items to s3 invalidData folder " +
+              `invalidData/invalidRecord_${dateTime}.json`
           );
         } else {
           console.error(
-            "ERROR: " +
-              `Failed to insert item: ${JSON.stringify(js)}` +
+            `Error: Failed to insert item. Save the message into a directory ` +
               `invalidData/invalidRecord_${dateTime}.json ` +
-              `${response.$metadata.error}`
+              `${JSON.stringify(js)}`
           );
         }
       } else {
@@ -112,7 +106,7 @@ export const handler = async (event, context) => {
       }
     }
   } catch (error) {
-    console.error("Error occurred:", error);
+    console.error("Error occurred :", error);
   }
 };
 
