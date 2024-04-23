@@ -338,11 +338,11 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     value     = var.NEXTAUTH_SECRET
   }
 
-  setting {
-    namespace = "aws:elasticbeanstalk:application:environment"
-    name      = "NEXTAUTH_URL"
-    value     = "https://${var.environment}.${var.hostname}"
-  }
+  # setting {
+  #   namespace = "aws:elasticbeanstalk:application:environment"
+  #   name      = "NEXTAUTH_URL"
+  #   value     = "https://${var.environment}.${var.hostname}"
+  # }
 
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
