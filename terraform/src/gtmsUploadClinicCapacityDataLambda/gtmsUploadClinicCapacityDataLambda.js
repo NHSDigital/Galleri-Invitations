@@ -49,6 +49,8 @@ export const handler = async (event, context) => {
               ` ${response.$metadata.error} `
           );
         } else {
+          console.log("response");
+          console.log(response);
           console.error(
             `Error: entry JSON did not match any ClinicIds in PhlebotomySite table. invalidData/invalidRecord_${dateTime}.json ` +
               `${response.$metadata.err}`
