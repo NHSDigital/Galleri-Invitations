@@ -124,6 +124,22 @@ export const handler = async (event) => {
           );
           return;
         }
+        if (
+          Appointment.Replaces === "null" &&
+          validateAppointmentIdResponse.Items[0].event_type.S ===
+            Appointment.EventType
+        ) {
+          if (
+            validateAppointmentIdResponse.Items[0].Appointment_Id.S ==
+            Appointment.AppointmentID
+          ) {
+            updateAppointmentTable(dbClient, Appointment);
+          } else {
+            await rejectRecord(appointmentJson);
+            console.log("Appointment ID do not match for update");
+            return;
+          }
+        }
       } else {
         await rejectRecord(appointmentJson);
         console.log("No Valid Appointment found");
@@ -237,3 +253,38 @@ export const lookUp = async (dbClient, ...params) => {
 
   return response;
 };
+
+export async function updateAppointmentTable(
+  client,
+  appointment,
+  table = `${ENVIRONMENT}-Appointments`
+) {
+  const partitionKeyName = "Participant_Id";
+  const partitionKeyValue = appointment.participantID;
+
+  const params = {
+    TableName: table,
+    Key: {
+      [partitionKeyName]: partitionKeyValue,
+    },
+    UpdateExpression:
+      "SET primary_phone_number = :primaryNumber, secondary_phone_number = :secondaryNumber, email_address = :email_address, appointment_accessibility = :appointmentAccessibility, communications_accessibility = :communicationsAccessibility, notification_preferences= :notificationPreferences, timestamp = :timestamp ",
+    ExpressionAttributeValues: {
+      ":primaryNumber": { S: appointment.PrimaryPhoneNumber },
+      ":secondaryNumber": { S: appointment.SecondaryPhoneNumber },
+      ":email_address": { S: appointment.Email },
+      ":appointmentAccessibility": { M: appointment.AppointmentAccessibility },
+      ":communicationsAccessibility": {
+        M: appointment.CommunicationsAccessibility,
+      },
+      ":notificationPreferences": { M: appointment.NotificationPreferences },
+      ":timestamp": { S: Timestamp },
+    },
+  };
+  const command = new UpdateItemCommand(params);
+  const response = await client.send(command);
+  if (response.$metadata.httpStatusCode != 200) {
+    console.log(`record update failed for person ${partitionKeyValue}`);
+  }
+  return response.$metadata.httpStatusCode;
+}
