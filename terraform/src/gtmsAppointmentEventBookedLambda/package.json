@@ -1,0 +1,12 @@
+{
+  "name": "gtmsAppointmentEventBookedLambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "gtmsAppointmentEventBookedLambda.js",
+  "author": "",
+  "dependencies": {
+    "csv-parser": "^3.0.0",
+    "stream": "^0.0.2",
+    "winston": "^3.13.0"
+  }
+}

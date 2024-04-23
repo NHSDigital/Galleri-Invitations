@@ -805,6 +805,44 @@ module "add_episode_history_dynamodb_stream" {
   maximum_batching_window_in_seconds = 30
 }
 
+module "gtms_appointment_event_booked_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gtmsAppointmentEventBookedLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "gtms_appointment_event_booked_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}",
+    DATEPARAM   = "5"
+  }
+}
+
+module "gtms_appointment_event_booked_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gtms_appointment_event_booked_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "gtms_appointment_event_booked_lambda_trigger" {
+  name       = "gtms_event_trigger"
+  source     = "./modules/lambda_s3_trigger"
+  bucket_arn = module.proccessed_appointments.bucket_arn
+  bucket_id  = module.proccessed_appointments.bucket_id
+  triggers = {
+    booked_records = {
+      lambda_arn    = module.gtms_appointment_event_booked_lambda.lambda_arn,
+      bucket_events = ["s3:ObjectCreated:*"],
+      filter_prefix = "validRecords/valid_records-BOOKED",
+      filter_suffix = ""
+    },
+  }
+}
+
+
 module "appointments_event_cancelled_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
@@ -1282,7 +1320,7 @@ module "gtms_upload_clinic_capacity_data_trigger" {
   bucket_id     = module.processed_clinic_schedule_summary_bucket.bucket_id
   bucket_arn    = module.processed_clinic_schedule_summary_bucket.bucket_arn
   lambda_arn    = module.gtms_upload_clinic_capacity_data_lambda.lambda_arn
-  filter_prefix = "validRecords/valid_records_add-"
+  filter_prefix = "validRecords/clinic-schedule-summary"
 }
 
 # Send Invitaion Batch to GTMS
@@ -1297,15 +1335,14 @@ module "send_GTMS_invitation_batch_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "send_GTMS_invitation_batch_lambda.zip"
   environment_vars = {
-    ENVIRONMENT                    = "${var.environment}",
-    MESH_SANDBOX                   = "false",
-    WORKFLOW_ID                    = "API-GTMS-INVITATION-BATCH-TEST",
-    MESH_URL                       = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
-    MESH_SHARED_KEY                = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
-    MESH_SENDER_MAILBOX_ID         = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_id.secret_string)["MESH_SENDER_MAILBOX_ID"],
-    MESH_SENDER_MAILBOX_PASSWORD   = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_password.secret_string)["MESH_SENDER_MAILBOX_PASSWORD"],
-    MESH_RECEIVER_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_id.secret_string)["MESH_RECEIVER_MAILBOX_ID"],
-    MESH_RECEIVER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_password.secret_string)["MESH_RECEIVER_MAILBOX_PASSWORD"]
+    ENVIRONMENT                   = "${var.environment}",
+    MESH_SANDBOX                  = "false",
+    WORKFLOW_ID                   = "GPS_INVITATIONS",
+    MESH_URL                      = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
+    MESH_SHARED_KEY               = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
+    MESH_SENDER_MAILBOX_ID        = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_mailbox_id.secret_string)["GTMS_MESH_MAILBOX_ID"],
+    MESH_SENDER_MAILBOX_PASSWORD  = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_mailbox_password.secret_string)["GTMS_MESH_MAILBOX_PASSWORD"],
+    GTMS_MESH_RECEIVER_MAILBOX_ID = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_receiver_mailbox_id.secret_string)["GTMS_MESH_RECEIVER_MAILBOX_ID"],
   }
 }
 
@@ -1358,6 +1395,46 @@ module "notify_raw_message_queue_sqs" {
   source                         = "./modules/sqs"
   environment                    = var.environment
   name                           = "notifyRawMessageQueue.fifo"
+  is_fifo_queue                  = true
+  is_content_based_deduplication = true
+  visibility_timeout_seconds     = 100
+}
+
+# Send Enriched Message to Notify Queue
+module "send_enriched_message_to_notify_queue_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "sendEnrichedMessageToNotifyQueueLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "send_enriched_message_to_notify_queue_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                = "${var.environment}"
+    RAW_MESSAGE_QUEUE_URL      = module.notify_raw_message_queue_sqs.sqs_queue_url
+    ENRICHED_MESSAGE_QUEUE_URL = module.notify_enriched_message_queue_sqs.sqs_queue_url
+  }
+}
+
+module "send_enriched_message_to_notify_queue_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.send_enriched_message_to_notify_queue_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "send_enriched_message_to_notify_queue_SQS_trigger" {
+  source           = "./modules/lambda_sqs_trigger"
+  event_source_arn = module.notify_raw_message_queue_sqs.sqs_queue_arn
+  lambda_arn       = module.send_enriched_message_to_notify_queue_lambda.lambda_arn
+}
+
+# Notify Enriched Message Queue
+module "notify_enriched_message_queue_sqs" {
+  source                         = "./modules/sqs"
+  environment                    = var.environment
+  name                           = "notifyEnrichedMessageQueue.fifo"
   is_fifo_queue                  = true
   is_content_based_deduplication = true
 }
@@ -1422,6 +1499,71 @@ module "sdrs_table" {
   }
 }
 
+module "inbound_nrds_galleritestresult_step1_success" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step1-success"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step1_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step1-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step2_success" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step2-success"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step2_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step2-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+
+module "inbound_nrds_galleritestresult_step3_success" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step3-success"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step3_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step3-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step4_success" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step4-success"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step4_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step4-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
 #MESH keys
 
 data "aws_secretsmanager_secret_version" "mesh_url" {
@@ -1462,6 +1604,10 @@ data "aws_secretsmanager_secret_version" "caas_mesh_mailbox_id" {
 
 data "aws_secretsmanager_secret_version" "caas_mesh_mailbox_password" {
   secret_id = "CAAS_MESH_MAILBOX_PASSWORD"
+}
+
+data "aws_secretsmanager_secret_version" "gtms_mesh_receiver_mailbox_id" {
+  secret_id = "GTMS_MESH_RECEIVER_MAILBOX_ID"
 }
 #END of MESH keys
 
@@ -1744,7 +1890,7 @@ module "population_table" {
   secondary_write_capacity = null
   secondary_read_capacity  = null
   environment              = var.environment
-  # non_key_attributes     = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+  # non_key_attributes     = ["Invited", "date_of_death", "reason_for_removal_effective_from_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
   projection_type = "ALL"
   attributes = [{
     name = "PersonId"
@@ -1776,14 +1922,14 @@ module "population_table" {
       name               = "LsoaCode-index"
       hash_key           = "LsoaCode"
       range_key          = null
-      non_key_attributes = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+      non_key_attributes = ["Invited", "date_of_death", "reason_for_removal_effective_from_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
       projection_type    = "INCLUDE"
     },
     {
       name               = "BatchId-index"
       hash_key           = "Batch_Id"
       range_key          = null
-      non_key_attributes = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+      non_key_attributes = ["Invited", "date_of_death", "reason_for_removal_effective_from_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
       projection_type    = "INCLUDE"
     },
     {
