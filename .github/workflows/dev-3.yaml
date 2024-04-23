@@ -173,7 +173,6 @@ jobs:
   post-build-stage:
     needs: [metadata, build-stage]
     uses: ./.github/workflows/post-build.yaml
-    if: needs.metadata.outputs.tf_action != 'destroy'
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
