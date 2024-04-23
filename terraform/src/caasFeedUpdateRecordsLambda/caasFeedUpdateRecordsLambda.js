@@ -155,6 +155,7 @@ export const processingData = async (incomingUpdateData, populationTableRecord) 
             rejected: false
           }
         } else {
+          console.error(`Error: Rejecting record with supersed NHS number: ${populationTableRecord.nhs_number}. Investigate these records `);
           return {
             rejectedRecordNhsNumber: `${populationTableRecord.nhs_number} | ${retainingPopulationTableRecord.Items[0].nhs_number}`,
             rejected: true,
@@ -163,6 +164,7 @@ export const processingData = async (incomingUpdateData, populationTableRecord) 
         }
       }
       else {
+        console.error(`Error: Rejecting record with supersed NHS number: ${populationTableRecord.nhs_number} `);
         return {
           rejectedRecordNhsNumber: populationTableRecord.nhs_number,
           rejected: true,
@@ -170,6 +172,7 @@ export const processingData = async (incomingUpdateData, populationTableRecord) 
         }
       }
     } else {
+      console.error(`Error: Superseded Number ${populationTableRecord.nhs_number} present in update but record does not exist in our table. Alert to third line support `);
       return {
         rejectedRecordNhsNumber: populationTableRecord.nhs_number,
         rejected: true,
