@@ -4,12 +4,13 @@ set -x
 
 TAG_MESSAGE="New PR on $(date)"
 SKIP_VERSION_BUMP=false
-VERSION=$(git describe --tags --abbrev=0)
+# VERSION=$(git describe --tags --abbrev=0)
+VERSION=
 VERSION_TO_BUMP=$1
 
 if [ -z $VERSION ]; then
-    NEW_VERSION="99.0.0"
-    SKIP_VERSION_BUMP=true
+    echo "Error: Unable to find previous Tag. Ensure at least the current closest tags is annotated."
+    exit 1
 fi
 
 if [ $SKIP_VERSION_BUMP == false ]; then
