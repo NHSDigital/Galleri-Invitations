@@ -153,7 +153,7 @@ jobs:
   build-stage: # Recommended maximum execution time is 10 minutes
     needs: [metadata]
     uses: ./.github/workflows/stage-3-build.yaml
-    if: needs.metadata.outputs.tf_action != 'destroy' && needs.metadata.outputs.skip_default_checks == 'yes'
+    if: needs.metadata.outputs.tf_action != 'destroy'
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
@@ -173,7 +173,6 @@ jobs:
   post-build-stage:
     needs: [metadata, build-stage]
     uses: ./.github/workflows/post-build.yaml
-    if: needs.metadata.outputs.tf_action != 'destroy'
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
