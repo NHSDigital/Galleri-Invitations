@@ -1615,32 +1615,32 @@ module "event_type_triggers" {
   source     = "./modules/lambda_s3_trigger"
   bucket_arn = module.proccessed_appointments.bucket_arn
   bucket_id  = module.proccessed_appointments.bucket_id
-  triggers = [
-    {
+  triggers = {
+    complete_event = {
       lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records-COMPLETE",
       filter_suffix = ""
     },
-    {
+    no_show_event = {
       lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records-NO_SHOW",
       filter_suffix = ""
     },
-    {
+    aborted_event = {
       lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records-ABORTED",
       filter_suffix = ""
     },
-    {
+    cancelled_event = {
       lambda_arn    = module.appointments_event_cancelled_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records-CANCELLED",
       filter_suffix = ""
-    },
-  ]
+    }
+  }
 }
 
 module "gp_practice_table" {
