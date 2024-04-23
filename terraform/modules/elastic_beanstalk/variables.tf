@@ -119,8 +119,8 @@ variable "NEXTAUTH_SECRET" {
 
 }
 
-# variable "NEXTAUTH_URL" {
-# }
+variable "NEXTAUTH_URL" {
+}
 
 variable "GALLERI_ACTIVITY_CODE" {
 }
