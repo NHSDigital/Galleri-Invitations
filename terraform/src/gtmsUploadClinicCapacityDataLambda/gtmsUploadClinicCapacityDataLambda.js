@@ -50,9 +50,8 @@ export const handler = async (event, context) => {
           );
         } else {
           console.error(
-            "Error: entry JSON did not match any ClinicIds in PhlebotomySite table " +
-              +`invalidData/invalidRecord_${dateTime}.json ` +
-              `${response}`
+            `Error: entry JSON did not match any ClinicIds in PhlebotomySite table. invalidData/invalidRecord_${dateTime}.json ` +
+              `${response.$metadata.err}`
           );
         }
       } else {
