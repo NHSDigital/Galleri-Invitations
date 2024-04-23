@@ -1,4 +1,8 @@
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  GetObjectCommand,
+  S3Client,
+  PutObjectCommand,
+} from "@aws-sdk/client-s3";
 import {
   DynamoDBClient,
   BatchWriteItemCommand,
@@ -122,6 +126,23 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
     return response.Body.transformToString();
   } catch (err) {
     console.error(`Failed to read from ${bucketName}/${key}`);
+    throw err;
+  }
+};
+
+export const pushCsvToS3 = async (bucketName, key, body, client) => {
+  try {
+    const response = await client.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+        Body: body,
+      })
+    );
+    console.log(`Successfully pushed to ${bucketName}/${key}`);
+    return response;
+  } catch (err) {
+    console.log(`Failed: ${err}`);
     throw err;
   }
 };
