@@ -3,6 +3,17 @@ terraform {
     dynamodb_table = "terraform-state-lock-dynamo"
     encrypt        = true
   }
+  required_providers {
+    null = {
+      source = "hashicorp/null"
+    }
+    tls = {
+      source = "hashicorp/tls"
+    }
+    time = {
+      source = "hashicorp/time"
+    }
+  }
 }
 
 provider "aws" {
@@ -65,6 +76,80 @@ module "iam_galleri_lambda_role" {
 #   name        = "invitations-frontend"
 #   environment = var.environment
 # }
+
+module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "~> 20.0"
+
+  cluster_name    = "${var.environment}-eks-cluster"
+  cluster_version = "1.29"
+
+  cluster_endpoint_public_access = true
+
+  cluster_addons = {
+    coredns = {
+      most_recent = true
+    }
+    kube-proxy = {
+      most_recent = true
+    }
+    vpc-cni = {
+      most_recent = true
+    }
+  }
+
+  vpc_id                   = module.vpc.vpc_id
+  subnet_ids               = module.vpc.subnet_ids
+  control_plane_subnet_ids = module.vpc.subnet_ids
+
+  # EKS Managed Node Group(s)
+  eks_managed_node_group_defaults = {
+    instance_types = ["t3.medium"]
+  }
+
+  eks_managed_node_groups = {
+    example = {
+      min_size     = 1
+      max_size     = 3
+      desired_size = 2
+
+      instance_types = ["t3.large"]
+      capacity_type  = "SPOT"
+    }
+  }
+
+  # Cluster access entry
+  # To add the current caller identity as an administrator
+  enable_cluster_creator_admin_permissions = true
+
+  access_entries = {
+    # One access entry with a policy associated
+    example = {
+      kubernetes_groups = []
+      principal_arn     = "arn:aws:iam::136293001324:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_Admin_603cb786ef89bc37"
+
+      policy_associations = {
+        eksAdmin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        },
+        clusterAdmin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        },
+      }
+    }
+  }
+
+  tags = {
+    Environment = var.environment
+    Terraform   = "true"
+  }
+}
 
 module "s3_bucket" {
   source                  = "./modules/s3"
@@ -794,6 +879,44 @@ module "add_episode_history_dynamodb_stream" {
   maximum_batching_window_in_seconds = 30
 }
 
+module "gtms_appointment_event_booked_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "gtmsAppointmentEventBookedLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "gtms_appointment_event_booked_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}",
+    DATEPARAM   = "5"
+  }
+}
+
+module "gtms_appointment_event_booked_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.gtms_appointment_event_booked_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "gtms_appointment_event_booked_lambda_trigger" {
+  name       = "gtms_event_trigger"
+  source     = "./modules/lambda_s3_trigger"
+  bucket_arn = module.proccessed_appointments.bucket_arn
+  bucket_id  = module.proccessed_appointments.bucket_id
+  triggers = {
+    booked_records = {
+      lambda_arn    = module.gtms_appointment_event_booked_lambda.lambda_arn,
+      bucket_events = ["s3:ObjectCreated:*"],
+      filter_prefix = "validRecords/valid_records-BOOKED",
+      filter_suffix = ""
+    },
+  }
+}
+
+
 module "appointments_event_cancelled_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
@@ -1271,7 +1394,7 @@ module "gtms_upload_clinic_capacity_data_trigger" {
   bucket_id     = module.processed_clinic_schedule_summary_bucket.bucket_id
   bucket_arn    = module.processed_clinic_schedule_summary_bucket.bucket_arn
   lambda_arn    = module.gtms_upload_clinic_capacity_data_lambda.lambda_arn
-  filter_prefix = "validRecords/valid_records_add-"
+  filter_prefix = "validRecords/clinic-schedule-summary"
 }
 
 # Send Invitaion Batch to GTMS
@@ -1286,15 +1409,14 @@ module "send_GTMS_invitation_batch_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "send_GTMS_invitation_batch_lambda.zip"
   environment_vars = {
-    ENVIRONMENT                    = "${var.environment}",
-    MESH_SANDBOX                   = "false",
-    WORKFLOW_ID                    = "API-GTMS-INVITATION-BATCH-TEST",
-    MESH_URL                       = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
-    MESH_SHARED_KEY                = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
-    MESH_SENDER_MAILBOX_ID         = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_id.secret_string)["MESH_SENDER_MAILBOX_ID"],
-    MESH_SENDER_MAILBOX_PASSWORD   = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_password.secret_string)["MESH_SENDER_MAILBOX_PASSWORD"],
-    MESH_RECEIVER_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_id.secret_string)["MESH_RECEIVER_MAILBOX_ID"],
-    MESH_RECEIVER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_receiver_mailbox_password.secret_string)["MESH_RECEIVER_MAILBOX_PASSWORD"]
+    ENVIRONMENT                   = "${var.environment}",
+    MESH_SANDBOX                  = "false",
+    WORKFLOW_ID                   = "GPS_INVITATIONS",
+    MESH_URL                      = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"],
+    MESH_SHARED_KEY               = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
+    MESH_SENDER_MAILBOX_ID        = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_mailbox_id.secret_string)["GTMS_MESH_MAILBOX_ID"],
+    MESH_SENDER_MAILBOX_PASSWORD  = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_mailbox_password.secret_string)["GTMS_MESH_MAILBOX_PASSWORD"],
+    GTMS_MESH_RECEIVER_MAILBOX_ID = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_receiver_mailbox_id.secret_string)["GTMS_MESH_RECEIVER_MAILBOX_ID"],
   }
 }
 
@@ -1347,6 +1469,46 @@ module "notify_raw_message_queue_sqs" {
   source                         = "./modules/sqs"
   environment                    = var.environment
   name                           = "notifyRawMessageQueue.fifo"
+  is_fifo_queue                  = true
+  is_content_based_deduplication = true
+  visibility_timeout_seconds     = 100
+}
+
+# Send Enriched Message to Notify Queue
+module "send_enriched_message_to_notify_queue_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "sendEnrichedMessageToNotifyQueueLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "send_enriched_message_to_notify_queue_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                = "${var.environment}"
+    RAW_MESSAGE_QUEUE_URL      = module.notify_raw_message_queue_sqs.sqs_queue_url
+    ENRICHED_MESSAGE_QUEUE_URL = module.notify_enriched_message_queue_sqs.sqs_queue_url
+  }
+}
+
+module "send_enriched_message_to_notify_queue_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.send_enriched_message_to_notify_queue_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "send_enriched_message_to_notify_queue_SQS_trigger" {
+  source           = "./modules/lambda_sqs_trigger"
+  event_source_arn = module.notify_raw_message_queue_sqs.sqs_queue_arn
+  lambda_arn       = module.send_enriched_message_to_notify_queue_lambda.lambda_arn
+}
+
+# Notify Enriched Message Queue
+module "notify_enriched_message_queue_sqs" {
+  source                         = "./modules/sqs"
+  environment                    = var.environment
+  name                           = "notifyEnrichedMessageQueue.fifo"
   is_fifo_queue                  = true
   is_content_based_deduplication = true
 }
@@ -1411,6 +1573,71 @@ module "sdrs_table" {
   }
 }
 
+module "inbound_nrds_galleritestresult_step1_success" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step1-success"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step1_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step1-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step2_success" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step2-success"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step2_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step2-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+
+module "inbound_nrds_galleritestresult_step3_success" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step3-success"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step3_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step3-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step4_success" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step4-success"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "inbound_nrds_galleritestresult_step4_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-nrds-galleritestresult-step4-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
 #MESH keys
 
 data "aws_secretsmanager_secret_version" "mesh_url" {
@@ -1451,6 +1678,10 @@ data "aws_secretsmanager_secret_version" "caas_mesh_mailbox_id" {
 
 data "aws_secretsmanager_secret_version" "caas_mesh_mailbox_password" {
   secret_id = "CAAS_MESH_MAILBOX_PASSWORD"
+}
+
+data "aws_secretsmanager_secret_version" "gtms_mesh_receiver_mailbox_id" {
+  secret_id = "GTMS_MESH_RECEIVER_MAILBOX_ID"
 }
 #END of MESH keys
 
@@ -1544,7 +1775,7 @@ module "caas_data_triggers" {
   name       = "caas_data_trigger"
   bucket_arn = module.validated_records_bucket.bucket_arn
   bucket_id  = module.validated_records_bucket.bucket_id
-  triggers   = {
+  triggers = {
     add_records = {
       lambda_arn    = module.caas_feed_add_records_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
@@ -1558,7 +1789,8 @@ module "caas_data_triggers" {
       filter_suffix = ""
     },
     delete_records = {
-      lambda_arn    = module.caas_feed_delete_records_lambda.lambda_arn,
+      lambda_arn = module.caas_feed_delete_records_lambda.lambda_arn,
+      # bucket_events = ["s3:ObjectRemoved:*"],
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records_delete-",
       filter_suffix = ""
@@ -1760,7 +1992,7 @@ module "population_table" {
   secondary_write_capacity = null
   secondary_read_capacity  = null
   environment              = var.environment
-  # non_key_attributes     = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+  # non_key_attributes     = ["Invited", "date_of_death", "reason_for_removal_effective_from_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
   projection_type = "ALL"
   attributes = [{
     name = "PersonId"
@@ -1792,14 +2024,14 @@ module "population_table" {
       name               = "LsoaCode-index"
       hash_key           = "LsoaCode"
       range_key          = null
-      non_key_attributes = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+      non_key_attributes = ["Invited", "date_of_death", "reason_for_removal_effective_from_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
       projection_type    = "INCLUDE"
     },
     {
       name               = "BatchId-index"
       hash_key           = "Batch_Id"
       range_key          = null
-      non_key_attributes = ["Invited", "date_of_death", "removal_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
+      non_key_attributes = ["Invited", "date_of_death", "reason_for_removal_effective_from_date", "identified_to_be_invited", "LsoaCode", "postcode", "PersonId", "primary_care_provider"]
       projection_type    = "INCLUDE"
     },
     {

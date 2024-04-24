@@ -21,6 +21,10 @@ data "aws_route53_zone" "example" {
 resource "aws_acm_certificate" "example" {
   domain_name       = "${var.environment}.${var.hostname}"
   validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_route53_record" "example" {
@@ -136,6 +140,12 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   cname_prefix        = "${var.environment}-${var.dns_zone}-gps-cancer-detection-blood-test"
 
   depends_on = [aws_acm_certificate_validation.example]
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "InstanceType"
+    value     = var.instance_size
+  }
 
   setting {
     namespace = "aws:elb:listener:443"

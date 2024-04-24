@@ -18,7 +18,7 @@ locals {
 }
 
 variable "triggers" {
-  description = "Map of triggers for the Lambda function, keyed by a unique identifier"
+  description = "List of triggers for the Lambda function"
   type = map(object({
     lambda_arn    = string
     bucket_events = list(string)

@@ -1,0 +1,32 @@
+name: "Kubernetes action"
+description: "Build infrastructure"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Git checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ env.invitations-branch }}
+        path: "Galleri-Invitations"
+
+    - name: Configure AWS credentials from AWS account
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: "arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/github-oidc-invitations-role"
+        aws-region: ${{ env.aws-region }}
+        role-session-name: GitHub-OIDC-TERRAFORM
+
+    - name: Derive environment-type
+      id: environment-type
+      shell: bash
+      run: |
+        echo "environment-type=$(echo '${{ env.environment }}' | cut -f1 -d'-')" >> $GITHUB_OUTPUT
+
+    - name: Kubernetes install mesh-sandbox
+      id: fmt
+      shell: bash
+      run: |
+        aws eks update-kubeconfig --name ${{ env.environment }}-eks-cluster
+        kubectl apply -f ./scripts/test_data/k8s/mesh-sandbox.yaml
+      continue-on-error: true
