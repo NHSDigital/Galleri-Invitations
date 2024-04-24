@@ -1,6 +1,7 @@
 import jwtModule from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
+import fetch from 'node-fetch';
 import * as qs from 'qs';
 import { SQSClient, DeleteMessageCommand } from "@aws-sdk/client-sqs";
 import {
@@ -18,25 +19,81 @@ export const handler = async(event) => {
     const privateKey = await getSecret(process.env.PRIVATE_KEY_NAME,smClient)
     const signedJWT = generateJWT(apiKey, process.env.TOKEN_ENDPOINT_URL, process.env.PUBLIC_KEY_ID, privateKey);
     const accessToken = await getAccessToken(process.env.TOKEN_ENDPOINT_URL, signedJWT);
-    console.log(accessToken);
 
     for (let record of event.Records) {
       try {
-        await sendSingleMessageToNHSNotify(JSON.parse(record.body), accessToken);
-        await deleteMessageInQueue(JSON.parse(record.body),record,process.env.ENRICHED_MESSAGE_QUEUE_URL,sqs);
+        const messageBody = JSON.parse(record.body);
+
+        try {
+          const response = await sendSingleMessage(messageBody, accessToken, process.env.MESSAGES_ENDPOINT_URL);
+          console.log(`NOTIFY request success - MessageId: ${response.data.id}`);
+        } catch(error) {
+          console.error(`NOTIFY request failed - Status: ${error.status} and Details: ${error.details}`)
+        }
+        await
+        await deleteMessageInQueue(messageBody,record,process.env.ENRICHED_MESSAGE_QUEUE_URL,sqs);
       } catch (error) {
         console.error('Error:', error);
       }
     }
   } catch (error) {
-    console.error(error.message);
+    console.error('Error:', error.message);
   }
 };
 
-export async function sendSingleMessageToNHSNotify(messageBody, accessToken) {
+export async function sendSingleMessage(messageBody, token, messagesEndpoint) {
+  const messageReferenceId = uuidv4();
+  // Extract nhsNumber and routingId, the rest of the fields will go into personalisation
+  const { nhsNumber, routingId, participantId, ...personalisation} = messageBody;
 
+  console.log(token);
 
-}
+  if (nhsNumber === undefined) {
+    throw new Error("NHS Number is undefined");
+  };
+  if (routingId === undefined) {
+    throw new Error("Routing Id is undefined");
+  }
+
+  const data = {
+      'type': 'Message',
+      'attributes': {
+        'routingPlanId': routingId,
+        'messageReference': messageReferenceId,
+        'recipient': {
+          'nhsNumber': nhsNumber
+        },
+        'personalisation': {
+          'participant_id': participantId,
+          ...personalisation
+        }
+      }
+  };
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token['access_token']}`,
+  };
+
+  const response = await fetch(messagesEndpoint, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify({ data })
+  });
+
+  if (!response.ok) {
+    return response.json().then(errorDetails => {
+      const error = new Error(`HTTP error! Status: ${response.status}. Details: ${JSON.stringify(errorDetails)}`);
+      error.status = response.status;
+      error.details = JSON.stringify(errorDetails);
+      throw error;
+    });
+  }
+  const responseObject = await response.json();
+
+  console.log(`Sent message for participant ${participantId} to NHS Notify`);
+  return responseObject;
+};
 
 export async function deleteMessageInQueue(message,record,queue,sqsClient) {
   const deleteMessageCommand = new DeleteMessageCommand({
@@ -46,7 +103,7 @@ export async function deleteMessageInQueue(message,record,queue,sqsClient) {
 
   try {
     await sqsClient.send(deleteMessageCommand);
-    console.log(`Deleted message with id ${record.messageId} for participant Id: ${message.participantId} with episode event ${message.episodeEvent} from the raw message queue.`);
+    console.log(`Deleted message with id ${record.messageId} for participant Id: ${message.participantId} with episode event ${message.episodeEvent} from the enriched message queue.`);
   } catch (error) {
     console.error(`Error: Failed to delete message: ${record.messageId} for participant Id: ${message.participantId} with episode event ${message.episodeEvent}`);
     throw error;
