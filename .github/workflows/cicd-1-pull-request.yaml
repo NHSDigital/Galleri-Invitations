@@ -89,7 +89,7 @@ jobs:
     secrets: inherit
 
   test-stage: # Recommended maximum execution time is 5 minutes
-    needs: [metadata, commit-stage]
+    needs: [metadata]
     uses: ./.github/workflows/stage-2-test.yaml
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
@@ -102,7 +102,7 @@ jobs:
     secrets: inherit
 
   build-stage: # Recommended maximum execution time is 10 minutes
-    needs: [metadata, test-stage]
+    needs: [metadata]
     uses: ./.github/workflows/stage-3-build.yaml
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
@@ -119,8 +119,22 @@ jobs:
       CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
       NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
 
+  post-build-stage: # Recommended maximum execution time is 5 minutes
+    needs: [metadata, build-stage]
+    uses: ./.github/workflows/post-build.yaml
+    with:
+      build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
+      build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
+      build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
+      nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
+      python_version: "${{ needs.metadata.outputs.python_version }}"
+      version: "${{ needs.metadata.outputs.version }}"
+      environment: "${{ needs.metadata.outputs.environment }}"
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
+
   data-stage: # Recommended maximum execution time is 10 minutes
-    needs: [metadata, test-stage, build-stage]
+    needs: [metadata, build-stage]
     uses: ./.github/workflows/stage-4-load-data.yaml
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
@@ -136,7 +150,7 @@ jobs:
       AWS_ACCOUNT_ID: ${{ secrets.NFT_AWS_ACCOUNT_ID }}
 
   acceptance-stage: # Recommended maximum execution time is 10 minutes
-    needs: [metadata, test-stage, build-stage, data-stage]
+    needs: [metadata, build-stage, data-stage]
     uses: ./.github/workflows/stage-5-acceptance.yaml
     if: needs.metadata.outputs.test == 'yes' && (needs.data-stage.result == 'success' || needs.data-stage.result == 'skipped')
     with:

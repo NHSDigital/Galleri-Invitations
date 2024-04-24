@@ -21,6 +21,10 @@ data "aws_route53_zone" "example" {
 resource "aws_acm_certificate" "example" {
   domain_name       = "${var.environment}.${var.hostname}"
   validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_route53_record" "example" {
@@ -131,11 +135,17 @@ resource "aws_security_group_rule" "https" {
 resource "aws_elastic_beanstalk_environment" "screens" {
   name                = "${var.environment}-${var.name}-frontend"
   application         = aws_elastic_beanstalk_application.screens.name
-  solution_stack_name = "64bit Amazon Linux 2 v5.8.11 running Node.js 18"
+  solution_stack_name = var.solution_stack_name
   version_label       = aws_elastic_beanstalk_application_version.screens.name
   cname_prefix        = "${var.environment}-${var.dns_zone}-gps-cancer-detection-blood-test"
 
   depends_on = [aws_acm_certificate_validation.example]
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "InstanceType"
+    value     = var.instance_size
+  }
 
   setting {
     namespace = "aws:elb:listener:443"

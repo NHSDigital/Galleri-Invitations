@@ -107,4 +107,4 @@ jobs:
           environment: ${{ env.environment }}
           environment_type: ${{ env.environment_type }}
           AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}
-        timeout-minutes: 30
+        timeout-minutes: 45
