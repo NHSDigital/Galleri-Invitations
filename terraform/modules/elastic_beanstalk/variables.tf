@@ -29,6 +29,11 @@ variable "instance_type" {
   default     = "SingleInstance"
 }
 
+variable "instance_size" {
+  type    = string
+  default = "t3.medium"
+}
+
 variable "frontend_repo_location" {
   description = "the filepath to the frontend repo"
 }
