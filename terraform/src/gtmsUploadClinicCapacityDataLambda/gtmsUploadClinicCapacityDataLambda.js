@@ -110,7 +110,7 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
     throw err;
   }
 };
-// Upload to
+
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
   try {
     const response = await client.send(
@@ -123,7 +123,9 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
     console.log(`Successfully pushed to ${bucketName}/${key}`);
     return response;
   } catch (err) {
-    console.log(`Failed: ${err}`);
+    console.log(
+      `Error: Failed to push to ${bucketName}/${key}. Error Message: ${err}`
+    );
     throw err;
   }
 };

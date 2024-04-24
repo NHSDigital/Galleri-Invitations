@@ -210,6 +210,8 @@ describe("pushCsvToS3", () => {
     }
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith(`Mocked error`);
+    expect(logSpy).toHaveBeenCalledWith(
+      `Error: Failed to push to galleri-ons-data/test.txt. Error Message: ${errorMsg}`
+    );
   });
 });

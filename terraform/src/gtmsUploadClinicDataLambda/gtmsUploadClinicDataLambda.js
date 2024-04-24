@@ -142,7 +142,9 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
     console.log(`Successfully pushed to ${bucketName}/${key}`);
     return response;
   } catch (err) {
-    console.log(`Failed: ${err}`);
+    console.log(
+      `Error: Failed to push to ${bucketName}/${key}. Error Message: ${err}`
+    );
     throw err;
   }
 };
