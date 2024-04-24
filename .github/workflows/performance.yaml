@@ -160,6 +160,7 @@ jobs:
       environment: ${{ needs.metadata.outputs.environment }}
       invitations_branch: "${{ github.event.inputs.invitations_branch }}"
       frontend_branch: "${{ github.event.inputs.frontend_branch }}"
+      tf_action: "${{ github.event.inputs.tf_action }}"
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.PRE_PROD_AWS_ACCOUNT_ID }}
       USERS: ${{ secrets.USERS }}
