@@ -39,6 +39,10 @@ variable "NEXTAUTH_URL" {
   default = null
 }
 
+variable "CIS2_REDIRECT_URL" {
+  default = null
+}
+
 variable "GALLERI_ACTIVITY_CODE" {
   default = null
 }

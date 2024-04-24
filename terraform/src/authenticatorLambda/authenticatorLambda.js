@@ -16,7 +16,9 @@ const CLIENT_ID = process.env.CIS2_ID;
 const TOKEN_ENDPOINT_URL = process.env.CIS2_TOKEN_ENDPOINT_URL;
 const KID = process.env.CIS2_PUBLIC_KEY_ID;
 const PRIVATE_KEY_SECRET_NAME = process.env.CIS2_KEY_NAME;
-const CIS2_REDIRECT_URL = "http://localhost:3000/api/auth/callback/cis2";
+const CIS2_REDIRECT_URL = process.env.CIS2_REDIRECT_URL;
+const GALLERI_ACTIVITY_CODE = process.env.GALLERI_ACTIVITY_CODE;
+const GALLERI_ACTIVITY_NAME = process.env.GALLERI_ACTIVITY_NAME;
 
 export const handler = async (event) => {
   const code = event.queryStringParameters.code;

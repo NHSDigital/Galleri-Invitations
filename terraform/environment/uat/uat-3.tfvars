@@ -5,3 +5,5 @@ CIS2_TOKEN_ENDPOINT_URL = "https://am.nhsint.auth-ptl.cis2.spineservices.nhs.uk:
 CIS2_PUBLIC_KEY_ID      = "cis2-int-1"
 CIS2_KNAME              = "CIS2_INT_1"
 invitations-hostname    = "uat-gps-multi-cancer-blood-test.nhs.uk"
+GALLERI_ACTIVITY_CODE   = "B1824"
+GALLERI_ACTIVITY_NAME   = "Galleri Blood Test"

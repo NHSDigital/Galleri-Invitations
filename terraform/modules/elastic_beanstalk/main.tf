@@ -275,8 +275,8 @@ resource "aws_elastic_beanstalk_environment" "screens" {
 
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
-    name      = "NEXT_PUBLIC_CIS2_SIGNED_JWT"
-    value     = var.NEXT_PUBLIC_CIS2_SIGNED_JWT
+    name      = "NEXT_PUBLIC_AUTHENTICATOR"
+    value     = var.NEXT_PUBLIC_AUTHENTICATOR
   }
 
   setting {
@@ -342,6 +342,12 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "NEXTAUTH_URL"
     value     = "https://${var.environment}.${var.hostname}"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "CIS2_REDIRECT_URL"
+    value     = "https://${var.environment}.${var.hostname}/api/auth/callback/cis2"
   }
 
   setting {
