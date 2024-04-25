@@ -1178,6 +1178,28 @@ module "gtms_mesh_mailbox_lambda_cloudwatch" {
   retention_days       = 14
 }
 
+# NRDS MESH lambda
+module "nrds_mesh_mailbox_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "nrdsMeshMailboxLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "nrds_mesh_mailbox_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}",
+  }
+}
+
+module "nrds_mesh_mailbox_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.nrds_mesh_mailbox_lambda.lambda_function_name
+  retention_days       = 14
+}
+
 # Get User Role Lambda
 module "get_user_role_lambda" {
   source               = "./modules/lambda"
