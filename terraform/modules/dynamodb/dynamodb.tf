@@ -51,7 +51,7 @@ resource "aws_backup_plan" "dynamodb_backup_plan" {
   rule {
     rule_name         = "daily-backup"
     target_vault_name = aws_backup_vault.dynamodb_vault.name
-    schedule          = "cron(0 0 * * ? *)"
+    schedule          = var.schedule
     start_window      = 120
     completion_window = 360
 
