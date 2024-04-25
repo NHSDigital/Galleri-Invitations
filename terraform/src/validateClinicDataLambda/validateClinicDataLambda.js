@@ -104,6 +104,11 @@ export async function validateRecord(record, client) {
         validationResults.key = record;
         return validationResults;
       }
+      else if(record.ClinicCreateOrUpdate.ICBCode === null)
+      {
+        record.ClinicCreateOrUpdate["ICBCode"]=ICBValidation;
+        return validationResults;
+      }
       else if(ICBValidation !=record.ClinicCreateOrUpdate.ICBCode){
         validationResults.success = false;
         validationResults.message = `Invalid ICB Code provided in GTMS message: ${record.ClinicCreateOrUpdate.ICBCode}`;
