@@ -8,12 +8,19 @@ import {
   GetSecretValueCommand,
   SecretsManagerClient,
 } from "@aws-sdk/client-secrets-manager";
+import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 
+const dynamodbClient = new DynamoDBClient({ region: "eu-west-2" });
 const smClient = new SecretsManagerClient({ region: "eu-west-2" });
-const sqs = new SQSClient({});
+const sqsClient = new SQSClient({});
+const notifySendMessageStatusTable = 'NotifySendMessageStatus';
 const { sign } = jwtModule;
+const ENVIRONMENT = process.env.ENVIRONMENT;
 
 export const handler = async(event) => {
+  const totalRecords = event.Records.length;
+  let recordsSuccessfullySent = 0;
+  let recordsFailedToSend = 0;
   try {
     const apiKey = await getSecret(process.env.API_KEY,smClient);
     const privateKey = await getSecret(process.env.PRIVATE_KEY_NAME,smClient)
@@ -23,26 +30,151 @@ export const handler = async(event) => {
     for (let record of event.Records) {
       try {
         const messageBody = JSON.parse(record.body);
-
+        const messageReferenceId = await generateMessageReference();
         try {
-          const response = await sendSingleMessage(messageBody, accessToken, process.env.MESSAGES_ENDPOINT_URL);
-          console.log(`NOTIFY request success - MessageId: ${response.data.id}`);
+          const messageSentAt = new Date().toISOString();
+          const response = await sendSingleMessage(messageBody, accessToken, messageReferenceId, process.env.MESSAGES_ENDPOINT_URL);
+          const responseBody = response.data;
+          console.log(`Request to NHS Notify for ${messageBody.participantId} successful  - MessageId: ${responseBody.id}`);
+          await putSuccessResponseIntoTable(messageBody, messageSentAt, responseBody, messageReferenceId, notifySendMessageStatusTable);
+          recordsSuccessfullySent++;
         } catch(error) {
-          console.error(`NOTIFY request failed - Status: ${error.status} and Details: ${error.details}`)
+          if(error.status && error.details) {
+            console.error(`Error: Request to NHS Notify for ${messageBody.participantId} failed - Status: ${error.status} and Details: ${error.details}`)
+            await putFailedResponseIntoTable(messageBody, messageSentAt, "1" ,error.status.toString(), error.details, messageReferenceId,  notifySendMessageStatusTable)
+            recordsFailedToSend++;
+          } else {
+            throw error;
+          }
         }
-        await
-        await deleteMessageInQueue(messageBody,record,process.env.ENRICHED_MESSAGE_QUEUE_URL,sqs);
+
+        await deleteMessageInQueue(messageBody,record,process.env.ENRICHED_MESSAGE_QUEUE_URL,sqsClient);
       } catch (error) {
+        recordsFailedToSend++;
         console.error('Error:', error);
       }
     }
   } catch (error) {
-    console.error('Error:', error.message);
+    console.error('Error:', error);
+  }
+
+  console.log(`Total records in the batch: ${totalRecords} - Records successfully processed/sent: ${recordsSuccessfullySent} - Records failed to send: ${recordsFailedToSend}`);
+};
+
+export async function putSuccessResponseIntoTable(messageBody, messageSentAt, responseBody, messageReferenceId, table) {
+  let item;
+  const { nhsNumber, routingId, participantId, ...personalisation} = messageBody;
+
+  try {
+    item = {
+      'Participant_Id': {
+        S: participantId
+      },
+      'Message_Sent': {
+        S: messageSentAt
+      },
+      'Routing_Plan_Id': {
+        S: routingId
+      },
+      'Message_Reference': {
+        S: messageReferenceId
+      },
+      'Nhs_Number': {
+        S: nhsNumber
+      },
+      'Message_Personalisation': {
+        S: JSON.stringify(personalisation)
+      },
+      'Message_Id': {
+        S: responseBody.id
+      },
+      'Number_Of_Attempts': {
+        N: (1).toString()
+      },
+    };
+  } catch (error) {
+    console.error('Error:', error);
+    throw new Error(`Error with building success record for participant ${participantId} to put into ${table}`);
+  }
+
+  const response = await putItemIntoTable(item, table, dynamodbClient);
+  if (response.$metadata.httpStatusCode === 200){
+    console.log(`Added successful result record for ${participantId} in ${table}`);
+  } else {
+    throw new Error(`Error with adding success record for participant ${participantId} in ${table}`);
   }
 };
 
-export async function sendSingleMessage(messageBody, token, messagesEndpoint) {
+export async function putFailedResponseIntoTable(messageBody, messageSentAt, numberOfAttempts, statusCode, errorDetails, messageReferenceId, table) {
+  let item;
+  const { nhsNumber, routingId, participantId, ...personalisation} = messageBody;
+  try {
+    item = {
+      'Participant_Id': {
+        S: participantId
+      },
+      'Message_Sent': {
+        S: messageSentAt,
+      },
+      'Routing_Plan_Id': {
+        S: routingId
+      },
+      'Message_Reference': {
+        S: messageReferenceId,
+      },
+      'Nhs_Number': {
+        S: nhsNumber
+      },
+      'Message_Personalisation': {
+        S: JSON.stringify(personalisation)
+      },
+      'Message_Http_Status_Code': {
+        S: statusCode
+      },
+      'Message_Error_Details': {
+        S: errorDetails
+      },
+      'Number_Of_Attempts': {
+        N: numberOfAttempts
+      },
+    };
+  } catch (error) {
+    console.error('Error:', error);
+    throw new Error(`Error with building failed record for participant ${participantId} to put into ${table}`);
+  }
+
+  const response = await putItemIntoTable(item, table, dynamodbClient);
+  if (response.$metadata.httpStatusCode === 200){
+    console.log(`Added failed result record for ${participantId} in ${table}`);
+  } else {
+    throw new Error(`Error with adding failed record for participant ${participantId} in ${table}`);
+  }
+};
+
+export async function putItemIntoTable(item, table, client) {
+  const input = {
+    TableName: `${ENVIRONMENT}-${table}`,
+    Item: item,
+  };
+
+  console.log(JSON.stringify(input));
+
+  try{
+    const command = new PutItemCommand(input);
+    const response = await client.send(command);
+    return response;
+  } catch (error) {
+    console.error(`Error: Error with putting record into table ${table}`);
+    throw error;
+  }
+}
+
+export async function generateMessageReference() {
   const messageReferenceId = uuidv4();
+  return messageReferenceId;
+}
+
+export async function sendSingleMessage(messageBody, token, messageReferenceId, messagesEndpoint) {
   // Extract nhsNumber and routingId, the rest of the fields will go into personalisation
   const { nhsNumber, routingId, participantId, ...personalisation} = messageBody;
 
