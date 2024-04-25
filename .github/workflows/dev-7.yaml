@@ -121,20 +121,20 @@ jobs:
           export VERSION="${{ steps.variables.outputs.version }}"
           export DOES_PULL_REQUEST_EXIST="${{ steps.pr_exists.outputs.does_pull_request_exist }}"
           make list-variables
-  commit-stage: # Recommended maximum execution time is 2 minutes
-    needs: [metadata]
-    uses: ./.github/workflows/stage-1-commit.yaml
-    if: needs.metadata.outputs.tf_action != 'destroy' && needs.metadata.outputs.skip_default_checks == 'yes'
-    with:
-      build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
-      build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
-      build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
-      nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
-      python_version: "${{ needs.metadata.outputs.python_version }}"
-      terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
-      version: "${{ needs.metadata.outputs.version }}"
-      invitations_branch: "${{ github.event.inputs.invitations_branch }}"
-    secrets: inherit
+  # commit-stage: # Recommended maximum execution time is 2 minutes
+  #   needs: [metadata]
+  #   uses: ./.github/workflows/stage-1-commit.yaml
+  #   if: needs.metadata.outputs.tf_action != 'destroy' && needs.metadata.outputs.skip_default_checks == 'yes'
+  #   with:
+  #     build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
+  #     build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
+  #     build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
+  #     nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
+  #     python_version: "${{ needs.metadata.outputs.python_version }}"
+  #     terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
+  #     version: "${{ needs.metadata.outputs.version }}"
+  #     invitations_branch: "${{ github.event.inputs.invitations_branch }}"
+  #   secrets: inherit
 
   publish-stage:
     runs-on: ubuntu-latest
@@ -145,10 +145,13 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
-      - name: "Bump patch version"
-        uses: ./.github/actions/versioning
-        with:
-          version_bump: ${{ env.version_bump }}
+      # - name: "Bump patch version"
+      #   uses: ./.github/actions/versioning
+      #   with:
+      #     version_bump: ${{ env.version_bump }}
+      - name: Publish to Confluence
+        run: |
+          echo ${{ github.event.pull_request.body }}
       - name: "create tagged versions of lambdas"
         run: |
           echo "TODO: create release versions of lambdas"
@@ -159,86 +162,86 @@ jobs:
         run: |
           echo "TODO: tag main branch"
 
-  test-stage: # Recommended maximum execution time is 5 minutes
-    needs: [metadata]
-    uses: ./.github/workflows/stage-2-test.yaml
-    if: needs.metadata.outputs.tf_action != 'destroy' && needs.metadata.outputs.skip_default_checks == 'yes'
-    with:
-      build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
-      build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
-      build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
-      nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
-      python_version: "${{ needs.metadata.outputs.python_version }}"
-      terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
-      version: "${{ needs.metadata.outputs.version }}"
-      invitations_branch: "${{ github.event.inputs.invitations_branch }}"
-    secrets: inherit
+  # test-stage: # Recommended maximum execution time is 5 minutes
+  #   needs: [metadata]
+  #   uses: ./.github/workflows/stage-2-test.yaml
+  #   if: needs.metadata.outputs.tf_action != 'destroy' && needs.metadata.outputs.skip_default_checks == 'yes'
+  #   with:
+  #     build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
+  #     build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
+  #     build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
+  #     nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
+  #     python_version: "${{ needs.metadata.outputs.python_version }}"
+  #     terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
+  #     version: "${{ needs.metadata.outputs.version }}"
+  #     invitations_branch: "${{ github.event.inputs.invitations_branch }}"
+  #   secrets: inherit
 
-  build-stage: # Recommended maximum execution time is 10 minutes
-    needs: [metadata]
-    uses: ./.github/workflows/stage-3-build.yaml
-    with:
-      build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
-      build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
-      build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
-      nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
-      python_version: "${{ needs.metadata.outputs.python_version }}"
-      terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
-      invitations_branch: "${{ github.event.inputs.invitations_branch }}"
-      version: "${{ needs.metadata.outputs.version }}"
-      environment: ${{ needs.metadata.outputs.environment }}
-      frontend_branch: "${{ github.event.inputs.frontend_branch }}"
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
-      USERS: ${{ secrets.USERS }}
-      CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
-      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+  # build-stage: # Recommended maximum execution time is 10 minutes
+  #   needs: [metadata]
+  #   uses: ./.github/workflows/stage-3-build.yaml
+  #   with:
+  #     build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
+  #     build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
+  #     build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
+  #     nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
+  #     python_version: "${{ needs.metadata.outputs.python_version }}"
+  #     terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
+  #     invitations_branch: "${{ github.event.inputs.invitations_branch }}"
+  #     version: "${{ needs.metadata.outputs.version }}"
+  #     environment: ${{ needs.metadata.outputs.environment }}
+  #     frontend_branch: "${{ github.event.inputs.frontend_branch }}"
+  #   secrets:
+  #     AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
+  #     USERS: ${{ secrets.USERS }}
+  #     CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
+  #     NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
 
-  post-build-stage:
-    needs: [metadata, build-stage]
-    uses: ./.github/workflows/post-build.yaml
-    if: needs.metadata.outputs.tf_action != 'destroy'
-    with:
-      build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
-      build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
-      build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
-      nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
-      python_version: "${{ needs.metadata.outputs.python_version }}"
-      version: "${{ needs.metadata.outputs.version }}"
-      environment: "${{ needs.metadata.outputs.environment }}"
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
+  # post-build-stage:
+  #   needs: [metadata, build-stage]
+  #   uses: ./.github/workflows/post-build.yaml
+  #   if: needs.metadata.outputs.tf_action != 'destroy'
+  #   with:
+  #     build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
+  #     build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
+  #     build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
+  #     nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
+  #     python_version: "${{ needs.metadata.outputs.python_version }}"
+  #     version: "${{ needs.metadata.outputs.version }}"
+  #     environment: "${{ needs.metadata.outputs.environment }}"
+  #   secrets:
+  #     AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
 
-  data-stage: # Recommended maximum execution time is 10 minutes
-    needs: [metadata, build-stage]
-    uses: ./.github/workflows/stage-4-load-data.yaml
-    if: needs.metadata.outputs.database_seeding == 'yes' && needs.metadata.outputs.tf_action != 'destroy'
-    with:
-      build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
-      build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
-      build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
-      nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
-      python_version: "${{ needs.metadata.outputs.python_version }}"
-      terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
-      version: "${{ needs.metadata.outputs.version }}"
-      environment: "${{ needs.metadata.outputs.environment }}"
-      environment_type: "${{ needs.metadata.outputs.environment_type }}"
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
+  # data-stage: # Recommended maximum execution time is 10 minutes
+  #   needs: [metadata, build-stage]
+  #   uses: ./.github/workflows/stage-4-load-data.yaml
+  #   if: needs.metadata.outputs.database_seeding == 'yes' && needs.metadata.outputs.tf_action != 'destroy'
+  #   with:
+  #     build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
+  #     build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
+  #     build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
+  #     nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
+  #     python_version: "${{ needs.metadata.outputs.python_version }}"
+  #     terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
+  #     version: "${{ needs.metadata.outputs.version }}"
+  #     environment: "${{ needs.metadata.outputs.environment }}"
+  #     environment_type: "${{ needs.metadata.outputs.environment_type }}"
+  #   secrets:
+  #     AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
 
-  acceptance-stage: # Recommended maximum execution time is 10 minutes
-    needs: [metadata, build-stage, data-stage]
-    uses: ./.github/workflows/stage-5-acceptance.yaml
-    if: needs.metadata.outputs.test == 'yes' && (needs.data-stage.result == 'success' || needs.data-stage.result == 'skipped')
-    with:
-      build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
-      build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
-      build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
-      nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
-      python_version: "${{ needs.metadata.outputs.python_version }}"
-      terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
-      version: "${{ needs.metadata.outputs.version }}"
-      environment: ${{ needs.metadata.outputs.environment }}
-      test: ${{ needs.metadata.outputs.test }}
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
+  # acceptance-stage: # Recommended maximum execution time is 10 minutes
+  #   needs: [metadata, build-stage, data-stage]
+  #   uses: ./.github/workflows/stage-5-acceptance.yaml
+  #   if: needs.metadata.outputs.test == 'yes' && (needs.data-stage.result == 'success' || needs.data-stage.result == 'skipped')
+  #   with:
+  #     build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
+  #     build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
+  #     build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
+  #     nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
+  #     python_version: "${{ needs.metadata.outputs.python_version }}"
+  #     terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
+  #     version: "${{ needs.metadata.outputs.version }}"
+  #     environment: ${{ needs.metadata.outputs.environment }}
+  #     test: ${{ needs.metadata.outputs.test }}
+  #   secrets:
+  #     AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
