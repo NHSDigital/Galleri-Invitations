@@ -1373,35 +1373,38 @@ module "session_manager_lambda_api_gateway" {
 
 module "session_table" {
   source      = "./modules/dynamodb"
-  table_name  = "Sessions"
-  hash_key    = "sessionId"
-  range_key   = "userId"
+  table_name  = "auth-js"
+  hash_key     = "pk"
+  range_key    = "sk"
   environment = var.environment
   attributes = [
     {
-      name = "sessionId"
+      name = "pk"
       type = "S"
     },
     {
-      name = "userId"
+      name = "sk"
       type = "S"
     },
     {
-      name = "sessionData"
+      name = "GSI1PK"
       type = "S"
     },
     {
-      name = "expirationTime"
-      type = "N"
+      name = "GSI1SK"
+      type = "S"
     }
   ]
   global_secondary_index = [
     {
-      name      = "sessionIdIndex"
-      hash_key  = "sessionData"
-      range_key = "expirationTime"
+      hash_key        = "GSI1PK"
+      name            = "GSI1"
+      projection_type = "ALL"
+      range_key       = "GSI1SK"
     }
   ]
+    enabled        = true
+
   tags = {
     Name        = "Dynamodb Table User Sessions"
     Environment = var.environment

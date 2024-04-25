@@ -78,6 +78,10 @@ variable "stream_enabled" {
   default = false
 }
 
+variable "enabled" {
+  default = true
+}
+
 variable "stream_view_type" {
   default = ""
 }

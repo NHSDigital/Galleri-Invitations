@@ -38,5 +38,10 @@ resource "aws_dynamodb_table" "dynamodb_table" {
     enabled = var.server_side_encryption
   }
 
+  ttl {
+    attribute_name = "TimeToExist"
+    enabled = var.enabled
+  }
+
   tags = var.tags
 }
