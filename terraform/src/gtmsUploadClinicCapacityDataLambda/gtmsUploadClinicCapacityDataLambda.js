@@ -34,26 +34,15 @@ export const handler = async (event, context) => {
       );
 
       if (Object.keys(result.Items).length === 0) {
-        const dateTime = new Date(Date.now()).toISOString();
+        const rejectedReason =
+          "Error: ClinicId not found in PhlebotomySite table ";
         //reject record, push to s3 failedRecords folder
-        let response = await pushCsvToS3(
+        await pushCsvToS3(
           bucket,
-          `invalidData/invalidRecord_${dateTime}.json`,
           JSON.stringify(csvString),
+          rejectedReason,
           s3
         );
-        if (response.$metadata.httpStatusCode !== 200) {
-          console.error(
-            "Error: uploading items to s3 failedRecords folder " +
-              +`invalidData/invalidRecord_${dateTime}.json`
-          );
-        } else {
-          console.error(
-            `Error: entry JSON did not match any ClinicIds in PhlebotomySite table. ` +
-              `invalidData/invalidRecord_${dateTime}.json empty result ` +
-              `${JSON.stringify(result["Items"])}`
-          );
-        }
       } else {
         const value = await checkPhlebotomy(element, result.Items[0]);
         if (value[0]) {
@@ -66,32 +55,18 @@ export const handler = async (event, context) => {
           );
           console.log(`${params ? "Success" : "Failed"}`);
         } else {
-          const dateTime = new Date(Date.now()).toISOString();
-          //reject record, push to s3 failedRecords folder
-
-          let response = await pushCsvToS3(
+          const rejectedReason = "Error: ClinicId does not match ";
+          await pushCsvToS3(
             bucket,
-            `invalidData/invalidRecord_${dateTime}.json`,
             JSON.stringify(csvString),
+            rejectedReason,
             s3
           );
-          if (response.$metadata.httpStatusCode !== 200) {
-            console.error(
-              "Error: uploading items to s3 failedRecords folder " +
-                +`invalidData/invalidRecord_${dateTime}.json`
-            );
-          } else {
-            console.error(
-              "Error: clinicIds record is not found or data is not consistent " +
-                `invalidData/invalidRecord_${dateTime}.json ` +
-                `${JSON.stringify(result["Items"])}`
-            );
-          }
         }
       }
     }
   } catch (error) {
-    console.error("Error: occurred to read readCsvFromS3", error);
+    console.error("Error: ", error);
   }
 };
 
@@ -111,7 +86,15 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
   }
 };
 
-export const pushCsvToS3 = async (bucketName, key, body, client) => {
+export const pushCsvToS3 = async (
+  bucketName,
+  body,
+  rejectedReason,
+  client,
+  currentDate = new Date()
+) => {
+  const dateTime = currentDate.toISOString();
+  const key = `invalidData/invalidRecord_${dateTime}.json`;
   try {
     const response = await client.send(
       new PutObjectCommand({
@@ -121,11 +104,10 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
       })
     );
     console.log(`Successfully pushed to ${bucketName}/${key}`);
+    console.log(rejectedReason + key);
     return response;
   } catch (err) {
-    console.log(
-      `Error: Failed to push to ${bucketName}/${key}. Error Message: ${err}`
-    );
+    console.log(`Error: Failed to push to ${bucketName}/${key} ${err}`);
     throw err;
   }
 };
