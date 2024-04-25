@@ -5,10 +5,8 @@ on:
   #   types: [closed]
       # branches:
       # - main
-  issue_comment:
-    types: [created, edited]
-  issues:
-    types: [opened, edited]
+  pull_request:
+    types: [opened, reopened, edited, synchronize]
 
 jobs:
   metadata:
