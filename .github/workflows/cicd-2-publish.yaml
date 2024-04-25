@@ -6,7 +6,9 @@ on:
       # branches:
       # - main
   issue_comment:
-    types: [created, editied]
+    types: [created, edited]
+  issues:
+    types: [opened, edited]
 
 jobs:
   metadata:
