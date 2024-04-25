@@ -42,11 +42,11 @@ resource "aws_dynamodb_table" "dynamodb_table" {
 }
 
 resource "aws_backup_vault" "dynamodb_vault" {
-  name = "${var.environment}-${var.table_name}-dynamodb-backup-vault"
+  name = "${var.environment}-${var.table_name}"
 }
 
 resource "aws_backup_plan" "dynamodb_backup_plan" {
-  name = "${var.environment}-${var.table_name}-dynamodb-backup-plan"
+  name = "${var.environment}-${var.table_name}"
 
   rule {
     rule_name         = "daily-backup"
@@ -62,7 +62,7 @@ resource "aws_backup_plan" "dynamodb_backup_plan" {
 }
 
 resource "aws_backup_selection" "dynamodb_backup_selection" {
-  name         = "${var.environment}-${var.table_name}-dynamodb-backup-selection"
+  name         = "${var.environment}-${var.table_name}"
   iam_role_arn = aws_iam_role.backup_role.arn
   plan_id      = aws_backup_plan.dynamodb_backup_plan.id
 
