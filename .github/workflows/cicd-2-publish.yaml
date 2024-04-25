@@ -71,11 +71,11 @@ jobs:
           curl -LO https://github.com/justmiles/go-markdown2confluence/releases/download/v3.4.6/go-markdown2confluence_3.4.6_linux_x86_64.tar.gz
           tar -xzvf go-markdown2confluence_3.4.6_linux_x86_64.tar.gz -C /usr/local/bin/ markdown2confluence
           markdown2confluence \
-          --username ${{ secrets.CONFLUENCE_USERNAME }} \
-          --access-token ${{ secrets.CONFLUENCE_API_TOKEN }} \
-          --endpoint ${{ env.confluence_endpoint }} \
-          --space ${{ env.confluence_space }} \
-          --parent ${{ env.confluence_parent_page_id }} \
+          --username "${{ secrets.CONFLUENCE_USERNAME }}" \
+          --access-token "${{ secrets.CONFLUENCE_API_TOKEN }}" \
+          --endpoint "${{ env.confluence_endpoint }}" \
+          --space "${{ env.confluence_space }}" \
+          --parent "${{ env.confluence_parent_page_id }}" \
           "Release-0.1.0.md"
           rm "Release-0.1.0.md"
       - name: "create tagged versions of lambdas"
