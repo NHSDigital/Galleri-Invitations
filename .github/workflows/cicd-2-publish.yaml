@@ -59,9 +59,16 @@ jobs:
       #   uses: ./.github/actions/versioning
       #   with:
       #     version_bump: ${{ env.version_bump }}
-      - name: Publish to Confluence
+      - name: Create Markdown Release File
         run: |
-          echo ${{ github.event.pull_request.body }}
+          echo "${{ github.event.pull_request.body }}" > ./docs/release.md
+      - name: Publish Release to Confluence
+        uses: markdown-confluence/publish@v1
+        with:
+          confluenceBaseUrl: https://nhsd-confluence.digital.nhs.uk/
+          confluenceParentId: 821534639
+          atlassianApiToken: ${{ secrets.CONFLUENCE_API_TOKEN }}
+          contentRoot: ./docs
       - name: "create tagged versions of lambdas"
         run: |
           echo "TODO first: create release versions of lambdas"
