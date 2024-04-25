@@ -159,15 +159,14 @@ describe("pushCsvToS3", () => {
 
     const currentDate = new Date("2022-01-01T00:00:00.000Z");
 
+    const expectedKey = `invalidData/invalidRecord_${currentDate.toISOString()}.json`;
     const result = await pushCsvToS3(
       bucketName,
       "test.txt",
+      expectedKey,
       rejectedReason,
-      mockS3Client,
-      currentDate
+      mockS3Client
     );
-
-    const expectedKey = `invalidData/invalidRecord_${currentDate.toISOString()}.json`;
 
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(2);
@@ -186,16 +185,22 @@ describe("pushCsvToS3", () => {
     };
 
     const currentDate = new Date("2022-01-01T00:00:00.000Z");
-
+    const rejectedReason = "Error: ClinicId not found in PhlebotomySite table ";
+    const expectedKey = `invalidData/invalidRecord_${currentDate.toISOString()}.json`;
     jest.spyOn(global, "Date").mockImplementation(() => currentDate);
 
     try {
-      await pushCsvToS3(bucketName, "test.txt", "dfsdfd", mockClient);
+      await pushCsvToS3(
+        bucketName,
+        "test.txt",
+        expectedKey,
+        rejectedReason,
+        mockClient
+      );
     } catch (err) {
       expect(err.message).toBe("Mocked error");
     }
 
-    const expectedKey = `invalidData/invalidRecord_${currentDate.toISOString()}.json`;
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith(

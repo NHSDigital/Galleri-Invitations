@@ -37,10 +37,13 @@ export const handler = async (event, context) => {
         const rejectedReason =
           "Error: ClinicId not found in PhlebotomySite table " +
           JSON.stringify(result["Items"]);
+        const dateTime = new Date(Date.now()).toISOString();
+        const key = `invalidData/invalidRecord_${dateTime}.json`;
         //reject record, push to s3 failedRecords folder
         await pushCsvToS3(
           bucket,
           JSON.stringify(csvString),
+          key,
           rejectedReason,
           s3
         );
@@ -58,10 +61,12 @@ export const handler = async (event, context) => {
         } else {
           const rejectedReason =
             "Error: ClinicId does not match " + JSON.stringify(result["Items"]);
-
+          const dateTime = new Date(Date.now()).toISOString();
+          const key = `invalidData/invalidRecord_${dateTime}.json`;
           await pushCsvToS3(
             bucket,
             JSON.stringify(csvString),
+            key,
             rejectedReason,
             s3
           );
@@ -92,12 +97,10 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
 export const pushCsvToS3 = async (
   bucketName,
   body,
+  key,
   rejectedReason,
-  client,
-  currentDate = new Date()
+  client
 ) => {
-  const dateTime = currentDate.toISOString();
-  const key = `invalidData/invalidRecord_${dateTime}.json`;
   try {
     const response = await client.send(
       new PutObjectCommand({
