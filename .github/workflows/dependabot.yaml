@@ -113,10 +113,27 @@ jobs:
       nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
-      invitations_branch: "${{ github.event.inputs.invitations_branch }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
-    secrets: inherit
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
+      USERS: ${{ secrets.USERS }}
+      CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+
+  post-build-stage:
+    needs: [metadata, build-stage]
+    uses: ./.github/workflows/post-build.yaml
+    with:
+      build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
+      build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
+      build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
+      nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
+      python_version: "${{ needs.metadata.outputs.python_version }}"
+      version: "${{ needs.metadata.outputs.version }}"
+      environment: "${{ needs.metadata.outputs.environment }}"
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
 
   data-stage: # Recommended maximum execution time is 10 minutes
     needs: [metadata, build-stage]
@@ -129,8 +146,10 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
-      environment: ${{ needs.metadata.outputs.environment }}
-    secrets: inherit
+      environment: "${{ needs.metadata.outputs.environment }}"
+      environment_type: "${{ needs.metadata.outputs.environment_type }}"
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
 
   acceptance-stage: # Recommended maximum execution time is 10 minutes
     needs: [metadata, build-stage, data-stage]
@@ -145,4 +164,6 @@ jobs:
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
-    secrets: inherit
+      test: ${{ needs.metadata.outputs.test }}
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}

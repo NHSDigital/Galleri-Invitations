@@ -77,6 +77,80 @@ module "iam_galleri_lambda_role" {
 #   environment = var.environment
 # }
 
+module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "~> 20.0"
+
+  cluster_name    = "${var.environment}-eks-cluster"
+  cluster_version = "1.29"
+
+  cluster_endpoint_public_access = true
+
+  cluster_addons = {
+    coredns = {
+      most_recent = true
+    }
+    kube-proxy = {
+      most_recent = true
+    }
+    vpc-cni = {
+      most_recent = true
+    }
+  }
+
+  vpc_id                   = module.vpc.vpc_id
+  subnet_ids               = module.vpc.subnet_ids
+  control_plane_subnet_ids = module.vpc.subnet_ids
+
+  # EKS Managed Node Group(s)
+  eks_managed_node_group_defaults = {
+    instance_types = ["t3.medium"]
+  }
+
+  eks_managed_node_groups = {
+    example = {
+      min_size     = 1
+      max_size     = 3
+      desired_size = 2
+
+      instance_types = ["t3.large"]
+      capacity_type  = "SPOT"
+    }
+  }
+
+  # Cluster access entry
+  # To add the current caller identity as an administrator
+  enable_cluster_creator_admin_permissions = true
+
+  access_entries = {
+    # One access entry with a policy associated
+    example = {
+      kubernetes_groups = []
+      principal_arn     = "arn:aws:iam::136293001324:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_Admin_603cb786ef89bc37"
+
+      policy_associations = {
+        eksAdmin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        },
+        clusterAdmin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        },
+      }
+    }
+  }
+
+  tags = {
+    Environment = var.environment
+    Terraform   = "true"
+  }
+}
+
 module "s3_bucket" {
   source                  = "./modules/s3"
   bucket_name             = var.bucket_name
@@ -1669,8 +1743,8 @@ module "caas_feed_add_records_lambda_cloudwatch" {
 }
 
 module "caas_data_triggers" {
-  name       = "caas_data_trigger"
   source     = "./modules/lambda_s3_trigger"
+  name       = "caas_data_trigger"
   bucket_arn = module.validated_records_bucket.bucket_arn
   bucket_id  = module.validated_records_bucket.bucket_id
   triggers = {

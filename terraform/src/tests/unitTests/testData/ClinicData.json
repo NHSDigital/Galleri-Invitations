@@ -102,5 +102,17 @@
         "Directions": "Closest London Underground station is Euston Square.",
         "Timestamp": "2006-01-02T15:04:05.999999999Z"
     }
+},
+{
+    "ClinicCreateOrUpdate": {
+        "ClinicID": "C1C-A1A",
+        "ODSCode": "Y888888",
+        "ICBCode": null,
+        "ClinicName": "GRAIL Test Clinic",
+        "Address": "210 Euston Rd, London NW1 2DA",
+        "Postcode": "NW1 2DA",
+        "Directions": "Closest London Underground station is Euston Square.",
+        "Timestamp": "2006-01-02T15:04:05.999999999Z"
+    }
 }
 ]

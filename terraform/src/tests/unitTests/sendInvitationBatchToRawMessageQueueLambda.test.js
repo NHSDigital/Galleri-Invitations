@@ -7,10 +7,12 @@ describe('processJSONObj', () => {
 
   const sqsMock = mockClient(SQSClient);
   // Mock data
-  const mockJSON = [
-    { participantId: "p1", nhsNumber: "n1" },
-    { participantId: "p2", nhsNumber: "n2" },
-  ];
+  const mockJSON = { "InvitedParticipantBatch":
+    [
+      { participantId: "p1", nhsNumber: "n1" },
+      { participantId: "p2", nhsNumber: "n2" },
+    ]
+  };
 
   afterEach(() => {
     sqsMock.reset();
@@ -25,9 +27,9 @@ describe('processJSONObj', () => {
 
     // Assertions
     const sendMessageCalls = sqsMock.calls(SendMessageCommand);
-    expect(sendMessageCalls.length).toBe(mockJSON.length);
+    expect(sendMessageCalls.length).toBe(mockJSON.InvitedParticipantBatch.length);
 
-    mockJSON.forEach((record, index) => {
+    mockJSON.InvitedParticipantBatch.forEach((record, index) => {
       const messageBody = {
         participantId: record.participantId,
         nhsNumber: record.nhsNumber,
