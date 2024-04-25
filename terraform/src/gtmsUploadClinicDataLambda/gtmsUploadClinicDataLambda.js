@@ -100,6 +100,18 @@ export const createPhlebotomySite = (site) => {
         },
         'TargetFillToPercentage': {
           N: `50`
+        },
+        'InvitesSent': {
+          N: `0`
+        },
+        'LastSelectedRange': {
+          N: `1`
+        },
+        'PrevInviteDate': {
+          S: null
+        },
+        'Availability': {
+          N: `0`
         }
       }
     }
