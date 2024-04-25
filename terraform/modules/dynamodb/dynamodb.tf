@@ -40,3 +40,70 @@ resource "aws_dynamodb_table" "dynamodb_table" {
 
   tags = var.tags
 }
+
+resource "aws_backup_vault" "dynamodb_vault" {
+  name = "${var.environment}-${var.table_name}-dynamodb-backup-vault"
+}
+
+resource "aws_backup_plan" "dynamodb_backup_plan" {
+  name = "${var.environment}-${var.table_name}-dynamodb-backup-plan"
+
+  rule {
+    rule_name         = "daily-backup"
+    target_vault_name = aws_backup_vault.dynamodb_vault.name
+    schedule          = var.schedule
+    start_window      = 120
+    completion_window = 360
+
+    lifecycle {
+      delete_after = 35
+    }
+  }
+}
+
+resource "aws_backup_selection" "dynamodb_backup_selection" {
+  name         = "${var.environment}-${var.table_name}-dynamodb-backup-selection"
+  iam_role_arn = aws_iam_role.backup_role.arn
+  plan_id      = aws_backup_plan.dynamodb_backup_plan.id
+
+  resources = [aws_dynamodb_table.dynamodb_table.arn]
+}
+
+resource "aws_iam_role" "backup_role" {
+  name = "${var.environment}-${var.table_name}-AWSBackupRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Principal = {
+          Service = "backup.amazonaws.com"
+        },
+        Effect = "Allow",
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "backup_policy" {
+  role = aws_iam_role.backup_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "dynamodb:DescribeBackup",
+          "dynamodb:CreateBackup",
+          "dynamodb:DeleteBackup",
+          "dynamodb:ListBackups",
+          "dynamodb:RestoreTableToPointInTime",
+          "dynamodb:ListTables"
+        ],
+        Effect   = "Allow",
+        Resource = "*"
+      },
+    ]
+  })
+}
