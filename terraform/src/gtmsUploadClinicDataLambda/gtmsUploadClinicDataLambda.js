@@ -108,7 +108,7 @@ export const createPhlebotomySite = (site) => {
           N: `1`
         },
         'PrevInviteDate': {
-          S: null
+          S: `null`
         },
         'Availability': {
           N: `0`
