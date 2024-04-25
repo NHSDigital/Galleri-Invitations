@@ -64,8 +64,8 @@ jobs:
       #     version_bump: ${{ env.version_bump }}
       - name: Create Markdown Release File
         run: |
-          echo "${{ github.event.pull_request.body }}" >> "${{ github.event.release.tag_name }}".md
-          cat "${{ github.event.release.tag_name }}".md
+          echo "${{ github.event.pull_request.body }}" >> "Release-0.1.0.md"
+          cat "Release-0.1.0.md"
       - name: Publish Release to Confluence
         run: |
           curl -LO https://github.com/justmiles/go-markdown2confluence/releases/download/v3.4.6/go-markdown2confluence_3.4.6_linux_x86_64.tar.gz
@@ -76,8 +76,8 @@ jobs:
           --endpoint ${{ env.confluence_endpoint }} \
           --space ${{ env.confluence_space }} \
           --parent ${{ env.confluence_parent_page_id }} \
-          "${{ github.event.release.tag_name }}".md
-          rm "${{ github.event.release.tag_name }}".md
+          "Release-0.1.0.md"
+          rm "Release-0.1.0.md"
       - name: "create tagged versions of lambdas"
         run: |
           echo "TODO first: create release versions of lambdas"
