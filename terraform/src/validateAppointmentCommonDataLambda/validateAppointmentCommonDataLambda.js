@@ -47,12 +47,12 @@ export const handler = async (event) => {
 
       if (validateParticipantId || validateEpisode) {
         await rejectRecord(appointmentJson);
-        console.log("No valid ParticipantID or Episode in table");
+        console.error("Error: No valid ParticipantID or Episode in table");
         return;
       }
     } else {
       await rejectRecord(appointmentJson);
-      console.log("No property ParticipantID found");
+      console.error("Error: No property ParticipantID found");
       return;
     }
     //Check if either PDSNHSNumber and InvitationNHSNumber map to an NHS Number
@@ -76,7 +76,9 @@ export const handler = async (event) => {
       }
     } else {
       await rejectRecord(appointmentJson);
-      console.log("No property InvitationNHSNumber or PDSNHSNumber found");
+      console.error(
+        "Error: No property InvitationNHSNumber or PDSNHSNumber found"
+      );
       return;
     }
     //Check if ClinicID exists in its respective Dynamo tables
@@ -92,12 +94,12 @@ export const handler = async (event) => {
       const validateClinicId = !(validateClinicIdResponse.Items.length > 0);
       if (validateClinicId) {
         await rejectRecord(appointmentJson);
-        console.log("No valid ClinicID in table");
+        console.error("Error: No valid ClinicID in table");
         return;
       }
     } else {
       await rejectRecord(appointmentJson);
-      console.log("No property ClinicID found");
+      console.error("Error: No property ClinicID found");
       return;
     }
     //Checks to ensure new appointment time is more recent than the old appointment time
@@ -136,18 +138,18 @@ export const handler = async (event) => {
             updateAppointmentTable(dbClient, Appointment);
           } else {
             await rejectRecord(appointmentJson);
-            console.log("Appointment ID do not match for update");
+            console.error("Error: Appointment ID do not match for update");
             return;
           }
         }
       } else {
         await rejectRecord(appointmentJson);
-        console.log("No Valid Appointment found");
+        console.error("Error: No Valid Appointment found");
         return;
       }
     } else {
       await rejectRecord(appointmentJson);
-      console.log("No property AppointmentID found");
+      console.error("Error: No property AppointmentID found");
       return;
     }
     await acceptRecord(appointmentJson);
@@ -171,7 +173,7 @@ export const readFromS3 = async (bucketName, key, client) => {
 
     return response.Body.transformToString();
   } catch (err) {
-    console.log("Failed: ", err);
+    console.error("Error: ", err);
     throw err;
   }
 };
@@ -188,7 +190,7 @@ export const pushToS3 = async (bucketName, key, body, client) => {
 
     return response;
   } catch (err) {
-    console.log("Failed: ", err);
+    console.error("Error: ", err);
     throw err;
   }
 };
@@ -205,7 +207,7 @@ export const rejectRecord = async (appointmentJson) => {
     );
     return;
   } catch (err) {
-    console.log("Failed: ", err);
+    console.error("Error: ", err);
     throw err;
   }
 };
