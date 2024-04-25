@@ -51,6 +51,9 @@ jobs:
     # if: github.event.pull_request.merged == true
     timeout-minutes: 3
     env:
+      confluence_endpoint: "https://nhsd-confluence.digital.nhs.uk"
+      confluence_space: "~ABQA1"
+      confluence_parent_page_id: "821534639"
       version_bump: "PATCH"
     steps:
       - name: "Checkout code"
@@ -61,14 +64,19 @@ jobs:
       #     version_bump: ${{ env.version_bump }}
       - name: Create Markdown Release File
         run: |
-          echo "${{ github.event.pull_request.body }}" > ./docs/release.md
+          echo "${{ github.event.pull_request.body }}" > ./docs/"${{ github.event.release.tag_name }}".md
       - name: Publish Release to Confluence
-        uses: markdown-confluence/publish@v1
-        with:
-          confluenceBaseUrl: https://nhsd-confluence.digital.nhs.uk/
-          confluenceParentId: 821534639
-          atlassianApiToken: ${{ secrets.CONFLUENCE_API_TOKEN }}
-          contentRoot: ./docs
+        run: |
+          curl -LO https://github.com/justmiles/go-markdown2confluence/releases/download/v3.4.6/go-markdown2confluence_3.4.6_linux_x86_64.tar.gz
+          tar -xzvf go-markdown2confluence_3.4.6_linux_x86_64.tar.gz -C /usr/local/bin/ markdown2confluence
+          markdown2confluence \
+          --username ${{ secrets.CONFLUENCE_USERNAME }} \
+          --access-token ${{ secrets.CONFLUENCE_API_TOKEN }} \
+          --endpoint ${{ env.confluence_endpoint }} \
+          --space ${{ env.confluence_space }} \
+          --parent ${{ env.confluence_parent_page_id }} \
+          ./docs/"${{ github.event.release.tag_name }}".md
+          rm ./docs/"${{ github.event.release.tag_name }}".md
       - name: "create tagged versions of lambdas"
         run: |
           echo "TODO first: create release versions of lambdas"
