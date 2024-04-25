@@ -62,9 +62,14 @@ jobs:
       #   uses: ./.github/actions/versioning
       #   with:
       #     version_bump: ${{ env.version_bump }}
+      # - name: Create Markdown Release File
+      #   run: |
+      #     echo "${{ github.event.pull_request.body }}" > ./docs/"${{ github.event.release.tag_name }}".md
       - name: Create Markdown Release File
-        run: |
-          echo "${{ github.event.pull_request.body }}" > ./docs/"${{ github.event.release.tag_name }}".md
+        uses: "finnp/create-file-action@master"
+          env:
+            FILE_NAME: ./docs/"${{ github.event.release.tag_name }}".md
+            FILE_DATA: echo "${{ github.event.pull_request.body }}"
       - name: Publish Release to Confluence
         run: |
           curl -LO https://github.com/justmiles/go-markdown2confluence/releases/download/v3.4.6/go-markdown2confluence_3.4.6_linux_x86_64.tar.gz
