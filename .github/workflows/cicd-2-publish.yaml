@@ -53,7 +53,7 @@ jobs:
     env:
       confluence_endpoint: "https://nhsd-confluence.digital.nhs.uk"
       confluence_space: "~ABQA1"
-      confluence_parent_page_id: "821534639"
+      confluence_parent_page: "GH Release Notes"
       version_bump: "PATCH"
     steps:
       - name: "Checkout code"
@@ -75,7 +75,7 @@ jobs:
           --access-token "${{ secrets.CONFLUENCE_API_TOKEN }}" \
           --endpoint "${{ env.confluence_endpoint }}" \
           --space "${{ env.confluence_space }}" \
-          --parent "${{ env.confluence_parent_page_id }}" \
+          --parent "${{ env.confluence_parent_page }}" \
           "Release-0.1.0.md"
           rm "Release-0.1.0.md"
       - name: "create tagged versions of lambdas"
