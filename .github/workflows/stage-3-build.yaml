@@ -105,7 +105,7 @@ jobs:
           TF_VAR_CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
           TF_VAR_NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
           AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}
-        timeout-minutes: 15
+        timeout-minutes: 30
 # name: "Build stage"
 
 # on:

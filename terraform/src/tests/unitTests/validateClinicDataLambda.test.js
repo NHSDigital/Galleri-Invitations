@@ -123,6 +123,17 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
         expect(validationResult.message).toBe("Invalid ICB Code provided in GTMS message: QNX");
       });
 
+      test('should return failure for missing Directions', async() => {
+        mockDynamoDbClient.resolves({
+          "Item": {
+            "ICB": {S:"QJK"}
+          }
+        });
+        const validationResult = await moduleapi.validateRecord(data[9], mockDynamoDbClient);
+        expect(validationResult.success).toBe(true);
+        expect(validationResult.key.ClinicCreateOrUpdate.ICBCode).toBe("QJK");
+      });
+
     afterEach(() => {
       jest.clearAllMocks();
     });

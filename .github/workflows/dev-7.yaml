@@ -136,6 +136,29 @@ jobs:
       invitations_branch: "${{ github.event.inputs.invitations_branch }}"
     secrets: inherit
 
+  publish-stage:
+    runs-on: ubuntu-latest
+    needs: [metadata]
+    env:
+      version_bump: "PATCH"
+    timeout-minutes: 3
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+      - name: "Bump patch version"
+        uses: ./.github/actions/versioning
+        with:
+          version_bump: ${{ env.version_bump }}
+      - name: "create tagged versions of lambdas"
+        run: |
+          echo "TODO: create release versions of lambdas"
+      - name: "create tagged versions of frontend"
+        run: |
+          echo "TODO: create release versions of lambdas"
+      - name: "create tagged versions of frontend"
+        run: |
+          echo "TODO: tag main branch"
+
   test-stage: # Recommended maximum execution time is 5 minutes
     needs: [metadata]
     uses: ./.github/workflows/stage-2-test.yaml
@@ -164,6 +187,7 @@ jobs:
       invitations_branch: "${{ github.event.inputs.invitations_branch }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
+      frontend_branch: "${{ github.event.inputs.frontend_branch }}"
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
       USERS: ${{ secrets.USERS }}
