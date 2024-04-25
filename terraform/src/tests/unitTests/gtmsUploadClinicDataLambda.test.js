@@ -109,7 +109,48 @@ describe('createPhlebotomySite', () => {
   }
   test('Should compare values to be true', async () => {
     const val = await createPhlebotomySite(meshResponsePass);
-    const expectedVal = { "PutRequest": { "Item": { "Address": { "S": "test address dynamo put" }, "ClinicId": { "S": "CF78U818" }, "ClinicName": { "S": "Phlebotomy clinic 34" }, "Directions": { "S": "These will contain directions to the site" }, "ICBCode": { "S": "OPM" }, "ODSCode": { "S": "1234" }, "Postcode": { "S": "BH17 7DT" }, "TargetFillToPercentage": { "N": "50" } } } }
+    const expectedVal = {
+      "PutRequest": {
+          "Item": {
+              "Address": {
+                  "S": "test address dynamo put"
+              },
+              "ClinicId": {
+                  "S": "CF78U818"
+              },
+              "ClinicName": {
+                  "S": "Phlebotomy clinic 34"
+              },
+              "Directions": {
+                  "S": "These will contain directions to the site"
+              },
+              "ICBCode": {
+                  "S": "OPM"
+              },
+              "ODSCode": {
+                  "S": "1234"
+              },
+              "Postcode": {
+                  "S": "BH17 7DT"
+              },
+              "TargetFillToPercentage": {
+                  "N": "50"
+              },
+              "InvitesSent": {
+                  "N": "0"
+              },
+              "LastSelectedRange": {
+                  "N": "1"
+              },
+              "PrevInviteDate": {
+                  "S": null
+              },
+              "Availability": {
+                  "N": "0"
+              }
+          }
+      }
+  }
     expect(val).toEqual(expectedVal);
   });
 });
