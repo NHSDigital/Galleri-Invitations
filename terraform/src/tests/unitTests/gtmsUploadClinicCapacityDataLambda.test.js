@@ -151,38 +151,57 @@ describe("pushCsvToS3", () => {
   test("Successful response from sending file to bucket", async () => {
     const logSpy = jest.spyOn(global.console, "log");
     const mockS3Client = mockClient(new S3Client({}));
+    const bucketName = "galleri-ons-data";
+    const rejectedReason = "Error: ClinicId not found in PhlebotomySite table ";
     mockS3Client.resolves({
       $metadata: { httpStatusCode: 200 },
     });
+
+    const currentDate = new Date("2022-01-01T00:00:00.000Z");
+
     const result = await pushCsvToS3(
-      "galleri-ons-data",
+      bucketName,
       "test.txt",
-      "dfsdfd",
-      mockS3Client
+      rejectedReason,
+      mockS3Client,
+      currentDate
     );
 
+    const expectedKey = `invalidData/invalidRecord_${currentDate.toISOString()}.json`;
+
     expect(logSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledTimes(2);
     expect(logSpy).toHaveBeenCalledWith(
-      `Successfully pushed to galleri-ons-data/test.txt`
+      `Successfully pushed to ${bucketName}/${expectedKey}`
     );
-    expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
+    expect(logSpy).toHaveBeenCalledWith(`${rejectedReason}${expectedKey}`);
   });
+
   test("Failed response when error occurs sending file to bucket", async () => {
     const logSpy = jest.spyOn(global.console, "log");
     const errorMsg = new Error("Mocked error");
+    const bucketName = "galleri-ons-data";
     const mockClient = {
       send: jest.fn().mockRejectedValue(errorMsg),
     };
+
+    const currentDate = new Date("2022-01-01T00:00:00.000Z");
+
+    jest.spyOn(global, "Date").mockImplementation(() => currentDate);
+
     try {
-      await pushCsvToS3("galleri-ons-data", "test.txt", "dfsdfd", mockClient);
+      await pushCsvToS3(bucketName, "test.txt", "dfsdfd", mockClient);
     } catch (err) {
       expect(err.message).toBe("Mocked error");
     }
+
+    const expectedKey = `invalidData/invalidRecord_${currentDate.toISOString()}.json`;
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith(
-      `Error: Failed to push to galleri-ons-data/test.txt. Error Message: ${errorMsg}`
+      `Error: Failed to push to ${bucketName}/${expectedKey} ${errorMsg}`
     );
+
+    jest.restoreAllMocks(); // Restore the mock to avoid interfering with other tests
   });
 });
