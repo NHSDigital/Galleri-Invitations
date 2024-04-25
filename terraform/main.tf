@@ -1374,8 +1374,8 @@ module "session_manager_lambda_api_gateway" {
 module "session_table" {
   source      = "./modules/dynamodb"
   table_name  = "auth-js"
-  hash_key     = "pk"
-  range_key    = "sk"
+  hash_key    = "pk"
+  range_key   = "sk"
   environment = var.environment
   attributes = [
     {
@@ -1403,7 +1403,7 @@ module "session_table" {
       range_key       = "GSI1SK"
     }
   ]
-    enabled        = true
+  enabled = true
 
   tags = {
     Name        = "Dynamodb Table User Sessions"

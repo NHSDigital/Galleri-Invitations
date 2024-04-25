@@ -40,7 +40,7 @@ resource "aws_dynamodb_table" "dynamodb_table" {
 
   ttl {
     attribute_name = "TimeToExist"
-    enabled = var.enabled
+    enabled        = var.enabled
   }
 
   tags = var.tags
