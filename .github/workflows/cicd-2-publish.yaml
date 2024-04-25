@@ -77,7 +77,6 @@ jobs:
           --space "${{ env.confluence_space }}" \
           --parent "${{ env.confluence_parent_page }}" \
           "Release-0.1.0.md"
-          rm "Release-0.1.0.md"
       - name: "create tagged versions of lambdas"
         run: |
           echo "TODO first: create release versions of lambdas"
