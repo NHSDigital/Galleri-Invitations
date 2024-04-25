@@ -48,7 +48,9 @@ export const handler = async (event, context) => {
           const updateResponse = await putTableRecord(client, ENVIRONMENT, js);
           if (updateResponse.$metadata.httpStatusCode !== 200) {
             const rejectedReason =
-              "Error: Failed to insert item after delete. Save the message into a directory ";
+              "Error: Failed to insert item after delete. Save the message into a directory " +
+              `${JSON.stringify(js)}`;
+
             await pushCsvToS3(
               bucket,
               JSON.stringify(csvString),
@@ -73,7 +75,8 @@ export const handler = async (event, context) => {
 
       if (response.$metadata.httpStatusCode !== 200) {
         const rejectedReason =
-          "Error: Failed to insert item. Save the message into a directory  ";
+          "Error: Failed to insert item. Save the message into a directory  " +
+          `${JSON.stringify(js)}`;
         await pushCsvToS3(
           bucket,
           JSON.stringify(csvString),

@@ -35,7 +35,8 @@ export const handler = async (event, context) => {
 
       if (Object.keys(result.Items).length === 0) {
         const rejectedReason =
-          "Error: ClinicId not found in PhlebotomySite table ";
+          "Error: ClinicId not found in PhlebotomySite table " +
+          JSON.stringify(result["Items"]);
         //reject record, push to s3 failedRecords folder
         await pushCsvToS3(
           bucket,
@@ -55,7 +56,9 @@ export const handler = async (event, context) => {
           );
           console.log(`${params ? "Success" : "Failed"}`);
         } else {
-          const rejectedReason = "Error: ClinicId does not match ";
+          const rejectedReason =
+            "Error: ClinicId does not match " + JSON.stringify(result["Items"]);
+
           await pushCsvToS3(
             bucket,
             JSON.stringify(csvString),
