@@ -142,4 +142,7 @@ runs:
         npm install --prefix src/processAppointmentEventTypeLambda
         npm install --prefix src/validateGtmsWithdrawalLambda
         npm install --prefix src/authenticatorLambda
+        npm install --prefix src/gtmsAppointmentEventBookedLambda
+        npm install --prefix src/sendInvitationBatchToRawMessageQueueLambda
+        npm install --prefix src/sendEnrichedMessageToNotifyQueueLambda
         terraform ${{ env.tf-action }} -no-color -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars

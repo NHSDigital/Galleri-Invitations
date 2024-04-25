@@ -12,7 +12,7 @@ variable "description" {
 
 variable "solution_stack_name" {
   description = "The stak that elastic beanstalk will be running on"
-  default     = "64bit Amazon Linux 2 v5.8.7 running Node.js 18"
+  default     = "64bit Amazon Linux 2023 v6.1.3 running Node.js 20"
 }
 
 variable "namespace" {
@@ -27,6 +27,11 @@ variable "settings_name" {
 variable "instance_type" {
   description = "can be either SingleInstance or LoadBalanced"
   default     = "SingleInstance"
+}
+
+variable "instance_size" {
+  type    = string
+  default = "t3.medium"
 }
 
 variable "frontend_repo_location" {
