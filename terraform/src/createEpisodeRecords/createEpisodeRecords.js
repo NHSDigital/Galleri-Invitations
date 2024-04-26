@@ -23,6 +23,7 @@ export const handler = async (event) => {
 
 // METHODS
 export async function processIncomingRecords(incomingRecordsArr, dbClient){
+  console.log("Entered function processIncomingRecords");
   const episodeRecordsUpload = await Promise.allSettled(
     incomingRecordsArr.map(async (record) => {
       if (record.dynamodb.OldImage.identified_to_be_invited.BOOL === false && record.dynamodb.NewImage.identified_to_be_invited.BOOL) {
@@ -42,11 +43,14 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient){
       console.warn("RECORD HAS NOT BEEN MODIFIED")
       return Promise.reject(`Record ${record.dynamodb.OldImage.participantId.S} has not been modified`);
     })
-  )
-  return episodeRecordsUpload
+  );
+
+  console.log("Exiting function processIncomingRecords");
+  return episodeRecordsUpload;
 }
 
 function createEpisodeRecord(record){
+  console.log("Entered function createEpisodeRecord");
   const createTime = String(Date.now())
   const item =
     {
@@ -80,12 +84,14 @@ function createEpisodeRecord(record){
       'Episode_Event_Updated': {
         S: createTime
       }
-    }
+    };
 
+  console.log("Exiting function createEpisodeRecord");
   return item;
 }
 
 async function addEpisodeRecord(table, item) {
+  console.log("Entered function addEpisodeRecord");
   const input = {
     TableName: `${ENVIRONMENT}-${table}`,
     Item: item,
@@ -96,11 +102,14 @@ async function addEpisodeRecord(table, item) {
   const command = new PutItemCommand(input);
   const response = await client.send(command);
 
+  console.log("Exiting function addEpisodeRecord");
+
   return response;
 }
 
 // look into episode table and see if there exists a participant
 export const lookupParticipantId = async (participantId, table, dbClient) => {
+  console.log("Entered function lookupParticipantId");
   const input = {
     ExpressionAttributeValues: {
       ":participant": {
@@ -118,6 +127,7 @@ export const lookupParticipantId = async (participantId, table, dbClient) => {
   if (!response.Items.length){ // if response is empty, no matching participantId
     return true
   }
-  console.log("Duplicate exists")
+  console.log("Duplicate exists");
+  console.log("Exiting function lookupParticipantId");
   return false;
 };

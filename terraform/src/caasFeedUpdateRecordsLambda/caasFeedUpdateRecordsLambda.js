@@ -45,8 +45,10 @@ export const handler = async (event) => {
           if(incomingUpdateData.nhs_number) tableRecord = await lookUp(client, incomingUpdateData.nhs_number, "Population", "nhs_number", "N", true);
 
           if (tableRecord?.Items.length > 0){
+            console.log("tableRecord?.Items", JSON.stringify(tableRecord.Items));
             return Promise.resolve(processingData(incomingUpdateData, tableRecord.Items[0]));
           } else {
+            console.log("Cannot update record as it doesn't exist in table");
             return Promise.reject({
               rejectedRecordNhsNumber: incomingUpdateData.nhs_number,
               rejected: true,
@@ -95,6 +97,7 @@ export const handler = async (event) => {
 
 // takes incoming record and record from table and compares the two
 export const processingData = async (incomingUpdateData, populationTableRecord) => {
+  console.log("Entered processingData");
   const tablePersonId = populationTableRecord?.PersonId
   const tableLsoaCode = populationTableRecord?.LsoaCode
 
@@ -107,25 +110,32 @@ export const processingData = async (incomingUpdateData, populationTableRecord) 
   incomingUpdateData["participant_id"] = tablePersonId.S
 
   if (incomingUpdateData.superseded_by_nhs_number === 'null' || incomingUpdateData.superseded_by_nhs_number == 0) {
+    console.log("Entered if");
     return await updateRecord(incomingUpdateData, populationTableRecord); // AC1, 2, 4
   } else { // a merge case has been recognised. Handle below
+  console.log("Entered else: merge case");
     const retainingPopulationTableRecord = await lookUp(client, incomingUpdateData.superseded_by_nhs_number, "Population", "nhs_number", "N", true);
     const retainingPersonId = retainingPopulationTableRecord.Items[0].PersonId.S
 
     if (retainingPopulationTableRecord.Items.length) {
+      console.log("---------1----------");
       // Get Episode records
       const retainingEpisodeRecord = await lookUp(client,retainingPersonId , "Episode", "Participant_Id", "S", true);
       const supersedingEpisodeRecord = await lookUp(client, tablePersonId.S, "Episode", "Participant_Id", "S", true);
+      console.log("----------2---------");
 
       // the retaining record has an Episode record that exists or both retaining record and supersed record do not have an Episode record
       if (retainingEpisodeRecord.Items.length || (retainingEpisodeRecord.Items.length == 0 && supersedingEpisodeRecord.Items.length == 0)) {
+        console.log("---------3----------");
         // Apply the update to the supersed record
-        await overwriteRecordInTable(client, 'Population', incomingUpdateData, populationTableRecord)
+        await overwriteRecordInTable(client, 'Population', incomingUpdateData, populationTableRecord);
+        console.log("----------4---------");
 
         return {
           rejected: false
         }
       } else if (supersedingEpisodeRecord.Items.length) {
+        console.log("--------5-----------");
         // keep personId, participantId from retaining and combine with supersed
         const recordNewSupersed = {
           ...incomingUpdateData,
@@ -151,6 +161,7 @@ export const processingData = async (incomingUpdateData, populationTableRecord) 
           await overwriteRecordInTable(client, 'Population', recordNewRetaining, retainingPopulationTableRecord.Items[0])
         ]
         if (overWriteResponse.every(element => element.value == SUCCESSFUL_RESPONSE)) {
+          console.log("---------6----------");
           return {
             rejected: false
           }
@@ -184,6 +195,7 @@ export const processingData = async (incomingUpdateData, populationTableRecord) 
 }
 
 const updateRecord = async (record, recordFromTable) => {
+  console.log("Entered function updateRecord");
   const { PersonId } = recordFromTable
 
   if (record.date_of_death !== recordFromTable.date_of_death.S) { // AC1a and AC1b
@@ -278,6 +290,8 @@ const updateRecord = async (record, recordFromTable) => {
 
 export async function updateRecordInTable(client, table, partitionKey, partitionKeyName, sortKey, sortKeyName, ...itemsToUpdate) {
 
+  console.log("Entered function updateRecordInTable");
+
   let updateItemCommandKey = {}
   updateItemCommandKey[partitionKeyName] = { S: `${partitionKey}` }
   updateItemCommandKey[sortKeyName] = { S: `${sortKey}`}
@@ -330,21 +344,27 @@ export async function updateRecordInTable(client, table, partitionKey, partition
   if ((response.$metadata.httpStatusCode) != 200){
     console.error(`Error: record update failed for person ${partitionKey}`);
   }
+  console.log("Exiting function updateRecordInTable");
   return response.$metadata.httpStatusCode;
 }
 
 export async function overwriteRecordInTable(client, table, newRecord, oldRecord) {
+  console.log("Entered overwriteRecordInTable");
   const deleteOldItem = await deleteTableRecord(client, table, oldRecord);
+  console.log("deleteOldItem", JSON.stringify(deleteOldItem));
 
   if (deleteOldItem.$metadata.httpStatusCode === 200){
+    console.log("---Entered if-----");
     const updateNewItem = await putTableRecord(client, table, newRecord);
+    console.log("updateNewItem", JSON.stringify(updateNewItem));
     return updateNewItem.$metadata.httpStatusCode;
   }
 }
 
 export async function deleteTableRecord(client, table, oldRecord) {
+  console.log("Entered function deleteTableRecord");
   let input
-  console.log(`Deleting record ${oldRecord.PersonId.S} from table ${table}`)
+  console.log(`Deleting record ${oldRecord.PersonId.S} from table ${table}`);
 
   switch(table) {
     case 'Population':
@@ -359,11 +379,13 @@ export async function deleteTableRecord(client, table, oldRecord) {
 
   const command = new DeleteItemCommand(input);
   const response = await client.send(command);
+  console.log("Exiting function deleteTableRecord");
 
   return response;
 }
 
 function formatPopulationDeleteItem(table, record) {
+  console.log("Entered function formatPopulationDeleteItem");
   const {
     PersonId,
     LsoaCode
@@ -377,10 +399,12 @@ function formatPopulationDeleteItem(table, record) {
     TableName: `${ENVIRONMENT}-${table}`
   };
 
+  console.log("Exiting function formatPopulationDeleteItem");
   return input;
 }
 
 function formatEpisodeDeleteItem(table, record) {
+  console.log("Entered function formatEpisodeDeleteItem");
   const {
     Batch_Id,
     Participant_Id
@@ -394,11 +418,14 @@ function formatEpisodeDeleteItem(table, record) {
     TableName: `${ENVIRONMENT}-${table}`
   };
 
+  console.log("Exiting function formatEpisodeDeleteItem");
   return input;
 }
 
 export async function putTableRecord(client, table, newRecord) {
-  let input
+  console.log("Entered putTableRecord");
+
+  let input;
   console.log(`Adding record ${newRecord.PersonId} with LSOA:${newRecord.lsoa_2011} to table ${table}`)
   switch(table) {
     case 'Population':
@@ -410,15 +437,29 @@ export async function putTableRecord(client, table, newRecord) {
     default:
       input = 'Table not recognised'
   }
-
-
+  
+  console.log("Entered putTableRecord-------input", input);
   const command = new PutItemCommand(input);
+  console.log("Entered putTableRecord-------command", command);
+  
+  // try{
+  //   const response = await client.send(command);
+  //   console.log("----transformToString------", response.Body.transformToString());
+  //   return response;
+  // }
+  // catch(error){
+  //   console.log("error-------", error);
+  // }
+  //console.log("------client.send(command)------", JSON.stringify(await client.send(command)));
   const response = await client.send(command);
-
   return response;
+  //console.log("Entered putTableRecord-------response", JSON.stringify(response));
+
 }
 
 function formatPopulationPutItem(table, newRecord){
+  console.log("Entered formatPopulationPutItem");
+  
   // nhs_number: {N: newRecord.nhs_number}, -> 0
   if (newRecord.nhs_number === "null") newRecord.nhs_number = "0"
   // superseded_by_nhs_number: {N: newRecord.superseded_by_nhs_number}, -> 0
@@ -429,6 +470,8 @@ function formatPopulationPutItem(table, newRecord){
   if (newRecord.telephone_number === "null") newRecord.telephone_number = "0"
   // mobile_number: {N: newRecord.mobile_number}, -> 0
   if (newRecord.mobile_number === "null") newRecord.mobile_number = "0"
+  
+  console.log("newRecord", JSON.stringify(newRecord));
 
   return {
     Item: {
@@ -467,6 +510,9 @@ function formatPopulationPutItem(table, newRecord){
 }
 
 function formatEpisodePutItem(table, newRecord) {
+  console.log("Entered formatEpisodePutItem");
+  console.log("newRecord", JSON.stringify(newRecord));
+  
   return {
     Item: {
       Batch_Id: {S: newRecord.Batch_Id},
