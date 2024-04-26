@@ -71,6 +71,9 @@ jobs:
         run: |
           curl -LO https://github.com/justmiles/go-markdown2confluence/releases/download/v3.4.6/go-markdown2confluence_3.4.6_linux_x86_64.tar.gz
           tar -xzvf go-markdown2confluence_3.4.6_linux_x86_64.tar.gz -C /usr/local/bin/ markdown2confluence
+      - name: Test confluence access
+        run: |
+          curl -v https://nhsd-confluence.digital.nhs.uk --user ${{ secrets.CONFLUENCE_USERNAME }}:${{ secrets.CONFLUENCE_API_TOKEN }}
       - name: Execute command
         run: |
           export CONFLUENCE_USERNAME=${{ secrets.CONFLUENCE_USERNAME }}
