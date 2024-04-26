@@ -53,7 +53,7 @@ jobs:
     env:
       confluence_endpoint: "https://nhsd-confluence.digital.nhs.uk"
       confluence_space: "~ABQA1"
-      confluence_parent_page: "GH Release Notes"
+      confluence_parent_page: "821534639"
       file_name: "Release-0.1.0.md"
       version_bump: "PATCH"
     steps:
