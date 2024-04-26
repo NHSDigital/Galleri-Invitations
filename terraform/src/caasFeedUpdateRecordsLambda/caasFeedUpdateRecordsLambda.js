@@ -396,20 +396,20 @@ function formatEpisodeDeleteItem(table, record) {
 }
 
 export async function putTableRecord(client, table, newRecord, oldRecord) {
-  let input, unmarshalledRecord,updated_record;
+  let input, unmarshalledRecord, updated_record;
   console.log(`Adding record ${newRecord.PersonId} with LSOA:${newRecord.lsoa_2011} to table ${table}`)
   switch(table) {
     case 'Population':
       // This is to fill in the missing info from the old record that doesnot need to update
       unmarshalledRecord = unmarshall(oldRecord);
       updated_record = {...unmarshalledRecord,...newRecord};
-      input = formatPopulationPutItem(table, updated_record)
+      input = formatPopulationPutItem(table, updated_record);
       break;
     case 'Episode':
-      input = formatEpisodePutItem(table, newRecord)
+      input = formatEpisodePutItem(table, newRecord);
       break;
     default:
-      input = 'Table not recognised'
+      input = 'Table not recognised';
   }
 
 
