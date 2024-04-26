@@ -143,7 +143,7 @@ describe('createPhlebotomySite', () => {
                   "N": "1"
               },
               "PrevInviteDate": {
-                  "S": null
+                  "S": "null"
               },
               "Availability": {
                   "N": "0"
