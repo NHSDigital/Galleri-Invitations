@@ -63,20 +63,25 @@ jobs:
       #   uses: ./.github/actions/versioning
       #   with:
       #     version_bump: ${{ env.version_bump }}
-      - name: Publish Release to Confluence
+      - name: Create markdown file
         run: |
           echo "${{ github.event.pull_request.body }}" >> ${{ env.file_name }}
           # cat ${{ env.file_name }}
+      - name: Setup variables
+        run: |
           export CONFLUENCE_USERNAME="${{ secrets.CONFLUENCE_USERNAME }}"
           export CONFLUENCE_ACCESS_TOKEN="${{ secrets.CONFLUENCE_API_TOKEN }}"
           export CONFLUENCE_ENDPOINT="${{ env.confluence_endpoint }}"
+      - name: Obtain script
+        run: |
           curl -LO https://github.com/justmiles/go-markdown2confluence/releases/download/v3.4.6/go-markdown2confluence_3.4.6_linux_x86_64.tar.gz
           tar -xzvf go-markdown2confluence_3.4.6_linux_x86_64.tar.gz -C /usr/local/bin/ markdown2confluence
           command="markdown2confluence -d --space \"${{ env.confluence_space }}\" --parent \"${{ env.confluence_parent_page }}\" \"${{ env.file_name }}\""
+      - name: Execute command
+        run: |
           echo $command
           ls -al ${{ env.file_name }}
           echo "Issuing request to publish to Confluence..."
-          sleep 5
           eval $command
       - name: "create tagged versions of lambdas"
         run: |
