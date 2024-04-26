@@ -63,12 +63,10 @@ jobs:
       #   uses: ./.github/actions/versioning
       #   with:
       #     version_bump: ${{ env.version_bump }}
-      - name: Create Markdown Release File
+      - name: Publish Release to Confluence
         run: |
           echo "${{ github.event.pull_request.body }}" >> ${{ env.file_name }}
           cat ${{ env.file_name }}
-      - name: Publish Release to Confluence
-        run: |
           export CONFLUENCE_USERNAME="${{ secrets.CONFLUENCE_USERNAME }}"
           export CONFLUENCE_ACCESS_TOKEN="${{ secrets.CONFLUENCE_API_TOKEN }}"
           export CONFLUENCE_ENDPOINT="${{ env.confluence_endpoint }}"
@@ -76,6 +74,7 @@ jobs:
           tar -xzvf go-markdown2confluence_3.4.6_linux_x86_64.tar.gz -C /usr/local/bin/ markdown2confluence
           command="markdown2confluence --space \"${{ env.confluence_space }}\" --parent \"${{ env.confluence_parent_page }}\" \"${{ env.file_name }}\""
           echo $command
+          ls ${{ env.file_name }}
           eval $command
       - name: "create tagged versions of lambdas"
         run: |
