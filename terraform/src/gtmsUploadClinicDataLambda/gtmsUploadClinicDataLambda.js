@@ -166,11 +166,23 @@ export const createPhlebotomySite = (site) => {
         Directions: {
           S: `${site.ClinicCreateOrUpdate.Directions}`,
         },
-        TargetFillToPercentage: {
-          N: `50`,
+        'TargetFillToPercentage': {
+          N: `50`
         },
-      },
-    },
+        'InvitesSent': {
+          N: `0`
+        },
+        'LastSelectedRange': {
+          N: `1`
+        },
+        'PrevInviteDate': {
+          S: `null`
+        },
+        'Availability': {
+          N: `0`
+        }
+      }
+    }
   };
 
   return Promise.resolve(item);

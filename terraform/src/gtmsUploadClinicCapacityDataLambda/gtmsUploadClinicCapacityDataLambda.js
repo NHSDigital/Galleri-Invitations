@@ -151,6 +151,7 @@ export const saveObjToPhlebotomyTable = async (
   clinicName
 ) => {
   let formattedObj = {};
+  let totalAvailability = 0;
   for (const element of MeshObj["Schedule"]) {
     const formatedDate = dayjs(element["WeekCommencingDate"]).format(
       "DD MMMM YYYY"
@@ -158,6 +159,7 @@ export const saveObjToPhlebotomyTable = async (
     formattedObj[formatedDate] = {
       N: String(element["Availability"]),
     };
+    totalAvailability += Number(element["Availability"]);
   }
 
   const params = {
@@ -171,16 +173,21 @@ export const saveObjToPhlebotomyTable = async (
     },
     ExpressionAttributeNames: {
       "#WEEK_COMMENCING_DATE": "WeekCommencingDate",
+      "#AVAILABILITY": "Availability",
     },
     ExpressionAttributeValues: {
       ":WeekCommencingDate_new": {
-        M: {
-          ...formattedObj,
-        },
+        "M": {
+          ...formattedObj
+        }
       },
+      ":Availability_new": {
+          "N" : `${totalAvailability}`,
+      }
+
     },
     TableName: `${environment}-PhlebotomySite`,
-    UpdateExpression: "SET #WEEK_COMMENCING_DATE = :WeekCommencingDate_new",
+    UpdateExpression: "SET #WEEK_COMMENCING_DATE = :WeekCommencingDate_new, #AVAILABILITY = :Availability_new"
   };
 
   const command = new UpdateItemCommand(params);
