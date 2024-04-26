@@ -75,8 +75,12 @@ jobs:
           command="markdown2confluence -d --space \"${{ env.confluence_space }}\" --parent \"${{ env.confluence_parent_page }}\" \"${{ env.file_name }}\""
           echo $command
           ls -al ${{ env.file_name }}
+          echo "Try using CURL with goolge"
+          curl https://www.google.com
           echo "Try using CURL to GET from Confluence"
           curl -X GET -H 'Authorization: Bearer "${{ secrets.CONFLUENCE_API_TOKEN }}"' https://nhsd-confluence.digital.nhs.uk/rest/api/content?limit=1&spaceKey=~ABQA1&title=GH+Release+Notes&type=page
+          echo "Try curling GAL space"
+          curl -H 'Authorization: Bearer "${{ secrets.CONFLUENCE_API_TOKEN }}"' https://nhsd-confluence.digital.nhs.uk/rest/api/content?limit=1&spaceKey=GAL
           echo "Issuing request to publish to Confluence..."
           eval $command
       - name: "create tagged versions of lambdas"
