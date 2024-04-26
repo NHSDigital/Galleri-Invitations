@@ -76,9 +76,9 @@ jobs:
         run: |
           curl -LO https://github.com/justmiles/go-markdown2confluence/releases/download/v3.4.6/go-markdown2confluence_3.4.6_linux_x86_64.tar.gz
           tar -xzvf go-markdown2confluence_3.4.6_linux_x86_64.tar.gz -C /usr/local/bin/ markdown2confluence
-          export COMMAND="markdown2confluence -d --space \"${{ env.confluence_space }}\" --parent \"${{ env.confluence_parent_page }}\" \"${{ env.file_name }}\""
       - name: Execute command
         run: |
+          export COMMAND="markdown2confluence -d --space \"${{ env.confluence_space }}\" --parent \"${{ env.confluence_parent_page }}\" \"${{ env.file_name }}\""
           echo $COMMAND
           ls -al ${{ env.file_name }}
           echo "Issuing request to publish to Confluence..."
