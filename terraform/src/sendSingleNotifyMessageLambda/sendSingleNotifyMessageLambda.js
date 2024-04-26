@@ -1,7 +1,8 @@
 import jwtModule from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
-import fetch from 'node-fetch';
+import fetch from 'fetch-retry';
+import nodeFetch from 'node-fetch';
 import * as qs from 'qs';
 import { SQSClient, DeleteMessageCommand } from "@aws-sdk/client-sqs";
 import {
@@ -16,52 +17,58 @@ const sqsClient = new SQSClient({});
 const notifySendMessageStatusTable = 'NotifySendMessageStatus';
 const { sign } = jwtModule;
 const ENVIRONMENT = process.env.ENVIRONMENT;
+const statusCodesToRetryOn = [400,408,425,429,500,501,503,504];
 
 export const handler = async(event) => {
-  const totalRecords = event.Records.length;
-  let recordsSuccessfullySent = 0;
-  let recordsFailedToSend = 0;
   try {
     const apiKey = await getSecret(process.env.API_KEY,smClient);
     const privateKey = await getSecret(process.env.PRIVATE_KEY_NAME,smClient)
     const signedJWT = generateJWT(apiKey, process.env.TOKEN_ENDPOINT_URL, process.env.PUBLIC_KEY_ID, privateKey);
     const accessToken = await getAccessToken(process.env.TOKEN_ENDPOINT_URL, signedJWT);
 
-    for (let record of event.Records) {
-      try {
-        const messageBody = JSON.parse(record.body);
-        const messageReferenceId = await generateMessageReference();
-        try {
-          const messageSentAt = new Date().toISOString();
-          const response = await sendSingleMessage(messageBody, accessToken, messageReferenceId, process.env.MESSAGES_ENDPOINT_URL);
-          const responseBody = response.data;
-          console.log(`Request to NHS Notify for ${messageBody.participantId} successful  - MessageId: ${responseBody.id}`);
-          await putSuccessResponseIntoTable(messageBody, messageSentAt, responseBody, messageReferenceId, notifySendMessageStatusTable);
-          recordsSuccessfullySent++;
-        } catch(error) {
-          if(error.status && error.details) {
-            console.error(`Error: Request to NHS Notify for ${messageBody.participantId} failed - Status: ${error.status} and Details: ${error.details}`)
-            await putFailedResponseIntoTable(messageBody, messageSentAt, "1" ,error.status.toString(), error.details, messageReferenceId,  notifySendMessageStatusTable)
-            recordsFailedToSend++;
-          } else {
-            throw error;
-          }
-        }
-
-        await deleteMessageInQueue(messageBody,record,process.env.ENRICHED_MESSAGE_QUEUE_URL,sqsClient);
-      } catch (error) {
-        recordsFailedToSend++;
-        console.error('Error:', error);
-      }
-    }
+    await processRecords(event.Records, accessToken);
   } catch (error) {
+    console.error('Error occurred whilst processing the batch of messages from SQS');
     console.error('Error:', error);
   }
+};
 
+export async function processRecords(records, accessToken) {
+  const totalRecords = records.length;
+  let recordsSuccessfullySent = 0;
+  let recordsFailedToSend = 0;
+
+  for (let record of records) {
+    try {
+      const messageBody = JSON.parse(record.body);
+      const messageReferenceId = await generateMessageReference();
+      const messageSentAt = new Date().toISOString();
+      try {
+        const {responseObject, numberOfAttempts} = await sendSingleMessage(messageBody, accessToken, messageReferenceId, process.env.MESSAGES_ENDPOINT_URL, process.env.INITIAL_RETRY_DELAY, process.env.MAX_RETRIES);
+        const responseBody = responseObject.data;
+        console.log(`Request to NHS Notify for ${messageBody.participantId} successful  - MessageId: ${responseBody.id}`);
+        await putSuccessResponseIntoTable(messageBody, messageSentAt, numberOfAttempts, responseBody, messageReferenceId, notifySendMessageStatusTable);
+        recordsSuccessfullySent++;
+      } catch(error) {
+        if(error.status && error.details) {
+          console.error(`Error: Request to NHS Notify for ${messageBody.participantId} failed - Status: ${error.status} and Details: ${error.details}`)
+          await putFailedResponseIntoTable(messageBody, error.messageSent, error.numberOfAttempts.toString(), error.status.toString(), error.details, messageReferenceId,  notifySendMessageStatusTable)
+          recordsFailedToSend++;
+        } else {
+          throw error;
+        }
+      }
+
+      await deleteMessageInQueue(messageBody,record,process.env.ENRICHED_MESSAGE_QUEUE_URL,sqsClient);
+    } catch (error) {
+      recordsFailedToSend++;
+      console.error('Error:', error);
+    }
+  }
   console.log(`Total records in the batch: ${totalRecords} - Records successfully processed/sent: ${recordsSuccessfullySent} - Records failed to send: ${recordsFailedToSend}`);
 };
 
-export async function putSuccessResponseIntoTable(messageBody, messageSentAt, responseBody, messageReferenceId, table) {
+export async function putSuccessResponseIntoTable(messageBody, messageSentAt, numberOfAttempts, responseBody, messageReferenceId, table) {
   let item;
   const { nhsNumber, routingId, participantId, ...personalisation} = messageBody;
 
@@ -89,7 +96,7 @@ export async function putSuccessResponseIntoTable(messageBody, messageSentAt, re
         S: responseBody.id
       },
       'Number_Of_Attempts': {
-        N: (1).toString()
+        N: (numberOfAttempts).toString()
       },
     };
   } catch (error) {
@@ -174,12 +181,10 @@ export async function generateMessageReference() {
   return messageReferenceId;
 }
 
-export async function sendSingleMessage(messageBody, token, messageReferenceId, messagesEndpoint) {
-  // Extract nhsNumber and routingId, the rest of the fields will go into personalisation
+export async function sendSingleMessage(messageBody, token, messageReferenceId, messagesEndpoint, initialRetryDelay, maxRetries) {
   const { nhsNumber, routingId, participantId, ...personalisation} = messageBody;
 
-  console.log(token);
-
+  let numberOfAttempts = 1;
   if (nhsNumber === undefined) {
     throw new Error("NHS Number is undefined");
   };
@@ -207,8 +212,22 @@ export async function sendSingleMessage(messageBody, token, messageReferenceId, 
     'Authorization': `Bearer ${token['access_token']}`,
   };
 
-  const response = await fetch(messagesEndpoint, {
+  const customFetch = fetch(nodeFetch);
+  let messageSentAt = new Date().toISOString();
+
+  const response = await customFetch(messagesEndpoint, {
     method: 'POST',
+    retryDelay: (attempt) => initialRetryDelay * Math.pow(2, attempt),
+    retryOn: (attempt, error, response) => {
+      messageSentAt = new Date().toISOString();
+      if (statusCodesToRetryOn.includes(response.status) && attempt < maxRetries) {
+        numberOfAttempts++;
+        console.error(`NHS Notify request failed for participant ${participantId} with status code ${response.status}`);
+        console.log(`Retrying request for participant ${participantId} to NHS Notify, Attempt: ${attempt+1}`);
+        return true;
+      }
+      return false;
+    },
     headers: headers,
     body: JSON.stringify({ data })
   });
@@ -216,15 +235,18 @@ export async function sendSingleMessage(messageBody, token, messageReferenceId, 
   if (!response.ok) {
     return response.json().then(errorDetails => {
       const error = new Error(`HTTP error! Status: ${response.status}. Details: ${JSON.stringify(errorDetails)}`);
+      console.error(`Error: Failed request to NHS Notify after ${numberOfAttempts} attempt(s) for participant ${participantId}`);
       error.status = response.status;
       error.details = JSON.stringify(errorDetails);
+      error.numberOfAttempts = numberOfAttempts;
+      error.messageSent = messageSentAt;
       throw error;
     });
   }
   const responseObject = await response.json();
 
   console.log(`Sent message for participant ${participantId} to NHS Notify`);
-  return responseObject;
+  return {responseObject, numberOfAttempts};
 };
 
 export async function deleteMessageInQueue(message,record,queue,sqsClient) {

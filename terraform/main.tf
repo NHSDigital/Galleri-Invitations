@@ -1457,6 +1457,8 @@ module "send_single_notify_message_lambda" {
     PUBLIC_KEY_ID              = "${var.NOTIFY_PUBLIC_KEY_ID}"
     TOKEN_ENDPOINT_URL         = "${var.NOTIFY_TOKEN_ENDPOINT_URL}"
     MESSAGES_ENDPOINT_URL      = "${var.NOTIFY_MESSAGES_ENDPOINT_URL}"
+    INITIAL_RETRY_DELAY        = 5000
+    MAX_RETRIES                = 3
     ENRICHED_MESSAGE_QUEUE_URL = module.notify_enriched_message_queue_sqs.sqs_queue_url
   }
 }
