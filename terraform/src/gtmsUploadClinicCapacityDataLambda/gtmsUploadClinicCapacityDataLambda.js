@@ -157,14 +157,15 @@ export const saveObjToPhlebotomyTable = async (MeshObj, environment, client, cli
       ":WeekCommencingDate_new": {
         "M": {
           ...formattedObj
-        },
-        ":Availabilty_new": {
-          "N" : totalAvailability,
         }
+      },
+      ":Availability_new": {
+          "N" : `${totalAvailability}`,
       }
+
     },
     TableName: `${environment}-PhlebotomySite`,
-    UpdateExpression: "SET #WEEK_COMMENCING_DATE = :WeekCommencingDate_new, #AVAILABILITY = :Availabilty_new"
+    UpdateExpression: "SET #WEEK_COMMENCING_DATE = :WeekCommencingDate_new, #AVAILABILITY = :Availability_new"
   };
 
   const command = new UpdateItemCommand(params);
