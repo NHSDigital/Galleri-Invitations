@@ -46,33 +46,33 @@ export const handler = async (event, context) => {
     if (healthy === 200) {
       console.log(`Status: ${healthy}`);
 
-      // while (keepProcessing) {
-      let messageArr = await getMessageArray(CONFIG, MSG_COUNT); //return arr of message ids
-      console.log(`messageArr: ${messageArr}`);
-      if (messageArr.length > 0) {
-        for (const element of messageArr) {
-          const dateTime = new Date(Date.now()).toISOString();
-          let message = await readMsg(CONFIG, READING_MSG, element); //returns messages based on id, iteratively from message list arr
-          console.log(message);
-          console.log(typeof message);
-          const response = await pushCsvToS3(
-            `${ENVIRONMENT}-processed-nrds-data`,
-            `record_${dateTime}.json`,
-            JSON.stringify(message["data"]),
-            clientS3
-          );
-          if (response?.$metadata?.httpStatusCode === 200) {
-            const confirmation = await markRead(CONFIG, MARKED, element);
-            console.log(`${confirmation.status} ${confirmation.statusText}`);
-          } else {
-            console.log(`Failed to process this message`);
+      while (keepProcessing) {
+        let messageArr = await getMessageArray(CONFIG, MSG_COUNT); //return arr of message ids
+        console.log(`messageArr: ${messageArr}`);
+        if (messageArr.length > 0) {
+          for (const element of messageArr) {
+            const dateTime = new Date(Date.now()).toISOString();
+            let message = await readMsg(CONFIG, READING_MSG, element); //returns messages based on id, iteratively from message list arr
+            console.log(message);
+            console.log(typeof message);
+            const response = await pushCsvToS3(
+              `${ENVIRONMENT}-processed-nrds-data`,
+              `record_${dateTime}.json`,
+              JSON.stringify(message["data"]),
+              clientS3
+            );
+            if (response?.$metadata?.httpStatusCode === 200) {
+              const confirmation = await markRead(CONFIG, MARKED, element);
+              console.log(`${confirmation.status} ${confirmation.statusText}`);
+            } else {
+              console.log(`Failed to process this message`);
+            }
           }
+        } else {
+          console.log("No messages to process");
+          keepProcessing = false;
         }
-      } else {
-        console.log("No messages to process");
-        keepProcessing = false;
       }
-      // }
     }
   } catch (error) {
     console.error("Error occurred:", error);
