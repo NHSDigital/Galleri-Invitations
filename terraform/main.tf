@@ -1189,7 +1189,11 @@ module "nrds_mesh_mailbox_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "nrds_mesh_mailbox_lambda.zip"
   environment_vars = {
-    ENVIRONMENT = "${var.environment}",
+    ENVIRONMENT                    = "${var.environment}",
+    MESH_SHARED_KEY                = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
+    MESH_RECEIVER_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.sand_mesh_mailbox_id.secret_string)["SAND_MESH_MAILBOX_ID"],
+    MESH_RECEIVER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.sand_mesh_mailbox_password.secret_string)["SAND_MESH_MAILBOX_PASSWORD"],
+
   }
 }
 
@@ -1704,6 +1708,14 @@ data "aws_secretsmanager_secret_version" "caas_mesh_mailbox_password" {
 
 data "aws_secretsmanager_secret_version" "gtms_mesh_receiver_mailbox_id" {
   secret_id = "GTMS_MESH_RECEIVER_MAILBOX_ID"
+}
+
+data "aws_secretsmanager_secret_version" "sand_mesh_mailbox_id" {
+  secret_id = "SAND_MESH_MAILBOX_ID"
+}
+
+data "aws_secretsmanager_secret_version" "sand_mesh_mailbox_password" {
+  secret_id = "SAND_MESH_MAILBOX_PASSWORD"
 }
 #END of MESH keys
 
