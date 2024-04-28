@@ -19,12 +19,14 @@ export const handler = async (event, context) => {
   //TODO: correct config
   const CONFIG = await loadConfig({
     url: "",
-    sharedKey: process.env.MESH_SHARED_KEY,
+    TestKey: process.env.MESH_SHARED_KEY,
     sandbox: "true",
-    receiverMailboxID: process.env.SAND_MESH_MAILBOX_ID,
-    receiverMailboxPassword: process.env.SAND_MESH_MAILBOX_PASSWORD,
+    // senderMailboxID: process.env.MESH_RECEIVER_MAILBOX_ID,
+    // senderMailboxPassword: process.env.MESH_RECEIVER_MAILBOX_PASSWORD,
+    receiverMailboxID: process.env.MESH_RECEIVER_MAILBOX_ID,
+    receiverMailboxPassword: process.env.MESH_RECEIVER_MAILBOX_PASSWORD,
   });
-
+  console.log(process.env.MESH_RECEIVER_MAILBOX_ID);
   const HANDSHAKE = handShake;
   const MSG_COUNT = getMessageCount;
   const MARKED = markAsRead;
@@ -38,18 +40,22 @@ export const handler = async (event, context) => {
     if (healthy === 200) {
       console.log(`Status: ${healthy}`);
 
-      while (keepProcessing) {
-        let messageArr = await getMessageArray(CONFIG, MSG_COUNT); //return arr of message ids
-        console.log(`messageArr: ${messageArr}`);
-        if (messageArr.length > 0) {
-          for (const element of messageArr) {
-            console.log(element);
-          }
-        } else {
-          console.log("No messages to process");
-          keepProcessing = false;
+      // while (keepProcessing) {
+      let messageArr = await getMessageArray(CONFIG, MSG_COUNT); //return arr of message ids
+      console.log(`messageArr: ${messageArr}`);
+      if (messageArr.length > 0) {
+        for (const element of messageArr) {
+          const dateTime = new Date(Date.now()).toISOString()
+          let message = await readMsg(CONFIG, READING_MSG, element); //returns messages based on id, iteratively from message list arr
+          console.log(message);
+          console.log(typeof message);
+          // const response = await pushCsvToS3(`${ENVIRONMENT}-processed-nrds-data`, `record_${dateTime}.json`, message, clientS3);
         }
+      } else {
+        console.log("No messages to process");
+        keepProcessing = false;
       }
+      // }
     }
 
 

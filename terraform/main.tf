@@ -305,6 +305,16 @@ module "proccessed_appointments" {
 }
 # End of GTMS buckets
 
+# NRDS Buckets
+module "proccessed_nrds" {
+  source                  = "./modules/s3"
+  bucket_name             = "processed-nrds-data"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+# End of NRDS buckets
+
 # Data Filter Gridall IMD
 module "data_filter_gridall_imd_lambda" {
   source               = "./modules/lambda"
