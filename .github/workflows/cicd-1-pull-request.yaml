@@ -6,6 +6,10 @@ on:
   pull_request:
     types: [opened, reopened, edited, synchronize]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   metadata:
     runs-on: ubuntu-latest
