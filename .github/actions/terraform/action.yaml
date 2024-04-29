@@ -49,7 +49,7 @@ runs:
           {
             aws eks update-kubeconfig --name ${{ env.environment }}-eks-cluster
             URL=$(kubectl get service mesh-sandbox-service | grep mesh-sandbox-service | awk '{print $4}')
-            export TF_VAR_K8_URL=$(https://$URL)
+            export TF_VAR_K8_URL=$https://$URL
             echo "K8 URL is: $TF_VAR_K8_URL"
           } || {
             echo "No EKS deployment yet."
