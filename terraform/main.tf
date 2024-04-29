@@ -1437,7 +1437,7 @@ module "notify_enriched_message_queue_sqs" {
   name                           = "notifyEnrichedMessageQueue.fifo"
   is_fifo_queue                  = true
   is_content_based_deduplication = true
-  visibility_timeout_seconds     = 100
+  visibility_timeout_seconds     = 370
 }
 
 # Send Single Notify Message
@@ -1447,7 +1447,7 @@ module "send_single_notify_message_lambda" {
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
   lambda_function_name = "sendSingleNotifyMessageLambda"
-  lambda_timeout       = 100
+  lambda_timeout       = 370
   memory_size          = 1024
   lambda_s3_object_key = "send_single_notify_message_lambda.zip"
   environment_vars = {

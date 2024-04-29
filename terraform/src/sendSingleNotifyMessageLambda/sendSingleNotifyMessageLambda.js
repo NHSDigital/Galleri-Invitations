@@ -51,7 +51,7 @@ export async function processRecords(records, accessToken) {
         recordsSuccessfullySent++;
       } catch(error) {
         if(error.status && error.details) {
-          console.error(`Error: Request to NHS Notify for ${messageBody.participantId} failed - Status: ${error.status} and Details: ${error.details}`)
+          console.error(`Error: Request to NHS Notify for participant ${messageBody.participantId} failed - Status code: ${error.status} and Details: ${error.details}`)
           await putFailedResponseIntoTable(messageBody, error.messageSent, error.numberOfAttempts.toString(), error.status.toString(), error.details, messageReferenceId,  notifySendMessageStatusTable)
           recordsFailedToSend++;
         } else {
@@ -163,8 +163,6 @@ export async function putItemIntoTable(item, table, client) {
     TableName: `${ENVIRONMENT}-${table}`,
     Item: item,
   };
-
-  console.log(JSON.stringify(input));
 
   try{
     const command = new PutItemCommand(input);
