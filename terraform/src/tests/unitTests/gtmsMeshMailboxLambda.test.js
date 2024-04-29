@@ -1,17 +1,32 @@
 import { processMessage } from "../../gtmsMeshMailboxLambda/gtmsMeshMailboxLambda";
 import { mockClient } from "aws-sdk-client-mock";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { pushCsvToS3, getSecret, getHealthStatusCode, getMessageArray, markRead, readMsg } from "../../gtmsMeshMailboxLambda/helper";
-import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
-import { handShake, getMessageCount, markAsRead, readMessage } from "nhs-mesh-client";
-
-
+import {
+  pushCsvToS3,
+  getSecret,
+  getHealthStatusCode,
+  getMessageArray,
+  markRead,
+  readMsg,
+} from "../../gtmsMeshMailboxLambda/helper";
+import {
+  SecretsManagerClient,
+  GetSecretValueCommand,
+} from "@aws-sdk/client-secrets-manager";
+import {
+  handShake,
+  getMessageCount,
+  markAsRead,
+  readMessage,
+} from "nhs-mesh-client";
 
 jest.mock("nhs-mesh-client");
 handShake.mockResolvedValue({ status: "Handshake successful, status 200" });
-getMessageCount.mockResolvedValue({ data: { messages: "123ID", "approx_inbox_count": 1 } });
-markAsRead.mockResolvedValue('message cleared');
-readMessage.mockResolvedValue({ nhs_num: "123", name: "bolo" })
+getMessageCount.mockResolvedValue({
+  data: { messages: "123ID", approx_inbox_count: 1 },
+});
+markAsRead.mockResolvedValue("message cleared");
+readMessage.mockResolvedValue({ nhs_num: "123", name: "bolo" });
 
 describe("pushCsvToS3", () => {
   afterEach(() => {
@@ -33,7 +48,9 @@ describe("pushCsvToS3", () => {
 
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith(`Successfully pushed to galleri-caas-data/test.csv`);
+    expect(logSpy).toHaveBeenCalledWith(
+      `Successfully pushed to galleri-caas-data/test.csv`
+    );
     expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
   });
 
@@ -44,20 +61,15 @@ describe("pushCsvToS3", () => {
       send: jest.fn().mockRejectedValue(errorMsg),
     };
     try {
-      await pushCsvToS3(
-        "galleri-caas-data",
-        "test.csv",
-        "arr",
-        mockS3Client
-      );
+      await pushCsvToS3("galleri-caas-data", "test.csv", "arr", mockS3Client);
     } catch (err) {
       expect(err.message).toBe("Failed to push to S3");
     }
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith('Failed: Error: Failed to push to S3');
+    expect(logSpy).toHaveBeenCalledWith("Failed: Error: Failed to push to S3");
   });
-})
+});
 
 describe("getSecret", () => {
   afterEach(() => {
@@ -69,10 +81,12 @@ describe("getSecret", () => {
     const smClient = mockClient(SecretsManagerClient);
 
     smClient.on(GetSecretValueCommand).resolves({
-      SecretString: JSON.stringify({ my_secret_key: 'my_secret_value' }),
+      SecretString: JSON.stringify({ my_secret_key: "my_secret_value" }),
     });
     const sm = new SecretsManagerClient({});
-    const result = await sm.send(new GetSecretValueCommand({ "SecretId": "MESH_SENDER_CERT" }));
+    const result = await sm.send(
+      new GetSecretValueCommand({ SecretId: "MESH_SENDER_CERT" })
+    );
     expect(result.SecretString).toBe('{"my_secret_key":"my_secret_value"}');
 
     const smClient2 = mockClient(SecretsManagerClient);
@@ -80,8 +94,10 @@ describe("getSecret", () => {
     const response = await getSecret("MESH_SENDER_CERT", smClient2);
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith(`Retrieved value successfully MESH_SENDER_CERT`);
-  })
+    expect(logSpy).toHaveBeenCalledWith(
+      `Retrieved value successfully MESH_SENDER_CERT`
+    );
+  });
 
   test("Failure when retrieving secret", async () => {
     const logSpy = jest.spyOn(global.console, "log");
@@ -96,129 +112,175 @@ describe("getSecret", () => {
     }
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith('Failed: Error: Failed to retrieve secret to S3');
+    expect(logSpy).toHaveBeenCalledWith(
+      "Failed: Error: Failed to retrieve secret to S3"
+    );
   });
-})
+});
 
 describe("processMessage", () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
   const workflows = {
-    "CLINIC_WORKFLOWID": "GTMS_CLINIC",
-    "CLINIC_SCHEDULE_WORKFLOWID": "GTMS_CLINIC_SCHEDULE",
-    "APPOINTMENT_WORKFLOWID": "GTMS_APPOINTMENT",
-    "WITHDRAW_WORKFLOWID": "GTMS_WITHDRAW",
-  }
+    CLINIC_WORKFLOWID: "GTMS_CLINIC",
+    CLINIC_SCHEDULE_WORKFLOWID: "GTMS_CLINIC_SCHEDULE",
+    APPOINTMENT_WORKFLOWID: "GTMS_APPOINTMENT",
+    WITHDRAW_WORKFLOWID: "GTMS_WITHDRAW",
+  };
 
   test("successfully identify clinicCreateOrUpdate, and push to S3", async () => {
     const logSpy = jest.spyOn(global.console, "log");
-    const environment = 'dev-1';
+    const environment = "dev-1";
     const mockS3Client = mockClient(new S3Client({}));
     mockS3Client.resolves({
       $metadata: { httpStatusCode: 200 },
     });
     const clinicData = {
-      "headers": {
+      headers: {
         "mex-workflowid": "GTMS_CLINIC",
       },
       ClinicCreateOrUpdate: {
-        ClinicName: 'GRAIL Test Clinic',
-        Address: '210 Euston Rd, London NW1 2DA',
-        Postcode: 'SO42 7BZ'
-      }
+        ClinicName: "GRAIL Test Clinic",
+        Address: "210 Euston Rd, London NW1 2DA",
+        Postcode: "SO42 7BZ",
+      },
     };
 
-    const result = await processMessage(clinicData, environment, mockS3Client, workflows, 29012024);
+    const result = await processMessage(
+      clinicData,
+      environment,
+      mockS3Client,
+      workflows,
+      29012024
+    );
     console.log(result);
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenNthCalledWith(1, `Successfully pushed to dev-1-inbound-gtms-clinic-create-or-update/clinic_create_or_update_29012024.json`);
-    expect(logSpy).toHaveBeenNthCalledWith(2, { "$metadata": { "httpStatusCode": 200 } });
-  })
+    expect(logSpy).toHaveBeenNthCalledWith(
+      1,
+      `Successfully pushed to dev-1-inbound-gtms-clinic-create-or-update/clinic_create_or_update_29012024.json`
+    );
+    expect(logSpy).toHaveBeenNthCalledWith(2, {
+      $metadata: { httpStatusCode: 200 },
+    });
+  });
 
   test("successfully identify Appointments, and push to S3", async () => {
     const logSpy = jest.spyOn(global.console, "log");
 
-    const environment = 'dev-1';
+    const environment = "dev-1";
     const mockS3Client = mockClient(new S3Client({}));
     mockS3Client.resolves({
       $metadata: { httpStatusCode: 200 },
     });
     const appointmentData = {
-      "headers": {
+      headers: {
         "mex-workflowid": "GTMS_APPOINTMENT",
       },
-      "Appointment": {
-        "ParticipantID": "NHS-AB12-CD34",
-        "AppointmentID": "00000000-0000-0000-0000-000000000000",
-        "ClinicID": "D7E-G2H",
-        "AppointmentDateTime": "2006-01-02T15:04:05.000Z",
-        "BloodCollectionDate": "2006-01-02",
-        "PrimaryPhoneNumber": "01999999999",
-        "SecondaryPhoneNumber": "01999999999",
-        "Email": "me@example.com"
-      }
+      Appointment: {
+        ParticipantID: "NHS-AB12-CD34",
+        AppointmentID: "00000000-0000-0000-0000-000000000000",
+        ClinicID: "D7E-G2H",
+        AppointmentDateTime: "2006-01-02T15:04:05.000Z",
+        BloodCollectionDate: "2006-01-02",
+        PrimaryPhoneNumber: "01999999999",
+        SecondaryPhoneNumber: "01999999999",
+        Email: "me@example.com",
+      },
     };
 
-    const result = await processMessage(appointmentData, environment, mockS3Client, workflows, 29012024);
+    const result = await processMessage(
+      appointmentData,
+      environment,
+      mockS3Client,
+      workflows,
+      29012024
+    );
     console.log(result);
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenNthCalledWith(1, `Successfully pushed to dev-1-inbound-gtms-appointment/appointment_29012024.json`);
-    expect(logSpy).toHaveBeenNthCalledWith(2, { "$metadata": { "httpStatusCode": 200 } });
-  })
+    expect(logSpy).toHaveBeenNthCalledWith(
+      1,
+      `Successfully pushed to dev-1-inbound-gtms-appointment/appointment_29012024.json`
+    );
+    expect(logSpy).toHaveBeenNthCalledWith(2, {
+      $metadata: { httpStatusCode: 200 },
+    });
+  });
 
   test("successfully identify ClinicScheduleSummary, and push to S3", async () => {
     const logSpy = jest.spyOn(global.console, "log");
 
-    const environment = 'dev-1';
+    const environment = "dev-1";
     const mockS3Client = mockClient(new S3Client({}));
     mockS3Client.resolves({
       $metadata: { httpStatusCode: 200 },
     });
     const clinicCapacityData = {
-      "headers": {
+      headers: {
         "mex-workflowid": "GTMS_CLINIC_SCHEDULE",
       },
-      "ClinicScheduleSummary": {
-        "test_data": "example"
-      }
+      ClinicScheduleSummary: {
+        test_data: "example",
+      },
     };
 
-    const result = await processMessage(clinicCapacityData, environment, mockS3Client, workflows, 29012024);
+    const result = await processMessage(
+      clinicCapacityData,
+      environment,
+      mockS3Client,
+      workflows,
+      29012024
+    );
     console.log(result);
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenNthCalledWith(1, `Successfully pushed to dev-1-inbound-gtms-clinic-schedule-summary/clinic_schedule_summary_29012024.json`);
-    expect(logSpy).toHaveBeenNthCalledWith(2, { "$metadata": { "httpStatusCode": 200 } });
-  })
+    expect(logSpy).toHaveBeenNthCalledWith(
+      1,
+      `Successfully pushed to dev-1-inbound-gtms-clinic-schedule-summary/clinic_schedule_summary_29012024.json`
+    );
+    expect(logSpy).toHaveBeenNthCalledWith(2, {
+      $metadata: { httpStatusCode: 200 },
+    });
+  });
 
   test("successfully identify Withdrawal, and push to S3", async () => {
     const logSpy = jest.spyOn(global.console, "log");
 
-    const environment = 'dev-1';
+    const environment = "dev-1";
     const mockS3Client = mockClient(new S3Client({}));
     mockS3Client.resolves({
       $metadata: { httpStatusCode: 200 },
     });
     const withdrawalData = {
-      "headers": {
+      headers: {
         "mex-workflowid": "GTMS_WITHDRAW",
       },
-      "Withdrawal": {
-        "test_data": "example"
-      }
+      Withdrawal: {
+        test_data: "example",
+      },
     };
 
-    const result = await processMessage(withdrawalData, environment, mockS3Client, workflows, 29012024);
+    const result = await processMessage(
+      withdrawalData,
+      environment,
+      mockS3Client,
+      workflows,
+      29012024
+    );
     console.log(result);
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenNthCalledWith(1, `Successfully pushed to dev-1-inbound-gtms-withdrawal/withdrawal_29012024.json`);
-    expect(logSpy).toHaveBeenNthCalledWith(2, { "$metadata": { "httpStatusCode": 200 } });
-  })
-})
+    expect(logSpy).toHaveBeenNthCalledWith(
+      1,
+      `Successfully pushed to dev-1-inbound-gtms-withdrawal/withdrawal_29012024.json`
+    );
+    expect(logSpy).toHaveBeenNthCalledWith(2, {
+      $metadata: { httpStatusCode: 200 },
+    });
+  });
+});
 
 describe("getHeathStatusCode", () => {
   const mockConfig = {
@@ -226,33 +288,39 @@ describe("getHeathStatusCode", () => {
     mailboxID: "example",
     mailboxPassword: "example",
     sharedKey: "example",
-    agent: "example"
+    agent: "example",
   };
-  test('test getHealthStatusCode', async () => {
+  test("test getHealthStatusCode", async () => {
     const logSpy = jest.spyOn(global.console, "log");
     //pass in mocked handShake function from globally mocked nhs-mesh-client module
     const result = await getHealthStatusCode(mockConfig, handShake);
     console.log(`result: ${result}`);
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith(`result: Handshake successful, status 200`);
+    expect(logSpy).toHaveBeenCalledWith(
+      `result: Handshake successful, status 200`
+    );
     expect(result).toBe("Handshake successful, status 200");
-  })
+  });
 
-  test('test getHealthStatusCode failure', async () => {
-    handShake.mockRejectedValue("ERROR: Request 'handShake' completed but responded with incorrect status");
+  test("test getHealthStatusCode failure", async () => {
+    handShake.mockRejectedValue(
+      "ERROR: Request 'handShake' completed but responded with incorrect status"
+    );
     const logSpy = jest.spyOn(global.console, "log");
     try {
       const result = await getHealthStatusCode(mockConfig, handShake);
       console.log(`result: ${result}`);
     } catch (err) {
       console.log(err);
-      expect(err).toBe("ERROR: Request 'handShake' completed but responded with incorrect status");
+      expect(err).toBe(
+        "ERROR: Request 'handShake' completed but responded with incorrect status"
+      );
       expect(logSpy).toHaveBeenCalled();
       expect(logSpy).toHaveBeenCalledTimes(1);
       expect(logSpy).toHaveBeenCalledWith(`result: undefined`);
     }
-  })
+  });
 });
 
 describe("getMessageArray", () => {
@@ -261,12 +329,12 @@ describe("getMessageArray", () => {
     mailboxID: "example",
     mailboxPassword: "example",
     sharedKey: "example",
-    agent: "example"
+    agent: "example",
   };
   beforeEach(() => {
     jest.clearAllMocks();
-  })
-  test('test getMessageArray', async () => {
+  });
+  test("test getMessageArray", async () => {
     const logSpy = jest.spyOn(global.console, "log");
     //pass in mocked getMessageCount function from globally mocked nhs-mesh-client module
     const result = await getMessageArray(mockConfig, getMessageCount);
@@ -277,20 +345,24 @@ describe("getMessageArray", () => {
     expect(result).toBe("123ID");
   });
 
-  test('test getMessageArray failure', async () => {
-    getMessageCount.mockRejectedValue("ERROR: Request 'getMessageCount' completed but responded with incorrect status");
+  test("test getMessageArray failure", async () => {
+    getMessageCount.mockRejectedValue(
+      "ERROR: Request 'getMessageCount' completed but responded with incorrect status"
+    );
     const logSpy = jest.spyOn(global.console, "log");
     try {
       const result = await getMessageArray(mockConfig, getMessageCount);
       console.log(`result: ${result}`);
     } catch (err) {
       console.log(err);
-      expect(err).toBe("ERROR: Request 'getMessageCount' completed but responded with incorrect status");
+      expect(err).toBe(
+        "ERROR: Request 'getMessageCount' completed but responded with incorrect status"
+      );
       expect(logSpy).toHaveBeenCalled();
       expect(logSpy).toHaveBeenCalledTimes(1);
       expect(logSpy).toHaveBeenCalledWith(`result: undefined`);
     }
-  })
+  });
 });
 
 describe("markRead", () => {
@@ -299,13 +371,13 @@ describe("markRead", () => {
     mailboxID: "example",
     mailboxPassword: "example",
     sharedKey: "example",
-    agent: "example"
+    agent: "example",
   };
   beforeEach(() => {
     jest.clearAllMocks();
-  })
-  test('test markRead', async () => {
-    const msgID = '123ID';
+  });
+  test("test markRead", async () => {
+    const msgID = "123ID";
     const logSpy = jest.spyOn(global.console, "log");
     //pass in mocked markAsRead function from globally mocked nhs-mesh-client module
     const result = await markRead(mockConfig, markAsRead, msgID);
@@ -316,22 +388,26 @@ describe("markRead", () => {
     expect(result).toBe("message cleared");
   });
 
-  test('test markRead failure', async () => {
-    markAsRead.mockRejectedValue("ERROR: Request 'markAsRead' completed but responded with incorrect status");
-    const msgID = '123ID';
+  test("test markRead failure", async () => {
+    markAsRead.mockRejectedValue(
+      "ERROR: Request 'markAsRead' completed but responded with incorrect status"
+    );
+    const msgID = "123ID";
     const logSpy = jest.spyOn(global.console, "log");
     try {
       const result = await markRead(mockConfig, markAsRead, msgID);
       console.log(result);
     } catch (err) {
       console.log(err);
-      expect(err).toBe("ERROR: Request 'markAsRead' completed but responded with incorrect status");
+      expect(err).toBe(
+        "ERROR: Request 'markAsRead' completed but responded with incorrect status"
+      );
       expect(logSpy).toHaveBeenCalled();
       expect(logSpy).toHaveBeenCalledTimes(1);
       expect(logSpy).toHaveBeenCalledWith(`result: undefined`);
     }
-  })
-})
+  });
+});
 
 describe("readMsg", () => {
   const mockConfig = {
@@ -339,13 +415,13 @@ describe("readMsg", () => {
     mailboxID: "example",
     mailboxPassword: "example",
     sharedKey: "example",
-    agent: "example"
+    agent: "example",
   };
   beforeEach(() => {
     jest.clearAllMocks();
-  })
-  test('test readMsg', async () => {
-    const msgID = '123ID';
+  });
+  test("test readMsg", async () => {
+    const msgID = "123ID";
     const logSpy = jest.spyOn(global.console, "log");
     //pass in mocked readMessage function from globally mocked nhs-mesh-client module
     const result = await readMsg(mockConfig, readMessage, msgID);
@@ -355,19 +431,23 @@ describe("readMsg", () => {
     expect(result).toStrictEqual({ nhs_num: "123", name: "bolo" });
   });
 
-  test('test readMsg failure', async () => {
-    readMessage.mockRejectedValue("ERROR: Request 'readMessage' completed but responded with incorrect status");
-    const msgID = '123ID';
+  test("test readMsg failure", async () => {
+    readMessage.mockRejectedValue(
+      "ERROR: Request 'readMessage' completed but responded with incorrect status"
+    );
+    const msgID = "123ID";
     const logSpy = jest.spyOn(global.console, "log");
     try {
       const result = await readMsg(mockConfig, readMessage, msgID);
       console.log(result);
     } catch (err) {
       console.log(err);
-      expect(err).toBe("ERROR: Request 'readMessage' completed but responded with incorrect status");
+      expect(err).toBe(
+        "ERROR: Request 'readMessage' completed but responded with incorrect status"
+      );
       expect(logSpy).toHaveBeenCalled();
       expect(logSpy).toHaveBeenCalledTimes(1);
       expect(logSpy).toHaveBeenCalledWith(`result: undefined`);
     }
-  })
-})
+  });
+});

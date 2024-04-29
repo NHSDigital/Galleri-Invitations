@@ -43,7 +43,10 @@ export const handler = async (event, context) => {
         N: JSON.stringify(Math.round(distanceToSiteMiles * 100) / 100),
       };
       lsoaCodePayload.push(lsoaRecord.LSOA_2011);
-      within.push({"LSOA_NAME": lsoaRecord.LSOA_NAME.S, "DISTANCE": distanceToSiteMiles});
+      within.push({
+        LSOA_NAME: lsoaRecord.LSOA_NAME.S,
+        DISTANCE: distanceToSiteMiles,
+      });
       return lsoaRecord;
     }
   });
