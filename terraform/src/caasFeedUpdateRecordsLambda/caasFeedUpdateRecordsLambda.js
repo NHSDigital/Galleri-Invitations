@@ -119,24 +119,23 @@ export const processingData = async (incomingUpdateData, populationTableRecord) 
     const retainingPersonId = retainingPopulationTableRecord.Items[0].PersonId.S
 
     if (retainingPopulationTableRecord.Items.length) {
-      console.log("---------1----------");
       // Get Episode records
       const retainingEpisodeRecord = await lookUp(client,retainingPersonId , "Episode", "Participant_Id", "S", true);
       const supersedingEpisodeRecord = await lookUp(client, tablePersonId.S, "Episode", "Participant_Id", "S", true);
-      console.log("----------2---------");
 
       // the retaining record has an Episode record that exists or both retaining record and supersed record do not have an Episode record
       if (retainingEpisodeRecord.Items.length || (retainingEpisodeRecord.Items.length == 0 && supersedingEpisodeRecord.Items.length == 0)) {
-        console.log("---------3----------");
+        if (retainingEpisodeRecord.Items.length && supersedingEpisodeRecord.Items.length) {
+          console.error(`Error: Episodes for both retaining NHS no. ${populationTableRecord.nhs_number} and superseding NHS no. ${incomingUpdateData.superseded_by_nhs_number} exist! Not merging.`);
+        }
+
         // Apply the update to the supersed record
         await overwriteRecordInTable(client, 'Population', incomingUpdateData, populationTableRecord);
-        console.log("----------4---------");
 
         return {
           rejected: false
         }
       } else if (supersedingEpisodeRecord.Items.length) {
-        console.log("--------5-----------");
         // keep personId, participantId from retaining and combine with supersed
         const recordNewSupersed = {
           ...incomingUpdateData,
@@ -162,7 +161,6 @@ export const processingData = async (incomingUpdateData, populationTableRecord) 
           await overwriteRecordInTable(client, 'Population', recordNewRetaining, retainingPopulationTableRecord.Items[0])
         ]
         if (overWriteResponse.every(element => element.value == SUCCESSFUL_RESPONSE)) {
-          console.log("---------6----------");
           return {
             rejected: false
           }
@@ -209,7 +207,7 @@ const updateRecord = async (record, recordFromTable) => {
       const updateEpisodeRecord = ["Episode_Status", "S", "Deceased"]
       await updateRecordInTable(client, "Episode", batchId, "Batch_Id", participantId, "Participant_Id", updateEpisodeRecord);
     } else {
-      console.log('No open Episode record')
+      console.log('No open Episode record');
     }
   }
 
@@ -355,7 +353,6 @@ export async function overwriteRecordInTable(client, table, newRecord, oldRecord
   console.log("deleteOldItem", JSON.stringify(deleteOldItem));
 
   if (deleteOldItem.$metadata.httpStatusCode === 200){
-    console.log("---Entered if-----");
     const updateNewItem = await putTableRecord(client, table, newRecord, oldRecord);
     console.log("updateNewItem", JSON.stringify(updateNewItem));
     return updateNewItem.$metadata.httpStatusCode;
@@ -379,10 +376,10 @@ export async function deleteTableRecord(client, table, oldRecord) {
   }
 
   const command = new DeleteItemCommand(input);
-  const response = await client.send(command);
-  console.log("Exiting function deleteTableRecord");
+    const response = await client.send(command);
+    console.log("Exiting function deleteTableRecord");
 
-  return response;
+    return response;
 }
 
 function formatPopulationDeleteItem(table, record) {
@@ -423,7 +420,7 @@ function formatEpisodeDeleteItem(table, record) {
   return input;
 }
 
-export async function putTableRecord(client, table, newRecord) {
+export async function putTableRecord(client, table, newRecord, oldRecord) {
   console.log("Entered putTableRecord");
   let input, unmarshalledRecord, updated_record;
   console.log(`Adding record ${newRecord.PersonId} with LSOA:${newRecord.lsoa_2011} to table ${table}`)
@@ -440,23 +437,10 @@ export async function putTableRecord(client, table, newRecord) {
     default:
       input = 'Table not recognised';
   }
-  
-  console.log("Entered putTableRecord-------input", input);
+
   const command = new PutItemCommand(input);
-  console.log("Entered putTableRecord-------command", command);
-  
-  // try{
-  //   const response = await client.send(command);
-  //   console.log("----transformToString------", response.Body.transformToString());
-  //   return response;
-  // }
-  // catch(error){
-  //   console.log("error-------", error);
-  // }
-  //console.log("------client.send(command)------", JSON.stringify(await client.send(command)));
   const response = await client.send(command);
   return response;
-  //console.log("Entered putTableRecord-------response", JSON.stringify(response));
 
 }
 
