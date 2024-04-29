@@ -8,6 +8,10 @@ on:
         required: true
         default: "latest"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   metadata:
     runs-on: ubuntu-latest
