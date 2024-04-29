@@ -99,7 +99,8 @@ resource "aws_iam_role_policy" "backup_policy" {
           "dynamodb:DeleteBackup",
           "dynamodb:ListBackups",
           "dynamodb:RestoreTableToPointInTime",
-          "dynamodb:ListTables"
+          "dynamodb:ListTables",
+          "dynamodb:ListTagsOfResource"
         ],
         Effect   = "Allow",
         Resource = "*"
