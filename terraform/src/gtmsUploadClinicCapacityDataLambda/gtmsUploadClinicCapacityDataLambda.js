@@ -177,17 +177,17 @@ export const saveObjToPhlebotomyTable = async (
     },
     ExpressionAttributeValues: {
       ":WeekCommencingDate_new": {
-        "M": {
-          ...formattedObj
-        }
+        M: {
+          ...formattedObj,
+        },
       },
       ":Availability_new": {
-          "N" : `${totalAvailability}`,
-      }
-
+        N: `${totalAvailability}`,
+      },
     },
     TableName: `${environment}-PhlebotomySite`,
-    UpdateExpression: "SET #WEEK_COMMENCING_DATE = :WeekCommencingDate_new, #AVAILABILITY = :Availability_new"
+    UpdateExpression:
+      "SET #WEEK_COMMENCING_DATE = :WeekCommencingDate_new, #AVAILABILITY = :Availability_new",
   };
 
   const command = new UpdateItemCommand(params);
