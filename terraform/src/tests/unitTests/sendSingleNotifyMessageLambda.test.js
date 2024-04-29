@@ -1,11 +1,10 @@
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import { generateMessageReference, generateJWT, getSecret, getAccessToken, deleteMessageInQueue, putItemIntoTable } from '../../sendSingleNotifyMessageLambda/sendSingleNotifyMessageLambda';
+import { generateMessageReference, generateJWT, getSecret, getAccessToken, deleteMessageInQueue, putItemIntoTable, putSuccessResponseIntoTable, putFailedResponseIntoTable } from '../../sendSingleNotifyMessageLambda/sendSingleNotifyMessageLambda';
 import { mockClient } from 'aws-sdk-client-mock';
 import { SQSClient, DeleteMessageCommand } from '@aws-sdk/client-sqs';
 import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 
-// Mocking the jwt.sign function
 jest.mock("jsonwebtoken", () => ({
   sign: jest.fn(() => "mocked_signed_jwt"),
 }));
@@ -55,7 +54,6 @@ describe('getSecret', () => {
   });
 });
 
-// TODO: Problem with mocking jwt.sign
 describe('generateJWT', () => {
 
   test("should generate JWT", () => {
@@ -87,50 +85,146 @@ describe('generateJWT', () => {
 //   });
 // });
 
-// describe('putSuccessResponseIntoTable', () => {
-//   test('should return the correct response', () => {
-//     let mockDynamoClient;
+describe('putSuccessResponseIntoTable', () => {
+  let mockDynamoClient;
 
-//     beforeEach(() => {
-//       jest.restoreAllMocks();
-//       mockDynamoClient = mockClient(new DynamoDBClient({}));
-//     });
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    mockDynamoClient = mockClient(new DynamoDBClient({}));
+  });
 
-//     afterEach(() => {
-//       mockDynamoClient.reset();
-//     });
+  afterEach(() => {
+    mockDynamoClient.reset();
+  });
 
-//     const mockResponse = {
-//       ConsumedCapacity: { TableName: mockTableName },
-//       $metadata: { httpStatusCode: 200 }
-//     };
-//     mockDynamoClient.on(PutItemCommand).resolves(mockResponse);
+  test('should return the correct response', async () => {
+    let logSpy = jest.spyOn(global.console, "log");
 
-//     const messageBody = {
-//       participantId:'NHS-EU44-JN48',
-//       nhsNumber:'9728543972',
-//       episodeEvent:'Invited',
-//       routingId:'a91601f5-ed53-4472-bbaa-580f418c7091'
-//     };
-//     const messageSentAt = '2024-04-29T14:26:02.238Z';
-//     const numberOfAttempts = 1;
-//     const responseBody = {
-//       id: '123456',
-//     }
-//     const messageReferenceId = 'mock-message-reference-id';
-//     const table = 'NotifySendMessageStatus';
+    const messageBody = {
+      participantId:'NHS-EU44-JN48',
+      nhsNumber:'9728543972',
+      episodeEvent:'Invited',
+      routingId:'a91601f5-ed53-4472-bbaa-580f418c7091'
+    };
+    const messageSentAt = '2024-04-29T14:26:02.238Z';
+    const numberOfAttempts = 1;
+    const responseBody = {
+      id: '123456',
+    }
+    const messageReferenceId = 'mock-message-reference-id';
+    const table = 'NotifySendMessageStatus';
 
+    const mockResponse = {
+      ConsumedCapacity: { TableName: table },
+      $metadata: { httpStatusCode: 200 }
+    };
+    mockDynamoClient.on(PutItemCommand).resolves(mockResponse);
 
+    await putSuccessResponseIntoTable(messageBody, messageSentAt, numberOfAttempts, responseBody, messageReferenceId, table, mockDynamoClient);
 
-//   });
+    expect(mockDynamoClient.calls()).toHaveLength(1);
 
-//   test('should return error for missing field from message body', () => {
+    expect(logSpy).toHaveBeenCalledWith(`Added successful result record for NHS-EU44-JN48 in NotifySendMessageStatus`);
+  });
 
-//   });
-// });
+  test('should return error from dynamodb', async () => {
+    const messageBody = {
+      participantId:'NHS-EU44-JN48',
+      nhsNumber:'9728543972',
+      episodeEvent:'Invited',
+      routingId:'a91601f5-ed53-4472-bbaa-580f418c7091'
+    };
+    const messageSentAt = '2024-04-29T14:26:02.238Z';
+    const numberOfAttempts = 1;
+    const responseBody = {
+      id: '123456',
+    }
+    const messageReferenceId = 'mock-message-reference-id';
+    const table = 'NotifySendMessageStatus';
+
+    const mockResponse = {
+      ConsumedCapacity: { TableName: table },
+      $metadata: { httpStatusCode: 500 }
+    };
+    mockDynamoClient.on(PutItemCommand).resolves(mockResponse);
+
+    try {
+      await putSuccessResponseIntoTable(messageBody, messageSentAt, numberOfAttempts, responseBody, messageReferenceId, table, mockDynamoClient);
+    } catch (error) {
+      expect(mockDynamoClient.calls()).toHaveLength(1);
+      expect(error.message).toBe('Error with adding success record for participant NHS-EU44-JN48 in NotifySendMessageStatus');
+    }
+  });
+});
 
 describe('putFailedResponseIntoTable', () => {
+  let mockDynamoClient;
 
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    mockDynamoClient = mockClient(new DynamoDBClient({}));
+  });
+
+  afterEach(() => {
+    mockDynamoClient.reset();
+  });
+
+  test('should return the correct response', async () => {
+    let logSpy = jest.spyOn(global.console, "log");
+
+    const messageBody = {
+      participantId:'NHS-EU44-JN48',
+      nhsNumber:'9728543972',
+      episodeEvent:'Invited',
+      routingId:'a91601f5-ed53-4472-bbaa-580f418c7091'
+    };
+    const messageSentAt = '2024-04-29T14:26:02.238Z';
+    const numberOfAttempts = 1;
+    const statusCode = '400';
+    const errorDetails = 'mockErrorDetails';
+    const messageReferenceId = 'mock-message-reference-id';
+    const table = 'NotifySendMessageStatus';
+
+    const mockResponse = {
+      ConsumedCapacity: { TableName: table },
+      $metadata: { httpStatusCode: 200 }
+    };
+    mockDynamoClient.on(PutItemCommand).resolves(mockResponse);
+
+    await putFailedResponseIntoTable(messageBody, messageSentAt, numberOfAttempts, statusCode, errorDetails,  messageReferenceId, table, mockDynamoClient);
+
+    expect(mockDynamoClient.calls()).toHaveLength(1);
+
+    expect(logSpy).toHaveBeenCalledWith(`Added failed result record for NHS-EU44-JN48 in NotifySendMessageStatus`);
+  });
+
+  test('should return error from dynamodb', async () => {
+    const messageBody = {
+      participantId:'NHS-EU44-JN48',
+      nhsNumber:'9728543972',
+      episodeEvent:'Invited',
+      routingId:'a91601f5-ed53-4472-bbaa-580f418c7091'
+    };
+    const messageSentAt = '2024-04-29T14:26:02.238Z';
+    const numberOfAttempts = 1;
+    const statusCode = '400';
+    const errorDetails = 'mockErrorDetails';
+    const messageReferenceId = 'mock-message-reference-id';
+    const table = 'NotifySendMessageStatus';
+
+    const mockResponse = {
+      ConsumedCapacity: { TableName: table },
+      $metadata: { httpStatusCode: 500 }
+    };
+    mockDynamoClient.on(PutItemCommand).resolves(mockResponse);
+
+    try {
+      await putFailedResponseIntoTable(messageBody, messageSentAt, numberOfAttempts, statusCode, errorDetails, messageReferenceId, table, mockDynamoClient);
+    } catch (error) {
+      expect(mockDynamoClient.calls()).toHaveLength(1);
+      expect(error.message).toBe('Error with adding failed record for participant NHS-EU44-JN48 in NotifySendMessageStatus');
+    }
+  });
 });
 
 describe('putItemIntoTable', () => {
@@ -216,6 +310,7 @@ describe('deleteMessageInQueue', () => {
       $metadata: { httpStatusCode: 200 },
       MessageId: '456',
     });
+
     const mockMessage = {
       participantId:"NHS-EU44-JN48",
       nhsNumber:"9728543972",

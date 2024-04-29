@@ -67,7 +67,7 @@ export async function processRecords(records, accessToken) {
   console.log(`Total records in the batch: ${totalRecords} - Records successfully processed/sent: ${recordsSuccessfullySent} - Records failed to send: ${recordsFailedToSend}`);
 };
 
-export async function putSuccessResponseIntoTable(messageBody, messageSentAt, numberOfAttempts, responseBody, messageReferenceId, table) {
+export async function putSuccessResponseIntoTable(messageBody, messageSentAt, numberOfAttempts, responseBody, messageReferenceId, table, dynamodbClient) {
   let item;
   const { nhsNumber, routingId, participantId, ...personalisation} = messageBody;
 
@@ -111,7 +111,7 @@ export async function putSuccessResponseIntoTable(messageBody, messageSentAt, nu
   }
 };
 
-export async function putFailedResponseIntoTable(messageBody, messageSentAt, numberOfAttempts, statusCode, errorDetails, messageReferenceId, table) {
+export async function putFailedResponseIntoTable(messageBody, messageSentAt, numberOfAttempts, statusCode, errorDetails, messageReferenceId, table, dynamodbClient) {
   let item;
   const { nhsNumber, routingId, participantId, ...personalisation} = messageBody;
   try {
