@@ -77,5 +77,5 @@ variable "dns_zone" {
 
 variable "K8_URL" {
   description = "url for eks mesh service"
-  default     = "test"
+  default     = null
 }
