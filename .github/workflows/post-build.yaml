@@ -1,4 +1,4 @@
-name: "Database seeding stage"
+name: "Post Build stage"
 
 on:
   workflow_call:
@@ -23,10 +23,6 @@ on:
         description: "Python version, set by the CI/CD pipeline workflow"
         required: true
         type: string
-      terraform_version:
-        description: "Terraform version, set by the CI/CD pipeline workflow"
-        required: true
-        type: string
       version:
         description: "Version of the software, set by the CI/CD pipeline workflow"
         required: true
@@ -35,50 +31,19 @@ on:
         description: "the environment to deploy terraform into"
         required: true
         type: string
-      environment_type:
-        description: "This is a check to determine if the pipeline is running in dev-1, dev-2, test-1, test-2, etc"
-        required: false
-        type: string
-      invitations_branch:
-        description: "Branch of invitations repository to checkout"
-        required: false
-        type: string
-      frontend_branch:
-        description: "Branch of frontend repository to checkout"
-        required: false
-        type: string
-      tf_action:
-        description: "Terraform action to be performed against target environment"
-        default: apply
-        type: string
-        required: false
-      database_seeding:
-        description: "Determines if the database requires data being added"
-        type: string
-        required: false
-      test:
-        description: "If the tests should be run or not"
-        default: "false"
-        type: string
-        required: false
     secrets:
       AWS_ACCOUNT_ID:
         required: true
 
 env:
-  # role-to-assume: ${{ vars.AWS_ROLE_ARN }}
   aws-region: ${{ vars.aws_region }}
   aws-bucket-name: ${{ vars.aws_bucket_name }}
   aws-bucket-key-name: ${{ vars.aws_bucket_key_name }}
   environment: ${{ inputs.environment }}
-  frontend-branch: ${{ inputs.frontend_branch }}
-  invitations-branch: ${{ inputs.invitations_branch }}
-  tf-action: ${{ inputs.tf_action }}
-  environment_type: ${{ inputs.environment_type }}
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
 
 jobs:
-  load-data:
+  build:
     permissions:
       id-token: write # This is required for aws oidc connection
       contents: read # This is required for actions/checkout
@@ -90,21 +55,16 @@ jobs:
         with:
           ref: "${{ env.invitations-branch }}"
           fetch-depth: 0 # Full history is needed to scan all commits
-
-      - name: Install dependency
-        run: |
-          pip install boto3
-          pip install rstr
-          pip install random_word
-
-      - name: "Seed databases"
-        # if: inputs.tf_action == 'apply' || inputs.database_seeding == "true"
-        if: inputs.tf_action == 'apply'
-        uses: ./.github/actions/seeding
+      - name: "Deploy to Kubernetes"
+        uses: ./.github/actions/kubernetes
         with:
-          # role-to-assume: ${{ env.role-to-assume }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.aws-region }}
+          aws-bucket-name: ${{ env.aws-bucket-name }}
+          aws-bucket-key-name: ${{ env.aws-bucket-key-name }}
           environment: ${{ env.environment }}
-          environment_type: ${{ env.environment_type }}
+          TF_VAR_USERS: ${{ secrets.USERS }}
+          TF_VAR_CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
+          TF_VAR_NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
           AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}
-        timeout-minutes: 45
+        timeout-minutes: 15

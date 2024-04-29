@@ -13,6 +13,7 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { Readable } from "stream";
 import csv from "csv-parser";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 
 const s3 = new S3Client();
 const client = new DynamoDBClient({ region: "eu-west-2", convertEmptyValues: true });
@@ -334,7 +335,7 @@ export async function overwriteRecordInTable(client, table, newRecord, oldRecord
   const deleteOldItem = await deleteTableRecord(client, table, oldRecord);
 
   if (deleteOldItem.$metadata.httpStatusCode === 200){
-    const updateNewItem = await putTableRecord(client, table, newRecord);
+    const updateNewItem = await putTableRecord(client, table, newRecord, oldRecord);
     return updateNewItem.$metadata.httpStatusCode;
   }
 }
@@ -394,18 +395,21 @@ function formatEpisodeDeleteItem(table, record) {
   return input;
 }
 
-export async function putTableRecord(client, table, newRecord) {
-  let input
+export async function putTableRecord(client, table, newRecord, oldRecord) {
+  let input, unmarshalledRecord, updated_record;
   console.log(`Adding record ${newRecord.PersonId} with LSOA:${newRecord.lsoa_2011} to table ${table}`)
   switch(table) {
     case 'Population':
-      input = formatPopulationPutItem(table, newRecord)
+      // This is to fill in the missing info from the old record that doesnot need to update
+      unmarshalledRecord = unmarshall(oldRecord);
+      updated_record = {...unmarshalledRecord,...newRecord};
+      input = formatPopulationPutItem(table, updated_record);
       break;
     case 'Episode':
-      input = formatEpisodePutItem(table, newRecord)
+      input = formatEpisodePutItem(table, newRecord);
       break;
     default:
-      input = 'Table not recognised'
+      input = 'Table not recognised';
   }
 
 
@@ -452,8 +456,8 @@ function formatPopulationPutItem(table, newRecord){
       reason_for_removal_effective_from_date: {S: newRecord.reason_for_removal_effective_from_date},
       responsible_icb: {S: newRecord.responsible_icb},
       date_of_death: {S: newRecord.date_of_death},
-      telephone_number: {N: newRecord.telephone_number},
-      mobile_number: {N: newRecord.mobile_number},
+      telephone_number: {S: newRecord.telephone_number},
+      mobile_number: {S: newRecord.mobile_number},
       email_address: {S: newRecord.email_address},
       preferred_language: {S: newRecord.preferred_language},
       is_interpreter_required: {BOOL: Boolean(newRecord.is_interpreter_required)},
