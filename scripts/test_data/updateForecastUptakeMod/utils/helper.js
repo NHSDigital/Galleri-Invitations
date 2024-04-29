@@ -11,7 +11,7 @@ export const match = (lsoa, data) => {
         });
         break;
       } else {
-        lsoa.MODERATOR = 'Not Found';
+        lsoa.MODERATOR = "Not Found";
       }
     }
     lsoaRecords.push(lsoa);

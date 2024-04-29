@@ -1,12 +1,12 @@
 # ADR-nnn: Any Decision Record Template
 
->|              |                                                                                                                                                                                    |
->| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
->| Date         | `dd/mm/YYYY` _when the decision was last updated_                                                                                                                                  |
->| Status       | `RFC by dd/mm/YYYY, Proposed, In Discussion, Pending Approval, Withdrawn, Rejected, Accepted, Deprecated, ..., Superseded by ADR-XXX or Supersedes ADR-XXX`                        |
->| Deciders     | `Tech Radar, Engineering, Architecture, Solution Assurance, Clinical Assurance, Technical Review and Governance, Information Governance, Cyber Security, Live Services Board,` ... |
->| Significance | `Structure, Nonfunctional characteristics, Dependencies, Interfaces, Construction techniques,` ...                                                                                 |
->| Owners       |                                                                                                                                                                                    |
+> |              |                                                                                                                                                                                    |
+> | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+> | Date         | `dd/mm/YYYY` _when the decision was last updated_                                                                                                                                  |
+> | Status       | `RFC by dd/mm/YYYY, Proposed, In Discussion, Pending Approval, Withdrawn, Rejected, Accepted, Deprecated, ..., Superseded by ADR-XXX or Supersedes ADR-XXX`                        |
+> | Deciders     | `Tech Radar, Engineering, Architecture, Solution Assurance, Clinical Assurance, Technical Review and Governance, Information Governance, Cyber Security, Live Services Board,` ... |
+> | Significance | `Structure, Nonfunctional characteristics, Dependencies, Interfaces, Construction techniques,` ...                                                                                 |
+> | Owners       |                                                                                                                                                                                    |
 
 ---
 
@@ -50,7 +50,7 @@ State the decision outcome as a result of taking into account all of the above. 
 
 Provide a rationale for the decision that is based on weighing the options to ensure that the same questions are not going to be asked again and again unless the decision needs to be superseded.
 
-For non-trivial decisions a comparison table can be useful for the reviewer. Decision criteria down one side, options across the top. You'll likely find decision criteria come from the Drivers section above. Effort can be an important driving factor.  You may have an intuitive feel for this, but reviewers will not. T-shirt sizing the effort for each option may help communicate.
+For non-trivial decisions a comparison table can be useful for the reviewer. Decision criteria down one side, options across the top. You'll likely find decision criteria come from the Drivers section above. Effort can be an important driving factor. You may have an intuitive feel for this, but reviewers will not. T-shirt sizing the effort for each option may help communicate.
 
 ## Consequences
 

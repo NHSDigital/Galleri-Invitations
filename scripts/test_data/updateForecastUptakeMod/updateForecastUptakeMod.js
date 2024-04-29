@@ -3,13 +3,9 @@ import csv from "csv-parser";
 import fs from "fs";
 import { match } from "./utils/helper.js";
 
-const lsoaData = fs.readFileSync(
-  "./input/unique_lsoa_data.csv"
-);
+const lsoaData = fs.readFileSync("./input/unique_lsoa_data.csv");
 
-const LsoaModerators = fs.readFileSync(
-  "./input/LSOA_moderators.csv"
-);
+const LsoaModerators = fs.readFileSync("./input/LSOA_moderators.csv");
 
 //Read in csv
 export const processData = async (csvString, processFunction) => {
@@ -33,8 +29,8 @@ export const processData = async (csvString, processFunction) => {
 //moderator to be 3dp e.g. 0.831
 function fixDecimal(row) {
   for (const element in row) {
-    delete row['ICB'];
-    if (element === 'MODERATOR') {
+    delete row["ICB"];
+    if (element === "MODERATOR") {
       let roundedElement = Math.round(row[element] * 1000) / 1000;
       row[element] = roundedElement;
     }
@@ -43,7 +39,7 @@ function fixDecimal(row) {
 }
 
 function processShortCircuit(row) {
-  return row
+  return row;
 }
 
 //Convert string to csv

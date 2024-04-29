@@ -62,9 +62,9 @@ describe("Test for appending moderator to unique lsoa csv", () => {
   ];
 
   const testRoundedCsv = [
-    { LSOA_CODE: 'E01023741', MODERATOR: 0.952 },
-    { LSOA_CODE: 'E01023684', MODERATOR: 1.1 },
-  ]
+    { LSOA_CODE: "E01023741", MODERATOR: 0.952 },
+    { LSOA_CODE: "E01023684", MODERATOR: 1.1 },
+  ];
 
   test("test match function", async () => {
     const matchedResult = match(testCsvArray, testRoundedCsv);
@@ -88,7 +88,7 @@ describe("Test for appending moderator to unique lsoa csv", () => {
         MSOA_2021: "E02004940",
         IMD_RANK: "30070",
         IMD_DECILE: "10",
-        MODERATOR: "0.952"
+        MODERATOR: "0.952",
       },
       {
         POSTCODE: "AL1  1AJ",
@@ -108,7 +108,7 @@ describe("Test for appending moderator to unique lsoa csv", () => {
         MSOA_2021: "E02004940",
         IMD_RANK: "30070",
         IMD_DECILE: "10",
-        MODERATOR: "0.952"
+        MODERATOR: "0.952",
       },
       {
         POSTCODE: "AL1  1AR",
@@ -128,16 +128,16 @@ describe("Test for appending moderator to unique lsoa csv", () => {
         MSOA_2021: "E02004939",
         IMD_RANK: "28935",
         IMD_DECILE: "9",
-        MODERATOR: "1.100"
+        MODERATOR: "1.100",
       },
     ]);
   });
 
   test("test match function failure (append not found in moderator)", async () => {
     const csvWithDiffLsoa = [
-      { LSOA_CODE: 'E01020182', MODERATOR: 0.894 },
-      { LSOA_CODE: 'E01020150', MODERATOR: 1.127 },
-    ]
+      { LSOA_CODE: "E01020182", MODERATOR: 0.894 },
+      { LSOA_CODE: "E01020150", MODERATOR: 1.127 },
+    ];
 
     const matchedResult = match(testCsvArray, csvWithDiffLsoa);
     console.log(matchedResult);
@@ -160,7 +160,7 @@ describe("Test for appending moderator to unique lsoa csv", () => {
         MSOA_2021: "E02004940",
         IMD_RANK: "30070",
         IMD_DECILE: "10",
-        MODERATOR: "Not Found"
+        MODERATOR: "Not Found",
       },
       {
         POSTCODE: "AL1  1AJ",
@@ -180,7 +180,7 @@ describe("Test for appending moderator to unique lsoa csv", () => {
         MSOA_2021: "E02004940",
         IMD_RANK: "30070",
         IMD_DECILE: "10",
-        MODERATOR: "Not Found"
+        MODERATOR: "Not Found",
       },
       {
         POSTCODE: "AL1  1AR",
@@ -200,9 +200,8 @@ describe("Test for appending moderator to unique lsoa csv", () => {
         MSOA_2021: "E02004939",
         IMD_RANK: "28935",
         IMD_DECILE: "9",
-        MODERATOR: "Not Found"
+        MODERATOR: "Not Found",
       },
     ]);
   });
-
 });

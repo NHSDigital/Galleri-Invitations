@@ -7,8 +7,7 @@ import axios from "axios";
 // const maleCsv = fs.readFileSync("./male.csv");
 const maleCsv = fs.readFileSync("./dummy_data_male.csv");
 const femaleCsv = fs.readFileSync("./dummy_data_male.csv");
-const lsoaCsv = fs.readFileSync("./lsoa.csv")
-
+const lsoaCsv = fs.readFileSync("./lsoa.csv");
 
 // Functions
 // Read in csv
@@ -29,15 +28,15 @@ const processData = async (csvString, processFunction) => {
   });
 };
 
-function processLsoa(row){
+function processLsoa(row) {
   return {
     lsoa: row.LSOA_2011,
-    postcode: row.POSTCODE
-  }
+    postcode: row.POSTCODE,
+  };
 }
 
-function processShortCircuit(row){
-  return row
+function processShortCircuit(row) {
+  return row;
 }
 
 async function processParticipantPostcode(row) {
@@ -49,16 +48,16 @@ async function processParticipantPostcode(row) {
 
   const postcodeData = await axios.get(
     `https://api.postcodes.io/postcodes/${row.postcode}`
-    );
+  );
   const requestStatus = postcodeData?.data?.status;
 
   if (requestStatus == 200) {
     row.LSOA_2011 = postcodeData?.data?.result?.codes?.lsoa;
   } else {
-    console.log("response status = ", requestStatus)
+    console.log("response status = ", requestStatus);
   }
 
-  return row
+  return row;
 }
 
 // Convert string to csv
@@ -71,7 +70,7 @@ export const generateCsvString = (header, dataArray) => {
 
 // Create new file with filename as name, and obj as csv passed in
 const writeFile = (fileName, obj) => {
-  console.log("Writing data to csv")
+  console.log("Writing data to csv");
   fs.writeFile(fileName, obj, (err) => {
     if (err) {
       console.log(err);
@@ -91,24 +90,32 @@ const maleParticipantsDataArr = await processData(maleCsv, processShortCircuit);
 // console.log(`participantPostcode = ${typeof participant.postcode} and lsoaPostcode = ${typeof lsoa.postcode}`)
 
 // Read in test data to Arrays
-const maleParticipantsWithPostcodeInvited = maleParticipantsDataArr.map( (participant, index) => {
-  const participantPostcodeMatch = lsoaArray.find((lsoa) => {
-    return lsoa.postcode.replace(/\s/g, '') === participant.postcode.replace(/\s/g, '')
-  })
+const maleParticipantsWithPostcodeInvited = maleParticipantsDataArr.map(
+  (participant, index) => {
+    const participantPostcodeMatch = lsoaArray.find((lsoa) => {
+      return (
+        lsoa.postcode.replace(/\s/g, "") ===
+        participant.postcode.replace(/\s/g, "")
+      );
+    });
 
-  if (participantPostcodeMatch != undefined){
-    console.log(`Match at index ${index}`)
-    participant.Invited = Boolean(Math.floor(Math.random() * 2));
-    participant.LSOA_2011 = participantPostcodeMatch.lsoa
+    if (participantPostcodeMatch != undefined) {
+      console.log(`Match at index ${index}`);
+      participant.Invited = Boolean(Math.floor(Math.random() * 2));
+      participant.LSOA_2011 = participantPostcodeMatch.lsoa;
+    }
+    return participant;
   }
-  return participant;
-})
+);
 
 const testDataHeader =
   "nhs_number,superseded_by_subject_id,primary_care_provider,name_prefix,first_given_name,other_given_names,family_name,date_of_birth,gender_code,address_line_1,address_line_2,address_line_3,address_line_4,address_line_5,postcode,removal_reason,removal_date,date_of_death,telephone_number_home,telephone_number_mobile,email_address_home,preferred_language,interpreter_required,sensitivity_indicator_flag,Invited,LSOA_2011";
 
 // console.log(maleParticipantsWithPostcodeInvited)
-const maleParticipantsCsv = generateCsvString(testDataHeader, maleParticipantsWithPostcodeInvited);
+const maleParticipantsCsv = generateCsvString(
+  testDataHeader,
+  maleParticipantsWithPostcodeInvited
+);
 writeFile("male_participants_with_LSOA_Invited.csv", maleParticipantsCsv);
 
 // const femaleParticipantsDataArr = await processData(femaleCsv);

@@ -4,6 +4,5 @@
   "type": "module",
   "main": "createInvitationBatchLambda.js",
   "author": "",
-  "dependencies": {
-  }
+  "dependencies": {}
 }

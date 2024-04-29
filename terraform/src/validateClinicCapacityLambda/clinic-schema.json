@@ -4,11 +4,7 @@
     "InvitedParticipantBatch": {
       "type": "array",
       "items": {
-        "required": [
-          "participantId",
-          "nhsNumber",
-          "dateOfBirth"
-        ],
+        "required": ["participantId", "nhsNumber", "dateOfBirth"],
         "type": "object",
         "properties": {
           "participantId": {
@@ -48,19 +44,13 @@
           "example": "C1C-A1A"
         },
         "ODSCode": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "nullable": true,
           "pattern": "^.{0,10}$",
           "description": "ODS code of the clinic"
         },
         "ICBCode": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "nullable": true,
           "pattern": "^[a-zA-Z0-9\\s&'*(),.#\\-\"]{0,255}$",
           "description": "ICB code of the clinic"
@@ -105,10 +95,7 @@
       }
     },
     "ClinicScheduleSummary": {
-      "required": [
-        "ClinicScheduleSummary",
-        "Timestamp"
-      ],
+      "required": ["ClinicScheduleSummary", "Timestamp"],
       "type": "object",
       "properties": {
         "ClinicScheduleSummary": {
@@ -261,55 +248,37 @@
           "description": "RFC 3339 date time\n1) when the appointment was booked for in all events BUT the completed event\n2) in the completed event it's specifically overridden to be the time when appointment was started (attended)\n"
         },
         "BloodCollectionDate": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "nullable": true,
           "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
           "description": "Sent only in the appointment completed event. Required in the appointment completed event"
         },
         "PrimaryPhoneNumber": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "pattern": "^0?[1235789]\\d{8,9}$",
           "nullable": true,
           "description": "Resend as BOOKED if this is updated separate from booking flow. If participant choose they don't have a phone number this field will be blank"
         },
         "SecondaryPhoneNumber": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "pattern": "^0?[1235789]\\d{8,9}$",
           "nullable": true,
           "description": "Resend as BOOKED if this is updated separate from booking flow. If participant choose they don't have a phone number this field will be blank"
         },
         "Email": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "format": "email",
           "nullable": true,
           "description": "Resend as BOOKED if this is updated separate from booking flow"
         },
         "Replaces": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "nullable": true,
           "pattern": "^.{0,255}$",
           "description": "UUID for appointment being replaced (optional). Required if it's rebooked"
         },
         "CancellationReason": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "nullable": true,
           "enum": [
             "CANT_FIND_A_SUITABLE_LOCATION",
@@ -326,36 +295,18 @@
         },
         "Channel": {
           "type": "string",
-          "enum": [
-            "ONLINE",
-            "CALL_CENTRE",
-            "CLINIC"
-          ],
+          "enum": ["ONLINE", "CALL_CENTRE", "CLINIC"],
           "description": "Populated for all events. Online and call centre will be used for bookings and cancellations. Clinic will be used for no shows, aborted and completed"
         },
         "BloodNotCollectedReason": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "nullable": true,
-          "enum": [
-            "PARTICIPANT_DECISION",
-            "FAILED_ATTEMPT",
-            "OTHER",
-            null
-          ],
+          "enum": ["PARTICIPANT_DECISION", "FAILED_ATTEMPT", "OTHER", null],
           "description": "This is required if EventType is 'Aborted'"
         },
         "EventType": {
           "type": "string",
-          "enum": [
-            "BOOKED",
-            "CANCELLED",
-            "COMPLETE",
-            "ABORTED",
-            "NO_SHOW"
-          ],
+          "enum": ["BOOKED", "CANCELLED", "COMPLETE", "ABORTED", "NO_SHOW"],
           "description": "In case contact details or notification preferences are updated by the call centre outside of the booking process this same message will be sent to GPS, with all these fields, but the notification preferences and contact details will be updated. If the user has no appointment contact details cannot be updated. The new contact details or notification preferences will be sent as part of this message with event type corresponding to the most recent status of the appointment (i.e. if the appt was cancelled then the message with contact details or notifications preferences update will be event type cancelled).\nWe will not be sending a rebooking event or a cancellation of a rebooked appointment. The rebooked appointment is sent as BOOKED and the REPLACES field is populated"
         },
         "AppointmentAccessibility": {
@@ -368,10 +319,7 @@
           "$ref": "#/definitions/NotificationPreferences"
         },
         "GrailID": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "nullable": true,
           "pattern": "^NHS[1-9][A-HJ-NP-Z0-9]{6}$",
           "description": "Populated only in appointment COMPLETED event"
@@ -437,12 +385,7 @@
       }
     },
     "Withdrawal": {
-      "required": [
-        "ParticipantID",
-        "Withdrawn",
-        "Reason",
-        "Timestamp"
-      ],
+      "required": ["ParticipantID", "Withdrawn", "Reason", "Timestamp"],
       "type": "object",
       "properties": {
         "ParticipantID": {
@@ -528,18 +471,11 @@
           "$ref": "#/definitions/InterpreterLanguage"
         }
       },
-      "required": [
-        "signLanguage",
-        "braille",
-        "interpreter"
-      ]
+      "required": ["signLanguage", "braille", "interpreter"]
     },
     "InterpreterLanguage": {
       "title": "Interpreter languages",
-      "type": [
-        "string",
-        "null"
-      ],
+      "type": ["string", "null"],
       "nullable": true,
       "description": "Interpreter languages available for participants",
       "enum": [
@@ -568,10 +504,7 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "canSMS",
-        "canEmail"
-      ]
+      "required": ["canSMS", "canEmail"]
     },
     "WeekAvailability": {
       "title": "Week availability",
@@ -592,10 +525,7 @@
           "maximum": 10000
         }
       },
-      "required": [
-        "WeekCommencingDate",
-        "Availability"
-      ]
+      "required": ["WeekCommencingDate", "Availability"]
     },
     "ClinicSchedule": {
       "title": "Clinic schedule",
@@ -616,10 +546,7 @@
           }
         }
       },
-      "required": [
-        "ClinicID",
-        "Schedule"
-      ]
+      "required": ["ClinicID", "Schedule"]
     }
   },
   "properties": {

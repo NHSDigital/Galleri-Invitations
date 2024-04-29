@@ -16,8 +16,8 @@ body:
       label: Is there an existing issue for this?
       description: Please, search the Issues to see if an issue already exists for the bug you have encountered.
       options:
-      - label: I have searched the existing Issues
-        required: true
+        - label: I have searched the existing Issues
+          required: true
   - type: textarea
     attributes:
       label: Current Behavior
