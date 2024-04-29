@@ -2209,3 +2209,32 @@ module "appointment_table" {
     Environment = var.environment
   }
 }
+
+module "event_bridge_test_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "eventBridgeTestLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "event_bridge_test_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+
+module "event_bridge_test_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.event_bridge_test_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "caas_eventbridge_scheduler" {
+  source              = "./modules/eventbridge_scheduler"
+  function_name       = "eventBridgeTestLambda"
+  schedule_expression = "cron(0/15 * * * ? *)"
+  lambda_arn          = module.event_bridge_test_lambda.lambda_arn
+}
