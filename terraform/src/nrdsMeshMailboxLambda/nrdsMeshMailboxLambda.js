@@ -26,11 +26,8 @@ const ENVIRONMENT = process.env.ENVIRONMENT;
 export const handler = async (event, context) => {
   const CONFIG = await loadConfig({
     url: process.env.K8_URL,
-    // url: "test",
     TestKey: process.env.MESH_SHARED_KEY,
     sandbox: "true",
-    // senderMailboxID: process.env.MESH_RECEIVER_MAILBOX_ID,
-    // senderMailboxPassword: process.env.MESH_RECEIVER_MAILBOX_PASSWORD,
     receiverMailboxID: process.env.MESH_RECEIVER_MAILBOX_ID,
     receiverMailboxPassword: process.env.MESH_RECEIVER_MAILBOX_PASSWORD,
   });
@@ -54,8 +51,6 @@ export const handler = async (event, context) => {
           for (const element of messageArr) {
             const dateTime = new Date(Date.now()).toISOString();
             let message = await readMsg(CONFIG, READING_MSG, element); //returns messages based on id, iteratively from message list arr
-            console.log(message);
-            console.log(typeof message);
             const response = await pushCsvToS3(
               `${ENVIRONMENT}-processed-nrds-data`,
               `record_${dateTime}.json`,
@@ -66,7 +61,7 @@ export const handler = async (event, context) => {
               const confirmation = await markRead(CONFIG, MARKED, element);
               console.log(`${confirmation.status} ${confirmation.statusText}`);
             } else {
-              console.log(`Failed to process this message`);
+              console.error(`Error: Failed to process this message`);
             }
           }
         } else {
@@ -76,7 +71,7 @@ export const handler = async (event, context) => {
       }
     }
   } catch (error) {
-    console.error("Error occurred:", error);
+    console.error("Error:", error);
   }
 };
 
