@@ -100,7 +100,8 @@ resource "aws_iam_role_policy" "backup_policy" {
           "dynamodb:ListBackups",
           "dynamodb:RestoreTableToPointInTime",
           "dynamodb:ListTables",
-          "dynamodb:ListTagsOfResource"
+          "dynamodb:ListTagsOfResource",
+          "dynamodb:StartAwsBackupJob"
         ],
         Effect   = "Allow",
         Resource = "*"
