@@ -29,4 +29,5 @@ variable "environment" {}
 
 variable "K8_URL" {
   description = "url for eks mesh service"
+  default = null
 }
