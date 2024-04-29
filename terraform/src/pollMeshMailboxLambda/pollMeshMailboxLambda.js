@@ -1,6 +1,12 @@
-import { getSecret, chunking, multipleUpload } from "./helper.js"
-import { handShake, loadConfig, getMessageCount, readMessage, markAsRead } from "nhs-mesh-client";
-import { S3Client } from '@aws-sdk/client-s3';
+import { getSecret, chunking, multipleUpload } from "./helper.js";
+import {
+  handShake,
+  loadConfig,
+  getMessageCount,
+  readMessage,
+  markAsRead,
+} from "nhs-mesh-client";
+import { S3Client } from "@aws-sdk/client-s3";
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 
 //VARIABLES
@@ -34,7 +40,7 @@ const CONFIG = await loadConfig({
 export const handler = async (event, context) => {
   const finalMsgArr = [];
   try {
-    console.log('healthy test');
+    console.log("healthy test");
     let healthy = await getHealthStatusCode();
     if (healthy === 200) {
       console.log(`Status ${healthy}`);
@@ -59,16 +65,15 @@ export const handler = async (event, context) => {
           }
         }
       } else {
-        console.log('No Messages');
+        console.log("No Messages");
       }
     } else {
-      console.log('Failed to establish connection');
+      console.log("Failed to establish connection");
     }
   } catch (error) {
     console.error("Error occurred:", error);
   }
 };
-
 
 //FUNCTIONS
 //Read in MESH data
@@ -82,7 +87,7 @@ async function getHealthStatusCode() {
       agent: CONFIG.receiverAgent,
     });
 
-    return healthCheck.status
+    return healthCheck.status;
   } catch (error) {
     console.error("Error occurred:", error);
   }
@@ -98,7 +103,7 @@ async function getMessageArray() {
       sharedKey: CONFIG.sharedKey,
       agent: CONFIG.receiverAgent,
     });
-    let messageList = messageCount.data.messages
+    let messageList = messageCount.data.messages;
     let inboxCount = messageCount.data.approx_inbox_count;
     if (!inboxCount) {
       inboxCount = 0;
@@ -145,10 +150,8 @@ async function readMsg(msgID) {
 }
 
 async function readSecret(secretName, client) {
-  return Buffer.from(
-    await getSecret(secretName, client),
-    "base64"
-  ).toString("utf8");
+  return Buffer.from(await getSecret(secretName, client), "base64").toString(
+    "utf8"
+  );
 }
 //END OF FUNCTIONS
-

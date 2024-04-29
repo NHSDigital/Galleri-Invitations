@@ -17,8 +17,8 @@ import {
   formatDynamoDbRecord,
   uploadToDynamoDb,
   batchWriteRecords,
-  generateCsvString
-} from '../../caasFeedAddRecordsLambda/caasFeedAddRecordsLambda';
+  generateCsvString,
+} from "../../caasFeedAddRecordsLambda/caasFeedAddRecordsLambda";
 
 describe("readCsvFromS3", () => {
   afterEach(() => {
@@ -53,7 +53,9 @@ describe("readCsvFromS3", () => {
     }
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith(`Error: Failed to read from aaaaaaa/aaaaaaa`);
+    expect(logSpy).toHaveBeenCalledWith(
+      `Error: Failed to read from aaaaaaa/aaaaaaa`
+    );
   });
 });
 
@@ -77,7 +79,9 @@ describe("pushCsvToS3", () => {
 
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith(`Successfully pushed to galleri-ons-data/test.txt`);
+    expect(logSpy).toHaveBeenCalledWith(
+      `Successfully pushed to galleri-ons-data/test.txt`
+    );
     expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
   });
   test("Failed response when error occurs sending file to bucket", async () => {
@@ -93,14 +97,15 @@ describe("pushCsvToS3", () => {
     }
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith(`Error: Failed to push to galleri-ons-data/test.txt. Error Message: ${errorMsg}`);
+    expect(logSpy).toHaveBeenCalledWith(
+      `Error: Failed to push to galleri-ons-data/test.txt. Error Message: ${errorMsg}`
+    );
   });
 });
 
 describe("parseCsvToArray", () => {
   const testCsvString = `"nhs_number","dob","dod"\n"000","10/01/1991","11/01/1991"\n"111","01/09/2000","15/11/2023"`;
   test("should parse CSV string and call processFunction for each row", async () => {
-
     const result = await parseCsvToArray(testCsvString);
     expect(result).toEqual([
       { nhs_number: "000", dob: "10/01/1991", dod: "11/01/1991" },
@@ -109,181 +114,180 @@ describe("parseCsvToArray", () => {
   });
 });
 
-describe('filterUniqueEntries', () => {
-  test('returns an array containing unique records with nhs numbers and another array with duplicate records', async () => {
-
+describe("filterUniqueEntries", () => {
+  test("returns an array containing unique records with nhs numbers and another array with duplicate records", async () => {
     const uniqueRecords = [
       {
-        "message": "Validation successful",
-        "nhs_number": "5558028009",
-        "superseded_by_nhs_number": "null",
+        message: "Validation successful",
+        nhs_number: "5558028009",
+        superseded_by_nhs_number: "null",
       },
       {
-        "message": "Validation successful",
-        "nhs_number": "5558045337",
-        "superseded_by_nhs_number": "null",
+        message: "Validation successful",
+        nhs_number: "5558045337",
+        superseded_by_nhs_number: "null",
       },
       {
-        "message": "Validation successful",
-        "nhs_number": "5558015160",
-        "superseded_by_nhs_number": "null",
+        message: "Validation successful",
+        nhs_number: "5558015160",
+        superseded_by_nhs_number: "null",
       },
       {
-        "message": "Validation successful",
-        "nhs_number": "5558035153",
-        "superseded_by_nhs_number": "null"
+        message: "Validation successful",
+        nhs_number: "5558035153",
+        superseded_by_nhs_number: "null",
       },
       {
-        "message": "Validation successful",
-        "nhs_number": "5027042566",
-        "superseded_by_nhs_number": "null",
-      }
-    ]
+        message: "Validation successful",
+        nhs_number: "5027042566",
+        superseded_by_nhs_number: "null",
+      },
+    ];
 
     const duplicateRecords = [
       {
-        "message": "Validation successful",
-        "nhs_number": "5558014954",
-        "superseded_by_nhs_number": "null",
-        "primary_care_provider": "P84064",
-        "gp_connect": "false",
-        "name_prefix": "Mr",
-        "given_name": "Damon",
-        "other_given_names": "null",
-        "family_name": "Hill",
-        "date_of_birth": "1964-10-01",
-        "gender": "1",
-        "address_line_1": "School House",
-        "address_line_2": "Cottisford Road",
-        "address_line_3": "Bristol",
-        "address_line_4": "Avon",
-        "address_line_5": "null",
-        "postcode": "BS5 6TY",
-        "reason_for_removal": "null",
-        "reason_for_removal_effective_from_date": "null",
-        "date_of_death": "null",
-        "telephone_number": "null",
-        "mobile_number": "null",
-        "email_address": "null",
-        "preferred_language": "null",
-        "is_interpreter_required": "null",
-        "action": "UPDATE"
+        message: "Validation successful",
+        nhs_number: "5558014954",
+        superseded_by_nhs_number: "null",
+        primary_care_provider: "P84064",
+        gp_connect: "false",
+        name_prefix: "Mr",
+        given_name: "Damon",
+        other_given_names: "null",
+        family_name: "Hill",
+        date_of_birth: "1964-10-01",
+        gender: "1",
+        address_line_1: "School House",
+        address_line_2: "Cottisford Road",
+        address_line_3: "Bristol",
+        address_line_4: "Avon",
+        address_line_5: "null",
+        postcode: "BS5 6TY",
+        reason_for_removal: "null",
+        reason_for_removal_effective_from_date: "null",
+        date_of_death: "null",
+        telephone_number: "null",
+        mobile_number: "null",
+        email_address: "null",
+        preferred_language: "null",
+        is_interpreter_required: "null",
+        action: "UPDATE",
       },
       {
-        "message": "Validation successful",
-        "nhs_number": "5558014954",
-        "superseded_by_nhs_number": "null",
-        "primary_care_provider": "P84064",
-        "gp_connect": "false",
-        "name_prefix": "Mr",
-        "given_name": "Damon",
-        "other_given_names": "null",
-        "family_name": "Hill",
-        "date_of_birth": "1964-10-01",
-        "gender": "1",
-        "address_line_1": "School House",
-        "address_line_2": "Cottisford Road",
-        "address_line_3": "Bristol",
-        "address_line_4": "Avon",
-        "address_line_5": "null",
-        "postcode": "BS5 6TY",
-        "reason_for_removal": "null",
-        "reason_for_removal_effective_from_date": "null",
-        "date_of_death": "null",
-        "telephone_number": "null",
-        "mobile_number": "null",
-        "email_address": "null",
-        "preferred_language": "null",
-        "is_interpreter_required": "null",
-        "action": "UPDATE"
+        message: "Validation successful",
+        nhs_number: "5558014954",
+        superseded_by_nhs_number: "null",
+        primary_care_provider: "P84064",
+        gp_connect: "false",
+        name_prefix: "Mr",
+        given_name: "Damon",
+        other_given_names: "null",
+        family_name: "Hill",
+        date_of_birth: "1964-10-01",
+        gender: "1",
+        address_line_1: "School House",
+        address_line_2: "Cottisford Road",
+        address_line_3: "Bristol",
+        address_line_4: "Avon",
+        address_line_5: "null",
+        postcode: "BS5 6TY",
+        reason_for_removal: "null",
+        reason_for_removal_effective_from_date: "null",
+        date_of_death: "null",
+        telephone_number: "null",
+        mobile_number: "null",
+        email_address: "null",
+        preferred_language: "null",
+        is_interpreter_required: "null",
+        action: "UPDATE",
       },
       {
-        "message": "Validation successful",
-        "nhs_number": "5558014954",
-        "superseded_by_nhs_number": "null",
-        "primary_care_provider": "P84064",
-        "gp_connect": "false",
-        "name_prefix": "Mr",
-        "given_name": "Damon",
-        "other_given_names": "null",
-        "family_name": "Hill",
-        "date_of_birth": "1964-10-01",
-        "gender": "1",
-        "address_line_1": "School House",
-        "address_line_2": "Cottisford Road",
-        "address_line_3": "Bristol",
-        "address_line_4": "Avon",
-        "address_line_5": "null",
-        "postcode": "BS5 6TY",
-        "reason_for_removal": "null",
-        "reason_for_removal_effective_from_date": "null",
-        "date_of_death": "null",
-        "telephone_number": "null",
-        "mobile_number": "null",
-        "email_address": "null",
-        "preferred_language": "null",
-        "is_interpreter_required": "null",
-        "action": "UPDATE"
+        message: "Validation successful",
+        nhs_number: "5558014954",
+        superseded_by_nhs_number: "null",
+        primary_care_provider: "P84064",
+        gp_connect: "false",
+        name_prefix: "Mr",
+        given_name: "Damon",
+        other_given_names: "null",
+        family_name: "Hill",
+        date_of_birth: "1964-10-01",
+        gender: "1",
+        address_line_1: "School House",
+        address_line_2: "Cottisford Road",
+        address_line_3: "Bristol",
+        address_line_4: "Avon",
+        address_line_5: "null",
+        postcode: "BS5 6TY",
+        reason_for_removal: "null",
+        reason_for_removal_effective_from_date: "null",
+        date_of_death: "null",
+        telephone_number: "null",
+        mobile_number: "null",
+        email_address: "null",
+        preferred_language: "null",
+        is_interpreter_required: "null",
+        action: "UPDATE",
       },
       {
-        "message": "Validation successful",
-        "nhs_number": "5558014954",
-        "superseded_by_nhs_number": "null",
-        "primary_care_provider": "P84064",
-        "gp_connect": "false",
-        "name_prefix": "Mr",
-        "given_name": "Damon",
-        "other_given_names": "null",
-        "family_name": "Hill",
-        "date_of_birth": "1964-10-01",
-        "gender": "1",
-        "address_line_1": "School House",
-        "address_line_2": "Cottisford Road",
-        "address_line_3": "Bristol",
-        "address_line_4": "Avon",
-        "address_line_5": "null",
-        "postcode": "BS5 6TY",
-        "reason_for_removal": "null",
-        "reason_for_removal_effective_from_date": "null",
-        "date_of_death": "null",
-        "telephone_number": "null",
-        "mobile_number": "null",
-        "email_address": "null",
-        "preferred_language": "null",
-        "is_interpreter_required": "null",
-        "action": "UPDATE"
+        message: "Validation successful",
+        nhs_number: "5558014954",
+        superseded_by_nhs_number: "null",
+        primary_care_provider: "P84064",
+        gp_connect: "false",
+        name_prefix: "Mr",
+        given_name: "Damon",
+        other_given_names: "null",
+        family_name: "Hill",
+        date_of_birth: "1964-10-01",
+        gender: "1",
+        address_line_1: "School House",
+        address_line_2: "Cottisford Road",
+        address_line_3: "Bristol",
+        address_line_4: "Avon",
+        address_line_5: "null",
+        postcode: "BS5 6TY",
+        reason_for_removal: "null",
+        reason_for_removal_effective_from_date: "null",
+        date_of_death: "null",
+        telephone_number: "null",
+        mobile_number: "null",
+        email_address: "null",
+        preferred_language: "null",
+        is_interpreter_required: "null",
+        action: "UPDATE",
       },
       {
-        "message": "Validation successful",
-        "nhs_number": "5558014954",
-        "superseded_by_nhs_number": "null",
-        "primary_care_provider": "P84064",
-        "gp_connect": "false",
-        "name_prefix": "Mr",
-        "given_name": "Damon",
-        "other_given_names": "null",
-        "family_name": "Hill",
-        "date_of_birth": "1964-10-01",
-        "gender": "1",
-        "address_line_1": "School House",
-        "address_line_2": "Cottisford Road",
-        "address_line_3": "Bristol",
-        "address_line_4": "Avon",
-        "address_line_5": "null",
-        "postcode": "BS5 6TY",
-        "reason_for_removal": "null",
-        "reason_for_removal_effective_from_date": "null",
-        "date_of_death": "null",
-        "telephone_number": "null",
-        "mobile_number": "null",
-        "email_address": "null",
-        "preferred_language": "null",
-        "is_interpreter_required": "null",
-        "action": "UPDATE"
-      }
-    ]
+        message: "Validation successful",
+        nhs_number: "5558014954",
+        superseded_by_nhs_number: "null",
+        primary_care_provider: "P84064",
+        gp_connect: "false",
+        name_prefix: "Mr",
+        given_name: "Damon",
+        other_given_names: "null",
+        family_name: "Hill",
+        date_of_birth: "1964-10-01",
+        gender: "1",
+        address_line_1: "School House",
+        address_line_2: "Cottisford Road",
+        address_line_3: "Bristol",
+        address_line_4: "Avon",
+        address_line_5: "null",
+        postcode: "BS5 6TY",
+        reason_for_removal: "null",
+        reason_for_removal_effective_from_date: "null",
+        date_of_death: "null",
+        telephone_number: "null",
+        mobile_number: "null",
+        email_address: "null",
+        preferred_language: "null",
+        is_interpreter_required: "null",
+        action: "UPDATE",
+      },
+    ];
 
-    const recordsArray = [...uniqueRecords, ...duplicateRecords]
+    const recordsArray = [...uniqueRecords, ...duplicateRecords];
 
     const result = await filterUniqueEntries(recordsArray);
 
@@ -293,64 +297,71 @@ describe('filterUniqueEntries', () => {
   });
 });
 
-describe('checkDynamoTable', () => {
+describe("checkDynamoTable", () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
-  const SUCCESSFULL_REPSONSE = 200
-  const UNSUCCESSFULL_REPSONSE = 400
+  const SUCCESSFULL_REPSONSE = 200;
+  const UNSUCCESSFULL_REPSONSE = 400;
 
-
-  test('should return true if item exists in table', async () => {
+  test("should return true if item exists in table", async () => {
     mockDynamoDbClient.resolves({
       $metadata: {
-        httpStatusCode: 200
+        httpStatusCode: 200,
       },
-      Items: ["I exist"]
+      Items: ["I exist"],
     });
-
 
     const mockAttribute = "attribute-A";
     const mockTable = "table-A";
-    const mockAttributeName = "attributeName-A"
+    const mockAttributeName = "attributeName-A";
     const mockAttributeType = "Type-A";
 
-
-    const result = await checkDynamoTable(mockDynamoDbClient, mockAttribute, mockTable, mockAttributeName, mockAttributeType);
+    const result = await checkDynamoTable(
+      mockDynamoDbClient,
+      mockAttribute,
+      mockTable,
+      mockAttributeName,
+      mockAttributeType
+    );
 
     expect(result).toEqual(true);
   });
 
-  test('should return false if item does not exists in table', async () => {
+  test("should return false if item does not exists in table", async () => {
     mockDynamoDbClient.resolves({
       $metadata: {
-        httpStatusCode: 200
+        httpStatusCode: 200,
       },
-      Items: []
+      Items: [],
     });
 
     const mockAttribute = "attribute-A";
     const mockTable = "table-A";
-    const mockAttributeName = "attributeName-A"
+    const mockAttributeName = "attributeName-A";
     const mockAttributeType = "Type-A";
 
-
-    const result = await checkDynamoTable(mockDynamoDbClient, mockAttribute, mockTable, mockAttributeName, mockAttributeType);
+    const result = await checkDynamoTable(
+      mockDynamoDbClient,
+      mockAttribute,
+      mockTable,
+      mockAttributeName,
+      mockAttributeType
+    );
 
     expect(result).toEqual(false);
   });
-})
+});
 
-describe('lookUp', () => {
+describe("lookUp", () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
-  const SUCCESSFULL_REPSONSE = 200
-  const UNSUCCESSFULL_REPSONSE = 400
+  const SUCCESSFULL_REPSONSE = 200;
+  const UNSUCCESSFULL_REPSONSE = 400;
 
-
-  test('should return successful response if item does not exist from query', async () => {
+  test("should return successful response if item does not exist from query", async () => {
     mockDynamoDbClient.resolves({
       $metadata: {
-        httpStatusCode: 200
+        httpStatusCode: 200,
       },
-      Items: ["I exist"]
+      Items: ["I exist"],
     });
 
     const id = "ID-A";
@@ -358,18 +369,23 @@ describe('lookUp', () => {
     const attribute = "attribute-A";
     const attributeType = "Type-A";
 
-
-    const result = await lookUp(mockDynamoDbClient, id, table, attribute, attributeType);
+    const result = await lookUp(
+      mockDynamoDbClient,
+      id,
+      table,
+      attribute,
+      attributeType
+    );
 
     expect(result).toEqual(UNSUCCESSFULL_REPSONSE);
   });
 
-  test('should return unsuccessful response if item does exist from query', async () => {
+  test("should return unsuccessful response if item does exist from query", async () => {
     mockDynamoDbClient.resolves({
       $metadata: {
-        httpStatusCode: 200
+        httpStatusCode: 200,
       },
-      Items: []
+      Items: [],
     });
 
     const id = "ID-A";
@@ -377,47 +393,52 @@ describe('lookUp', () => {
     const attribute = "attribute-A";
     const attributeType = "Type-A";
 
-
-    const result = await lookUp(mockDynamoDbClient, id, table, attribute, attributeType);
+    const result = await lookUp(
+      mockDynamoDbClient,
+      id,
+      table,
+      attribute,
+      attributeType
+    );
 
     expect(result).toEqual(SUCCESSFULL_REPSONSE);
   });
-})
+});
 
-describe('generateParticipantID', () => {
+describe("generateParticipantID", () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
-  const SUCCESSFULL_REPSONSE = 200
-  const UNSUCCESSFULL_REPSONSE = 400
+  const SUCCESSFULL_REPSONSE = 200;
+  const UNSUCCESSFULL_REPSONSE = 400;
 
-
-  test('should return participantId matching regex if item does not exist in table', async () => {
+  test("should return participantId matching regex if item does not exist in table", async () => {
     mockDynamoDbClient.resolves({
       $metadata: {
-        httpStatusCode: 200
+        httpStatusCode: 200,
       },
-      Items: []
+      Items: [],
     });
 
-
     const result = await generateParticipantID(mockDynamoDbClient);
-    console.log(result)
+    console.log(result);
 
-    const testRegex = /NHS-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]/.test(result)
+    const testRegex =
+      /NHS-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]/.test(
+        result
+      );
 
     expect(testRegex).toEqual(true);
   });
+});
 
-})
-
-describe('getItemFromTable', () => {
+describe("getItemFromTable", () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
-  test('should return successful response if item does not exist from query', async () => {
+  test("should return successful response if item does not exist from query", async () => {
     mockDynamoDbClient.resolves({
       $metadata: {
-        httpStatusCode: 200
+        httpStatusCode: 200,
       },
-      Item: "Table item"
+      Item: "Table item",
     });
 
     const partitionKeyName = "PK-Name";
@@ -427,50 +448,56 @@ describe('getItemFromTable', () => {
     const sortKeyType = "SK-Type";
     const sortKeyValue = "SK-Name";
 
-    const result = await getItemFromTable(mockDynamoDbClient, partitionKeyName, partitionKeyType, partitionKeyValue, sortKeyName, sortKeyType, sortKeyValue);
+    const result = await getItemFromTable(
+      mockDynamoDbClient,
+      partitionKeyName,
+      partitionKeyType,
+      partitionKeyValue,
+      sortKeyName,
+      sortKeyType,
+      sortKeyValue
+    );
 
     expect(result.Item).toEqual("Table item");
   });
-})
+});
 
-
-describe('formatDynamoDbRecord', () => {
+describe("formatDynamoDbRecord", () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
   const mockRecord = {
-    "participant_id": "NHS-QJ63-YT22",
-    "lsoa_2011": "E00000001",
-    "message": "Validation successful",
-    "nhs_number": "null",
-    "superseded_by_nhs_number": "null",
-    "primary_care_provider": "Y00291",
-    "gp_connect": "true",
-    "name_prefix": "Mr",
-    "given_name": "David",
-    "other_given_names": "null",
-    "family_name": "GIB",
-    "date_of_birth": "1960-04-01",
-    "gender": "null",
-    "address_line_1": "TEST3.1.11",
-    "address_line_2": "PYNES HILL",
-    "address_line_3": "RYDON LANE",
-    "address_line_4": "EXETER",
-    "address_line_5": "DEVON",
-    "postcode": "BD10 0LH",
-    "reason_for_removal": "null",
-    "reason_for_removal_effective_from_date": "null",
-    "responsible_icb": "null",
-    "date_of_death": "null",
-    "telephone_number": "null",
-    "mobile_number": "null",
-    "email_address": "null",
-    "preferred_language": "fr",
-    "is_interpreter_required": "1",
-    "action": "ADD"
-  }
+    participant_id: "NHS-QJ63-YT22",
+    lsoa_2011: "E00000001",
+    message: "Validation successful",
+    nhs_number: "null",
+    superseded_by_nhs_number: "null",
+    primary_care_provider: "Y00291",
+    gp_connect: "true",
+    name_prefix: "Mr",
+    given_name: "David",
+    other_given_names: "null",
+    family_name: "GIB",
+    date_of_birth: "1960-04-01",
+    gender: "null",
+    address_line_1: "TEST3.1.11",
+    address_line_2: "PYNES HILL",
+    address_line_3: "RYDON LANE",
+    address_line_4: "EXETER",
+    address_line_5: "DEVON",
+    postcode: "BD10 0LH",
+    reason_for_removal: "null",
+    reason_for_removal_effective_from_date: "null",
+    responsible_icb: "null",
+    date_of_death: "null",
+    telephone_number: "null",
+    mobile_number: "null",
+    email_address: "null",
+    preferred_language: "fr",
+    is_interpreter_required: "1",
+    action: "ADD",
+  };
 
-  test('should successfully format response with correct data', async () => {
-
+  test("should successfully format response with correct data", async () => {
     const expectedResult = {
       PutRequest: {
         Item: {
@@ -502,36 +529,40 @@ describe('formatDynamoDbRecord', () => {
           email_address: { S: "null" },
           preferred_language: { S: "fr" },
           is_interpreter_required: { BOOL: Boolean("1") },
-          Invited: {S: "false"},
-          identified_to_be_invited: {BOOL: false},
+          Invited: { S: "false" },
+          identified_to_be_invited: { BOOL: false },
           action: { S: "ADD" },
-        }
-      }
-    }
+        },
+      },
+    };
 
     const result = await formatDynamoDbRecord(mockRecord);
     expect(result).toEqual(expectedResult);
   });
-})
+});
 
-describe('uploadToDynamoDb', () => {
+describe("uploadToDynamoDb", () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
-  test('should return successful response if item does not exist from query', async () => {
+  test("should return successful response if item does not exist from query", async () => {
     mockDynamoDbClient.resolves({
       $metadata: {
-        httpStatusCode: 200
+        httpStatusCode: 200,
       },
     });
 
-    const mockTable = "table-A"
-    const mockBatch = [{ records: 1 }, { record: 2 }]
+    const mockTable = "table-A";
+    const mockBatch = [{ records: 1 }, { record: 2 }];
 
-    const result = await uploadToDynamoDb(mockDynamoDbClient, mockTable, mockBatch);
+    const result = await uploadToDynamoDb(
+      mockDynamoDbClient,
+      mockTable,
+      mockBatch
+    );
 
     expect(result).toEqual(200);
   });
-})
+});
 
 describe("batchWriteRecords", () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
@@ -547,7 +578,11 @@ describe("batchWriteRecords", () => {
       },
     });
 
-    const result = await batchWriteRecords(batch, chunkSize, mockDynamoDbClient);
+    const result = await batchWriteRecords(
+      batch,
+      chunkSize,
+      mockDynamoDbClient
+    );
 
     expect(result).toEqual([200]);
   });
@@ -562,7 +597,11 @@ describe("batchWriteRecords", () => {
       },
     });
 
-    const result = await batchWriteRecords(batch, chunkSize, mockDynamoDbClient);
+    const result = await batchWriteRecords(
+      batch,
+      chunkSize,
+      mockDynamoDbClient
+    );
 
     expect(result).toEqual([400]);
   });
@@ -578,7 +617,11 @@ describe("batchWriteRecords", () => {
       },
     });
 
-    const result = await batchWriteRecords(batch, chunkSize, mockDynamoDbClient);
+    const result = await batchWriteRecords(
+      batch,
+      chunkSize,
+      mockDynamoDbClient
+    );
 
     expect(result).toEqual([]);
   });

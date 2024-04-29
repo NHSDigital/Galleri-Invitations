@@ -1,6 +1,14 @@
-import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
+import {
+  SecretsManagerClient,
+  GetSecretValueCommand,
+} from "@aws-sdk/client-secrets-manager";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { handShake, getMessageCount, markAsRead, readMessage } from "nhs-mesh-client";
+import {
+  handShake,
+  getMessageCount,
+  markAsRead,
+  readMessage,
+} from "nhs-mesh-client";
 
 //Push string from MESH to S3
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
@@ -25,7 +33,7 @@ export const getSecret = async (secretName, client) => {
   try {
     const response = await client.send(
       new GetSecretValueCommand({
-        SecretId: secretName
+        SecretId: secretName,
       })
     );
     console.log(`Retrieved value successfully ${secretName}`);
@@ -34,14 +42,13 @@ export const getSecret = async (secretName, client) => {
     console.log(`Failed: ${error}`);
     throw error;
   }
-}
+};
 
 /*
  * Establish connection with MESH
  * @params handshake to be replaced with handShake fn
  */
 export const getHealthStatusCode = async (CONFIG, handshake) => {
-
   try {
     const healthCheck = await handshake({
       url: CONFIG.url,
@@ -55,7 +62,7 @@ export const getHealthStatusCode = async (CONFIG, handshake) => {
   } catch (error) {
     console.error(`Error occurred: ${error}`);
   }
-}
+};
 /*
  * Return an array of message IDs from MESH
  * @params msgCount to be replaced with getMessageCount fn
@@ -68,8 +75,8 @@ export const getMessageArray = async (CONFIG, msgCount) => {
       mailboxPassword: CONFIG.receiverMailboxPassword,
       sharedKey: CONFIG.sharedKey,
       agent: CONFIG.receiverAgent,
-    })
-    let messageList = messageCount.data.messages
+    });
+    let messageList = messageCount.data.messages;
     let inboxCount = messageCount.data.approx_inbox_count;
     if (!inboxCount) {
       inboxCount = 0;
@@ -79,7 +86,7 @@ export const getMessageArray = async (CONFIG, msgCount) => {
   } catch (error) {
     console.error("Error occurred:", error);
   }
-}
+};
 
 /*
  * Marks messaged as read based on the message ID passed in,
@@ -100,7 +107,7 @@ export const markRead = async (CONFIG, marked, msgID) => {
   } catch (error) {
     console.error(`Error occurred: ${error}`);
   }
-}
+};
 /*
  * Reads message data from MESH based on message ID
  * @params readingMsg to be replaced with readMessage fn
@@ -119,4 +126,4 @@ export const readMsg = async (CONFIG, readingMsg, msgID) => {
   } catch (error) {
     console.error("Error occurred:", error);
   }
-}
+};
