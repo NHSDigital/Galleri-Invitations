@@ -2232,9 +2232,9 @@ module "event_bridge_test_lambda_cloudwatch" {
   retention_days       = 14
 }
 
-# module "caas_eventbridge_scheduler" {
-#   source              = "./modules/eventbridge_scheduler"
-#   function_name       = "eventBridgeTestLambda"
-#   schedule_expression = "cron(0/15 * * * ? *)"
-#   lambda_arn          = module.event_bridge_test_lambda.lambda_arn
-# }
+module "caas_eventbridge_scheduler" {
+  source              = "./modules/eventbridge_scheduler"
+  function_name       = "eventBridgeTestLambda"
+  schedule_expression = "cron(0/15 * * * ? *)"
+  lambda_arn          = module.event_bridge_test_lambda.lambda_arn
+}
