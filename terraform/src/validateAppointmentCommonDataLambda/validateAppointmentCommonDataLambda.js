@@ -46,13 +46,14 @@ export const handler = async (event) => {
       const validateEpisode = !(validateEpisodeResponse.Items.length > 0);
 
       if (validateParticipantId || validateEpisode) {
-        await rejectRecord(appointmentJson);
-        console.error("Error: No valid ParticipantID or Episode in table");
+        await rejectRecord(
+          appointmentJson,
+          "No valid ParticipantID or Episode in table"
+        );
         return;
       }
     } else {
-      await rejectRecord(appointmentJson);
-      console.error("Error: No property ParticipantID found");
+      await rejectRecord(appointmentJson, "No property ParticipantID found");
       return;
     }
     //Check if either PDSNHSNumber and InvitationNHSNumber map to an NHS Number
@@ -68,16 +69,16 @@ export const handler = async (event) => {
         Appointment.PDSNHSNumber !==
           validateParticipantIdResponse.Items.nhs_number
       ) {
-        await rejectRecord(appointmentJson);
-        console.log(
+        await rejectRecord(
+          appointmentJson,
           "InvitationNHSNumber nor PDSNHSNumber map to a valid NHSNumber"
         );
         return;
       }
     } else {
-      await rejectRecord(appointmentJson);
-      console.error(
-        "Error: No property InvitationNHSNumber or PDSNHSNumber found"
+      await rejectRecord(
+        appointmentJson,
+        "No property InvitationNHSNumber or PDSNHSNumber found"
       );
       return;
     }
@@ -93,13 +94,11 @@ export const handler = async (event) => {
       );
       const validateClinicId = !(validateClinicIdResponse.Items.length > 0);
       if (validateClinicId) {
-        await rejectRecord(appointmentJson);
-        console.error("Error: No valid ClinicID in table");
+        await rejectRecord(appointmentJson, "No valid ClinicID in table");
         return;
       }
     } else {
-      await rejectRecord(appointmentJson);
-      console.error("Error: No property ClinicID found");
+      await rejectRecord(appointmentJson, "No property ClinicID found");
       return;
     }
     //Checks to ensure new appointment time is more recent than the old appointment time
@@ -120,8 +119,8 @@ export const handler = async (event) => {
         );
         const newAppointmentTime = new Date(Appointment.AppointmentDateTime);
         if (oldAppointmentTime > newAppointmentTime) {
-          await rejectRecord(appointmentJson);
-          console.log(
+          await rejectRecord(
+            appointmentJson,
             "Existing Appointment is more recent then New Appointment"
           );
           return;
@@ -137,19 +136,19 @@ export const handler = async (event) => {
           ) {
             updateAppointmentTable(dbClient, Appointment);
           } else {
-            await rejectRecord(appointmentJson);
-            console.error("Error: Appointment ID do not match for update");
+            await rejectRecord(
+              appointmentJson,
+              "Appointment ID do not match for update"
+            );
             return;
           }
         }
       } else {
-        await rejectRecord(appointmentJson);
-        console.error("Error: No Valid Appointment found");
+        await rejectRecord(appointmentJson, "No Valid Appointment found");
         return;
       }
     } else {
-      await rejectRecord(appointmentJson);
-      console.error("Error: No property AppointmentID found");
+      await rejectRecord(appointmentJson, "No property AppointmentID found");
       return;
     }
     await acceptRecord(appointmentJson);
@@ -195,16 +194,18 @@ export const pushToS3 = async (bucketName, key, body, client) => {
   }
 };
 
-export const rejectRecord = async (appointmentJson) => {
+export const rejectRecord = async (appointmentJson, msg) => {
   try {
     const timeNow = new Date().toISOString();
     const jsonString = JSON.stringify(appointmentJson);
+    const filename = `invalid_records-${timeNow}.json`;
     await pushToS3(
       `${ENVIRONMENT}-processed-appointments`,
-      `invalidRecords/invalid_records-${timeNow}.json`,
+      `invalidRecords/${filename}`,
       jsonString,
       s3
     );
+    console.error(`Error: ${msg} \n Saving ${filename} to Invalid Records`);
     return;
   } catch (err) {
     console.error("Error: ", err);
