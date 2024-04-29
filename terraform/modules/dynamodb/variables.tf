@@ -84,6 +84,6 @@ variable "stream_view_type" {
 
 variable "schedule" {
   type        = string
-  default     = "cron(0 12 * * ? *)"
+  default     = "cron(0 0 * * ? *)"
   description = "the time that the database will be backed up, defaults to midnight"
 }
