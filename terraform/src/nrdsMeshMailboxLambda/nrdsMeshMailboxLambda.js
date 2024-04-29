@@ -25,7 +25,7 @@ const ENVIRONMENT = process.env.ENVIRONMENT;
 //HANDLER
 export const handler = async (event, context) => {
   const CONFIG = await loadConfig({
-    url: "",
+    url: process.env.K8_URL,
     TestKey: process.env.MESH_SHARED_KEY,
     sandbox: "true",
     // senderMailboxID: process.env.MESH_RECEIVER_MAILBOX_ID,

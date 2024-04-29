@@ -1203,7 +1203,7 @@ module "nrds_mesh_mailbox_lambda" {
     MESH_SHARED_KEY                = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
     MESH_RECEIVER_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.sand_mesh_mailbox_id.secret_string)["SAND_MESH_MAILBOX_ID"],
     MESH_RECEIVER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.sand_mesh_mailbox_password.secret_string)["SAND_MESH_MAILBOX_PASSWORD"],
-
+    K8_URL                         = "${var.K8_URL}",
   }
 }
 
