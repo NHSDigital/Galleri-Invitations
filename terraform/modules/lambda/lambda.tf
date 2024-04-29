@@ -31,3 +31,4 @@ resource "aws_s3_object" "lambda_s3_object" {
 
   etag = filemd5(data.archive_file.lambda_archive.output_path)
 }
+
