@@ -1,4 +1,4 @@
-import jwtModule from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 import fetch from 'fetch-retry';
@@ -15,7 +15,6 @@ const dynamodbClient = new DynamoDBClient({ region: "eu-west-2" });
 const smClient = new SecretsManagerClient({ region: "eu-west-2" });
 const sqsClient = new SQSClient({});
 const notifySendMessageStatusTable = 'NotifySendMessageStatus';
-const { sign } = jwtModule;
 const ENVIRONMENT = process.env.ENVIRONMENT;
 const statusCodesToRetryOn = [400,408,425,429,500,501,503,504];
 
@@ -277,7 +276,7 @@ export const getSecret = async (secretName, client) => {
   }
 };
 
-const generateJWT = (apiKey, tokenEndpointUrl, publicKeyId, privateKey) => {
+export const generateJWT = (apiKey, tokenEndpointUrl, publicKeyId, privateKey) => {
   const expiration = Math.floor(new Date().getTime() / 1000) + (5 * 60);
   const claims = {
     "sub": apiKey,
@@ -287,12 +286,12 @@ const generateJWT = (apiKey, tokenEndpointUrl, publicKeyId, privateKey) => {
     "exp":  expiration,/* 5mins in the future */
   };
 
-  const signedJWT = sign(claims, privateKey, { algorithm: "RS512", header: { kid: publicKeyId } });
+  const signedJWT = jwt.sign(claims, privateKey, { algorithm: "RS512", header: { kid: publicKeyId } });
   console.log("Signed jwt: ", signedJWT);
   return signedJWT;
 };
 
-const getAccessToken = async (tokenEndpointUrl, signedJWT) => {
+export const getAccessToken = async (tokenEndpointUrl, signedJWT) => {
   const data = {
     'grant_type': 'client_credentials',
     'client_assertion_type': 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
