@@ -85,7 +85,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    timeout-minutes: 5
+    timeout-minutes: 10
     name: "Perform unit tests and static analysis"
     steps:
       - name: "Checkout code"
