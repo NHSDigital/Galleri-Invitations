@@ -47,10 +47,6 @@ variable "GALLERI_ACTIVITY_CODE" {
   default = null
 }
 
-variable "GALLERI_ACTIVITY_NAME" {
-  default = null
-}
-
 variable "account_id" {
   description = "account id"
 }

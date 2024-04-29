@@ -133,9 +133,6 @@ variable "CIS2_REDIRECT_URL" {
 variable "GALLERI_ACTIVITY_CODE" {
 }
 
-variable "GALLERI_ACTIVITY_NAME" {
-}
-
 variable "hostname" {
 }
 

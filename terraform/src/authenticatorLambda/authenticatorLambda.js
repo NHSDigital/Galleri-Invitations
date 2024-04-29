@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from "uuid";
 import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import axios from "axios";
-import jwt from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 
 import {
@@ -18,30 +17,52 @@ const CLIENT_ID = process.env.CIS2_ID;
 const TOKEN_ENDPOINT_URL = process.env.CIS2_TOKEN_ENDPOINT_URL;
 const KID = process.env.CIS2_PUBLIC_KEY_ID;
 const PRIVATE_KEY_SECRET_NAME = process.env.CIS2_KEY_NAME;
-const CIS2_REDIRECT_URL = "http://localhost:3000/api/auth/callback/cis2";
+const CIS2_REDIRECT_URL = process.env.CIS2_REDIRECT_URL;
 const GALLERI_ACTIVITY_CODE = process.env.GALLERI_ACTIVITY_CODE;
-const GALLERI_ACTIVITY_NAME = process.env.GALLERI_ACTIVITY_NAME;
 
 export const handler = async (event) => {
-  const code = event.queryStringParameters.code;
-  console.log("Code :", code);
-  const signedJWT = await getCIS2SignedJWT();
-  console.log("signedJWT :", signedJWT.body);
-  const { tokens } = await getTokens(code, signedJWT.body);
-  console.log("tokens :", tokens);
-  const userInfo = await getUserinfo(tokens);
-  console.log("userInfo :", userInfo);
-  const uuid = userInfo.uid.replace(/(.{4})/g, "$1 ").trim();
-  const userRole = await getUserRole(uuid);
-  console.log("userRole :", userRole);
-  return { statusCode: 200, body: JSON.stringify(userInfo) };
+  try {
+    const cis2ClientID = await getSecret(CLIENT_ID, smClient);
+    const code = event.queryStringParameters.code; // getting authorization code from Query parameter
+    const signedJWT = await getCIS2SignedJWT(cis2ClientID); // getting signed private key JWT
+    const { tokens } = await getTokens(code, signedJWT.body, cis2ClientID); // getting tokens from CIS2
+    const userInfo = await getUserinfo(tokens); // exchanging the access token for user Info
+    const uuid = userInfo.uid.replace(/(.{4})(?!$)/g, "$1 ");
+    const userRole = await getUserRole(uuid); // matching the user id from CIS2 with GPS user data base to grab the status and role
+    const userAuthData = {
+      sub: userInfo.sub,
+      role: userRole.Role,
+      activityCodes: userInfo.nhsid_nrbac_roles[0].activity_codes,
+      accountStatus: userRole.Status,
+    };
+    const checkAuthorizationResult = await checkAuthorization(
+      userAuthData,
+      tokens,
+      GALLERI_ACTIVITY_CODE,
+      cis2ClientID,
+      extractClaims,
+      validateTokenExpirationWithAuthTime,
+      validateTokenSignature
+    );
+    const authResponse = {
+      id: userInfo.uid,
+      name: userRole.Name,
+      email: userRole.Email,
+      role: userRole.Role,
+      isAuthorized: checkAuthorizationResult,
+    };
+
+    return { statusCode: 200, body: JSON.stringify(authResponse) };
+  } catch (error) {
+    console.error("ERROR :", error);
+  }
 };
 
-export async function getCIS2SignedJWT() {
+// Function to return the generated JWT signed by a private Key
+export async function getCIS2SignedJWT(cis2ClientID) {
   try {
     console.log("Getting CIS2 signed jwt");
     const privateKey = await getSecret(PRIVATE_KEY_SECRET_NAME, smClient);
-    const cis2ClientID = await getSecret(CLIENT_ID, smClient);
     const signedJWT = generateJWT(
       cis2ClientID,
       TOKEN_ENDPOINT_URL,
@@ -59,6 +80,7 @@ export async function getCIS2SignedJWT() {
   }
 }
 
+// Function to get Secrets
 export const getSecret = async (secretName, client) => {
   try {
     const response = await client.send(
@@ -74,6 +96,7 @@ export const getSecret = async (secretName, client) => {
   }
 };
 
+// Function to generate a JWT and sign it with a private key
 export const generateJWT = (
   clientId,
   tokenEndpointUrl,
@@ -96,6 +119,7 @@ export const generateJWT = (
   return signedJwt;
 };
 
+// Function to generate and return an HTTP response object
 export const createResponse = (httpStatusCode, body) => {
   const responseObject = {};
   responseObject.statusCode = httpStatusCode;
@@ -110,8 +134,8 @@ export const createResponse = (httpStatusCode, body) => {
   return responseObject;
 };
 
-export async function getTokens(authCode, signedJWT) {
-  const cis2ClientID = await getSecret(CLIENT_ID, smClient);
+// Function to exchange an authorization code for tokens from an OAuth provider(CIS2)
+export async function getTokens(authCode, signedJWT, cis2ClientID) {
   const body = {
     grant_type: "authorization_code",
     redirect_uri: CIS2_REDIRECT_URL,
@@ -154,6 +178,7 @@ export async function getUserinfo(tokens) {
   }
 }
 
+// Function to exchange the access token for user information from an OAuth provider(CIS2)
 export async function getUserRole(uuid) {
   console.log(environment);
   console.log(typeof uuid);
@@ -178,13 +203,14 @@ export async function getUserRole(uuid) {
 
     const item = unmarshall(data.Item);
 
-    return JSON.stringify(item);
+    return item;
   } catch (error) {
     console.error("Error getting item from DynamoDB:", error);
     throw new Error(error);
   }
 }
 
+// Function to check the authorization requirement and validate the token claims and signature received from CIS2
 export async function checkAuthorization(
   user,
   account,
@@ -227,11 +253,6 @@ export async function checkAuthorization(
       !user.activityCodes.includes(galleriActivityCode) ||
       idTokenPayload.authentication_assurance_level !== "3"
     ) {
-      return "/autherror/activity_code_missing?error=Galleri+activity+code+missing+or+authentication+is+not+L3";
-    }
-  } else {
-    // For Local auth below as no need to check all the Token claims as above
-    if (!user.activityCodes.includes(galleriActivityCode)) {
       return "/autherror/activity_code_missing?error=Galleri+activity+code+missing+or+authentication+is+not+L3";
     }
   }
@@ -315,6 +336,6 @@ export async function validateTokenSignature(idToken, jwksUri) {
     return decoded;
   } catch (error) {
     console.error("Error validating ID token signature:", error.message);
-    throw error;
+    throw new Error(error);
   }
 }

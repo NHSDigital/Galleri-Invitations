@@ -55,7 +55,6 @@ module "galleri_invitations_screen" {
   NEXTAUTH_URL                                          = var.NEXTAUTH_URL
   CIS2_REDIRECT_URL                                     = var.CIS2_REDIRECT_URL
   GALLERI_ACTIVITY_CODE                                 = var.GALLERI_ACTIVITY_CODE
-  GALLERI_ACTIVITY_NAME                                 = var.GALLERI_ACTIVITY_NAME
   hostname                                              = var.invitations-hostname
   dns_zone                                              = var.dns_zone
   region                                                = var.region
