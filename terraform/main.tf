@@ -48,16 +48,16 @@ module "galleri_invitations_screen" {
   NEXT_PUBLIC_PUT_TARGET_PERCENTAGE                     = module.target_fill_to_percentage_put_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_TARGET_PERCENTAGE                         = module.target_fill_to_percentage_get_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_GENERATE_INVITES                          = module.generate_invites_api_gateway.rest_api_galleri_id
-  NEXT_PUBLIC_GET_USER_ROLE                             = module.get_user_role_api_gateway.rest_api_galleri_id
-  NEXT_PUBLIC_AUTHENTICATOR                             = module.authenticator_lambda_api_gateway.rest_api_galleri_id
-  USERS                                                 = var.USERS
-  CIS2_ID                                               = var.CIS2_ID
-  NEXTAUTH_URL                                          = var.NEXTAUTH_URL
-  CIS2_REDIRECT_URL                                     = var.CIS2_REDIRECT_URL
-  GALLERI_ACTIVITY_CODE                                 = var.GALLERI_ACTIVITY_CODE
-  hostname                                              = var.invitations-hostname
-  dns_zone                                              = var.dns_zone
-  region                                                = var.region
+  # NEXT_PUBLIC_GET_USER_ROLE                             = module.get_user_role_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_AUTHENTICATOR = module.authenticator_lambda_api_gateway.rest_api_galleri_id
+  USERS                     = var.USERS
+  CIS2_ID                   = var.CIS2_ID
+  NEXTAUTH_URL              = var.NEXTAUTH_URL
+  CIS2_REDIRECT_URL         = var.CIS2_REDIRECT_URL
+  GALLERI_ACTIVITY_CODE     = var.GALLERI_ACTIVITY_CODE
+  hostname                  = var.invitations-hostname
+  dns_zone                  = var.dns_zone
+  region                    = var.region
 }
 
 # the role that all lambda's are utilising,
