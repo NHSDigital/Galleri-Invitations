@@ -159,6 +159,4 @@ runs:
         npm install --prefix src/sendInvitationBatchToRawMessageQueueLambda
         npm install --prefix src/sendEnrichedMessageToNotifyQueueLambda
         npm install --prefix src/nrdsMeshMailboxLambda
-        echo $TF_VAR_K8_URL
-        echo $K8_URL
-        terraform ${{ env.tf-action }} -no-color -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars
+        terraform ${{ env.tf-action }} -no-color -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars -var="TF_VAR_K8_URL=$TF_VAR_K8_URL"
