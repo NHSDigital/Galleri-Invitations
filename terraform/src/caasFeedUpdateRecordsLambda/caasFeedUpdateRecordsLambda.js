@@ -446,7 +446,7 @@ export async function putTableRecord(client, table, newRecord, oldRecord) {
 
 function formatPopulationPutItem(table, newRecord){
   console.log("Entered formatPopulationPutItem");
-  
+
   // nhs_number: {N: newRecord.nhs_number}, -> 0
   if (newRecord.nhs_number === "null") newRecord.nhs_number = "0"
   // superseded_by_nhs_number: {N: newRecord.superseded_by_nhs_number}, -> 0
@@ -457,7 +457,7 @@ function formatPopulationPutItem(table, newRecord){
   if (newRecord.telephone_number === "null") newRecord.telephone_number = "0"
   // mobile_number: {N: newRecord.mobile_number}, -> 0
   if (newRecord.mobile_number === "null") newRecord.mobile_number = "0"
-  
+
   console.log("newRecord", JSON.stringify(newRecord));
 
   return {
@@ -499,7 +499,7 @@ function formatPopulationPutItem(table, newRecord){
 function formatEpisodePutItem(table, newRecord) {
   console.log("Entered formatEpisodePutItem");
   console.log("newRecord", JSON.stringify(newRecord));
-  
+
   return {
     Item: {
       Batch_Id: {S: newRecord.Batch_Id},
