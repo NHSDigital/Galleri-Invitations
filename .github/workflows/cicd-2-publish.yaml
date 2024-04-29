@@ -73,7 +73,7 @@ jobs:
           tar -xzvf go-markdown2confluence_3.4.6_linux_x86_64.tar.gz -C /usr/local/bin/ markdown2confluence
       - name: Test confluence access
         run: |
-          curl -v https://nhsd-confluence.digital.nhs.uk --user ${{ secrets.CONFLUENCE_USERNAME }}:${{ secrets.CONFLUENCE_API_TOKEN }}
+          curl -v -X GET -H 'Authorization: Bearer ${{ secrets.CONFLUENCE_USERNAME }}:${{ secrets.CONFLUENCE_API_TOKEN }}' https://nhsd-confluence.digital.nhs.uk
       - name: Execute command
         run: |
           export CONFLUENCE_USERNAME=${{ secrets.CONFLUENCE_USERNAME }}
