@@ -19,6 +19,7 @@ export const handler = async (event) => {
   );
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
   try {
+    let validateParticipantIdResponse;
     const appointmentString = await readFromS3(bucket, key, s3);
     const appointmentJson = JSON.parse(appointmentString);
     const { Appointment } = appointmentJson;
@@ -64,9 +65,9 @@ export const handler = async (event) => {
     ) {
       if (
         Appointment.InvitationNHSNumber !==
-          validateParticipantIdResponse.Items.nhs_number &&
+          validateParticipantIdResponse.Items[0].nhs_number.S &&
         Appointment.PDSNHSNumber !==
-          validateParticipantIdResponse.Items.nhs_number
+          validateParticipantIdResponse.Items[0].nhs_number.S
       ) {
         await rejectRecord(appointmentJson);
         console.log(
