@@ -15,5 +15,6 @@
   "bugs": {
     "url": "https://github.com/NHSDigital/Galleri-Invitations/issues"
   },
-  "homepage": "https://github.com/NHSDigital/Galleri-Invitations#readme"
+  "homepage": "https://github.com/NHSDigital/Galleri-Invitations#readme",
+  "dependencies": {}
 }
