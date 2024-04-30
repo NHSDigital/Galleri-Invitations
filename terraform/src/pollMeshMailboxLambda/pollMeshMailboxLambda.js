@@ -23,18 +23,26 @@ const CAAS_MESH_CERT = await readSecret("CAAS_MESH_CERT", smClient); //fetching 
 const MESH_CAAS_KEY = await readSecret("MESH_SENDER_KEY", smClient);
 
 //Set environment variables
+// const CONFIG = await loadConfig({
+//   url: "https://msg.intspineservices.nhs.uk", //can leave as non-secret
+//   sharedKey: process.env.MESH_SHARED_KEY,
+//   sandbox: "false",
+//   senderCert: MESH_SENDER_CERT,
+//   senderKey: MESH_SENDER_KEY,
+//   senderMailboxID: process.env.CAAS_MESH_MAILBOX_ID,
+//   senderMailboxPassword: process.env.CAAS_MESH_MAILBOX_PASSWORD,
+//   receiverCert: CAAS_MESH_CERT,
+//   receiverKey: MESH_CAAS_KEY,
+//   receiverMailboxID: process.env.CAAS_MESH_MAILBOX_ID,
+//   receiverMailboxPassword: process.env.CAAS_MESH_MAILBOX_PASSWORD,
+// });
+
 const CONFIG = await loadConfig({
-  url: "https://msg.intspineservices.nhs.uk", //can leave as non-secret
-  sharedKey: process.env.MESH_SHARED_KEY,
-  sandbox: "false",
-  senderCert: MESH_SENDER_CERT,
-  senderKey: MESH_SENDER_KEY,
-  senderMailboxID: process.env.CAAS_MESH_MAILBOX_ID,
-  senderMailboxPassword: process.env.CAAS_MESH_MAILBOX_PASSWORD,
-  receiverCert: CAAS_MESH_CERT,
-  receiverKey: MESH_CAAS_KEY,
-  receiverMailboxID: process.env.CAAS_MESH_MAILBOX_ID,
-  receiverMailboxPassword: process.env.CAAS_MESH_MAILBOX_PASSWORD,
+  url: process.env.K8_URL,
+  TestKey: process.env.MESH_SHARED_KEY,
+  sandbox: "true",
+  receiverMailboxID: process.env.MESH_RECEIVER_MAILBOX_ID,
+  receiverMailboxPassword: process.env.MESH_RECEIVER_MAILBOX_PASSWORD,
 });
 
 //HANDLER
