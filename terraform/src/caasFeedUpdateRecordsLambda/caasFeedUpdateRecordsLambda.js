@@ -238,7 +238,7 @@ export const processingData = async (
             rejected: false,
           };
         } else {
-          console.error(`Error: Rejecting record with supersed NHS number: ${populationTableRecord.nhs_number}. Investigate these records `);
+          console.error(`Error: Rejecting record with supersed NHS number: ${populationTableRecord.nhs_number.N}. Investigate these records `);
           return {
             rejectedRecordNhsNumber: `${populationTableRecord.nhs_number} | ${retainingPopulationTableRecord.Items[0].nhs_number}`,
             rejected: true,
@@ -246,7 +246,7 @@ export const processingData = async (
           };
         }
       } else {
-        console.error(`Error: Rejecting record with supersed NHS number: ${populationTableRecord.nhs_number} `);
+        console.error(`Error: Rejecting record with supersed NHS number: ${populationTableRecord.nhs_number.N} `);
         return {
           rejectedRecordNhsNumber: populationTableRecord.nhs_number,
           rejected: true,
@@ -254,7 +254,7 @@ export const processingData = async (
         };
       }
     } else {
-      console.error(`Error: Superseded Number ${populationTableRecord.nhs_number} present in update but record does not exist in our table. Alert to third line support `);
+      console.error(`Error: Superseded Number ${populationTableRecord.nhs_number.N} present in update but record does not exist in our table. Alert to third line support `);
       return {
         rejectedRecordNhsNumber: populationTableRecord.nhs_number,
         rejected: true,
@@ -516,10 +516,10 @@ export async function deleteTableRecord(client, table, oldRecord) {
   }
 
   const command = new DeleteItemCommand(input);
-    const response = await client.send(command);
-    console.log("Exiting function deleteTableRecord");
+  const response = await client.send(command);
+  console.log("Exiting function deleteTableRecord");
 
-    return response;
+  return response;
 }
 
 function formatPopulationDeleteItem(table, record) {
@@ -577,7 +577,6 @@ export async function putTableRecord(client, table, newRecord, oldRecord) {
   const command = new PutItemCommand(input);
   const response = await client.send(command);
   return response;
-
 }
 
 function formatPopulationPutItem(table, newRecord) {
@@ -593,8 +592,6 @@ function formatPopulationPutItem(table, newRecord) {
   if (newRecord.telephone_number === "null") newRecord.telephone_number = "0";
   // mobile_number: {N: newRecord.mobile_number}, -> 0
   if (newRecord.mobile_number === "null") newRecord.mobile_number = "0";
-
-  console.log("newRecord", JSON.stringify(newRecord));
 
   return {
     Item: {
@@ -638,7 +635,6 @@ function formatPopulationPutItem(table, newRecord) {
 
 function formatEpisodePutItem(table, newRecord) {
   console.log("Entered formatEpisodePutItem");
-  console.log("newRecord", JSON.stringify(newRecord));
 
   return {
     Item: {

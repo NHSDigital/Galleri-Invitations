@@ -128,7 +128,6 @@ async function addEpisodeRecord(table, item) {
   const response = await client.send(command);
 
   console.log("Exiting function addEpisodeRecord");
-
   return response;
 }
 

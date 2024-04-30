@@ -210,6 +210,7 @@ const processingData = async (record) => {
       }
     }
   }
+  
   return {
     rejectedRecordNhsNumber: record.nhs_number,
     rejected: true,
