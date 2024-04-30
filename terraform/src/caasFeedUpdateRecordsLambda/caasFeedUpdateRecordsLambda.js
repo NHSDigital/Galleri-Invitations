@@ -190,61 +190,7 @@ export const processingData = async (
           rejected: false,
         };
       } else if (supersedingEpisodeRecord.Items.length) {
-        // keep personId, participantId from retaining and combine with supersed
-        const recordNewSupersed = {
-          ...incomingUpdateData,
-          lsoa_2011: populationTableRecord.LsoaCode.S,
-          PersonId: retainingPopulationTableRecord.Items[0].PersonId.S,
-          participant_id:
-            retainingPopulationTableRecord.Items[0].participantId.S,
-        };
-
-        // keep personId, participantId from supersed and combine with retained
-        const recordNewRetaining = {
-          ...retainingPopulationTableRecord.Items[0],
-          lsoa_2011: retainingPopulationTableRecord.Items[0].LsoaCode,
-          PersonId: populationTableRecord.PersonId,
-          participant_id: populationTableRecord.participantId,
-        };
-
-        for (const property in recordNewRetaining) {
-          recordNewRetaining[property] =
-            recordNewRetaining[property][
-              Object.keys(recordNewRetaining[property])[0]
-            ];
-        }
-
-        const overWriteResponse =
-          Promise.all[
-            (await overwriteRecordInTable(
-              client,
-              "Population",
-              recordNewSupersed,
-              populationTableRecord
-            ),
-            await overwriteRecordInTable(
-              client,
-              "Population",
-              recordNewRetaining,
-              retainingPopulationTableRecord.Items[0]
-            ))
-          ];
-        if (
-          overWriteResponse.every(
-            (element) => element.value == SUCCESSFUL_RESPONSE
-          )
-        ) {
-          return {
-            rejected: false,
-          };
-        } else {
-          console.error(`Error: Rejecting record with supersed NHS number: ${populationTableRecord.nhs_number.N}. Investigate these records `);
-          return {
-            rejectedRecordNhsNumber: `${populationTableRecord.nhs_number} | ${retainingPopulationTableRecord.Items[0].nhs_number}`,
-            rejected: true,
-            reason: `Alert to third line support. Investigate these records`,
-          };
-        }
+        return await mergeRecords(incomingUpdateData, populationTableRecord, retainingPopulationTableRecord);
       } else {
         console.error(`Error: Rejecting record with supersed NHS number: ${populationTableRecord.nhs_number.N} `);
         return {
@@ -261,6 +207,66 @@ export const processingData = async (
         reason: `Superseded Number present in update but record does not exist in our table. Alert to third line support`,
       };
     }
+  }
+};
+
+const mergeRecords = async (incomingUpdateData, populationTableRecord, retainingPopulationTableRecord) => {
+  console.log("Entered function mergeRecords");
+
+  // keep personId, participantId from retaining and combine with supersed
+  const recordNewSupersed = {
+    ...incomingUpdateData,
+    lsoa_2011: populationTableRecord.LsoaCode.S,
+    PersonId: retainingPopulationTableRecord.Items[0].PersonId.S,
+    participant_id:
+      retainingPopulationTableRecord.Items[0].participantId.S,
+  };
+
+  // keep personId, participantId from supersed and combine with retained
+  const recordNewRetaining = {
+    ...retainingPopulationTableRecord.Items[0],
+    lsoa_2011: retainingPopulationTableRecord.Items[0].LsoaCode,
+    PersonId: populationTableRecord.PersonId,
+    participant_id: populationTableRecord.participantId,
+  };
+
+  for (const property in recordNewRetaining) {
+    recordNewRetaining[property] =
+      recordNewRetaining[property][
+      Object.keys(recordNewRetaining[property])[0]
+      ];
+  }
+
+  const overWriteResponse =
+    Promise.all[
+    (await overwriteRecordInTable(
+      client,
+      "Population",
+      recordNewSupersed,
+      populationTableRecord
+    ),
+      await overwriteRecordInTable(
+        client,
+        "Population",
+        recordNewRetaining,
+        retainingPopulationTableRecord.Items[0]
+      ))
+    ];
+  if (
+    overWriteResponse.every(
+      (element) => element.value == SUCCESSFUL_RESPONSE
+    )
+  ) {
+    return {
+      rejected: false,
+    };
+  } else {
+    console.error(`Error: Rejecting record with supersed NHS number: ${populationTableRecord.nhs_number.N}. Investigate these records `);
+    return {
+      rejectedRecordNhsNumber: `${populationTableRecord.nhs_number} | ${retainingPopulationTableRecord.Items[0].nhs_number}`,
+      rejected: true,
+      reason: `Alert to third line support. Investigate these records`,
+    };
   }
 };
 
