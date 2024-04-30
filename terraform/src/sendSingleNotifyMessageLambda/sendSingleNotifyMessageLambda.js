@@ -288,7 +288,6 @@ export const generateJWT = (apiKey, tokenEndpointUrl, publicKeyId, privateKey) =
   };
 
   const signedJWT = jwt.sign(claims, privateKey, { algorithm: "RS512", header: { kid: publicKeyId } });
-  console.log("Signed jwt: ", signedJWT);
   return signedJWT;
 };
 
