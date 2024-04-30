@@ -126,7 +126,7 @@ export const processingData = async (incomingUpdateData, populationTableRecord) 
       // the retaining record has an Episode record that exists or both retaining record and supersed record do not have an Episode record
       if (retainingEpisodeRecord.Items.length || (retainingEpisodeRecord.Items.length == 0 && supersedingEpisodeRecord.Items.length == 0)) {
         if (retainingEpisodeRecord.Items.length && supersedingEpisodeRecord.Items.length) {
-          console.error(`Error: Episodes for both retaining NHS no. ${populationTableRecord.nhs_number} and superseding NHS no. ${incomingUpdateData.superseded_by_nhs_number} exist! Not merging.`);
+          console.error(`Error: Episodes for both retaining NHS no. ${populationTableRecord.nhs_number.N} and superseding NHS no. ${incomingUpdateData.superseded_by_nhs_number} exist! Not merging.`);
         }
 
         // Apply the update to the supersed record
