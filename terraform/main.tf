@@ -50,10 +50,10 @@ module "galleri_invitations_screen" {
   NEXT_PUBLIC_GENERATE_INVITES                          = module.generate_invites_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_AUTHENTICATOR                             = module.authenticator_lambda_api_gateway.rest_api_galleri_id
   USERS                                                 = var.USERS
-  CIS2_ID                                               = data.aws_secretsmanager_secret.cis2_client_id.secret_string
+  CIS2_ID                                               = data.aws_secretsmanager_secret_version.cis2_client_id_latest.secret_string
   NEXTAUTH_URL                                          = var.NEXTAUTH_URL
   CIS2_REDIRECT_URL                                     = var.CIS2_REDIRECT_URL
-  GALLERI_ACTIVITY_CODE                                 = data.aws_secretsmanager_secret.galleri_activity_code.secret_string
+  GALLERI_ACTIVITY_CODE                                 = data.aws_secretsmanager_secret_version.galleri_activity_code_latest.secret_string
   hostname                                              = var.invitations-hostname
   dns_zone                                              = var.dns_zone
   region                                                = var.region
@@ -63,9 +63,18 @@ data "aws_secretsmanager_secret" "galleri_activity_code" {
   name = "GALLERI_ACTIVITY_CODE"
 }
 
+data "aws_secretsmanager_secret_version" "galleri_activity_code_latest" {
+  secret_id = data.aws_secretsmanager_secret.galleri_activity_code
+}
+
 data "aws_secretsmanager_secret" "cis2_client_id" {
   name = "CIS2_CLIENT_ID"
 }
+
+data "aws_secretsmanager_secret_version" "cis2_client_id_latest" {
+  secret_id = data.aws_secretsmanager_secret.cis2_client_id
+}
+
 
 # the role that all lambda's are utilising,
 # we will replace this with individual roles in a future ticket
