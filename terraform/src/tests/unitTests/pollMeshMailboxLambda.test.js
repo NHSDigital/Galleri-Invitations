@@ -1,25 +1,37 @@
 import { mockClient } from "aws-sdk-client-mock";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { pushCsvToS3, getSecret, chunking, multipleUpload } from "../../pollMeshMailboxLambda/helper";
-import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
+import {
+  pushCsvToS3,
+  getSecret,
+  chunking,
+  multipleUpload,
+} from "../../pollMeshMailboxLambda/helper";
+import {
+  SecretsManagerClient,
+  GetSecretValueCommand,
+} from "@aws-sdk/client-secrets-manager";
 
 describe("chunking", () => {
-
   test("create chunks", async () => {
-    let message = 'nhs_number,superseded_by_nhs_number,primary_care_provider\n' +
-      '5558028009,null,B83006\n' +
-      '5558045337,null,D81026';
+    let message =
+      "nhs_number,superseded_by_nhs_number,primary_care_provider\n" +
+      "5558028009,null,B83006\n" +
+      "5558045337,null,D81026";
     const header = message.split("\n")[0];
     const messageBody = message.split("\n").splice(1);
     const x = new Set(messageBody);
     let chunk = [...chunking(x, 2, header)];
 
-    expect(chunk[0]).toBe('nhs_number,superseded_by_nhs_number,primary_care_provider\n' +
-      '5558028009,null,B83006');
-    expect(chunk[1]).toBe('nhs_number,superseded_by_nhs_number,primary_care_provider\n' +
-      '5558045337,null,D81026');
+    expect(chunk[0]).toBe(
+      "nhs_number,superseded_by_nhs_number,primary_care_provider\n" +
+        "5558028009,null,B83006"
+    );
+    expect(chunk[1]).toBe(
+      "nhs_number,superseded_by_nhs_number,primary_care_provider\n" +
+        "5558045337,null,D81026"
+    );
   });
-})
+});
 
 describe("pushCsvToS3", () => {
   afterEach(() => {
@@ -41,10 +53,12 @@ describe("pushCsvToS3", () => {
 
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith(`Successfully pushed to galleri-caas-data/test.csv`);
+    expect(logSpy).toHaveBeenCalledWith(
+      `Successfully pushed to galleri-caas-data/test.csv`
+    );
     expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
   });
-})
+});
 
 describe("getSecret", () => {
   afterEach(() => {
@@ -55,12 +69,13 @@ describe("getSecret", () => {
     const logSpy = jest.spyOn(global.console, "log");
     const smClient = mockClient(SecretsManagerClient);
 
-
     smClient.on(GetSecretValueCommand).resolves({
-      SecretString: JSON.stringify({ my_secret_key: 'my_secret_value' }),
+      SecretString: JSON.stringify({ my_secret_key: "my_secret_value" }),
     });
     const sm = new SecretsManagerClient({});
-    const result = await sm.send(new GetSecretValueCommand({ "SecretId": "MESH_SENDER_CERT" }));
+    const result = await sm.send(
+      new GetSecretValueCommand({ SecretId: "MESH_SENDER_CERT" })
+    );
     expect(result.SecretString).toBe('{"my_secret_key":"my_secret_value"}');
 
     const smClient2 = mockClient(SecretsManagerClient);
@@ -69,10 +84,11 @@ describe("getSecret", () => {
     // console.log(response);
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith(`Retrieved value successfully MESH_SENDER_CERT`);
-
-  })
-})
+    expect(logSpy).toHaveBeenCalledWith(
+      `Retrieved value successfully MESH_SENDER_CERT`
+    );
+  });
+});
 
 describe("multipleUpload", () => {
   afterEach(() => {
@@ -83,11 +99,13 @@ describe("multipleUpload", () => {
     const logSpy = jest.spyOn(global.console, "log");
     const mockS3Client = mockClient(new S3Client({}));
 
-    const chunk = ['nhs_number,superseded_by_nhs_number,primary_care_provider\n' +
-      '5558028009,null,B83006',
-    'nhs_number,superseded_by_nhs_number,primary_care_provider\n' +
-    '5558045337,null,D81026'];
-    const ENVIRONMENT = 'dev-1';
+    const chunk = [
+      "nhs_number,superseded_by_nhs_number,primary_care_provider\n" +
+        "5558028009,null,B83006",
+      "nhs_number,superseded_by_nhs_number,primary_care_provider\n" +
+        "5558045337,null,D81026",
+    ];
+    const ENVIRONMENT = "dev-1";
 
     mockS3Client.on(PutObjectCommand).resolves({
       $metadata: { httpStatusCode: 200 },
@@ -97,7 +115,10 @@ describe("multipleUpload", () => {
     console.log(result);
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(3);
-    expect(logSpy).toHaveBeenCalledWith([{ "$metadata": { "httpStatusCode": 200 } }, { "$metadata": { "httpStatusCode": 200 } }]);
+    expect(logSpy).toHaveBeenCalledWith([
+      { $metadata: { httpStatusCode: 200 } },
+      { $metadata: { httpStatusCode: 200 } },
+    ]);
     expect(result[0]).toHaveProperty("$metadata.httpStatusCode", 200);
-  })
-})
+  });
+});

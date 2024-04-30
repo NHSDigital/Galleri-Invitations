@@ -7,20 +7,20 @@
     "test-api": "node scripts/test/api-test.js"
   },
   "devDependencies": {
-    "@aws-sdk/client-s3": "^3.536.0",
+    "@aws-sdk/client-s3": "^3.565.0",
     "aws-sdk-client-mock": "^3.0.1",
     "aws-sdk-mock": "^5.9.0",
     "jest": "^29.7.0"
   },
   "dependencies": {
-    "@aws-sdk/client-api-gateway": "^3.525.0",
+    "@aws-sdk/client-api-gateway": "^3.565.0",
     "@aws-sdk/client-dynamodb": "^3.485.0",
     "@aws-sdk/client-lambda": "^3.536.0",
-    "@aws-sdk/client-secrets-manager": "^3.501.0",
+    "@aws-sdk/client-secrets-manager": "^3.565.0",
     "@aws-sdk/client-sqs": "^3.549.0",
     "@aws-sdk/client-ssm": "^3.554.0",
     "@aws-sdk/config-resolver": "^3.374.0",
-    "@aws-sdk/util-dynamodb": "^3.564.0",
+    "@aws-sdk/util-dynamodb": "^3.511.0",
     "@aws-sdk/util-stream-node": "^3.374.0",
     "@babel/plugin-syntax-import-assertions": "^7.23.3",
     "@babel/preset-env": "^7.24.0",

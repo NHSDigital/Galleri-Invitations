@@ -1,5 +1,8 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  SecretsManagerClient,
+  GetSecretValueCommand,
+} from "@aws-sdk/client-secrets-manager";
 
 //Push string from MESH to S3
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
@@ -24,7 +27,7 @@ export const getSecret = async (secretName, client) => {
   try {
     const response = await client.send(
       new GetSecretValueCommand({
-        SecretId: secretName
+        SecretId: secretName,
       })
     );
     console.log(`Retrieved value successfully ${secretName}`);
@@ -33,7 +36,7 @@ export const getSecret = async (secretName, client) => {
     console.log("Failed: ", error);
     throw error;
   }
-}
+};
 
 //generator function yields chunkSegment when desired size is reached + header
 export const chunking = function* (itr, size, header) {
@@ -58,17 +61,18 @@ export async function multipleUpload(chunk, client, environment) {
   return Promise.all(
     chunk.map(async (x, index) => {
       const filename = `mesh_chunk_data_${index}_${dateTime}`;
-      let response = await (pushCsvToS3(
+      let response = await pushCsvToS3(
         `${environment}-galleri-caas-data`,
         `${filename}.csv`,
         x,
         client
-      ));
+      );
       if (response.$metadata.httpStatusCode !== 200) {
         console.error("Error uploading item ");
       }
       return response;
-    }))
+    })
+  );
 }
 
 //For loading data to MESH (testing)
