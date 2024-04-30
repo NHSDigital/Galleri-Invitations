@@ -64,7 +64,7 @@ data "aws_secretsmanager_secret" "galleri_activity_code" {
 }
 
 data "aws_secretsmanager_secret_version" "galleri_activity_code_latest" {
-  secret_id = data.aws_secretsmanager_secret.galleri_activity_code
+  secret_id = data.aws_secretsmanager_secret.galleri_activity_code.id
 }
 
 data "aws_secretsmanager_secret" "cis2_client_id" {
@@ -72,7 +72,7 @@ data "aws_secretsmanager_secret" "cis2_client_id" {
 }
 
 data "aws_secretsmanager_secret_version" "cis2_client_id_latest" {
-  secret_id = data.aws_secretsmanager_secret.cis2_client_id
+  secret_id = data.aws_secretsmanager_secret.cis2_client_id.id
 }
 
 
