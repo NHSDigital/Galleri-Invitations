@@ -7,7 +7,6 @@ on:
     branches:
       - "feature/**"
       - "hotfix/**"
-      - "dependabot/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
