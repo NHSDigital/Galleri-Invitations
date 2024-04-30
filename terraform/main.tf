@@ -315,6 +315,7 @@ module "data_filter_gridall_imd_lambda" {
   lambda_timeout       = 900
   memory_size          = 4096
   lambda_s3_object_key = "data_filter_gridall_imd_lambda.zip"
+  # account_id           = var.account_id
   environment_vars = {
     BUCKET_NAME     = "galleri-ons-data",
     GRIDALL_CHUNK_1 = "gridall/chunk_data/chunk_1.csv",
@@ -345,6 +346,20 @@ module "lsoa_loader_lambda" {
   environment_vars = {
     BUCKET_NAME = "galleri-ons-data",
     KEY         = "lsoa_data/lsoa_data_2023-08-15T15:42:13.301Z.csv",
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "sns_alert_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "SNSAlertLambda"
+  lambda_timeout       = 900
+  memory_size          = 2048
+  lambda_s3_object_key = "sns_alert_lambda.zip"
+  environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
 }
