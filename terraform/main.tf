@@ -1352,8 +1352,12 @@ module "authenticator_lambda" {
     CIS2_PUBLIC_KEY_ID      = "${var.CIS2_PUBLIC_KEY_ID}",
     CIS2_KEY_NAME           = "${var.CIS2_KNAME}"
     CIS2_REDIRECT_URL       = "https://${var.environment}.${var.invitations-hostname}/api/auth/callback/cis2"
-    GALLERI_ACTIVITY_CODE   = "${var.GALLERI_ACTIVITY_CODE}"
+    GALLERI_ACTIVITY_CODE   = "${data.aws_secretsmanager_secret_version.galleri_activity_code.secret_string}"
   }
+}
+
+data "aws_secretsmanager_secret_version" "galleri_activity_code" {
+  secret_id = "GALLERI_ACTIVITY_CODE"
 }
 
 module "authenticator_lambda_cloudwatch" {
