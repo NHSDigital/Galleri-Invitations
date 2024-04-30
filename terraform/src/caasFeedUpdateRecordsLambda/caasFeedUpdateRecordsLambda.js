@@ -59,11 +59,11 @@ export const handler = async (event) => {
               processingData(incomingUpdateData, tableRecord.Items[0])
             );
           } else {
-            console.log("Cannot update record as it doesn't exist in table");
+            console.error(`Error: Cannot update record as it doesn't exist in table`);
             return Promise.reject({
               rejectedRecordNhsNumber: incomingUpdateData.nhs_number,
               rejected: true,
-              reason: `Rejecting record ${incomingUpdateData.nhs_number}. Cannot update record as it doesn't exist in table`,
+              reason: `Rejecting record ${incomingUpdateData.nhs_number}. Cannot update record as it doesn't exist in table`
             });
           }
         })
