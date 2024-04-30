@@ -2234,7 +2234,14 @@ module "event_bridge_test_lambda_cloudwatch" {
 
 module "caas_eventbridge_scheduler" {
   source              = "./modules/eventbridge_scheduler"
-  function_name       = "eventBridgeTestLambda"
+  function_name       = "pollMeshMailboxLambda"
+  schedule_expression = "cron(0/30 * * * ? *)"
+  lambda_arn          = module.poll_mesh_mailbox_lambda.lambda_arn
+}
+
+module "GTMS_eventbridge_scheduler" {
+  source              = "./modules/eventbridge_scheduler"
+  function_name       = "gtmsMeshMailboxLambda"
   schedule_expression = "cron(0/15 * * * ? *)"
-  lambda_arn          = module.event_bridge_test_lambda.lambda_arn
+  lambda_arn          = module.gtms_mesh_mailbox_lambda.lambda_arn
 }
