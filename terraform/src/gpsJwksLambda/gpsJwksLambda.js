@@ -14,7 +14,11 @@ export const handler = async () => {
     console.log("Getting GPS public key jwks");
     const bucket = process.env.PUBLIC_KEYS_BUCKET;
     const publicKeyIds = await getObjectKeys(client, bucket);
-    const publicKeyStrings = await getObjectStrings(client, bucket, publicKeyIds);
+    const publicKeyStrings = await getObjectStrings(
+      client,
+      bucket,
+      publicKeyIds
+    );
     const publicKeyJwks = exportJwks(publicKeyStrings);
     const responseObject = createResponse(200, publicKeyJwks);
 
@@ -74,10 +78,12 @@ export const getObjectString = async (client, bucket, key) => {
 export const getObjectStrings = async (client, bucket, keys) => {
   console.log("Getting object strings for keys: ", keys);
   const objectStrings = [];
-  await Promise.allSettled(keys.map(async (key) => {
-    const objectStr = await getObjectString(client, bucket, key);
-    objectStrings.push(objectStr);
-  }));
+  await Promise.allSettled(
+    keys.map(async (key) => {
+      const objectStr = await getObjectString(client, bucket, key);
+      objectStrings.push(objectStr);
+    })
+  );
   console.log("Got object strings for keys: ", keys);
   return objectStrings;
 };
@@ -89,21 +95,21 @@ export const exportJwks = (keyStrings) => {
     const jwk = keyJson.keys[0];
     return jwk;
   });
-  const jwks = { "keys": jwkArray }
+  const jwks = { keys: jwkArray };
   console.log("Exported jwks: ", jwks);
   return jwks;
 };
 
 export const createResponse = (httpStatusCode, body) => {
   const responseObject = {};
-    responseObject.statusCode = httpStatusCode;
-    responseObject.headers = {
-      "Access-Control-Allow-Headers":
-        "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "OPTIONS,GET",
-    };
-    responseObject.isBase64Encoded = true;
-    responseObject.body = typeof body === "object" ? JSON.stringify(body) : body;
-    return responseObject;
+  responseObject.statusCode = httpStatusCode;
+  responseObject.headers = {
+    "Access-Control-Allow-Headers":
+      "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "OPTIONS,GET",
+  };
+  responseObject.isBase64Encoded = true;
+  responseObject.body = typeof body === "object" ? JSON.stringify(body) : body;
+  return responseObject;
 };

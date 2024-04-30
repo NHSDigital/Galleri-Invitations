@@ -6,6 +6,8 @@ runs:
   steps:
     - name: "Checkout code"
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     - name: "Tag with next release version"
       shell: bash
       run: |
