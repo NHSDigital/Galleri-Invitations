@@ -1,0 +1,13 @@
+{
+  "name": "nrdsMeshMailboxLambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "nrsdMeshMailboxLambda.js",
+  "author": "",
+  "dependencies": {
+    "nhs-mesh-client": "1.1.0"
+  },
+  "engines": {
+    "nhs-mesh-client": ">=1.1.0"
+  }
+}
