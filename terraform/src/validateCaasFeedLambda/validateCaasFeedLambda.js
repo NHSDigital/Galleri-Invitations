@@ -262,16 +262,18 @@ export function validateRecord(record) {
   }
 
   // AC6 - Both the Primary Care Provider and the Reason for Removal fields contain values (other than null) OR Both the Primary Care Provider and the Reason for Removal fields contain null values
-  if (
-    (record.primary_care_provider !== "null" &&
-      record.reason_for_removal !== "null") ||
-    (record.primary_care_provider === "null" &&
-      record.reason_for_removal === "null")
-  ) {
-    validationResults.success = false;
-    validationResults.message =
-      "Technical error - GP Practice code and Reason for Removal fields contain incompatible values";
-    return validationResults;
+  if (record.action != "DEL") {
+    if (
+      (record.primary_care_provider !== "null" &&
+        record.reason_for_removal !== "null") ||
+      (record.primary_care_provider === "null" &&
+        record.reason_for_removal === "null")
+    ) {
+      validationResults.success = false;
+      validationResults.message =
+        "Technical error - GP Practice code and Reason for Removal fields contain incompatible values";
+      return validationResults;
+    }
   }
 
   if (

@@ -119,6 +119,12 @@ describe('validateCaasFeed function', () => {
     );
   });
 
+  test('should return failure for missing other given name', () => {
+    const validationResult = validateRecord({ ...validRecord, action: "DEL",primary_care_provider: "null", reason_for_removal: "null" });
+
+    expect(validationResult.success).toBe(true);
+  });
+
   test('should return failure for invalid DOB format or is in the future', () => {
     const validationResult = validateRecord({ ...validRecord, date_of_birth: "2030-11-11" });
 
