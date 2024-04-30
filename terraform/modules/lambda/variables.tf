@@ -26,3 +26,8 @@ variable "lambda_s3_object_key" {}
 variable "environment_vars" {}
 
 variable "environment" {}
+
+variable "K8_URL" {
+  description = "url for eks mesh service"
+  default     = null
+}

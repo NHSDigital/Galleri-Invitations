@@ -305,6 +305,16 @@ module "proccessed_appointments" {
 }
 # End of GTMS buckets
 
+# NRDS Buckets
+module "proccessed_nrds" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-processed-nrds-data"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+# End of NRDS buckets
+
 # Data Filter Gridall IMD
 module "data_filter_gridall_imd_lambda" {
   source               = "./modules/lambda"
@@ -1178,6 +1188,32 @@ module "gtms_mesh_mailbox_lambda_cloudwatch" {
   retention_days       = 14
 }
 
+# NRDS MESH lambda
+module "nrds_mesh_mailbox_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "nrdsMeshMailboxLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "nrds_mesh_mailbox_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                    = "${var.environment}",
+    MESH_SHARED_KEY                = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
+    MESH_RECEIVER_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.sand_mesh_mailbox_id.secret_string)["SAND_MESH_MAILBOX_ID"],
+    MESH_RECEIVER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.sand_mesh_mailbox_password.secret_string)["SAND_MESH_MAILBOX_PASSWORD"],
+    K8_URL                         = "${var.K8_URL}",
+  }
+}
+
+module "nrds_mesh_mailbox_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.nrds_mesh_mailbox_lambda.lambda_function_name
+  retention_days       = 14
+}
+
 # Get User Role Lambda
 module "get_user_role_lambda" {
   source               = "./modules/lambda"
@@ -1682,6 +1718,14 @@ data "aws_secretsmanager_secret_version" "caas_mesh_mailbox_password" {
 
 data "aws_secretsmanager_secret_version" "gtms_mesh_receiver_mailbox_id" {
   secret_id = "GTMS_MESH_RECEIVER_MAILBOX_ID"
+}
+
+data "aws_secretsmanager_secret_version" "sand_mesh_mailbox_id" {
+  secret_id = "SAND_MESH_MAILBOX_ID"
+}
+
+data "aws_secretsmanager_secret_version" "sand_mesh_mailbox_password" {
+  secret_id = "SAND_MESH_MAILBOX_PASSWORD"
 }
 #END of MESH keys
 
