@@ -25,6 +25,7 @@ resource "aws_acm_certificate" "example" {
   lifecycle {
     create_before_destroy = true
   }
+  provider = aws.aws-no-default-tags
 }
 
 resource "aws_route53_record" "example" {

@@ -18,6 +18,11 @@ terraform {
 
 provider "aws" {
   region = "eu-west-2"
+  alias = "aws-no-default-tags"
+}
+
+provider "aws" {
+  region = "eu-west-2"
   default_tags {
     tags = {
       Environment = var.environment
