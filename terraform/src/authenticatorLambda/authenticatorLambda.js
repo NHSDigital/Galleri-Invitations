@@ -65,7 +65,7 @@ export const handler = async (event) => {
     );
     return { statusCode: 200, body: JSON.stringify(authResponse) };
   } catch (error) {
-    console.error("ERROR: ", error);
+    console.error("Error: ", error);
   }
 };
 
@@ -110,7 +110,7 @@ export const getSecret = async (secretName, client) => {
     console.log(`Retrieved value successfully ${secretName}`);
     return response.SecretString;
   } catch (error) {
-    console.log(`Failed: ${error}`);
+    console.log(`Error: ${error}`);
     throw error;
   }
 };
@@ -178,7 +178,7 @@ export async function getTokens(authCode, signedJWT, cis2ClientID) {
     return { tokens: r.data };
   } catch (err) {
     console.error("Failed to get Tokens from CIS2 Token Endpoint");
-    console.error("ERROR: ", err);
+    console.error("Error: ", err);
     throw new Error(err);
   }
 }
@@ -196,7 +196,7 @@ export async function getUserinfo(tokens) {
     return response.data;
   } catch (err) {
     console.error("Failed to get User Info from CIS2 userInfo Endpoint");
-    console.error("ERROR: ", err);
+    console.error("Error: ", err);
     throw new Error(err);
   }
 }
@@ -225,7 +225,7 @@ export async function getUserRole(uuid) {
     return item;
   } catch (error) {
     console.error("Error getting item from DynamoDB");
-    console.error("ERROR: ", error);
+    console.error("Error: ", error);
     throw new Error(error);
   }
 }
@@ -357,7 +357,7 @@ export async function validateTokenSignature(idToken, jwksUri) {
     return decoded;
   } catch (error) {
     console.error("Error validating ID token signature");
-    console.error("ERROR: ", error.message);
+    console.error("Error: ", error.message);
     throw new Error(error);
   }
 }

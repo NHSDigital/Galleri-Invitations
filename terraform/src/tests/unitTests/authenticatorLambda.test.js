@@ -505,7 +505,7 @@ describe("All Test", () => {
       expect(logSpy).toHaveBeenCalled();
       expect(logSpy).toHaveBeenCalledTimes(1);
       expect(logSpy).toHaveBeenCalledWith(
-        "Failed: Error: Failed to retrieve secret to S3"
+        "Error: Error: Failed to retrieve secret to S3"
       );
     });
   });
