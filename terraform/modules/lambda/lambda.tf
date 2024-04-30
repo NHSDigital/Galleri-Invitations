@@ -33,7 +33,7 @@ resource "aws_s3_object" "lambda_s3_object" {
 }
 
 # Monitoring
-resource "aws_cloudwatch_log_group" "lambda_log_group" {
+resource "aws_cloudwatch_log_group" "log_group" {
   name = "/aws/lambda/${var.environment}-${var.lambda_function_name}"
 }
 
