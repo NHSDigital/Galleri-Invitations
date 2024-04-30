@@ -104,7 +104,7 @@ module "eks" {
 
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
-    instance_types = ["t3.medium"]
+    instance_types = ["t3.small"]
   }
 
   eks_managed_node_groups = {
@@ -113,7 +113,7 @@ module "eks" {
       max_size     = 3
       desired_size = 2
 
-      instance_types = ["t3.large"]
+      instance_types = ["t3.small"]
       capacity_type  = "SPOT"
     }
   }
