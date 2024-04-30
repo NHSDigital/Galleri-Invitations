@@ -14,17 +14,9 @@ data "aws_route53_zone" "example" {
   private_zone = false
 }
 
-# data "aws_secretsmanager_secret" "galleri_activity_code" {
-#   name = "GALLERI_ACTIVITY_CODE"
-# }
-
 data "aws_secretsmanager_secret_version" "galleri_activity_code" {
   secret_id = "GALLERI_ACTIVITY_CODE"
 }
-
-# data "aws_secretsmanager_secret" "cis2_client_id" {
-#   name = "CIS2_CLIENT_ID"
-# }
 
 data "aws_secretsmanager_secret_version" "cis2_client_id" {
   secret_id = "CIS2_CLIENT_ID"
