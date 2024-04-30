@@ -15,8 +15,8 @@ import {
   generateCsvString,
   putTableRecord,
   deleteTableRecord,
-  overwriteRecordInTable
-} from '../../caasFeedUpdateRecordsLambda/caasFeedUpdateRecordsLambda';
+  overwriteRecordInTable,
+} from "../../caasFeedUpdateRecordsLambda/caasFeedUpdateRecordsLambda";
 
 describe("readCsvFromS3", () => {
   afterEach(() => {
@@ -51,7 +51,9 @@ describe("readCsvFromS3", () => {
     }
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith(`Error: Failed to read from aaaaaaa/aaaaaaa`);
+    expect(logSpy).toHaveBeenCalledWith(
+      `Error: Failed to read from aaaaaaa/aaaaaaa`
+    );
   });
 });
 
@@ -75,7 +77,9 @@ describe("pushCsvToS3", () => {
 
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith(`Successfully pushed to galleri-ons-data/test.txt`);
+    expect(logSpy).toHaveBeenCalledWith(
+      `Successfully pushed to galleri-ons-data/test.txt`
+    );
     expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
   });
   test("Failed response when error occurs sending file to bucket", async () => {
@@ -91,14 +95,15 @@ describe("pushCsvToS3", () => {
     }
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith(`Error: Failed to push to galleri-ons-data/test.txt. Error Message: ${errorMsg}`);
+    expect(logSpy).toHaveBeenCalledWith(
+      `Error: Failed to push to galleri-ons-data/test.txt. Error Message: ${errorMsg}`
+    );
   });
 });
 
 describe("parseCsvToArray", () => {
   const testCsvString = `"nhs_number","dob","dod"\n"000","10/01/1991","11/01/1991"\n"111","01/09/2000","15/11/2023"`;
   test("should parse CSV string and call processFunction for each row", async () => {
-
     const result = await parseCsvToArray(testCsvString);
     expect(result).toEqual([
       { nhs_number: "000", dob: "10/01/1991", dod: "11/01/1991" },
@@ -107,181 +112,180 @@ describe("parseCsvToArray", () => {
   });
 });
 
-describe('filterUniqueEntries', () => {
-  test('returns an array containing unique records with nhs numbers and another array with duplicate records', async () => {
-
+describe("filterUniqueEntries", () => {
+  test("returns an array containing unique records with nhs numbers and another array with duplicate records", async () => {
     const uniqueRecords = [
       {
-        "message": "Validation successful",
-        "nhs_number": "5558028009",
-        "superseded_by_nhs_number": "null",
+        message: "Validation successful",
+        nhs_number: "5558028009",
+        superseded_by_nhs_number: "null",
       },
       {
-        "message": "Validation successful",
-        "nhs_number": "5558045337",
-        "superseded_by_nhs_number": "null",
+        message: "Validation successful",
+        nhs_number: "5558045337",
+        superseded_by_nhs_number: "null",
       },
       {
-        "message": "Validation successful",
-        "nhs_number": "5558015160",
-        "superseded_by_nhs_number": "null",
+        message: "Validation successful",
+        nhs_number: "5558015160",
+        superseded_by_nhs_number: "null",
       },
       {
-        "message": "Validation successful",
-        "nhs_number": "5558035153",
-        "superseded_by_nhs_number": "null"
+        message: "Validation successful",
+        nhs_number: "5558035153",
+        superseded_by_nhs_number: "null",
       },
       {
-        "message": "Validation successful",
-        "nhs_number": "5027042566",
-        "superseded_by_nhs_number": "null",
-      }
-    ]
+        message: "Validation successful",
+        nhs_number: "5027042566",
+        superseded_by_nhs_number: "null",
+      },
+    ];
 
     const duplicateRecords = [
       {
-        "message": "Validation successful",
-        "nhs_number": "5558014954",
-        "superseded_by_nhs_number": "null",
-        "primary_care_provider": "P84064",
-        "gp_connect": "false",
-        "name_prefix": "Mr",
-        "given_name": "Damon",
-        "other_given_names": "null",
-        "family_name": "Hill",
-        "date_of_birth": "1964-10-01",
-        "gender": "1",
-        "address_line_1": "School House",
-        "address_line_2": "Cottisford Road",
-        "address_line_3": "Bristol",
-        "address_line_4": "Avon",
-        "address_line_5": "null",
-        "postcode": "BS5 6TY",
-        "reason_for_removal": "null",
-        "reason_for_removal_effective_from_date": "null",
-        "date_of_death": "null",
-        "telephone_number": "null",
-        "mobile_number": "null",
-        "email_address": "null",
-        "preferred_language": "null",
-        "is_interpreter_required": "null",
-        "action": "UPDATE"
+        message: "Validation successful",
+        nhs_number: "5558014954",
+        superseded_by_nhs_number: "null",
+        primary_care_provider: "P84064",
+        gp_connect: "false",
+        name_prefix: "Mr",
+        given_name: "Damon",
+        other_given_names: "null",
+        family_name: "Hill",
+        date_of_birth: "1964-10-01",
+        gender: "1",
+        address_line_1: "School House",
+        address_line_2: "Cottisford Road",
+        address_line_3: "Bristol",
+        address_line_4: "Avon",
+        address_line_5: "null",
+        postcode: "BS5 6TY",
+        reason_for_removal: "null",
+        reason_for_removal_effective_from_date: "null",
+        date_of_death: "null",
+        telephone_number: "null",
+        mobile_number: "null",
+        email_address: "null",
+        preferred_language: "null",
+        is_interpreter_required: "null",
+        action: "UPDATE",
       },
       {
-        "message": "Validation successful",
-        "nhs_number": "5558014954",
-        "superseded_by_nhs_number": "null",
-        "primary_care_provider": "P84064",
-        "gp_connect": "false",
-        "name_prefix": "Mr",
-        "given_name": "Damon",
-        "other_given_names": "null",
-        "family_name": "Hill",
-        "date_of_birth": "1964-10-01",
-        "gender": "1",
-        "address_line_1": "School House",
-        "address_line_2": "Cottisford Road",
-        "address_line_3": "Bristol",
-        "address_line_4": "Avon",
-        "address_line_5": "null",
-        "postcode": "BS5 6TY",
-        "reason_for_removal": "null",
-        "reason_for_removal_effective_from_date": "null",
-        "date_of_death": "null",
-        "telephone_number": "null",
-        "mobile_number": "null",
-        "email_address": "null",
-        "preferred_language": "null",
-        "is_interpreter_required": "null",
-        "action": "UPDATE"
+        message: "Validation successful",
+        nhs_number: "5558014954",
+        superseded_by_nhs_number: "null",
+        primary_care_provider: "P84064",
+        gp_connect: "false",
+        name_prefix: "Mr",
+        given_name: "Damon",
+        other_given_names: "null",
+        family_name: "Hill",
+        date_of_birth: "1964-10-01",
+        gender: "1",
+        address_line_1: "School House",
+        address_line_2: "Cottisford Road",
+        address_line_3: "Bristol",
+        address_line_4: "Avon",
+        address_line_5: "null",
+        postcode: "BS5 6TY",
+        reason_for_removal: "null",
+        reason_for_removal_effective_from_date: "null",
+        date_of_death: "null",
+        telephone_number: "null",
+        mobile_number: "null",
+        email_address: "null",
+        preferred_language: "null",
+        is_interpreter_required: "null",
+        action: "UPDATE",
       },
       {
-        "message": "Validation successful",
-        "nhs_number": "5558014954",
-        "superseded_by_nhs_number": "null",
-        "primary_care_provider": "P84064",
-        "gp_connect": "false",
-        "name_prefix": "Mr",
-        "given_name": "Damon",
-        "other_given_names": "null",
-        "family_name": "Hill",
-        "date_of_birth": "1964-10-01",
-        "gender": "1",
-        "address_line_1": "School House",
-        "address_line_2": "Cottisford Road",
-        "address_line_3": "Bristol",
-        "address_line_4": "Avon",
-        "address_line_5": "null",
-        "postcode": "BS5 6TY",
-        "reason_for_removal": "null",
-        "reason_for_removal_effective_from_date": "null",
-        "date_of_death": "null",
-        "telephone_number": "null",
-        "mobile_number": "null",
-        "email_address": "null",
-        "preferred_language": "null",
-        "is_interpreter_required": "null",
-        "action": "UPDATE"
+        message: "Validation successful",
+        nhs_number: "5558014954",
+        superseded_by_nhs_number: "null",
+        primary_care_provider: "P84064",
+        gp_connect: "false",
+        name_prefix: "Mr",
+        given_name: "Damon",
+        other_given_names: "null",
+        family_name: "Hill",
+        date_of_birth: "1964-10-01",
+        gender: "1",
+        address_line_1: "School House",
+        address_line_2: "Cottisford Road",
+        address_line_3: "Bristol",
+        address_line_4: "Avon",
+        address_line_5: "null",
+        postcode: "BS5 6TY",
+        reason_for_removal: "null",
+        reason_for_removal_effective_from_date: "null",
+        date_of_death: "null",
+        telephone_number: "null",
+        mobile_number: "null",
+        email_address: "null",
+        preferred_language: "null",
+        is_interpreter_required: "null",
+        action: "UPDATE",
       },
       {
-        "message": "Validation successful",
-        "nhs_number": "5558014954",
-        "superseded_by_nhs_number": "null",
-        "primary_care_provider": "P84064",
-        "gp_connect": "false",
-        "name_prefix": "Mr",
-        "given_name": "Damon",
-        "other_given_names": "null",
-        "family_name": "Hill",
-        "date_of_birth": "1964-10-01",
-        "gender": "1",
-        "address_line_1": "School House",
-        "address_line_2": "Cottisford Road",
-        "address_line_3": "Bristol",
-        "address_line_4": "Avon",
-        "address_line_5": "null",
-        "postcode": "BS5 6TY",
-        "reason_for_removal": "null",
-        "reason_for_removal_effective_from_date": "null",
-        "date_of_death": "null",
-        "telephone_number": "null",
-        "mobile_number": "null",
-        "email_address": "null",
-        "preferred_language": "null",
-        "is_interpreter_required": "null",
-        "action": "UPDATE"
+        message: "Validation successful",
+        nhs_number: "5558014954",
+        superseded_by_nhs_number: "null",
+        primary_care_provider: "P84064",
+        gp_connect: "false",
+        name_prefix: "Mr",
+        given_name: "Damon",
+        other_given_names: "null",
+        family_name: "Hill",
+        date_of_birth: "1964-10-01",
+        gender: "1",
+        address_line_1: "School House",
+        address_line_2: "Cottisford Road",
+        address_line_3: "Bristol",
+        address_line_4: "Avon",
+        address_line_5: "null",
+        postcode: "BS5 6TY",
+        reason_for_removal: "null",
+        reason_for_removal_effective_from_date: "null",
+        date_of_death: "null",
+        telephone_number: "null",
+        mobile_number: "null",
+        email_address: "null",
+        preferred_language: "null",
+        is_interpreter_required: "null",
+        action: "UPDATE",
       },
       {
-        "message": "Validation successful",
-        "nhs_number": "5558014954",
-        "superseded_by_nhs_number": "null",
-        "primary_care_provider": "P84064",
-        "gp_connect": "false",
-        "name_prefix": "Mr",
-        "given_name": "Damon",
-        "other_given_names": "null",
-        "family_name": "Hill",
-        "date_of_birth": "1964-10-01",
-        "gender": "1",
-        "address_line_1": "School House",
-        "address_line_2": "Cottisford Road",
-        "address_line_3": "Bristol",
-        "address_line_4": "Avon",
-        "address_line_5": "null",
-        "postcode": "BS5 6TY",
-        "reason_for_removal": "null",
-        "reason_for_removal_effective_from_date": "null",
-        "date_of_death": "null",
-        "telephone_number": "null",
-        "mobile_number": "null",
-        "email_address": "null",
-        "preferred_language": "null",
-        "is_interpreter_required": "null",
-        "action": "UPDATE"
-      }
-    ]
+        message: "Validation successful",
+        nhs_number: "5558014954",
+        superseded_by_nhs_number: "null",
+        primary_care_provider: "P84064",
+        gp_connect: "false",
+        name_prefix: "Mr",
+        given_name: "Damon",
+        other_given_names: "null",
+        family_name: "Hill",
+        date_of_birth: "1964-10-01",
+        gender: "1",
+        address_line_1: "School House",
+        address_line_2: "Cottisford Road",
+        address_line_3: "Bristol",
+        address_line_4: "Avon",
+        address_line_5: "null",
+        postcode: "BS5 6TY",
+        reason_for_removal: "null",
+        reason_for_removal_effective_from_date: "null",
+        date_of_death: "null",
+        telephone_number: "null",
+        mobile_number: "null",
+        email_address: "null",
+        preferred_language: "null",
+        is_interpreter_required: "null",
+        action: "UPDATE",
+      },
+    ];
 
-    const recordsArray = [...uniqueRecords, ...duplicateRecords]
+    const recordsArray = [...uniqueRecords, ...duplicateRecords];
 
     const result = await filterUniqueEntries(recordsArray);
 
@@ -291,15 +295,15 @@ describe('filterUniqueEntries', () => {
   });
 });
 
-describe('lookUp', () => {
+describe("lookUp", () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
-  test('should return successful response if item does not exist from query', async () => {
+  test("should return successful response if item does not exist from query", async () => {
     mockDynamoDbClient.resolves({
       $metadata: {
-        httpStatusCode: 200
+        httpStatusCode: 200,
       },
-      Items: ["I exist"]
+      Items: ["I exist"],
     });
 
     const id = "ID-A";
@@ -307,18 +311,23 @@ describe('lookUp', () => {
     const attribute = "attribute-A";
     const attributeType = "Type-A";
 
-
-    const result = await lookUp(mockDynamoDbClient, id, table, attribute, attributeType);
+    const result = await lookUp(
+      mockDynamoDbClient,
+      id,
+      table,
+      attribute,
+      attributeType
+    );
 
     expect(result.Items).toEqual(["I exist"]);
   });
 
-  test('should return unsuccessful response if item does exist from query', async () => {
+  test("should return unsuccessful response if item does exist from query", async () => {
     mockDynamoDbClient.resolves({
       $metadata: {
-        httpStatusCode: 200
+        httpStatusCode: 200,
       },
-      Items: []
+      Items: [],
     });
 
     const id = "ID-A";
@@ -326,22 +335,27 @@ describe('lookUp', () => {
     const attribute = "attribute-A";
     const attributeType = "Type-A";
 
-
-    const result = await lookUp(mockDynamoDbClient, id, table, attribute, attributeType);
+    const result = await lookUp(
+      mockDynamoDbClient,
+      id,
+      table,
+      attribute,
+      attributeType
+    );
 
     expect(result.Items).toEqual([]);
   });
-})
+});
 
-describe('getItemFromTable', () => {
+describe("getItemFromTable", () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 
-  test('should return successful response if item does not exist from query', async () => {
+  test("should return successful response if item does not exist from query", async () => {
     mockDynamoDbClient.resolves({
       $metadata: {
-        httpStatusCode: 200
+        httpStatusCode: 200,
       },
-      Item: "Table item"
+      Item: "Table item",
     });
 
     const partitionKeyName = "PK-Name";
@@ -351,11 +365,19 @@ describe('getItemFromTable', () => {
     const sortKeyType = "SK-Type";
     const sortKeyValue = "SK-Name";
 
-    const result = await getItemFromTable(mockDynamoDbClient, partitionKeyName, partitionKeyType, partitionKeyValue, sortKeyName, sortKeyType, sortKeyValue);
+    const result = await getItemFromTable(
+      mockDynamoDbClient,
+      partitionKeyName,
+      partitionKeyType,
+      partitionKeyValue,
+      sortKeyName,
+      sortKeyType,
+      sortKeyValue
+    );
 
     expect(result.Item).toEqual("Table item");
   });
-})
+});
 
 describe("generateCsvString", () => {
   test("returns correctly formatted string when given header and data", () => {
@@ -383,46 +405,46 @@ describe("putTableRecord", () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
   test("returns 200 when call executes successfully", async () => {
     const record = {
-      "message": "Validation successful",
-      "participant_id": "ABC-123-EFG",
-      "LsoaCode": "E011000",
-      "nhs_number": "5558014954",
-      "superseded_by_nhs_number": "null",
-      "primary_care_provider": "P84064",
-      "gp_connect": "false",
-      "name_prefix": "Mr",
-      "given_name": "Damon",
-      "other_given_names": "null",
-      "family_name": "Hill",
-      "date_of_birth": "1964-10-01",
-      "gender": "1",
-      "address_line_1": "School House",
-      "address_line_2": "Cottisford Road",
-      "address_line_3": "Bristol",
-      "address_line_4": "Avon",
-      "address_line_5": "null",
-      "postcode": "BS5 6TY",
-      "reason_for_removal": "null",
-      "reason_for_removal_effective_from_date": "null",
-      "date_of_death": "null",
-      "telephone_number": "null",
-      "mobile_number": "null",
-      "email_address": "null",
-      "preferred_language": "null",
-      "is_interpreter_required": "null",
-      "action": "UPDATE"
-    }
+      message: "Validation successful",
+      participant_id: "ABC-123-EFG",
+      LsoaCode: "E011000",
+      nhs_number: "5558014954",
+      superseded_by_nhs_number: "null",
+      primary_care_provider: "P84064",
+      gp_connect: "false",
+      name_prefix: "Mr",
+      given_name: "Damon",
+      other_given_names: "null",
+      family_name: "Hill",
+      date_of_birth: "1964-10-01",
+      gender: "1",
+      address_line_1: "School House",
+      address_line_2: "Cottisford Road",
+      address_line_3: "Bristol",
+      address_line_4: "Avon",
+      address_line_5: "null",
+      postcode: "BS5 6TY",
+      reason_for_removal: "null",
+      reason_for_removal_effective_from_date: "null",
+      date_of_death: "null",
+      telephone_number: "null",
+      mobile_number: "null",
+      email_address: "null",
+      preferred_language: "null",
+      is_interpreter_required: "null",
+      action: "UPDATE",
+    };
 
     mockDynamoDbClient.resolves({
       $metadata: {
-        httpStatusCode: 200
+        httpStatusCode: 200,
       },
     });
 
-    const table = "table-A"
+    const table = "table-A";
 
     const result = await putTableRecord(mockDynamoDbClient, table, record);
-    console.log(result)
+    console.log(result);
     expect(result.$metadata.httpStatusCode).toEqual(200);
   });
 });
@@ -431,20 +453,24 @@ describe("deleteTableRecord", () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
   test("returns 200 when call executes successfully", async () => {
     const oldRecord = {
-      "PersonId": {"S": "ABC-123-EFG"},
-      "LsoaCode": {"S": "E011000"}
-    }
+      PersonId: { S: "ABC-123-EFG" },
+      LsoaCode: { S: "E011000" },
+    };
 
     mockDynamoDbClient.resolves({
       $metadata: {
-        httpStatusCode: 200
+        httpStatusCode: 200,
       },
     });
 
-    const table = "table-A"
+    const table = "table-A";
 
-    const result = await deleteTableRecord(mockDynamoDbClient, table, oldRecord);
-    console.log(result)
+    const result = await deleteTableRecord(
+      mockDynamoDbClient,
+      table,
+      oldRecord
+    );
+    console.log(result);
     expect(result.$metadata.httpStatusCode).toEqual(200);
   });
 });
@@ -453,50 +479,55 @@ describe("overwriteRecordInTable", () => {
   const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
   test("returns 200 when call executes successfully", async () => {
     const oldRecord = {
-      "PersonId": {"S": "ABC-123-EFG"},
-      "LsoaCode": {"S": "E011000"}
-    }
+      PersonId: { S: "ABC-123-EFG" },
+      LsoaCode: { S: "E011000" },
+    };
 
     const newRecord = {
-      "message": "Validation successful",
-      "participant_id": "ABC-123-EFG",
-      "LsoaCode": "E011000",
-      "nhs_number": "5558014954",
-      "superseded_by_nhs_number": "null",
-      "primary_care_provider": "P84064",
-      "gp_connect": "false",
-      "name_prefix": "Mr",
-      "given_name": "Damon",
-      "other_given_names": "null",
-      "family_name": "Hill",
-      "date_of_birth": "1964-10-01",
-      "gender": "1",
-      "address_line_1": "School House",
-      "address_line_2": "Cottisford Road",
-      "address_line_3": "Bristol",
-      "address_line_4": "Avon",
-      "address_line_5": "null",
-      "postcode": "BS5 6TY",
-      "reason_for_removal": "null",
-      "reason_for_removal_effective_from_date": "null",
-      "date_of_death": "null",
-      "telephone_number": "null",
-      "mobile_number": "null",
-      "email_address": "null",
-      "preferred_language": "null",
-      "is_interpreter_required": "null",
-      "action": "UPDATE"
-    }
+      message: "Validation successful",
+      participant_id: "ABC-123-EFG",
+      LsoaCode: "E011000",
+      nhs_number: "5558014954",
+      superseded_by_nhs_number: "null",
+      primary_care_provider: "P84064",
+      gp_connect: "false",
+      name_prefix: "Mr",
+      given_name: "Damon",
+      other_given_names: "null",
+      family_name: "Hill",
+      date_of_birth: "1964-10-01",
+      gender: "1",
+      address_line_1: "School House",
+      address_line_2: "Cottisford Road",
+      address_line_3: "Bristol",
+      address_line_4: "Avon",
+      address_line_5: "null",
+      postcode: "BS5 6TY",
+      reason_for_removal: "null",
+      reason_for_removal_effective_from_date: "null",
+      date_of_death: "null",
+      telephone_number: "null",
+      mobile_number: "null",
+      email_address: "null",
+      preferred_language: "null",
+      is_interpreter_required: "null",
+      action: "UPDATE",
+    };
 
     mockDynamoDbClient.resolves({
       $metadata: {
-        httpStatusCode: 200
+        httpStatusCode: 200,
       },
     });
 
-    const table = "table-A"
+    const table = "table-A";
 
-    const result = await overwriteRecordInTable(mockDynamoDbClient, table, newRecord, oldRecord);
+    const result = await overwriteRecordInTable(
+      mockDynamoDbClient,
+      table,
+      newRecord,
+      oldRecord
+    );
     expect(result).toEqual(200);
   });
 });
