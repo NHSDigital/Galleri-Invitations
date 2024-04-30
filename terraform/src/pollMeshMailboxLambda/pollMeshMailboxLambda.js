@@ -22,27 +22,19 @@ const MESH_SENDER_KEY = await readSecret("MESH_SENDER_KEY", smClient);
 const CAAS_MESH_CERT = await readSecret("CAAS_MESH_CERT", smClient); //fetching caas cert, was receiver
 const MESH_CAAS_KEY = await readSecret("MESH_SENDER_KEY", smClient);
 
-//Set environment variables
-// const CONFIG = await loadConfig({
-//   url: "https://msg.intspineservices.nhs.uk", //can leave as non-secret
-//   sharedKey: process.env.MESH_SHARED_KEY,
-//   sandbox: "false",
-//   senderCert: MESH_SENDER_CERT,
-//   senderKey: MESH_SENDER_KEY,
-//   senderMailboxID: process.env.CAAS_MESH_MAILBOX_ID,
-//   senderMailboxPassword: process.env.CAAS_MESH_MAILBOX_PASSWORD,
-//   receiverCert: CAAS_MESH_CERT,
-//   receiverKey: MESH_CAAS_KEY,
-//   receiverMailboxID: process.env.CAAS_MESH_MAILBOX_ID,
-//   receiverMailboxPassword: process.env.CAAS_MESH_MAILBOX_PASSWORD,
-// });
-
+// Set environment variables
 const CONFIG = await loadConfig({
-  url: process.env.K8_URL,
-  TestKey: process.env.MESH_SHARED_KEY,
-  sandbox: "true",
-  receiverMailboxID: process.env.MESH_RECEIVER_MAILBOX_ID,
-  receiverMailboxPassword: process.env.MESH_RECEIVER_MAILBOX_PASSWORD,
+  url: "https://msg.intspineservices.nhs.uk", //can leave as non-secret
+  sharedKey: process.env.MESH_SHARED_KEY,
+  sandbox: "false",
+  senderCert: MESH_SENDER_CERT,
+  senderKey: MESH_SENDER_KEY,
+  senderMailboxID: process.env.CAAS_MESH_MAILBOX_ID,
+  senderMailboxPassword: process.env.CAAS_MESH_MAILBOX_PASSWORD,
+  receiverCert: CAAS_MESH_CERT,
+  receiverKey: MESH_CAAS_KEY,
+  receiverMailboxID: process.env.CAAS_MESH_MAILBOX_ID,
+  receiverMailboxPassword: process.env.CAAS_MESH_MAILBOX_PASSWORD,
 });
 
 //HANDLER
@@ -55,38 +47,38 @@ export const handler = async (event, context) => {
     let keepProcessing = true;
     if (healthy === 200) {
       console.log(`Status ${healthy}`);
-      let timeTaken = performance.now() - startTime;
       while (keepProcessing) {
-        if (timeTaken < EXIT_TIME * 1000 * 12) {
-          let messageArr = await getMessageArray(); //return arr of message ids
-          console.log(`messageArr ${messageArr}`);
-          if (messageArr.length > 0) {
-            for (let i = 0; i < messageArr.length; i++) {
-              let message = await readMsg(messageArr[i]); //returns messages based on id, iteratively from message list arr
-              finalMsgArr.push(message);
-
-              const meshString = finalMsgArr[i];
-              const splitMeshString = meshString.split("\n");
-              const header = splitMeshString[0];
-              const messageBody = splitMeshString.splice(1); //data - header
-
-              const x = new Set(messageBody);
-              let chunk = [...chunking(x, Number(MESH_CHUNK_VALUE), header)]; //includes header, buffer and 2000 records
-              const upload = await multipleUpload(chunk, clientS3, ENVIRONMENT);
-              if (upload[0].$metadata.httpStatusCode === 200) {
-                const response = await markRead(messageArr[i]); //remove message after actioned message
-                console.log(`${response.status} ${response.statusText}`);
-              }
-              timeTaken = performance.now() - startTime;
-              console.log(`Time taken: ${timeTaken} milliseconds`);
+        let timeTaken = performance.now() - startTime;
+        let messageArr = await getMessageArray(); //return arr of message ids
+        console.log(`messageArr ${messageArr}`);
+        if (messageArr.length > 0) {
+          for (let i = 0; i < messageArr.length; i++) {
+            let message = await readMsg(messageArr[i]); //returns messages based on id, iteratively from message list arr
+            finalMsgArr.push(message);
+            const meshString = finalMsgArr[i];
+            const splitMeshString = meshString.split("\n");
+            const header = splitMeshString[0];
+            const messageBody = splitMeshString.splice(1); //data - header
+            const x = new Set(messageBody);
+            let chunk = [...chunking(x, Number(MESH_CHUNK_VALUE), header)]; //includes header, buffer and 2000 records
+            const upload = await multipleUpload(chunk, clientS3, ENVIRONMENT);
+            if (upload[0].$metadata.httpStatusCode === 200) {
+              const response = await markRead(messageArr[i]); //remove message after actioned message
+              console.log(`${response.status} ${response.statusText}`);
             }
-          } else {
-            console.log("No Messages");
-            keepProcessing = false;
+            timeTaken = performance.now() - startTime;
+            console.log(`Time taken: ${timeTaken} milliseconds`);
+            if (timeTaken >= EXIT_TIME * 1000 * 60) {
+              //represents a minute in milliseconds
+              console.log("Gracefully exiting lambda function");
+              keepProcessing = false;
+              break;
+            }
           }
         } else {
-          console.log("Gracefully exiting lambda function");
+          console.log("No Messages");
           keepProcessing = false;
+          break;
         }
       }
     } else {
