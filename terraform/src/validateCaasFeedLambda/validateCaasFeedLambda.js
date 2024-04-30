@@ -140,7 +140,9 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
     console.log("Succeeded");
     return response;
   } catch (err) {
-    console.error(`Error: Failed to push to ${bucketName}/${key}. Error Message: ${err}`);
+    console.error(
+      `Error: Failed to push to ${bucketName}/${key}. Error Message: ${err}`
+    );
     throw err;
   }
 };
@@ -191,7 +193,7 @@ export const convertArrayOfObjectsToCSV = (data) => {
         ? `"${item[header]}"`
         : item[header];
       // blanks are removed and column needs to be quoted if it contains other whitespace,`,` or `"`.
-      if (escapedValue.replace(/ /g, '').match(/[\s,"]/)) {
+      if (escapedValue.replace(/ /g, "").match(/[\s,"]/)) {
         return '"' + escapedValue.replace(/"/g, '""') + '"';
       }
       return escapedValue;

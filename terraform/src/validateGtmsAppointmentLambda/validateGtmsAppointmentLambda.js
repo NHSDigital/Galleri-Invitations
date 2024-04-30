@@ -40,7 +40,7 @@ export const handler = async (event) => {
     } else {
       console.warn(
         "PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Data BELOW:\n" +
-        validateResult.errors,
+          validateResult.errors,
         null,
         2
       );

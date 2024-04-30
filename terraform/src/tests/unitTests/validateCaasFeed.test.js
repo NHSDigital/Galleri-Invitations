@@ -119,7 +119,7 @@ describe('validateCaasFeed function', () => {
     );
   });
 
-  test('should return failure for missing other given name', () => {
+  test('should pass validation for Action DEL even if both primary_care_provider and reason_for_removal are null', () => {
     const validationResult = validateRecord({ ...validRecord, action: "DEL",primary_care_provider: "null", reason_for_removal: "null" });
 
     expect(validationResult.success).toBe(true);
