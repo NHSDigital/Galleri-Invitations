@@ -1,18 +1,29 @@
 //IMPORTS
-import { getSecret, pushCsvToS3, getHealthStatusCode, getMessageArray, markRead, readMsg } from "./helper.js"
-import { handShake, loadConfig, getMessageCount, readMessage, markAsRead } from "nhs-mesh-client";
-import { S3Client } from '@aws-sdk/client-s3';
+import {
+  getSecret,
+  pushCsvToS3,
+  getHealthStatusCode,
+  getMessageArray,
+  markRead,
+  readMsg,
+} from "./helper.js";
+import {
+  handShake,
+  loadConfig,
+  getMessageCount,
+  readMessage,
+  markAsRead,
+} from "nhs-mesh-client";
+import { S3Client } from "@aws-sdk/client-s3";
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 //VARIABLES
 const smClient = new SecretsManagerClient({ region: "eu-west-2" });
 const clientS3 = new S3Client({});
 
-
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
 //HANDLER
 export const handler = async (event, context) => {
-
   //inside handler so they do not need to be mocked globally
   const GTMS_MESH_CERT = await readSecret("GTMS_MESH_CERT", smClient);
   const MESH_GTMS_KEY = await readSecret("MESH_SENDER_KEY", smClient);
@@ -35,14 +46,14 @@ export const handler = async (event, context) => {
   });
   //Required for TDD approach
   const workflows = {
-    "CLINIC_WORKFLOWID": process.env.CLINIC_WORKFLOW,
-    "CLINIC_SCHEDULE_WORKFLOWID": process.env.CLINIC_SCHEDULE_WORKFLOW,
-    "APPOINTMENT_WORKFLOWID": process.env.APPOINTMENT_WORKFLOW,
-    "WITHDRAW_WORKFLOWID": process.env.WITHDRAW_WORKFLOW,
-  }
+    CLINIC_WORKFLOWID: process.env.CLINIC_WORKFLOW,
+    CLINIC_SCHEDULE_WORKFLOWID: process.env.CLINIC_SCHEDULE_WORKFLOW,
+    APPOINTMENT_WORKFLOWID: process.env.APPOINTMENT_WORKFLOW,
+    WITHDRAW_WORKFLOWID: process.env.WITHDRAW_WORKFLOW,
+  };
 
   try {
-    console.log('Establishing connection');
+    console.log("Establishing connection");
     let healthy = await getHealthStatusCode(CONFIG, HANDSHAKE);
     let keepProcessing = true;
     if (healthy === 200) {
@@ -54,7 +65,12 @@ export const handler = async (event, context) => {
         if (messageArr.length > 0) {
           for (const element of messageArr) {
             let message = await readMsg(CONFIG, READING_MSG, element); //returns messages based on id, iteratively from message list arr
-            const response = await processMessage(message, ENVIRONMENT, clientS3, workflows);
+            const response = await processMessage(
+              message,
+              ENVIRONMENT,
+              clientS3,
+              workflows
+            );
             if (response?.$metadata?.httpStatusCode === 200) {
               const confirmation = await markRead(CONFIG, MARKED, element);
               console.log(`${confirmation.status} ${confirmation.statusText}`);
@@ -73,13 +89,11 @@ export const handler = async (event, context) => {
   }
 };
 
-
 //FUNCTIONS
 export async function readSecret(secretName, client) {
-  return Buffer.from(
-    await getSecret(secretName, client),
-    "base64"
-  ).toString("utf8");
+  return Buffer.from(await getSecret(secretName, client), "base64").toString(
+    "utf8"
+  );
 }
 
 /*
@@ -88,58 +102,80 @@ export async function readSecret(secretName, client) {
  * The outbound-gtms-invited-participant-batch bucket is not included here as it is
  * an outbound bucket, where GPS will be sending info to GTMS
  */
-export async function processMessage(message, environment, S3client, workflows, timestamp) {
-  const dateTime = timestamp || new Date(Date.now()).toISOString()
-  if (message?.['headers']?.['mex-workflowid'] === workflows.CLINIC_WORKFLOWID) {
+export async function processMessage(
+  message,
+  environment,
+  S3client,
+  workflows,
+  timestamp
+) {
+  const dateTime = timestamp || new Date(Date.now()).toISOString();
+  if (
+    message?.["headers"]?.["mex-workflowid"] === workflows.CLINIC_WORKFLOWID
+  ) {
     //Deposit to S3, ClinicCreateOrUpdate
     const confirmation = await pushCsvToS3(
       `${environment}-inbound-gtms-clinic-create-or-update`,
       `clinic_create_or_update_${dateTime}.json`,
-      JSON.stringify(message['data']),
+      JSON.stringify(message["data"]),
       S3client
     );
     return confirmation;
   }
 
-  if (message?.['headers']?.['mex-workflowid'] === workflows.CLINIC_SCHEDULE_WORKFLOWID) {
+  if (
+    message?.["headers"]?.["mex-workflowid"] ===
+    workflows.CLINIC_SCHEDULE_WORKFLOWID
+  ) {
     //Deposit to S3, ClinicScheduleSummary
     const confirmation = await pushCsvToS3(
       `${environment}-inbound-gtms-clinic-schedule-summary`,
       `clinic_schedule_summary_${dateTime}.json`,
-      JSON.stringify(message['data']),
+      JSON.stringify(message["data"]),
       S3client
     );
     return confirmation;
   }
 
-  if (message?.['headers']?.['mex-workflowid'] === workflows.APPOINTMENT_WORKFLOWID) {
+  if (
+    message?.["headers"]?.["mex-workflowid"] ===
+    workflows.APPOINTMENT_WORKFLOWID
+  ) {
     //Deposit to S3, Appointment
     const confirmation = await pushCsvToS3(
       `${environment}-inbound-gtms-appointment`,
       `appointment_${dateTime}.json`,
-      JSON.stringify(message['data']),
+      JSON.stringify(message["data"]),
       S3client
     );
     return confirmation;
   }
 
-  if (message?.['headers']?.['mex-workflowid'] === workflows.WITHDRAW_WORKFLOWID) {
+  if (
+    message?.["headers"]?.["mex-workflowid"] === workflows.WITHDRAW_WORKFLOWID
+  ) {
     //Deposit to S3, Withdrawal
     const confirmation = await pushCsvToS3(
       `${environment}-inbound-gtms-withdrawal`,
       `withdrawal_${dateTime}.json`,
-      JSON.stringify(message['data']),
+      JSON.stringify(message["data"]),
       S3client
     );
     return confirmation;
   }
 
-  if (message?.['headers']?.['mex-workflowid'] !== (workflows.CLINIC_WORKFLOWID && workflows.CLINIC_SCHEDULE_WORKFLOWID && workflows.APPOINTMENT_WORKFLOWID && workflows.WITHDRAW_WORKFLOWID)) {
+  if (
+    message?.["headers"]?.["mex-workflowid"] !==
+    (workflows.CLINIC_WORKFLOWID &&
+      workflows.CLINIC_SCHEDULE_WORKFLOWID &&
+      workflows.APPOINTMENT_WORKFLOWID &&
+      workflows.WITHDRAW_WORKFLOWID)
+  ) {
     //Deposit invalid record S3
     const confirmation = await pushCsvToS3(
       `${environment}-invalid-gtms-payload`,
       `invalid_gtms_record_${dateTime}.json`,
-      JSON.stringify(message['data']),
+      JSON.stringify(message["data"]),
       S3client
     );
     return confirmation;
