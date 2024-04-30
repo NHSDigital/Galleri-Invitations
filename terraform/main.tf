@@ -104,7 +104,7 @@ module "eks" {
 
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
-    instance_types = ["t3.medium"]
+    instance_types = ["t3.small"]
   }
 
   eks_managed_node_groups = {
@@ -113,7 +113,7 @@ module "eks" {
       max_size     = 3
       desired_size = 2
 
-      instance_types = ["t3.large"]
+      instance_types = ["t3.small"]
       capacity_type  = "SPOT"
     }
   }
@@ -1743,8 +1743,8 @@ module "caas_feed_add_records_lambda_cloudwatch" {
 }
 
 module "caas_data_triggers" {
-  name       = "caas_data_trigger"
   source     = "./modules/lambda_s3_trigger"
+  name       = "caas_data_trigger"
   bucket_arn = module.validated_records_bucket.bucket_arn
   bucket_id  = module.validated_records_bucket.bucket_id
   triggers = {
@@ -2208,4 +2208,378 @@ module "appointment_table" {
     Name        = "Dynamodb Table Appointments"
     Environment = var.environment
   }
+}
+// Parameter Store
+resource "aws_ssm_parameter" "invited-notify" {
+  name      = "invited-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "invited-routing-id" {
+  name      = "invited-routing-id"
+  type      = "String"
+  value     = "a91601f5-ed53-4472-bbaa-580f418c7091"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "invited-tables" {
+  name      = "invited-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "withdrawn-notify" {
+  name      = "withdrawn-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "withdrawn-routing-id" {
+  name      = "withdrawn-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "withdrawn-tables" {
+  name      = "withdrawn-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-booked-letter-notify" {
+  name      = "appointment-booked-letter-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-booked-letter-routing-id" {
+  name      = "appointment-booked-letter-routing-id"
+  type      = "String"
+  value     = "4c4c4c06-0f6d-465a-ab6a-ca358c2721b0"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-booked-letter-tables" {
+  name      = "appointment-booked-letter-tables"
+  type      = "StringList"
+  value     = "appointment, phlebotomy"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-booked-text-notify" {
+  name      = "appointment-booked-text-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-booked-text-routing-id" {
+  name      = "appointment-booked-text-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-booked-text-tables" {
+  name      = "appointment-booked-text-tables"
+  type      = "StringList"
+  value     = "appointment, phlebotomy"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-rebooked-letter-notify" {
+  name      = "appointment-rebooked-letter-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-rebooked-letter-routing-id" {
+  name      = "appointment-rebooked-letter-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-rebooked-letter-tables" {
+  name      = "appointment-rebooked-letter-tables"
+  type      = "StringList"
+  value     = "appointment, phlebotomy"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-rebooked-text-notify" {
+  name      = "appointment-rebooked-text-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-rebooked-text-routing-id" {
+  name      = "appointment-rebooked-text-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-rebooked-text-tables" {
+  name      = "appointment-rebooked-text-tables"
+  type      = "StringList"
+  value     = "appointment, phlebotomy"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-by-nhs-notify" {
+  name      = "appointment-cancelled-by-nhs-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-by-nhs-routing-id" {
+  name      = "appointment-cancelled-by-nhs-routing-id"
+  type      = "String"
+  value     = "841ebf60-4ffa-45d3-874b-b3e9db895c70"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-by-nhs-tables" {
+  name      = "appointment-cancelled-by-nhs-tables"
+  type      = "StringList"
+  value     = "appointment, phlebotomy"
+  overwrite = true
+}
+resource "aws_ssm_parameter" "appointment-cancelled-by-participant-notify" {
+  name      = "appointment-cancelled-by-participant-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-by-participant-routing-id" {
+  name      = "appointment-cancelled-by-participant-routing-id"
+  type      = "String"
+  value     = "841ebf60-4ffa-45d3-874b-b3e9db895c70"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-by-participant-tables" {
+  name      = "appointment-cancelled-by-participant-tables"
+  type      = "StringList"
+  value     = "appointment, phlebotomy"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-by-participant-withdrawn-notify" {
+  name      = "appointment-cancelled-by-participant-withdrawn-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-by-participant-withdrawn-routing-id" {
+  name      = "appointment-cancelled-by-participant-withdrawn-routing-id"
+  type      = "String"
+  value     = "841ebf60-4ffa-45d3-874b-b3e9db895c70"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-by-participant-withdrawn-tables" {
+  name      = "appointment-cancelled-by-participant-withdrawn-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
+}
+
+
+resource "aws_ssm_parameter" "appointment-attended-sample-taken-notify" {
+  name      = "appointment-attended-sample-taken-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-attended-sample-taken-routing-id" {
+  name      = "appointment-attended-sample-taken-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-attended-sample-taken-tables" {
+  name      = "appointment-attended-sample-taken-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-not-attended-notify" {
+  name      = "appointment-not-attended-notify"
+  type      = "String"
+  value     = "False"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-not-attended-routing-id" {
+  name      = "appointment-not-attended-routing-id"
+  type      = "String"
+  value     = "N/A"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-not-attended-tables" {
+  name      = "appointment-not-attended-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "result-no-csd-notify" {
+  name      = "result-no-csd-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "result-no-csd-routing-id" {
+  name      = "result-no-csd-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "result-no-csd-tables" {
+  name      = "result-no-csd-tables"
+  type      = "StringList"
+  value     = "appointment, phlebotomy"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "result-cancelled-test-notify" {
+  name      = "result-cancelled-test-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "result-cancelled-test-routing-id" {
+  name      = "result-cancelled-test-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "result-cancelled-test-tables" {
+  name      = "result-cancelled-test-tables"
+  type      = "StringList"
+  value     = "appointment, phlebotomy"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "referred-notify" {
+  name      = "referred-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "referred-routing-id" {
+  name      = "referred-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "referred-tables" {
+  name      = "referred-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
+}
+resource "aws_ssm_parameter" "consultation-call-no-consent-notify" {
+  name      = "consultation-call-no-consent-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "consultation-call-no-consent-routing-id" {
+  name      = "consultation-call-no-consent-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "consultation-call-no-consent-tables" {
+  name      = "consultation-call-no-consent-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
+}
+resource "aws_ssm_parameter" "unable-to-contact-csd-notify" {
+  name      = "unable-to-contact-csd-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "unable-to-contact-csd-routing-id" {
+  name      = "unable-to-contact-csd-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "unable-to-contact-csd--tables" {
+  name      = "unable-to-contact-csd-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
+}
+resource "aws_ssm_parameter" "private-referral-notify" {
+  name      = "private-referral-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "private-referral-routing-id" {
+  name      = "private-referral-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "private-referral-tables" {
+  name      = "private-referral-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
+}
+resource "aws_ssm_parameter" "contact-escalation-notify" {
+  name      = "contact-escalation-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "contact-escalation-routing-id" {
+  name      = "contact-escalation-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "contact-escalation-tables" {
+  name      = "contact-escalation-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
 }
