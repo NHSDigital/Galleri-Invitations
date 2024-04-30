@@ -14,6 +14,22 @@ data "aws_route53_zone" "example" {
   private_zone = false
 }
 
+# data "aws_secretsmanager_secret" "galleri_activity_code" {
+#   name = "GALLERI_ACTIVITY_CODE"
+# }
+
+data "aws_secretsmanager_secret_version" "galleri_activity_code" {
+  secret_id = "GALLERI_ACTIVITY_CODE"
+}
+
+# data "aws_secretsmanager_secret" "cis2_client_id" {
+#   name = "CIS2_CLIENT_ID"
+# }
+
+data "aws_secretsmanager_secret_version" "cis2_client_id" {
+  secret_id = "CIS2_CLIENT_ID"
+}
+
 # Setup DNS records, this is a bit of a roundabot process but the way it works is the first three blocks are just to validate
 # ownership of the domain, it does this by creating a hostname with a unique prefix and then checks it to verify
 # everything is correct.
@@ -320,11 +336,11 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     ])
   }
 
-  # setting {
-  #   namespace = "aws:elasticbeanstalk:application:environment"
-  #   name      = "CIS2_ID"
-  #   value     = "328183617639.apps.supplier"
-  # }
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "CIS2_ID"
+    value     = data.aws_secretsmanager_secret_version.cis2_client_id.secret_string
+  }
 
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
@@ -350,11 +366,11 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     value     = "https://${var.environment}.${var.hostname}/api/auth/callback/cis2"
   }
 
-  # setting {
-  #   namespace = "aws:elasticbeanstalk:application:environment"
-  #   name      = "GALLERI_ACTIVITY_CODE"
-  #   value     = "B1824"
-  # }
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "GALLERI_ACTIVITY_CODE"
+    value     = data.aws_secretsmanager_secret_version.galleri_activity_code.secret_string
+  }
 
 
   setting {
