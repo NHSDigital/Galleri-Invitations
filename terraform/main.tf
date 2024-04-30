@@ -1373,7 +1373,7 @@ module "session_manager_lambda_api_gateway" {
 
 module "session_table" {
   source      = "./modules/dynamodb"
-  table_name  = "auth-js"
+  table_name  = "next-auth"
   hash_key    = "pk"
   range_key   = "sk"
   environment = var.environment
