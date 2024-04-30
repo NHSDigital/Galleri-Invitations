@@ -174,7 +174,7 @@ export const processingData = async (
           supersedingEpisodeRecord.Items.length == 0)
       ) {
         if (retainingEpisodeRecord.Items.length && supersedingEpisodeRecord.Items.length) {
-          console.error(`Error: Episodes for both retaining NHS no. ${populationTableRecord.nhs_number.N} and 
+          console.error(`Error: Episodes for both retaining NHS no. ${populationTableRecord.nhs_number.N} and
             superseding NHS no. ${incomingUpdateData.superseded_by_nhs_number} exist! Not merging.`);
         }
 
