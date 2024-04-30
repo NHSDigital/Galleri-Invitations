@@ -61,7 +61,6 @@ resource "aws_route53_record" "actual_record" {
 # IAM Role for Elastic Beanstalk environment's EC2 instances
 resource "aws_iam_role" "screens" {
   name = "${var.environment}-${var.name}-role"
-
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
@@ -74,6 +73,42 @@ resource "aws_iam_role" "screens" {
       },
     ],
   })
+}
+resource "aws_iam_policy" "iam_policy_for_dynamodb_access" {
+  name        = "${var.environment}-${var.name}"
+  path        = "/"
+  description = "AWS IAM Policy for managing dynamo DB access for beanstalk applications"
+  policy = jsonencode(
+    {
+      "Version" : "2012-10-17",
+      "Statement" : [
+        {
+          "Sid" : "DynamoDBAccess",
+          "Effect" : "Allow",
+          "Action" : [
+            "dynamodb:BatchGetItem",
+            "dynamodb:BatchWriteItem",
+            "dynamodb:Describe*",
+            "dynamodb:List*",
+            "dynamodb:PutItem",
+            "dynamodb:DeleteItem",
+            "dynamodb:GetItem",
+            "dynamodb:Scan",
+            "dynamodb:Query",
+            "dynamodb:UpdateItem"
+          ],
+          "Resource" : [
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/next-auth",
+            "arn:aws:dynamodb:eu-west-2:136293001324:table/next-auth/index/GSI1"
+          ]
+        }
+      ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "dynamodb" {
+  role       = aws_iam_role.screens.name
+  policy_arn = aws_iam_policy.iam_policy_for_dynamodb_access.arn
 }
 
 # Attach the default policy for Elastic Beanstalk Web Tier to the IAM role
