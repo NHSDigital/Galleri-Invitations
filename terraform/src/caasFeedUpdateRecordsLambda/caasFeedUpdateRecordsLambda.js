@@ -9,63 +9,80 @@ import {
   GetItemCommand,
   PutItemCommand,
   DeleteItemCommand,
-  UpdateItemCommand
+  UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import { Readable } from "stream";
 import csv from "csv-parser";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 
 const s3 = new S3Client();
-const client = new DynamoDBClient({ region: "eu-west-2", convertEmptyValues: true });
+const client = new DynamoDBClient({
+  region: "eu-west-2",
+  convertEmptyValues: true,
+});
 
 const ENVIRONMENT = process.env.ENVIRONMENT;
 const SUCCESSFUL_RESPONSE = 200;
 
-
 // Lambda Entry Point
 export const handler = async (event) => {
-
   const bucket = event.Records[0].s3.bucket.name;
-  const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
+  const key = decodeURIComponent(
+    event.Records[0].s3.object.key.replace(/\+/g, " ")
+  );
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
   try {
     const csvString = await readCsvFromS3(bucket, key, s3);
     const records = await parseCsvToArray(csvString);
 
-    const [
-      uniqueRecordsToBatchProcess,
-      duplicateRecordsToIndividuallyProcess
-    ] = filterUniqueEntries(records);
+    const [uniqueRecordsToBatchProcess, duplicateRecordsToIndividuallyProcess] =
+      filterUniqueEntries(records);
 
-    if (uniqueRecordsToBatchProcess.length > 0){
+    if (uniqueRecordsToBatchProcess.length > 0) {
       const recordsToUploadSettled = await Promise.allSettled(
         uniqueRecordsToBatchProcess.map(async (incomingUpdateData) => {
           // GIVEN the supplied NHS No. does exist in MPI, get the entire record from the table
           let tableRecord;
-          if(incomingUpdateData.nhs_number) tableRecord = await lookUp(client, incomingUpdateData.nhs_number, "Population", "nhs_number", "N", true);
+          if (incomingUpdateData.nhs_number)
+            tableRecord = await lookUp(
+              client,
+              incomingUpdateData.nhs_number,
+              "Population",
+              "nhs_number",
+              "N",
+              true
+            );
 
-          if (tableRecord?.Items.length > 0){
-            return Promise.resolve(processingData(incomingUpdateData, tableRecord.Items[0]));
+          if (tableRecord?.Items.length > 0) {
+            return Promise.resolve(
+              processingData(incomingUpdateData, tableRecord.Items[0])
+            );
           } else {
             return Promise.reject({
               rejectedRecordNhsNumber: incomingUpdateData.nhs_number,
               rejected: true,
-              reason: `Rejecting record ${incomingUpdateData.nhs_number}. Cannot update record as it doesn't exist in table`
-            })
+              reason: `Rejecting record ${incomingUpdateData.nhs_number}. Cannot update record as it doesn't exist in table`,
+            });
           }
         })
       );
 
-      const filteredRejectedRecords = recordsToUploadSettled.filter((record) => {
-        return Object.keys(record?.reason).length > 0
-      });
+      const filteredRejectedRecords = recordsToUploadSettled.filter(
+        (record) => {
+          return Object.keys(record?.reason).length > 0;
+        }
+      );
 
-      console.log('----------------------------------------------------------------');
+      console.log(
+        "----------------------------------------------------------------"
+      );
       if (filteredRejectedRecords.length > 0) {
         const timeNow = Date.now();
-        const fileName = `validRecords/rejectedRecords/update/rejectedRecords-${timeNow}.csv`
-        console.error(`Error: ${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-${bucket}/${fileName}`);
+        const fileName = `validRecords/rejectedRecords/update/rejectedRecords-${timeNow}.csv`;
+        console.error(
+          `Error: ${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-${bucket}/${fileName}`
+        );
         // Generate the CSV format
         const rejectedRecordsString = generateCsvString(
           `nhs_number,rejected,reason`,
@@ -79,11 +96,10 @@ export const handler = async (event) => {
           rejectedRecordsString,
           s3
         );
-        return "Failure report published"
+        return "Failure report published";
       }
     }
-  }
-  catch (error) {
+  } catch (error) {
     console.error(
       "Error: with CaaS Feed extraction, procession or uploading",
       error
@@ -95,110 +111,184 @@ export const handler = async (event) => {
 // METHODS
 
 // takes incoming record and record from table and compares the two
-export const processingData = async (incomingUpdateData, populationTableRecord) => {
-  const tablePersonId = populationTableRecord?.PersonId
-  const tableLsoaCode = populationTableRecord?.LsoaCode
+export const processingData = async (
+  incomingUpdateData,
+  populationTableRecord
+) => {
+  const tablePersonId = populationTableRecord?.PersonId;
+  const tableLsoaCode = populationTableRecord?.LsoaCode;
 
   // setting the following fields in the incoming caas feed data as this is generated by our caasFeedAddRecordsLambda
   // these field needs to be supplied as we delete the old record and replace whenever we "update" the record
   // Our update is essentially an overwrite, this is because there are cases where the primary key must change upon an update
   // In order to make our "update" generic, an overwrite is implemented
-  incomingUpdateData["PersonId"] = tablePersonId.S
-  incomingUpdateData["lsoa_2011"] = tableLsoaCode.S
-  incomingUpdateData["participant_id"] = tablePersonId.S
+  incomingUpdateData["PersonId"] = tablePersonId.S;
+  incomingUpdateData["lsoa_2011"] = tableLsoaCode.S;
+  incomingUpdateData["participant_id"] = tablePersonId.S;
 
-  if (incomingUpdateData.superseded_by_nhs_number === 'null' || incomingUpdateData.superseded_by_nhs_number == 0) {
+  if (
+    incomingUpdateData.superseded_by_nhs_number === "null" ||
+    incomingUpdateData.superseded_by_nhs_number == 0
+  ) {
     return await updateRecord(incomingUpdateData, populationTableRecord); // AC1, 2, 4
-  } else { // a merge case has been recognised. Handle below
-    const retainingPopulationTableRecord = await lookUp(client, incomingUpdateData.superseded_by_nhs_number, "Population", "nhs_number", "N", true);
-    const retainingPersonId = retainingPopulationTableRecord.Items[0].PersonId.S
+  } else {
+    // a merge case has been recognised. Handle below
+    const retainingPopulationTableRecord = await lookUp(
+      client,
+      incomingUpdateData.superseded_by_nhs_number,
+      "Population",
+      "nhs_number",
+      "N",
+      true
+    );
+    const retainingPersonId =
+      retainingPopulationTableRecord.Items[0].PersonId.S;
 
     if (retainingPopulationTableRecord.Items.length) {
       // Get Episode records
-      const retainingEpisodeRecord = await lookUp(client,retainingPersonId , "Episode", "Participant_Id", "S", true);
-      const supersedingEpisodeRecord = await lookUp(client, tablePersonId.S, "Episode", "Participant_Id", "S", true);
+      const retainingEpisodeRecord = await lookUp(
+        client,
+        retainingPersonId,
+        "Episode",
+        "Participant_Id",
+        "S",
+        true
+      );
+      const supersedingEpisodeRecord = await lookUp(
+        client,
+        tablePersonId.S,
+        "Episode",
+        "Participant_Id",
+        "S",
+        true
+      );
 
       // the retaining record has an Episode record that exists or both retaining record and supersed record do not have an Episode record
-      if (retainingEpisodeRecord.Items.length || (retainingEpisodeRecord.Items.length == 0 && supersedingEpisodeRecord.Items.length == 0)) {
+      if (
+        retainingEpisodeRecord.Items.length ||
+        (retainingEpisodeRecord.Items.length == 0 &&
+          supersedingEpisodeRecord.Items.length == 0)
+      ) {
         // Apply the update to the supersed record
-        await overwriteRecordInTable(client, 'Population', incomingUpdateData, populationTableRecord)
+        await overwriteRecordInTable(
+          client,
+          "Population",
+          incomingUpdateData,
+          populationTableRecord
+        );
 
         return {
-          rejected: false
-        }
+          rejected: false,
+        };
       } else if (supersedingEpisodeRecord.Items.length) {
         // keep personId, participantId from retaining and combine with supersed
         const recordNewSupersed = {
           ...incomingUpdateData,
           lsoa_2011: populationTableRecord.LsoaCode.S,
-          PersonId : retainingPopulationTableRecord.Items[0].PersonId.S,
-          participant_id : retainingPopulationTableRecord.Items[0].participantId.S,
-        }
+          PersonId: retainingPopulationTableRecord.Items[0].PersonId.S,
+          participant_id:
+            retainingPopulationTableRecord.Items[0].participantId.S,
+        };
 
         // keep personId, participantId from supersed and combine with retained
         const recordNewRetaining = {
           ...retainingPopulationTableRecord.Items[0],
           lsoa_2011: retainingPopulationTableRecord.Items[0].LsoaCode,
-          PersonId : populationTableRecord.PersonId ,
-          participant_id : populationTableRecord.participantId,
-        }
+          PersonId: populationTableRecord.PersonId,
+          participant_id: populationTableRecord.participantId,
+        };
 
         for (const property in recordNewRetaining) {
-          recordNewRetaining[property] = recordNewRetaining[property][Object.keys(recordNewRetaining[property])[0]];
+          recordNewRetaining[property] =
+            recordNewRetaining[property][
+              Object.keys(recordNewRetaining[property])[0]
+            ];
         }
 
-        const overWriteResponse = Promise.all[
-          await overwriteRecordInTable(client, 'Population', recordNewSupersed, populationTableRecord),
-          await overwriteRecordInTable(client, 'Population', recordNewRetaining, retainingPopulationTableRecord.Items[0])
-        ]
-        if (overWriteResponse.every(element => element.value == SUCCESSFUL_RESPONSE)) {
+        const overWriteResponse =
+          Promise.all[
+            (await overwriteRecordInTable(
+              client,
+              "Population",
+              recordNewSupersed,
+              populationTableRecord
+            ),
+            await overwriteRecordInTable(
+              client,
+              "Population",
+              recordNewRetaining,
+              retainingPopulationTableRecord.Items[0]
+            ))
+          ];
+        if (
+          overWriteResponse.every(
+            (element) => element.value == SUCCESSFUL_RESPONSE
+          )
+        ) {
           return {
-            rejected: false
-          }
+            rejected: false,
+          };
         } else {
           return {
             rejectedRecordNhsNumber: `${populationTableRecord.nhs_number} | ${retainingPopulationTableRecord.Items[0].nhs_number}`,
             rejected: true,
-            reason: `Alert to third line support. Investigate these records`
-          }
+            reason: `Alert to third line support. Investigate these records`,
+          };
         }
-      }
-      else {
+      } else {
         return {
           rejectedRecordNhsNumber: populationTableRecord.nhs_number,
           rejected: true,
-          reason: `Alert to third line support`
-        }
+          reason: `Alert to third line support`,
+        };
       }
     } else {
       return {
         rejectedRecordNhsNumber: populationTableRecord.nhs_number,
         rejected: true,
-        reason: `Superseded Number present in update but record does not exist in our table. Alert to third line support`
-      }
+        reason: `Superseded Number present in update but record does not exist in our table. Alert to third line support`,
+      };
     }
-
   }
-}
+};
 
 const updateRecord = async (record, recordFromTable) => {
-  const { PersonId } = recordFromTable
+  const { PersonId } = recordFromTable;
 
-  if (record.date_of_death !== recordFromTable.date_of_death.S) { // AC1a and AC1b
-    const episodeRecord = await lookUp(client, PersonId.S, "Episode", "Participant_Id", "S", true);
+  if (record.date_of_death !== recordFromTable.date_of_death.S) {
+    // AC1a and AC1b
+    const episodeRecord = await lookUp(
+      client,
+      PersonId.S,
+      "Episode",
+      "Participant_Id",
+      "S",
+      true
+    );
     // close open Episode record
     if (episodeRecord?.Items.length > 0) {
-      const batchId = episodeRecord.Items[0].Batch_Id.S
-      const participantId = episodeRecord.Items[0].Participant_Id.S
+      const batchId = episodeRecord.Items[0].Batch_Id.S;
+      const participantId = episodeRecord.Items[0].Participant_Id.S;
 
-      const updateEpisodeRecord = ["Episode_Status", "S", "Deceased"]
-      await updateRecordInTable(client, "Episode", batchId, "Batch_Id", participantId, "Participant_Id", updateEpisodeRecord);
+      const updateEpisodeRecord = ["Episode_Status", "S", "Deceased"];
+      await updateRecordInTable(
+        client,
+        "Episode",
+        batchId,
+        "Batch_Id",
+        participantId,
+        "Participant_Id",
+        updateEpisodeRecord
+      );
     } else {
-      console.log('No open Episode record')
+      console.log("No open Episode record");
     }
   }
 
-  if (record.primary_care_provider !== recordFromTable.primary_care_provider.S) { // AC2
+  if (
+    record.primary_care_provider !== recordFromTable.primary_care_provider.S
+  ) {
+    // AC2
     record.participant_id = PersonId.S;
 
     const lsoaCheck = await getLsoa(record, client);
@@ -206,56 +296,95 @@ const updateRecord = async (record, recordFromTable) => {
       return {
         rejectedRecordNhsNumber: record.nhs_number,
         rejected: true,
-        reason: lsoaCheck.reason
+        reason: lsoaCheck.reason,
       };
     }
     record.lsoa_2011 = lsoaCheck;
 
-    const responsibleIcb = await getItemFromTable(client, "GpPractice", "gp_practice_code", "S", record.primary_care_provider);
+    const responsibleIcb = await getItemFromTable(
+      client,
+      "GpPractice",
+      "gp_practice_code",
+      "S",
+      record.primary_care_provider
+    );
     record.responsible_icb = responsibleIcb.Item?.icb_id.S;
 
     if (!record.responsible_icb) {
       return {
         rejectedRecordNhsNumber: record.nhs_number,
         rejected: true,
-        reason: `Rejecting record ${record.nhs_number} as could not find ICB in participating ICB for GP Practice code ${record.primary_care_provider}`
+        reason: `Rejecting record ${record.nhs_number} as could not find ICB in participating ICB for GP Practice code ${record.primary_care_provider}`,
       };
     }
   }
 
-  if (record.postcode !== recordFromTable.postcode.S) { //AC43
+  if (record.postcode !== recordFromTable.postcode.S) {
+    //AC43
     record.participant_id = PersonId.S;
 
     const lsoaCheck = await getLsoa(record, client);
-    if (!record.participant_id || lsoaCheck.rejected){
+    if (!record.participant_id || lsoaCheck.rejected) {
       return {
         rejectedRecordNhsNumber: record.nhs_number,
         rejected: true,
-        reason: lsoaCheck.reason
+        reason: lsoaCheck.reason,
       };
     }
     record.lsoa_2011 = lsoaCheck;
   }
 
-  if (recordFromTable.reason_for_removal.S !== "DEA" && record.reason_for_removal === "DEA") {
+  if (
+    recordFromTable.reason_for_removal.S !== "DEA" &&
+    record.reason_for_removal === "DEA"
+  ) {
     // check if episode record exists
-    const episodeRecordCheck = await lookUp(client, recordFromTable.PersonId.S , "Episode", "Participant_Id", "S", true);
+    const episodeRecordCheck = await lookUp(
+      client,
+      recordFromTable.PersonId.S,
+      "Episode",
+      "Participant_Id",
+      "S",
+      true
+    );
     if (episodeRecordCheck.Items.length > 0) {
       const episodeRecord = episodeRecordCheck.Items[0];
-      const batchId = episodeRecord.Batch_Id.S
-      const participantId = episodeRecord.Participant_Id.S
+      const batchId = episodeRecord.Batch_Id.S;
+      const participantId = episodeRecord.Participant_Id.S;
 
       const timeNow = Date.now();
 
-      const updateEpisodeEvent = ["Episode_Event", "S", "Deceased"]
-      const updateEpisodeEventUpdated = ["Episode_Event_Updated", "N", String(timeNow)]
-      const updateEpisodeStatus = ["Episode_Status", "S", "Closed"]
-      const updateEpisodeEventDescription = ["Episode_Event_Description", "S", "NULL"]
-      const updateEpisodeEventNotes = ["Episode_Event_Notes", "S", "NULL"]
-      const updateEpisodeEventUpdatedBy = ["Episode_Event_Updated_By", "S", "CaaS"]
-      const updateEpisodeStatusUpdated = ["Episode_Status_Updated", "N", String(timeNow)]
+      const updateEpisodeEvent = ["Episode_Event", "S", "Deceased"];
+      const updateEpisodeEventUpdated = [
+        "Episode_Event_Updated",
+        "N",
+        String(timeNow),
+      ];
+      const updateEpisodeStatus = ["Episode_Status", "S", "Closed"];
+      const updateEpisodeEventDescription = [
+        "Episode_Event_Description",
+        "S",
+        "NULL",
+      ];
+      const updateEpisodeEventNotes = ["Episode_Event_Notes", "S", "NULL"];
+      const updateEpisodeEventUpdatedBy = [
+        "Episode_Event_Updated_By",
+        "S",
+        "CaaS",
+      ];
+      const updateEpisodeStatusUpdated = [
+        "Episode_Status_Updated",
+        "N",
+        String(timeNow),
+      ];
 
-      await updateRecordInTable(client, "Episode", batchId, "Batch_Id", participantId, "Participant_Id",
+      await updateRecordInTable(
+        client,
+        "Episode",
+        batchId,
+        "Batch_Id",
+        participantId,
+        "Participant_Id",
         updateEpisodeEvent,
         updateEpisodeEventUpdated,
         updateEpisodeStatus,
@@ -265,55 +394,59 @@ const updateRecord = async (record, recordFromTable) => {
         updateEpisodeStatusUpdated
       );
     }
-
   }
 
   await overwriteRecordInTable(client, "Population", record, recordFromTable);
   return {
-    rejected: false
-  }
-}
+    rejected: false,
+  };
+};
 
-export async function updateRecordInTable(client, table, partitionKey, partitionKeyName, sortKey, sortKeyName, ...itemsToUpdate) {
+export async function updateRecordInTable(
+  client,
+  table,
+  partitionKey,
+  partitionKeyName,
+  sortKey,
+  sortKeyName,
+  ...itemsToUpdate
+) {
+  let updateItemCommandKey = {};
+  updateItemCommandKey[partitionKeyName] = { S: `${partitionKey}` };
+  updateItemCommandKey[sortKeyName] = { S: `${sortKey}` };
 
-  let updateItemCommandKey = {}
-  updateItemCommandKey[partitionKeyName] = { S: `${partitionKey}` }
-  updateItemCommandKey[sortKeyName] = { S: `${sortKey}`}
+  let updateItemCommandExpressionAttributeNames = {};
 
-  let updateItemCommandExpressionAttributeNames = {}
+  let updateItemCommandExpressionAttributeValues = {};
 
-  let updateItemCommandExpressionAttributeValues = {}
+  let updateItemCommandExpressionAttributeValuesNested = {};
 
-  let updateItemCommandExpressionAttributeValuesNested = {}
-
-  let updateItemCommandUpdateExpression = `SET `
+  let updateItemCommandUpdateExpression = `SET `;
 
   itemsToUpdate.forEach((updateItem, index) => {
-    const [
-      itemName,
-      itemType,
-      item
-    ] = updateItem
+    const [itemName, itemType, item] = updateItem;
 
     // ExpressionAttributeNames
-    const localAttributeName = `#${itemName.toUpperCase()}`
+    const localAttributeName = `#${itemName.toUpperCase()}`;
     updateItemCommandExpressionAttributeNames[localAttributeName] = itemName;
 
-    const localItemName = `local_${itemName}`
+    const localItemName = `local_${itemName}`;
 
     // ExpressionAttributeValues
-    updateItemCommandExpressionAttributeValuesNested = {...updateItemCommandExpressionAttributeValuesNested,
-      [itemType] : item
+    updateItemCommandExpressionAttributeValuesNested = {
+      ...updateItemCommandExpressionAttributeValuesNested,
+      [itemType]: item,
     };
-    updateItemCommandExpressionAttributeValues[`:${localItemName}`] = updateItemCommandExpressionAttributeValuesNested
+    updateItemCommandExpressionAttributeValues[`:${localItemName}`] =
+      updateItemCommandExpressionAttributeValuesNested;
 
     // UpdateExpression
     if (index > 0) {
-      updateItemCommandUpdateExpression += `,${localAttributeName} = :${localItemName}`
+      updateItemCommandUpdateExpression += `,${localAttributeName} = :${localItemName}`;
     } else {
-      updateItemCommandUpdateExpression += `${localAttributeName} = :${localItemName}`
+      updateItemCommandUpdateExpression += `${localAttributeName} = :${localItemName}`;
     }
-  })
+  });
 
   const input = {
     ExpressionAttributeNames: updateItemCommandExpressionAttributeNames,
@@ -325,34 +458,44 @@ export async function updateRecordInTable(client, table, partitionKey, partition
 
   const command = new UpdateItemCommand(input);
   const response = await client.send(command);
-  if ((response.$metadata.httpStatusCode) != 200){
+  if (response.$metadata.httpStatusCode != 200) {
     console.error(`Error: record update failed for person ${partitionKey}`);
   }
   return response.$metadata.httpStatusCode;
 }
 
-export async function overwriteRecordInTable(client, table, newRecord, oldRecord) {
+export async function overwriteRecordInTable(
+  client,
+  table,
+  newRecord,
+  oldRecord
+) {
   const deleteOldItem = await deleteTableRecord(client, table, oldRecord);
 
-  if (deleteOldItem.$metadata.httpStatusCode === 200){
-    const updateNewItem = await putTableRecord(client, table, newRecord, oldRecord);
+  if (deleteOldItem.$metadata.httpStatusCode === 200) {
+    const updateNewItem = await putTableRecord(
+      client,
+      table,
+      newRecord,
+      oldRecord
+    );
     return updateNewItem.$metadata.httpStatusCode;
   }
 }
 
 export async function deleteTableRecord(client, table, oldRecord) {
-  let input
-  console.log(`Deleting record ${oldRecord.PersonId.S} from table ${table}`)
+  let input;
+  console.log(`Deleting record ${oldRecord.PersonId.S} from table ${table}`);
 
-  switch(table) {
-    case 'Population':
-      input = formatPopulationDeleteItem(table, oldRecord)
+  switch (table) {
+    case "Population":
+      input = formatPopulationDeleteItem(table, oldRecord);
       break;
-    case 'Episode':
-      input = formatEpisodeDeleteItem(table, oldRecord)
+    case "Episode":
+      input = formatEpisodeDeleteItem(table, oldRecord);
       break;
     default:
-      input = 'Table not recognised'
+      input = "Table not recognised";
   }
 
   const command = new DeleteItemCommand(input);
@@ -362,34 +505,28 @@ export async function deleteTableRecord(client, table, oldRecord) {
 }
 
 function formatPopulationDeleteItem(table, record) {
-  const {
-    PersonId,
-    LsoaCode
-  } = record
+  const { PersonId, LsoaCode } = record;
 
   const input = {
     Key: {
-      PersonId: {S: PersonId.S},
-      LsoaCode: {S: LsoaCode.S}
+      PersonId: { S: PersonId.S },
+      LsoaCode: { S: LsoaCode.S },
     },
-    TableName: `${ENVIRONMENT}-${table}`
+    TableName: `${ENVIRONMENT}-${table}`,
   };
 
   return input;
 }
 
 function formatEpisodeDeleteItem(table, record) {
-  const {
-    Batch_Id,
-    Participant_Id
-  } = record
+  const { Batch_Id, Participant_Id } = record;
 
   const input = {
     Key: {
-      Batch_Id: {S: Batch_Id.S},
-      Participant_Id: {S: Participant_Id.S}
+      Batch_Id: { S: Batch_Id.S },
+      Participant_Id: { S: Participant_Id.S },
     },
-    TableName: `${ENVIRONMENT}-${table}`
+    TableName: `${ENVIRONMENT}-${table}`,
   };
 
   return input;
@@ -397,21 +534,22 @@ function formatEpisodeDeleteItem(table, record) {
 
 export async function putTableRecord(client, table, newRecord, oldRecord) {
   let input, unmarshalledRecord, updated_record;
-  console.log(`Adding record ${newRecord.PersonId} with LSOA:${newRecord.lsoa_2011} to table ${table}`)
-  switch(table) {
-    case 'Population':
+  console.log(
+    `Adding record ${newRecord.PersonId} with LSOA:${newRecord.lsoa_2011} to table ${table}`
+  );
+  switch (table) {
+    case "Population":
       // This is to fill in the missing info from the old record that doesnot need to update
       unmarshalledRecord = unmarshall(oldRecord);
-      updated_record = {...unmarshalledRecord,...newRecord};
+      updated_record = { ...unmarshalledRecord, ...newRecord };
       input = formatPopulationPutItem(table, updated_record);
       break;
-    case 'Episode':
+    case "Episode":
       input = formatEpisodePutItem(table, newRecord);
       break;
     default:
-      input = 'Table not recognised';
+      input = "Table not recognised";
   }
-
 
   const command = new PutItemCommand(input);
   const response = await client.send(command);
@@ -419,113 +557,132 @@ export async function putTableRecord(client, table, newRecord, oldRecord) {
   return response;
 }
 
-function formatPopulationPutItem(table, newRecord){
+function formatPopulationPutItem(table, newRecord) {
   // nhs_number: {N: newRecord.nhs_number}, -> 0
-  if (newRecord.nhs_number === "null") newRecord.nhs_number = "0"
+  if (newRecord.nhs_number === "null") newRecord.nhs_number = "0";
   // superseded_by_nhs_number: {N: newRecord.superseded_by_nhs_number}, -> 0
-  if (newRecord.superseded_by_nhs_number === "null") newRecord.superseded_by_nhs_number = "0"
+  if (newRecord.superseded_by_nhs_number === "null")
+    newRecord.superseded_by_nhs_number = "0";
   // gender: {N: newRecord.gender}, -> -1
-  if (newRecord.gender === "null") newRecord.gender = "-1"
+  if (newRecord.gender === "null") newRecord.gender = "-1";
   // telephone_number: {N: newRecord.telephone_number}, -> 0
-  if (newRecord.telephone_number === "null") newRecord.telephone_number = "0"
+  if (newRecord.telephone_number === "null") newRecord.telephone_number = "0";
   // mobile_number: {N: newRecord.mobile_number}, -> 0
-  if (newRecord.mobile_number === "null") newRecord.mobile_number = "0"
+  if (newRecord.mobile_number === "null") newRecord.mobile_number = "0";
 
   return {
     Item: {
-      PersonId: {S: newRecord.participant_id},
-      LsoaCode: {S: newRecord.lsoa_2011},
-      participantId: {S: newRecord.participant_id},
-      nhs_number: {N: newRecord.nhs_number},
-      superseded_by_nhs_number: {N: newRecord.superseded_by_nhs_number},
-      primary_care_provider: {S: newRecord.primary_care_provider},
-      gp_connect: {S: newRecord.gp_connect},
-      name_prefix: {S: newRecord.name_prefix},
-      given_name: {S: newRecord.given_name},
-      other_given_names: {S: newRecord.other_given_names},
-      family_name: {S: newRecord.family_name},
-      date_of_birth: {S: newRecord.date_of_birth},
-      gender: {N: newRecord.gender},
-      address_line_1: {S: newRecord.address_line_1},
-      address_line_2: {S: newRecord.address_line_2},
-      address_line_3: {S: newRecord.address_line_3},
-      address_line_4: {S: newRecord.address_line_4},
-      address_line_5: {S: newRecord.address_line_5},
-      postcode: {S: newRecord.postcode},
-      reason_for_removal: {S: newRecord.reason_for_removal},
-      reason_for_removal_effective_from_date: {S: newRecord.reason_for_removal_effective_from_date},
-      responsible_icb: {S: newRecord.responsible_icb},
-      date_of_death: {S: newRecord.date_of_death},
-      telephone_number: {S: newRecord.telephone_number},
-      mobile_number: {S: newRecord.mobile_number},
-      email_address: {S: newRecord.email_address},
-      preferred_language: {S: newRecord.preferred_language},
-      is_interpreter_required: {BOOL: Boolean(newRecord.is_interpreter_required)},
-      action: {S: newRecord.action},
+      PersonId: { S: newRecord.participant_id },
+      LsoaCode: { S: newRecord.lsoa_2011 },
+      participantId: { S: newRecord.participant_id },
+      nhs_number: { N: newRecord.nhs_number },
+      superseded_by_nhs_number: { N: newRecord.superseded_by_nhs_number },
+      primary_care_provider: { S: newRecord.primary_care_provider },
+      gp_connect: { S: newRecord.gp_connect },
+      name_prefix: { S: newRecord.name_prefix },
+      given_name: { S: newRecord.given_name },
+      other_given_names: { S: newRecord.other_given_names },
+      family_name: { S: newRecord.family_name },
+      date_of_birth: { S: newRecord.date_of_birth },
+      gender: { N: newRecord.gender },
+      address_line_1: { S: newRecord.address_line_1 },
+      address_line_2: { S: newRecord.address_line_2 },
+      address_line_3: { S: newRecord.address_line_3 },
+      address_line_4: { S: newRecord.address_line_4 },
+      address_line_5: { S: newRecord.address_line_5 },
+      postcode: { S: newRecord.postcode },
+      reason_for_removal: { S: newRecord.reason_for_removal },
+      reason_for_removal_effective_from_date: {
+        S: newRecord.reason_for_removal_effective_from_date,
+      },
+      responsible_icb: { S: newRecord.responsible_icb },
+      date_of_death: { S: newRecord.date_of_death },
+      telephone_number: { S: newRecord.telephone_number },
+      mobile_number: { S: newRecord.mobile_number },
+      email_address: { S: newRecord.email_address },
+      preferred_language: { S: newRecord.preferred_language },
+      is_interpreter_required: {
+        BOOL: Boolean(newRecord.is_interpreter_required),
+      },
+      action: { S: newRecord.action },
     },
-    TableName: `${ENVIRONMENT}-${table}`
-  }
+    TableName: `${ENVIRONMENT}-${table}`,
+  };
 }
 
 function formatEpisodePutItem(table, newRecord) {
   return {
     Item: {
-      Batch_Id: {S: newRecord.Batch_Id},
-      Participant_Id: {S: newRecord.Participant_Id},
-      Episode_Created_By: {S: newRecord.Episode_Created_By},
-      Episode_Creation: {N: newRecord.Episode_Creation},
-      Episode_Event: {N: newRecord.Episode_Event},
-      Episode_Event_Updated: {S: newRecord.Episode_Event_Updated},
-      Episode_Status: {S: newRecord.Episode_Status},
-      Episode_Status_Updated: {S: newRecord.Episode_Status_Updated},
-      Gp_Practice_Code: {S: newRecord.Gp_Practice_Code},
-      LSOA: {S: newRecord.LSOA},
+      Batch_Id: { S: newRecord.Batch_Id },
+      Participant_Id: { S: newRecord.Participant_Id },
+      Episode_Created_By: { S: newRecord.Episode_Created_By },
+      Episode_Creation: { N: newRecord.Episode_Creation },
+      Episode_Event: { N: newRecord.Episode_Event },
+      Episode_Event_Updated: { S: newRecord.Episode_Event_Updated },
+      Episode_Status: { S: newRecord.Episode_Status },
+      Episode_Status_Updated: { S: newRecord.Episode_Status_Updated },
+      Gp_Practice_Code: { S: newRecord.Gp_Practice_Code },
+      LSOA: { S: newRecord.LSOA },
     },
-    TableName: `${ENVIRONMENT}-${table}`
-  }
+    TableName: `${ENVIRONMENT}-${table}`,
+  };
 }
 
 // returns LSOA using patient postcode or the LSOA from GP practice
 // or returns error message
 export const getLsoa = async (record, dbClient) => {
-  const { postcode, primary_care_provider } = record
+  const { postcode, primary_care_provider } = record;
   const lsoaObject = {
     lsoaCode: "",
     rejected: false,
-    reason: ""
-  }
+    reason: "",
+  };
 
   try {
     if (postcode) {
-      const checkLsoa = await getItemFromTable(dbClient, "Postcode", "POSTCODE", "S", postcode);
+      const checkLsoa = await getItemFromTable(
+        dbClient,
+        "Postcode",
+        "POSTCODE",
+        "S",
+        postcode
+      );
       if (!checkLsoa.Item) {
-      // Get LSOA using GP practice
-        const lsoaFromGp = await getItemFromTable(dbClient, "GpPractice", "gp_practice_code", "S", primary_care_provider);
+        // Get LSOA using GP practice
+        const lsoaFromGp = await getItemFromTable(
+          dbClient,
+          "GpPractice",
+          "gp_practice_code",
+          "S",
+          primary_care_provider
+        );
         // LSOA code could not be found for record using postcode or gp practice code. Set as null
         if (!lsoaFromGp.Item || lsoaFromGp.Item.LSOA_2011.S === "") {
-          return lsoaObject.lsoaCode = "null"
-        };
+          return (lsoaObject.lsoaCode = "null");
+        }
 
-        return lsoaObject.lsoaCode = lsoaFromGp.Item.LSOA_2011.S;
+        return (lsoaObject.lsoaCode = lsoaFromGp.Item.LSOA_2011.S);
       }
 
       if (checkLsoa.Item.LSOA_2011.S !== "") {
-        return lsoaObject.lsoaCode = checkLsoa.Item.LSOA_2011.S
-      };
+        return (lsoaObject.lsoaCode = checkLsoa.Item.LSOA_2011.S);
+      }
 
       lsoaObject.rejected = true;
       lsoaObject.reason = `Rejecting record ${record.nhs_number} as Postcode ${postcode} is not in participating ICB`;
       return lsoaObject;
     } else {
       lsoaObject.rejected = true;
-      lsoaObject.reason = `Rejecting record ${record.nhs_number} as Postcode is undefined`
+      lsoaObject.reason = `Rejecting record ${record.nhs_number} as Postcode is undefined`;
       return lsoaObject;
     }
   } catch (err) {
-    console.error(`Error: trying to get LSOA from external tables. Error Message: ${err}`);
+    console.error(
+      `Error: trying to get LSOA from external tables. Error Message: ${err}`
+    );
     return err;
   }
-}
+};
 
 // returns unique records array and an array that contains all the duplicate
 export const filterUniqueEntries = (cassFeed) => {
@@ -533,16 +690,16 @@ export const filterUniqueEntries = (cassFeed) => {
   const unique = [];
   const duplicate = [];
 
-  cassFeed.forEach(el => {
-    if (!flag[el.nhs_number]){
-      flag[el.nhs_number] = true
-      unique.push(el)
+  cassFeed.forEach((el) => {
+    if (!flag[el.nhs_number]) {
+      flag[el.nhs_number] = true;
+      unique.push(el);
     } else {
-      duplicate.push(el)
+      duplicate.push(el);
     }
-  })
-  return [unique, duplicate]
-}
+  });
+  return [unique, duplicate];
+};
 
 // S3 FUNCTIONS
 export const readCsvFromS3 = async (bucketName, key, client) => {
@@ -574,7 +731,9 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
     console.log(`Successfully pushed to ${bucketName}/${key}`);
     return response;
   } catch (err) {
-    console.error(`Error: Failed to push to ${bucketName}/${key}. Error Message: ${err}`);
+    console.error(
+      `Error: Failed to push to ${bucketName}/${key}. Error Message: ${err}`
+    );
     throw err;
   }
 };
@@ -586,7 +745,7 @@ export const parseCsvToArray = async (csvString) => {
     Readable.from(csvString)
       .pipe(csv())
       .on("data", (row) => {
-        dataArray.push(row)
+        dataArray.push(row);
       })
       .on("end", () => {
         resolve(dataArray);
@@ -608,20 +767,15 @@ export const generateCsvString = (header, dataArray) => {
 // DYNAMODB FUNCTIONS
 // returns successful response if attribute doesn't exist in table
 export const lookUp = async (dbClient, ...params) => {
-  const [
-    id,
-    table,
-    attribute,
-    attributeType,
-    useIndex
-  ] = params
+  const [id, table, attribute, attributeType, useIndex] = params;
 
-  const ExpressionAttributeValuesKey = `:${attribute}`
-  let expressionAttributeValuesObj = {}
-  let expressionAttributeValuesNestObj = {}
+  const ExpressionAttributeValuesKey = `:${attribute}`;
+  let expressionAttributeValuesObj = {};
+  let expressionAttributeValuesNestObj = {};
 
-  expressionAttributeValuesNestObj[attributeType] = id
-  expressionAttributeValuesObj[ExpressionAttributeValuesKey] = expressionAttributeValuesNestObj
+  expressionAttributeValuesNestObj[attributeType] = id;
+  expressionAttributeValuesObj[ExpressionAttributeValuesKey] =
+    expressionAttributeValuesNestObj;
 
   const input = {
     ExpressionAttributeValues: expressionAttributeValuesObj,
@@ -636,8 +790,8 @@ export const lookUp = async (dbClient, ...params) => {
   const getCommand = new QueryCommand(input);
   const response = await dbClient.send(getCommand);
 
-  if (response.$metadata.httpStatusCode != 200){
-    console.log(`look up item input = ${JSON.stringify(input, null, 2)}`)
+  if (response.$metadata.httpStatusCode != 200) {
+    console.log(`look up item input = ${JSON.stringify(input, null, 2)}`);
   }
 
   return response;
@@ -652,22 +806,21 @@ export const getItemFromTable = async (dbClient, table, ...keys) => {
     sortKeyName,
     sortKeyType,
     sortKeyValue,
-  ] = keys
+  ] = keys;
 
-
-  let partitionKeyNameObject = {}
-  let partitionKeyNameNestedObject = {}
-  partitionKeyNameNestedObject[partitionKeyType] = partitionKeyValue
-  partitionKeyNameObject[partitionKeyName] = partitionKeyNameNestedObject
+  let partitionKeyNameObject = {};
+  let partitionKeyNameNestedObject = {};
+  partitionKeyNameNestedObject[partitionKeyType] = partitionKeyValue;
+  partitionKeyNameObject[partitionKeyName] = partitionKeyNameNestedObject;
 
   const keyObject = {
-    key: partitionKeyNameObject
-  }
+    key: partitionKeyNameObject,
+  };
 
   if (sortKeyName !== undefined) {
     keyObject.key.sortKeyName = {
-      sortKeyType: sortKeyValue
-    }
+      sortKeyType: sortKeyValue,
+    };
   }
 
   const params = {
@@ -678,4 +831,4 @@ export const getItemFromTable = async (dbClient, table, ...keys) => {
   const command = new GetItemCommand(params);
   const response = await dbClient.send(command);
   return response;
-}
+};

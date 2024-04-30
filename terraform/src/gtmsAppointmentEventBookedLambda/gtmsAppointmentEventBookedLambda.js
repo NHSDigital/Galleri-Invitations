@@ -17,8 +17,10 @@ const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
 // variables required for logging
-const { timestamp, combine, printf, } = winston.format;
-const myFormat = printf(({ level, message, timestamp }) => `[${timestamp}] ${level}: ${message}`);
+const { timestamp, combine, printf } = winston.format;
+const myFormat = printf(
+  ({ level, message, timestamp }) => `[${timestamp}] ${level}: ${message}`
+);
 
 const DATEPARAM = process.env.DATEPARAM;
 
@@ -32,94 +34,145 @@ export const handler = async (event) => {
   const csvString = await readCsvFromS3(bucket, key, s3);
   const js = JSON.parse(csvString); //convert string retrieved from S3 to object
 
-  const payloadParticipantID = js?.['Appointment']?.['ParticipantID'];
-  const payloadAppointmentID = js?.['Appointment']?.['AppointmentID'];
-  const payloadEventType = js?.['Appointment']?.['EventType']; //BOOKED
-  const payloadAppointmentDateTime = js?.['Appointment']?.['AppointmentDateTime'];
-  const payloadAppointmentReplaces = js?.['Appointment']?.['Replaces']; //replaces existing appointment id
-  const payloadTimestamp = js?.['Appointment']?.['Timestamp']; //most recent
+  const payloadParticipantID = js?.["Appointment"]?.["ParticipantID"];
+  const payloadAppointmentID = js?.["Appointment"]?.["AppointmentID"];
+  const payloadEventType = js?.["Appointment"]?.["EventType"]; //BOOKED
+  const payloadAppointmentDateTime =
+    js?.["Appointment"]?.["AppointmentDateTime"];
+  const payloadAppointmentReplaces = js?.["Appointment"]?.["Replaces"]; //replaces existing appointment id
+  const payloadTimestamp = js?.["Appointment"]?.["Timestamp"]; //most recent
 
-  const episodeResponse = await lookUp(dbClient, payloadParticipantID, "Episode", "Participant_Id", "S", true);
+  const episodeResponse = await lookUp(
+    dbClient,
+    payloadParticipantID,
+    "Episode",
+    "Participant_Id",
+    "S",
+    true
+  );
   const episodeItems = episodeResponse.Items[0];
-  logger.info(`episodeItems for participant: ${JSON.stringify(episodeItems?.Participant_Id)} loaded.`);
+  logger.info(
+    `episodeItems for participant: ${JSON.stringify(episodeItems?.Participant_Id)} loaded.`
+  );
   //doesn't pull associated appointment id as in scenario it is new but links to existing
 
-  const appointmentResponse = await lookUp(dbClient, payloadAppointmentID, "Appointments", "Appointment_Id", "S", true);
+  const appointmentResponse = await lookUp(
+    dbClient,
+    payloadAppointmentID,
+    "Appointments",
+    "Appointment_Id",
+    "S",
+    true
+  );
   const appointmentItems = appointmentResponse.Items[0];
-  logger.info(`appointmentItems for appointment: ${JSON.stringify(appointmentItems?.Appointment_Id)} loaded.`);
+  logger.info(
+    `appointmentItems for appointment: ${JSON.stringify(appointmentItems?.Appointment_Id)} loaded.`
+  );
   //bring back most recent appointment, with timestamp
 
-  const appointmentParticipant = await lookUp(dbClient, payloadParticipantID, "Appointments", "Participant_Id", "S", false); //Check participant has any appointments
+  const appointmentParticipant = await lookUp(
+    dbClient,
+    payloadParticipantID,
+    "Appointments",
+    "Participant_Id",
+    "S",
+    false
+  ); //Check participant has any appointments
   const apptArr = appointmentParticipant?.Items;
   const sortedApptParticipants = apptArr?.sort(function (x, y) {
-    return new Date(x?.['Timestamp']?.['S']) < new Date(y?.['Timestamp']?.['S']) ? 1 : -1;
+    return new Date(x?.["Timestamp"]?.["S"]) < new Date(y?.["Timestamp"]?.["S"])
+      ? 1
+      : -1;
   });
   const appointmentParticipantItems = sortedApptParticipants[0];
-  logger.info(`appointmentParticipantItems for appointment: ${JSON.stringify(appointmentParticipantItems?.Appointment_Id)} loaded.`);
+  logger.info(
+    `appointmentParticipantItems for appointment: ${JSON.stringify(appointmentParticipantItems?.Appointment_Id)} loaded.`
+  );
 
   let date = new Date();
   const dateTime = new Date(Date.now()).toISOString();
   try {
-    if ((payloadAppointmentDateTime > date.toISOString()) && payloadEventType === 'BOOKED' && episodeItems) {
-      console.info('Payload EventType is Booked and has a valid appointment date');
-      if (!appointmentItems && payloadAppointmentID !== null && !appointmentParticipantItems) { // new appointment ID, and no existing = ADD
-        console.info('Identified payload is for booked appointment');
+    if (
+      payloadAppointmentDateTime > date.toISOString() &&
+      payloadEventType === "BOOKED" &&
+      episodeItems
+    ) {
+      console.info(
+        "Payload EventType is Booked and has a valid appointment date"
+      );
+      if (
+        !appointmentItems &&
+        payloadAppointmentID !== null &&
+        !appointmentParticipantItems
+      ) {
+        // new appointment ID, and no existing = ADD
+        console.info("Identified payload is for booked appointment");
         date.setDate(date.getDate() + DATEPARAM);
-        if (payloadAppointmentDateTime > date.toISOString()) { //greater than date param, e.g. 5
-          const episodeEvent = 'Appointment Booked Letter';
+        if (payloadAppointmentDateTime > date.toISOString()) {
+          //greater than date param, e.g. 5
+          const episodeEvent = "Appointment Booked Letter";
           logger.info(episodeEvent);
           await transactionalWrite(
             dbClient,
             payloadParticipantID,
-            episodeItems['Batch_Id']['S'], //required PK for Episode update
+            episodeItems["Batch_Id"]["S"], //required PK for Episode update
             payloadAppointmentID,
             payloadEventType,
             episodeEvent,
-            payloadTimestamp,
+            payloadTimestamp
           );
         } else {
-          const episodeEvent = 'Appointment Booked Text';
+          const episodeEvent = "Appointment Booked Text";
           logger.info(episodeEvent);
           await transactionalWrite(
             dbClient,
             payloadParticipantID,
-            episodeItems['Batch_Id']['S'], //required PK for Episode update
+            episodeItems["Batch_Id"]["S"], //required PK for Episode update
             payloadAppointmentID,
             payloadEventType,
             episodeEvent,
-            payloadTimestamp,
+            payloadTimestamp
           );
         }
-      } else if (!appointmentItems && appointmentParticipantItems && (payloadAppointmentReplaces === appointmentParticipantItems?.['Appointment_Id']?.['S']) && (payloadTimestamp > appointmentParticipantItems?.['Time_stamp']?.['S'])) {  //same appointmentID = UPDATE
-        console.info('Identified payload is for rebooked appointment');
-        if (payloadAppointmentDateTime > date.toISOString()) { //greater than date param, e.g. 5
-          const episodeEvent = 'Appointment Rebooked Letter';
+      } else if (
+        !appointmentItems &&
+        appointmentParticipantItems &&
+        payloadAppointmentReplaces ===
+          appointmentParticipantItems?.["Appointment_Id"]?.["S"] &&
+        payloadTimestamp > appointmentParticipantItems?.["Time_stamp"]?.["S"]
+      ) {
+        //same appointmentID = UPDATE
+        console.info("Identified payload is for rebooked appointment");
+        if (payloadAppointmentDateTime > date.toISOString()) {
+          //greater than date param, e.g. 5
+          const episodeEvent = "Appointment Rebooked Letter";
           logger.info(episodeEvent);
           await transactionalWrite(
             dbClient,
             payloadParticipantID,
-            episodeItems['Batch_Id']['S'], //required PK for Episode update
+            episodeItems["Batch_Id"]["S"], //required PK for Episode update
             payloadAppointmentID,
             payloadEventType,
             episodeEvent,
-            payloadTimestamp,
+            payloadTimestamp
           );
         } else {
-          const episodeEvent = 'Appointment Rebooked Text';
+          const episodeEvent = "Appointment Rebooked Text";
           logger.info(episodeEvent);
           await transactionalWrite(
             dbClient,
             payloadParticipantID,
-            episodeItems['Batch_Id']['S'], //required PK for Episode update
+            episodeItems["Batch_Id"]["S"], //required PK for Episode update
             payloadAppointmentID,
             payloadEventType,
             episodeEvent,
-            payloadTimestamp,
+            payloadTimestamp
           );
         }
-      } else { // has appointment id and different one supplied, REJECT
+      } else {
+        // has appointment id and different one supplied, REJECT
         //REJECT
-        logger.error('Error: payload invalid');
+        logger.error("Error: payload invalid");
         const confirmation = await pushCsvToS3(
           `${bucket}`,
           `invalid_appointment_data/invalidRecord_${dateTime}.json`,
@@ -129,7 +182,7 @@ export const handler = async (event) => {
         return confirmation;
       }
     } else {
-      logger.error('Error: payload invalid');
+      logger.error("Error: payload invalid");
       //REJECT
       const confirmation = await pushCsvToS3(
         `${bucket}`,
@@ -145,7 +198,6 @@ export const handler = async (event) => {
     throw new Error(message);
   }
 };
-
 
 //FUNCTIONS
 /**
@@ -194,7 +246,9 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
     console.log(`Successfully pushed to ${bucketName}/${key}`);
     return response;
   } catch (err) {
-    console.log(`Failed to push to ${bucketName}/${key}. Error Message: ${err}`);
+    console.log(
+      `Failed to push to ${bucketName}/${key}. Error Message: ${err}`
+    );
     throw err;
   }
 };
@@ -258,9 +312,9 @@ export const transactionalWrite = async (
   appointmentId,
   eventType,
   episodeEvent,
-  timestamp,
+  timestamp
 ) => {
-  const timeNow = String((new Date(Date.now()).toISOString()));
+  const timeNow = String(new Date(Date.now()).toISOString());
   const params = {
     TransactItems: [
       {
@@ -302,7 +356,9 @@ export const transactionalWrite = async (
     const command = new TransactWriteItemsCommand(params);
     const response = await client.send(command);
     if (response.$metadata.httpStatusCode !== 200) {
-      console.error(`Error: occurred while trying to update db with item: ${participantId}`);
+      console.error(
+        `Error: occurred while trying to update db with item: ${participantId}`
+      );
       return false;
     } else {
       console.log(`Successfully updated db with item: ${participantId}`);
@@ -319,9 +375,7 @@ export const transactionalWrite = async (
  * timestamp. The transport medium is the Console.
  */
 export const logger = winston.createLogger({
-  level: 'debug',
-  format: combine(timestamp({ format: 'YYYY-MM-DD hh:mm:ss.SSS A' }), myFormat),
-  transports: [
-    new winston.transports.Console(),
-  ],
+  level: "debug",
+  format: combine(timestamp({ format: "YYYY-MM-DD hh:mm:ss.SSS A" }), myFormat),
+  transports: [new winston.transports.Console()],
 });
