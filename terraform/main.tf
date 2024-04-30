@@ -1326,6 +1326,7 @@ module "authenticator_lambda" {
   }
 }
 
+# Retrieve Galleri activity code
 data "aws_secretsmanager_secret_version" "galleri_activity_code" {
   secret_id = "GALLERI_ACTIVITY_CODE"
 }
