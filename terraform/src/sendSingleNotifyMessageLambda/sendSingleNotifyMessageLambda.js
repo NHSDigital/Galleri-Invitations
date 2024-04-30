@@ -16,7 +16,7 @@ const smClient = new SecretsManagerClient({ region: "eu-west-2" });
 const sqsClient = new SQSClient({});
 const notifySendMessageStatusTable = 'NotifySendMessageStatus';
 const ENVIRONMENT = process.env.ENVIRONMENT;
-const statusCodesToRetryOn = [400,408,425,429,500,501,503,504];
+const statusCodesToRetryOn = [408,425,429,500,501,503,504];
 
 export const handler = async(event) => {
   try {
@@ -25,14 +25,14 @@ export const handler = async(event) => {
     const signedJWT = generateJWT(apiKey, process.env.TOKEN_ENDPOINT_URL, process.env.PUBLIC_KEY_ID, privateKey);
     const accessToken = await getAccessToken(process.env.TOKEN_ENDPOINT_URL, signedJWT);
 
-    await processRecords(event.Records, accessToken);
+    await processRecords(event.Records, accessToken, dynamodbClient, sqsClient);
   } catch (error) {
     console.error('Error occurred whilst processing the batch of messages from SQS');
     console.error('Error:', error);
   }
 };
 
-export async function processRecords(records, accessToken) {
+export async function processRecords(records, accessToken, dynamodbClient, sqsClient) {
   const totalRecords = records.length;
   let recordsSuccessfullySent = 0;
   let recordsFailedToSend = 0;
@@ -46,14 +46,15 @@ export async function processRecords(records, accessToken) {
         const {responseObject, numberOfAttempts} = await sendSingleMessage(messageBody, accessToken, messageReferenceId, process.env.MESSAGES_ENDPOINT_URL, process.env.INITIAL_RETRY_DELAY, process.env.MAX_RETRIES);
         const responseBody = responseObject.data;
         console.log(`Request to NHS Notify for ${messageBody.participantId} successful  - MessageId: ${responseBody.id}`);
-        await putSuccessResponseIntoTable(messageBody, messageSentAt, numberOfAttempts, responseBody, messageReferenceId, notifySendMessageStatusTable);
+        await putSuccessResponseIntoTable(messageBody, messageSentAt, numberOfAttempts, responseBody, messageReferenceId, notifySendMessageStatusTable, dynamodbClient);
         recordsSuccessfullySent++;
       } catch(error) {
         if(error.status && error.details) {
           console.error(`Error: Request to NHS Notify for participant ${messageBody.participantId} failed - Status code: ${error.status} and Details: ${error.details}`)
-          await putFailedResponseIntoTable(messageBody, error.messageSent, error.numberOfAttempts.toString(), error.status.toString(), error.details, messageReferenceId,  notifySendMessageStatusTable)
+          await putFailedResponseIntoTable(messageBody, error.messageSent, error.numberOfAttempts.toString(), error.status.toString(), error.details, messageReferenceId,  notifySendMessageStatusTable, dynamodbClient)
           recordsFailedToSend++;
         } else {
+          error.participantId = messageBody.participantId;
           throw error;
         }
       }
@@ -61,7 +62,7 @@ export async function processRecords(records, accessToken) {
       await deleteMessageInQueue(messageBody,record,process.env.ENRICHED_MESSAGE_QUEUE_URL,sqsClient);
     } catch (error) {
       recordsFailedToSend++;
-      console.error('Error:', error);
+      console.error(`Error: Not able to process participant ${error.participantId} due to error ${error.message}`);
     }
   }
   console.log(`Total records in the batch: ${totalRecords} - Records successfully processed/sent: ${recordsSuccessfullySent} - Records failed to send: ${recordsFailedToSend}`);
