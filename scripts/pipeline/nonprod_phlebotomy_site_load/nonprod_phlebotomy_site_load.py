@@ -178,7 +178,7 @@ def create_data_set(table_name):
                         'Directions': {'S': f'{str(directions)}'},
                         'ICBCode': {'S': f'{str(icd_code)}'},
                         'ODSCode': {'S': f'{str(ods_code)}'},
-                        'PostCode': {'S': f'{str(postcode)}'},
+                        'Postcode': {'S': f'{str(postcode)}'},
                         'PrevInviteDate': {'S': f'{str(random.choice(prev_invite_date))}'},
                         'WeekCommencingDate':  {
                             'M':  {
