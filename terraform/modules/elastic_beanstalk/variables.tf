@@ -98,10 +98,6 @@ variable "NEXT_PUBLIC_GENERATE_INVITES" {
 
 }
 
-# variable "NEXT_PUBLIC_GET_USER_ROLE" {
-
-# }
-
 variable "NEXT_PUBLIC_AUTHENTICATOR" {
 
 }

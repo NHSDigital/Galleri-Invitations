@@ -48,16 +48,19 @@ module "galleri_invitations_screen" {
   NEXT_PUBLIC_PUT_TARGET_PERCENTAGE                     = module.target_fill_to_percentage_put_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_TARGET_PERCENTAGE                         = module.target_fill_to_percentage_get_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_GENERATE_INVITES                          = module.generate_invites_api_gateway.rest_api_galleri_id
-  # NEXT_PUBLIC_GET_USER_ROLE                             = module.get_user_role_api_gateway.rest_api_galleri_id
-  NEXT_PUBLIC_AUTHENTICATOR = module.authenticator_lambda_api_gateway.rest_api_galleri_id
-  USERS                     = var.USERS
-  CIS2_ID                   = var.CIS2_ID
-  NEXTAUTH_URL              = var.NEXTAUTH_URL
-  CIS2_REDIRECT_URL         = var.CIS2_REDIRECT_URL
-  GALLERI_ACTIVITY_CODE     = var.GALLERI_ACTIVITY_CODE
-  hostname                  = var.invitations-hostname
-  dns_zone                  = var.dns_zone
-  region                    = var.region
+  NEXT_PUBLIC_AUTHENTICATOR                             = module.authenticator_lambda_api_gateway.rest_api_galleri_id
+  USERS                                                 = var.USERS
+  CIS2_ID                                               = var.CIS2_ID
+  NEXTAUTH_URL                                          = var.NEXTAUTH_URL
+  CIS2_REDIRECT_URL                                     = var.CIS2_REDIRECT_URL
+  GALLERI_ACTIVITY_CODE                                 = jsondecode(data.aws_secretsmanager_secret_version.galleri_activity_code.secret_string)["GALLERI_ACTIVITY_CODE"]
+  hostname                                              = var.invitations-hostname
+  dns_zone                                              = var.dns_zone
+  region                                                = var.region
+}
+
+data "aws_secretsmanager_secret_version" "galleri_activity_code" {
+  secret_id = "MESH_URL"
 }
 
 # the role that all lambda's are utilising,
@@ -1178,36 +1181,6 @@ module "gtms_mesh_mailbox_lambda_cloudwatch" {
   retention_days       = 14
 }
 
-# # Get User Role Lambda
-# module "get_user_role_lambda" {
-#   source               = "./modules/lambda"
-#   environment          = var.environment
-#   bucket_id            = module.s3_bucket.bucket_id
-#   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-#   lambda_function_name = "getUserRoleLambda"
-#   lambda_timeout       = 100
-#   memory_size          = 1024
-#   lambda_s3_object_key = "get_user_role_lambda.zip"
-#   environment_vars = {
-#     ENVIRONMENT = "${var.environment}"
-#   }
-# }
-
-# module "get_user_role_cloudwatch" {
-#   source               = "./modules/cloudwatch"
-#   environment          = var.environment
-#   lambda_function_name = module.get_user_role_lambda.lambda_function_name
-#   retention_days       = 14
-# }
-# module "get_user_role_api_gateway" {
-#   source                 = "./modules/api-gateway"
-#   environment            = var.environment
-#   lambda_invoke_arn      = module.get_user_role_lambda.lambda_invoke_arn
-#   path_part              = "get-user-role"
-#   method_http_parameters = {}
-#   lambda_function_name   = module.get_user_role_lambda.lambda_function_name
-# }
-
 # GTMS Validate clinic Lambda
 module "validate_clinic_data_lambda" {
   source               = "./modules/lambda"
@@ -1299,41 +1272,6 @@ module "gps_jwks_api_gateway" {
   method_http_parameters = {}
   lambda_function_name   = module.gps_jwks_lambda.lambda_function_name
 }
-
-# CIS2 signed jwt
-# module "cis2_signed_jwt" {
-#   source               = "./modules/lambda"
-#   environment          = var.environment
-#   bucket_id            = module.s3_bucket.bucket_id
-#   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-#   lambda_function_name = "cis2SignedJwtLambda"
-#   lambda_timeout       = 100
-#   memory_size          = 1024
-#   lambda_s3_object_key = "cis2_signed_jwt_lambda.zip"
-#   environment_vars = {
-#     ENVIRONMENT             = "${var.environment}",
-#     CIS2_ID                 = "${var.CIS2_ID}",
-#     CIS2_TOKEN_ENDPOINT_URL = "${var.CIS2_TOKEN_ENDPOINT_URL}",
-#     CIS2_PUBLIC_KEY_ID      = "${var.CIS2_PUBLIC_KEY_ID}",
-#     CIS2_KEY_NAME           = "${var.CIS2_KNAME}"
-#   }
-# }
-
-# module "cis2_signed_jwt_cloudwatch" {
-#   source               = "./modules/cloudwatch"
-#   environment          = var.environment
-#   lambda_function_name = module.cis2_signed_jwt.lambda_function_name
-#   retention_days       = 14
-# }
-
-# module "cis2_signed_jwt_api_gateway" {
-#   source                 = "./modules/api-gateway"
-#   environment            = var.environment
-#   lambda_invoke_arn      = module.cis2_signed_jwt.lambda_invoke_arn
-#   path_part              = "cis2-signed-jwt"
-#   method_http_parameters = {}
-#   lambda_function_name   = module.cis2_signed_jwt.lambda_function_name
-# }
 
 # Authenticator Lambda
 module "authenticator_lambda" {

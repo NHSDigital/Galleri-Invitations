@@ -24,7 +24,16 @@ export const handler = async (event) => {
   try {
     const cis2ClientID = await getSecret(CLIENT_ID, smClient);
     const code = event.queryStringParameters.code; // getting authorization code from Query parameter
-    const signedJWT = await getCIS2SignedJWT(cis2ClientID); // getting signed private key JWT
+    // getting signed private key JWT
+    const signedJWT = await getCIS2SignedJWT(
+      cis2ClientID,
+      getSecret,
+      generateJWT,
+      createResponse,
+      PRIVATE_KEY_SECRET_NAME,
+      TOKEN_ENDPOINT_URL,
+      KID
+    );
     const { tokens } = await getTokens(code, signedJWT.body, cis2ClientID); // getting tokens from CIS2
     const userInfo = await getUserinfo(tokens); // exchanging the access token for user Info
     const uuid = userInfo.uid.replace(/(.{4})(?!$)/g, "$1 ");
@@ -51,15 +60,25 @@ export const handler = async (event) => {
       role: userRole.Role,
       isAuthorized: checkAuthorizationResult,
     };
-
+    console.log(
+      `This User has been authenticated and is authorized to access the Galleri App with role - ${userRole.Role}`
+    );
     return { statusCode: 200, body: JSON.stringify(authResponse) };
   } catch (error) {
-    console.error("ERROR :", error);
+    console.error("ERROR: ", error);
   }
 };
 
 // Function to return the generated JWT signed by a private Key
-export async function getCIS2SignedJWT(cis2ClientID) {
+export async function getCIS2SignedJWT(
+  cis2ClientID,
+  getSecret,
+  generateJWT,
+  createResponse,
+  PRIVATE_KEY_SECRET_NAME,
+  TOKEN_ENDPOINT_URL,
+  KID
+) {
   try {
     console.log("Getting CIS2 signed jwt");
     const privateKey = await getSecret(PRIVATE_KEY_SECRET_NAME, smClient);
@@ -155,9 +174,11 @@ export async function getTokens(authCode, signedJWT, cis2ClientID) {
       data,
       url: `https://am.nhsint.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/NHSIdentity/realms/Healthcare/access_token`,
     });
+    console.log("Tokens have been successfully received");
     return { tokens: r.data };
   } catch (err) {
-    console.error(err);
+    console.error("Failed to get Tokens from CIS2 Token Endpoint");
+    console.error("ERROR: ", err);
     throw new Error(err);
   }
 }
@@ -171,41 +192,40 @@ export async function getUserinfo(tokens) {
         Authorization: `Bearer ${tokens.access_token}`,
       },
     });
+    console.log("User Information have been successfully received");
     return response.data;
   } catch (err) {
-    console.error(err);
+    console.error("Failed to get User Info from CIS2 userInfo Endpoint");
+    console.error("ERROR: ", err);
     throw new Error(err);
   }
 }
 
 // Function to exchange the access token for user information from an OAuth provider(CIS2)
 export async function getUserRole(uuid) {
-  console.log(environment);
-  console.log(typeof uuid);
   const params = {
     TableName: `${environment}-UserAccounts`,
     Key: {
       UUID: { S: uuid },
     },
   };
-  console.log(params);
-
   console.log("UUID from query string parameters is: ", uuid);
 
   try {
     const command = new GetItemCommand(params);
     const data = await dynamoDBClient.send(command);
-    console.log(data);
 
     if (!data.Item) {
       return console.error("User not found");
     }
 
     const item = unmarshall(data.Item);
+    console.log("UUID exists on Galleri User database");
 
     return item;
   } catch (error) {
-    console.error("Error getting item from DynamoDB:", error);
+    console.error("Error getting item from DynamoDB");
+    console.error("ERROR: ", error);
     throw new Error(error);
   }
 }
@@ -268,8 +288,10 @@ export async function checkAuthorization(
     user.role === "Invitation Planner" ||
     user.role === "Referring Clinician"
   ) {
+    console.log("Authorization Checks were successful");
     return true;
   } else {
+    console.error("Authorization Checks were unsuccessful");
     return false;
   }
 }
@@ -289,7 +311,6 @@ export async function extractClaims(idToken) {
 
 // Function to validate the expiration time (exp claim)
 export async function validateTokenExpirationWithAuthTime(token) {
-  console.log(token);
   const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
   const expirationTime = token?.exp; // Expiration time from the token's exp claim
   const authTime = token?.auth_time; // Authentication time from the token's auth_time claim
@@ -335,7 +356,8 @@ export async function validateTokenSignature(idToken, jwksUri) {
     console.log("ID token signature is valid.");
     return decoded;
   } catch (error) {
-    console.error("Error validating ID token signature:", error.message);
+    console.error("Error validating ID token signature");
+    console.error("ERROR: ", error.message);
     throw new Error(error);
   }
 }

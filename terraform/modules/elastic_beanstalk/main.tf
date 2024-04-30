@@ -273,12 +273,6 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     value     = var.NEXT_PUBLIC_GENERATE_INVITES
   }
 
-  # setting {
-  #   namespace = "aws:elasticbeanstalk:application:environment"
-  #   name      = "NEXT_PUBLIC_GET_USER_ROLE"
-  #   value     = var.NEXT_PUBLIC_GET_USER_ROLE
-  # }
-
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "NEXT_PUBLIC_AUTHENTICATOR"
@@ -356,11 +350,11 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     value     = "https://${var.environment}.${var.hostname}/api/auth/callback/cis2"
   }
 
-  setting {
-    namespace = "aws:elasticbeanstalk:application:environment"
-    name      = "GALLERI_ACTIVITY_CODE"
-    value     = "B1824"
-  }
+  # setting {
+  #   namespace = "aws:elasticbeanstalk:application:environment"
+  #   name      = "GALLERI_ACTIVITY_CODE"
+  #   value     = "B1824"
+  # }
 
 
   setting {
