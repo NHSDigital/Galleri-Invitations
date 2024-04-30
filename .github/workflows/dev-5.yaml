@@ -164,6 +164,7 @@ jobs:
       invitations_branch: "${{ github.event.inputs.invitations_branch }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
+      frontend_branch: "${{ github.event.inputs.frontend_branch }}"
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
       USERS: ${{ secrets.USERS }}
