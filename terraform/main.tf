@@ -50,7 +50,7 @@ module "galleri_invitations_screen" {
   NEXT_PUBLIC_GENERATE_INVITES                          = module.generate_invites_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_AUTHENTICATOR                             = module.authenticator_lambda_api_gateway.rest_api_galleri_id
   USERS                                                 = var.USERS
-  CIS2_ID                                               = var.CIS2_ID
+  CIS2_ID                                               = jsondecode(data.aws_secretsmanager_secret_version.cis2_client_id.secret_string)["CIS2_CLIENT_ID"]
   NEXTAUTH_URL                                          = var.NEXTAUTH_URL
   CIS2_REDIRECT_URL                                     = var.CIS2_REDIRECT_URL
   GALLERI_ACTIVITY_CODE                                 = jsondecode(data.aws_secretsmanager_secret_version.galleri_activity_code.secret_string)["GALLERI_ACTIVITY_CODE"]
@@ -60,7 +60,11 @@ module "galleri_invitations_screen" {
 }
 
 data "aws_secretsmanager_secret_version" "galleri_activity_code" {
-  secret_id = "MESH_URL"
+  secret_id = "GALLERI_ACTIVITY_CODE"
+}
+
+data "aws_secretsmanager_secret_version" "cis2_client_id" {
+  secret_id = "CIS2_CLIENT_ID"
 }
 
 # the role that all lambda's are utilising,

@@ -320,11 +320,11 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     ])
   }
 
-  setting {
-    namespace = "aws:elasticbeanstalk:application:environment"
-    name      = "CIS2_ID"
-    value     = "328183617639.apps.supplier"
-  }
+  # setting {
+  #   namespace = "aws:elasticbeanstalk:application:environment"
+  #   name      = "CIS2_ID"
+  #   value     = "328183617639.apps.supplier"
+  # }
 
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
