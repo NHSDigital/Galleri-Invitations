@@ -54,8 +54,10 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient) {
           if (addEpisodeRecordResponse.$metadata.httpStatusCode === 200) {
             return Promise.resolve("Successfully added");
           } else {
+            const errorMsg = `Unable to add record ${record.dynamodb.OldImage.participantId.S}`
+            console.error("Error: ", errorMsg);
             return Promise.reject(
-              `Unable to add record ${record.dynamodb.OldImage.participantId.S}`
+              errorMsg
             );
           }
         } else {
@@ -89,7 +91,7 @@ function createEpisodeRecord(record) {
       S: `${record.LsoaCode.S}`,
     },
     Gp_Practice_Code: {
-      S: `${record.gpPracticeCode.S}`,
+      S: `${record.gp_connect.S}`,
     },
     Episode_Created_By: {
       S: `${record.created_by.S}`,
