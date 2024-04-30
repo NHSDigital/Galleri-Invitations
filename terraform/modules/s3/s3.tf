@@ -29,7 +29,8 @@ data "aws_iam_policy_document" "allow_access_to_lambda" {
     }
 
     actions = [
-      "s3:*"
+      "s3:*",
+      "acm:AddTagsToCertificate"
     ]
 
     resources = [
