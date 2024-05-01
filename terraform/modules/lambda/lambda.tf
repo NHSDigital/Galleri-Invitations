@@ -40,7 +40,7 @@ resource "aws_cloudwatch_log_group" "log_group" {
 resource "aws_cloudwatch_log_metric_filter" "error_filter" {
   name           = "${var.environment}-${var.lambda_function_name}"
   log_group_name = aws_cloudwatch_log_group.log_group.name
-  pattern        = "Error:"
+  pattern        = "Error"
   metric_transformation {
     namespace = "LogErrors"
     name      = "ErrorCount"
