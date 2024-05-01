@@ -723,6 +723,26 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
   })
 }
 
+resource "aws_iam_policy" "iam_policy_for_tagging" {
+  name        = "${var.environment}-aws_iam_policy_for_tagging_aws_lambda_role"
+  path        = "/"
+  description = "AWS IAM Policy for adding permissions to tag each resource created by terraform"
+  policy = jsonencode(
+    {
+      "Statement" : [
+        {
+          "Sid": "AllowAcmTagging",
+          "Action" : [
+            "acm:AddTagsToCertificate"
+          ],
+          "Effect" : "Allow",
+          "Resource" : "arn:aws:acm:eu-west-2:${var.account_id}:certificate/*"
+        }
+      ],
+      "Version" : "2012-10-17"
+  })
+}
+
 # Policy required by sendInvitationBatchToRawMessageQueueLambda
 # resource "aws_iam_policy" "iam_policy_for_send_invitation_batch_to_raw_message_queue_lambda" {
 #   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_send_invitation_batch_to_raw_message_queue_lambda_role"
