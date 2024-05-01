@@ -1473,6 +1473,7 @@ module "caas_data_triggers" {
   name       = "caas_data_trigger"
   bucket_arn = module.validated_records_bucket.bucket_arn
   bucket_id  = module.validated_records_bucket.bucket_id
+  environment = var.en
   triggers = {
     add_records = {
       lambda_arn    = module.caas_feed_add_records_lambda.lambda_arn,
