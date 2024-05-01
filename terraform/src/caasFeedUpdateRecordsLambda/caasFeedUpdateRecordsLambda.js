@@ -59,10 +59,11 @@ export const handler = async (event) => {
               processingData(incomingUpdateData, tableRecord.Items[0])
             );
           } else {
+            console.error(`Error: Cannot update record as it doesn't exist in table`);
             return Promise.reject({
               rejectedRecordNhsNumber: incomingUpdateData.nhs_number,
               rejected: true,
-              reason: `Rejecting record ${incomingUpdateData.nhs_number}. Cannot update record as it doesn't exist in table`,
+              reason: `Rejecting record ${incomingUpdateData.nhs_number}. Cannot update record as it doesn't exist in table`
             });
           }
         })
@@ -115,6 +116,7 @@ export const processingData = async (
   incomingUpdateData,
   populationTableRecord
 ) => {
+  console.log("Entered processingData");
   const tablePersonId = populationTableRecord?.PersonId;
   const tableLsoaCode = populationTableRecord?.LsoaCode;
 
@@ -130,9 +132,11 @@ export const processingData = async (
     incomingUpdateData.superseded_by_nhs_number === "null" ||
     incomingUpdateData.superseded_by_nhs_number == 0
   ) {
+    console.log("Entered if");
     return await updateRecord(incomingUpdateData, populationTableRecord); // AC1, 2, 4
   } else {
     // a merge case has been recognised. Handle below
+    console.log("Entered else: merge case");
     const retainingPopulationTableRecord = await lookUp(
       client,
       incomingUpdateData.superseded_by_nhs_number,
@@ -169,6 +173,11 @@ export const processingData = async (
         (retainingEpisodeRecord.Items.length == 0 &&
           supersedingEpisodeRecord.Items.length == 0)
       ) {
+        if (retainingEpisodeRecord.Items.length && supersedingEpisodeRecord.Items.length) {
+          console.error(`Error: Episodes for both retaining NHS no. ${populationTableRecord.nhs_number.N} and
+            superseding NHS no. ${incomingUpdateData.superseded_by_nhs_number} exist! Not merging.`);
+        }
+
         // Apply the update to the supersed record
         await overwriteRecordInTable(
           client,
@@ -181,61 +190,9 @@ export const processingData = async (
           rejected: false,
         };
       } else if (supersedingEpisodeRecord.Items.length) {
-        // keep personId, participantId from retaining and combine with supersed
-        const recordNewSupersed = {
-          ...incomingUpdateData,
-          lsoa_2011: populationTableRecord.LsoaCode.S,
-          PersonId: retainingPopulationTableRecord.Items[0].PersonId.S,
-          participant_id:
-            retainingPopulationTableRecord.Items[0].participantId.S,
-        };
-
-        // keep personId, participantId from supersed and combine with retained
-        const recordNewRetaining = {
-          ...retainingPopulationTableRecord.Items[0],
-          lsoa_2011: retainingPopulationTableRecord.Items[0].LsoaCode,
-          PersonId: populationTableRecord.PersonId,
-          participant_id: populationTableRecord.participantId,
-        };
-
-        for (const property in recordNewRetaining) {
-          recordNewRetaining[property] =
-            recordNewRetaining[property][
-              Object.keys(recordNewRetaining[property])[0]
-            ];
-        }
-
-        const overWriteResponse =
-          Promise.all[
-            (await overwriteRecordInTable(
-              client,
-              "Population",
-              recordNewSupersed,
-              populationTableRecord
-            ),
-            await overwriteRecordInTable(
-              client,
-              "Population",
-              recordNewRetaining,
-              retainingPopulationTableRecord.Items[0]
-            ))
-          ];
-        if (
-          overWriteResponse.every(
-            (element) => element.value == SUCCESSFUL_RESPONSE
-          )
-        ) {
-          return {
-            rejected: false,
-          };
-        } else {
-          return {
-            rejectedRecordNhsNumber: `${populationTableRecord.nhs_number} | ${retainingPopulationTableRecord.Items[0].nhs_number}`,
-            rejected: true,
-            reason: `Alert to third line support. Investigate these records`,
-          };
-        }
+        return await mergeRecords(incomingUpdateData, populationTableRecord, retainingPopulationTableRecord);
       } else {
+        console.error(`Error: Rejecting record with supersed NHS number: ${populationTableRecord.nhs_number.N} `);
         return {
           rejectedRecordNhsNumber: populationTableRecord.nhs_number,
           rejected: true,
@@ -243,6 +200,7 @@ export const processingData = async (
         };
       }
     } else {
+      console.error(`Error: Superseded Number ${populationTableRecord.nhs_number.N} present in update but record does not exist in our table. Alert to third line support `);
       return {
         rejectedRecordNhsNumber: populationTableRecord.nhs_number,
         rejected: true,
@@ -252,7 +210,68 @@ export const processingData = async (
   }
 };
 
+const mergeRecords = async (incomingUpdateData, populationTableRecord, retainingPopulationTableRecord) => {
+  console.log("Entered function mergeRecords");
+
+  // keep personId, participantId from retaining and combine with supersed
+  const recordNewSupersed = {
+    ...incomingUpdateData,
+    lsoa_2011: populationTableRecord.LsoaCode.S,
+    PersonId: retainingPopulationTableRecord.Items[0].PersonId.S,
+    participant_id:
+      retainingPopulationTableRecord.Items[0].participantId.S,
+  };
+
+  // keep personId, participantId from supersed and combine with retained
+  const recordNewRetaining = {
+    ...retainingPopulationTableRecord.Items[0],
+    lsoa_2011: retainingPopulationTableRecord.Items[0].LsoaCode,
+    PersonId: populationTableRecord.PersonId,
+    participant_id: populationTableRecord.participantId,
+  };
+
+  for (const property in recordNewRetaining) {
+    recordNewRetaining[property] =
+      recordNewRetaining[property][
+      Object.keys(recordNewRetaining[property])[0]
+      ];
+  }
+
+  const overWriteResponse =
+    Promise.all[
+    (await overwriteRecordInTable(
+      client,
+      "Population",
+      recordNewSupersed,
+      populationTableRecord
+    ),
+      await overwriteRecordInTable(
+        client,
+        "Population",
+        recordNewRetaining,
+        retainingPopulationTableRecord.Items[0]
+      ))
+    ];
+  if (
+    overWriteResponse.every(
+      (element) => element.value == SUCCESSFUL_RESPONSE
+    )
+  ) {
+    return {
+      rejected: false,
+    };
+  } else {
+    console.error(`Error: Rejecting record with supersed NHS number: ${populationTableRecord.nhs_number.N}. Investigate these records `);
+    return {
+      rejectedRecordNhsNumber: `${populationTableRecord.nhs_number} | ${retainingPopulationTableRecord.Items[0].nhs_number}`,
+      rejected: true,
+      reason: `Alert to third line support. Investigate these records`,
+    };
+  }
+};
+
 const updateRecord = async (record, recordFromTable) => {
+  console.log("Entered function updateRecord");
   const { PersonId } = recordFromTable;
 
   if (record.date_of_death !== recordFromTable.date_of_death.S) {
@@ -411,6 +430,7 @@ export async function updateRecordInTable(
   sortKeyName,
   ...itemsToUpdate
 ) {
+  console.log("Entered function updateRecordInTable");
   let updateItemCommandKey = {};
   updateItemCommandKey[partitionKeyName] = { S: `${partitionKey}` };
   updateItemCommandKey[sortKeyName] = { S: `${sortKey}` };
@@ -461,6 +481,7 @@ export async function updateRecordInTable(
   if (response.$metadata.httpStatusCode != 200) {
     console.error(`Error: record update failed for person ${partitionKey}`);
   }
+  console.log("Exiting function updateRecordInTable");
   return response.$metadata.httpStatusCode;
 }
 
@@ -470,6 +491,7 @@ export async function overwriteRecordInTable(
   newRecord,
   oldRecord
 ) {
+  console.log("Entered overwriteRecordInTable");
   const deleteOldItem = await deleteTableRecord(client, table, oldRecord);
 
   if (deleteOldItem.$metadata.httpStatusCode === 200) {
@@ -484,6 +506,7 @@ export async function overwriteRecordInTable(
 }
 
 export async function deleteTableRecord(client, table, oldRecord) {
+  console.log("Entered function deleteTableRecord");
   let input;
   console.log(`Deleting record ${oldRecord.PersonId.S} from table ${table}`);
 
@@ -500,11 +523,13 @@ export async function deleteTableRecord(client, table, oldRecord) {
 
   const command = new DeleteItemCommand(input);
   const response = await client.send(command);
+  console.log("Exiting function deleteTableRecord");
 
   return response;
 }
 
 function formatPopulationDeleteItem(table, record) {
+  console.log("Entered function formatPopulationDeleteItem");
   const { PersonId, LsoaCode } = record;
 
   const input = {
@@ -515,10 +540,12 @@ function formatPopulationDeleteItem(table, record) {
     TableName: `${ENVIRONMENT}-${table}`,
   };
 
+  console.log("Exiting function formatPopulationDeleteItem");
   return input;
 }
 
 function formatEpisodeDeleteItem(table, record) {
+  console.log("Entered function formatEpisodeDeleteItem");
   const { Batch_Id, Participant_Id } = record;
 
   const input = {
@@ -529,10 +556,12 @@ function formatEpisodeDeleteItem(table, record) {
     TableName: `${ENVIRONMENT}-${table}`,
   };
 
+  console.log("Exiting function formatEpisodeDeleteItem");
   return input;
 }
 
 export async function putTableRecord(client, table, newRecord, oldRecord) {
+  console.log("Entered putTableRecord");
   let input, unmarshalledRecord, updated_record;
   console.log(
     `Adding record ${newRecord.PersonId} with LSOA:${newRecord.lsoa_2011} to table ${table}`
@@ -553,11 +582,11 @@ export async function putTableRecord(client, table, newRecord, oldRecord) {
 
   const command = new PutItemCommand(input);
   const response = await client.send(command);
-
   return response;
 }
 
 function formatPopulationPutItem(table, newRecord) {
+  console.log("Entered formatPopulationPutItem");
   // nhs_number: {N: newRecord.nhs_number}, -> 0
   if (newRecord.nhs_number === "null") newRecord.nhs_number = "0";
   // superseded_by_nhs_number: {N: newRecord.superseded_by_nhs_number}, -> 0
@@ -611,6 +640,8 @@ function formatPopulationPutItem(table, newRecord) {
 }
 
 function formatEpisodePutItem(table, newRecord) {
+  console.log("Entered formatEpisodePutItem");
+
   return {
     Item: {
       Batch_Id: { S: newRecord.Batch_Id },
