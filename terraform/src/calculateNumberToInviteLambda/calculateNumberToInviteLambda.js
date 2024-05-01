@@ -57,11 +57,9 @@ export const handler = async (event, context) => {
     payload,
     lambdaClient
   );
-  console.log("returnData = ", returnData);
   const participantInLsoa = returnData.sort((a, b) => {
     return a.imdDecile - b.imdDecile;
   });
-  console.log("participantInLsoa = ", participantInLsoa);
   const numberOfPeople = participantInLsoa.length;
   console.log("participantInLsoa.length = ", numberOfPeople);
 
@@ -77,7 +75,6 @@ export const handler = async (event, context) => {
     q1UpperBound,
     "Q1"
   );
-  console.log("quintile1Population = ", quintile1Population);
   //QUINTILE 2 Block
   const q2UpperBound = q1UpperBound + quintileBlockSize;
   const quintile2Population = generateQuintileBlocks(
@@ -86,7 +83,6 @@ export const handler = async (event, context) => {
     q2UpperBound,
     "Q2"
   );
-  console.log("quintile2Population = ", quintile2Population);
   //QUINTILE 3 Block
   const q3UpperBound = q2UpperBound + quintileBlockSize;
   const quintile3Population = generateQuintileBlocks(
@@ -95,8 +91,6 @@ export const handler = async (event, context) => {
     q3UpperBound,
     "Q3"
   );
-
-  console.log("quintile3Population = ", quintile3Population);
   //QUINTILE 4 Block
   const q4UpperBound = q3UpperBound + quintileBlockSize;
   const quintile4Population = generateQuintileBlocks(
@@ -105,7 +99,6 @@ export const handler = async (event, context) => {
     q4UpperBound,
     "Q4"
   );
-  console.log("quintile4Population = ", quintile4Population);
   //QUINTILE 5 Block
   const quintile5Population = generateQuintileBlocks(
     participantInLsoa,
@@ -113,7 +106,7 @@ export const handler = async (event, context) => {
     numberOfPeople,
     "Q5"
   );
-  console.log("quintile5Population = ", quintile5Population);
+
   // Store selected participants in single array
   try {
     const selectedParticipants = [
@@ -150,13 +143,13 @@ export const handler = async (event, context) => {
     ];
     const numberOfPeopleToInvite = selectedParticipants.length;
     console.log("numberOfPeopleToInvite = ", numberOfPeopleToInvite);
-    console.log("selectedParticipants: = ", selectedParticipants);
+
     responseObject.statusCode = 200;
     responseObject.body = JSON.stringify({
       selectedParticipants: selectedParticipants,
       numberOfPeopleToInvite: numberOfPeopleToInvite,
     });
-    console.log("responseObject Of PeopleToInvite = ", responseObject.body);
+
     return responseObject;
   } catch (e) {
     responseObject.statusCode = 404;
@@ -219,9 +212,8 @@ export const getParticipantsInQuintile = (
       }),
     {}
   ); // O(n)
-  console.log("quintilePopulationObject: = ", quintilePopulationObject);
   const quintilePopulationObjectKeys = Object.keys(quintilePopulationObject); // O(n)
-  console.log("quintilePopulationObjectKeys: = ", quintilePopulationObjectKeys);
+
   let count = 0;
   let iterationNumber = 0;
   let selectedParticipantCount = 1;
@@ -237,20 +229,16 @@ export const getParticipantsInQuintile = (
     const localQuintilePopulationObjectKeys = Object.keys(
       quintilePopulationObject
     );
-    console.log("localQuintilePopulationObjectKeys  and size: = ", localQuintilePopulationObjectKeys);
+
     const randomPersonIndex = Math.floor(
       Math.random() * localQuintilePopulationObjectKeys.length
     );
     const personSelectedId =
       localQuintilePopulationObjectKeys[randomPersonIndex];
-  
-    // person has not been previous indexed
-    console.log("!selectedParticipants.has(personSelectedId): " + !selectedParticipants.has(personSelectedId) )
-    console.log("personSelectedId: " + personSelectedId)
 
+    // person has not been previous indexed
     if (!selectedParticipants.has(personSelectedId)) {
       if(personSelectedId){
-      console.log("personSelectedId not null: " + personSelectedId)
       selectedParticipants.add(personSelectedId);
       const personSelectedForecastUptake =
         quintilePopulationObject[personSelectedId];
@@ -260,7 +248,6 @@ export const getParticipantsInQuintile = (
       selectedParticipantCount++;
       // remove that person from pool of people that can be invited
       delete quintilePopulationObject[personSelectedId];
-      
     } else {
       console.log(`Person ${personSelectedId} has already been landed on`);
       // check if length of the original quintilePopulationObject isn't 0
@@ -276,8 +263,6 @@ export const getParticipantsInQuintile = (
       }
     }
   }
-  console.log("quintileTarget: " +quintileTarget )
-  console.log(" selectedParticipants.size: " + selectedParticipants.size )
   console.log(
     `Highlighted participants size = ${
       selectedParticipants.size
