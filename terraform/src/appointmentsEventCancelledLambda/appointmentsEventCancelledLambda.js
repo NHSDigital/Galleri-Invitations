@@ -124,7 +124,8 @@ export const handler = async (event) => {
           AppointmentID,
           EventType,
           episodeEvent,
-          CancellationReason
+          CancellationReason,
+          "Closed"
         );
       }
       if (
@@ -237,7 +238,8 @@ export const transactionalWrite = async (
   appointmentId,
   eventType,
   episodeEvent,
-  cancellationReason
+  cancellationReason,
+  status = "Open"
 ) => {
   const timeNow = String(Date.now());
   const params = {
@@ -248,13 +250,13 @@ export const transactionalWrite = async (
             Batch_Id: { S: batchId },
             Participant_Id: { S: participantId },
           },
-          UpdateExpression: `SET Episode_Event = :episodeEvent, Episode_Event_Updated = :timeNow, Episode_Event_Description = :eventDescription, Episode_Status = :open, Episode_Event_Notes = :null, Episode_Event_Updated_By = :gtms, Episode_Status_Updated = :timeNow`,
+          UpdateExpression: `SET Episode_Event = :episodeEvent, Episode_Event_Updated = :timeNow, Episode_Event_Description = :eventDescription, Episode_Status = :status, Episode_Event_Notes = :null, Episode_Event_Updated_By = :gtms, Episode_Status_Updated = :timeNow`,
           TableName: `${ENVIRONMENT}-Episode`,
           ExpressionAttributeValues: {
             ":episodeEvent": { S: episodeEvent },
             ":timeNow": { N: timeNow },
             ":eventDescription": { S: cancellationReason },
-            ":open": { S: "Open" },
+            ":status": { S: status },
             ":null": { S: "Null" },
             ":gtms": { S: "GTMS" },
           },
