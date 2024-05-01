@@ -237,16 +237,13 @@ export const getParticipantsInQuintile = (
     const localQuintilePopulationObjectKeys = Object.keys(
       quintilePopulationObject
     );
-    let personSelectedId = null;
-    console.log("localQuintilePopulationObjectKeys: = ", localQuintilePopulationObjectKeys)
-    if(localQuintilePopulationObjectKeys.length > 0){
     console.log("localQuintilePopulationObjectKeys  and size: = ", localQuintilePopulationObjectKeys);
     const randomPersonIndex = Math.floor(
       Math.random() * localQuintilePopulationObjectKeys.length
     );
-    personSelectedId =
+    const personSelectedId =
       localQuintilePopulationObjectKeys[randomPersonIndex];
-  }
+  
     // person has not been previous indexed
     console.log("!selectedParticipants.has(personSelectedId): " + !selectedParticipants.has(personSelectedId) )
     console.log("personSelectedId: " + personSelectedId)
@@ -258,11 +255,12 @@ export const getParticipantsInQuintile = (
       const personSelectedForecastUptake =
         quintilePopulationObject[personSelectedId];
       count += personSelectedForecastUptake / 100;
+      }
       // increment selectedPerson count
       selectedParticipantCount++;
       // remove that person from pool of people that can be invited
       delete quintilePopulationObject[personSelectedId];
-      }
+      
     } else {
       console.log(`Person ${personSelectedId} has already been landed on`);
       // check if length of the original quintilePopulationObject isn't 0
