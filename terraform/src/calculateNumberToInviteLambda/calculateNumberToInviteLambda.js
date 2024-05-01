@@ -238,7 +238,8 @@ export const getParticipantsInQuintile = (
       quintilePopulationObject
     );
     let personSelectedId = null;
-    if(localQuintilePopulationObjectKeys.size > 0){
+    console.log("localQuintilePopulationObjectKeys: = ", localQuintilePopulationObjectKeys)
+    if(localQuintilePopulationObjectKeys.length > 0){
     console.log("localQuintilePopulationObjectKeys  and size: = ", localQuintilePopulationObjectKeys);
     const randomPersonIndex = Math.floor(
       Math.random() * localQuintilePopulationObjectKeys.length
