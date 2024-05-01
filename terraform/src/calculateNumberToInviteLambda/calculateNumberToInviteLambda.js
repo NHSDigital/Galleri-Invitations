@@ -149,7 +149,7 @@ export const handler = async (event, context) => {
       selectedParticipants: selectedParticipants,
       numberOfPeopleToInvite: numberOfPeopleToInvite,
     });
-    console.log("responseObject Of PeopleToInvite = ", responseObject);
+    console.log("responseObject Of PeopleToInvite = ", responseObject.body);
     return responseObject;
   } catch (e) {
     responseObject.statusCode = 404;
@@ -261,6 +261,8 @@ export const getParticipantsInQuintile = (
       }
     }
   }
+  console.log("quintileTarget: " +quintileTarget )
+  console.log(" selectedParticipants.size: " + selectedParticipants.size )
   console.log(
     `Highlighted participants size = ${
       selectedParticipants.size
