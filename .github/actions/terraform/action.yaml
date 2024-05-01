@@ -141,4 +141,20 @@ runs:
         npm install --prefix src/appointmentsEventCancelledLambda
         npm install --prefix src/processAppointmentEventTypeLambda
         npm install --prefix src/validateGtmsWithdrawalLambda
-        terraform ${{ env.tf-action }} -no-color -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars
+        npm install --prefix src/gtmsAppointmentEventBookedLambda
+        npm install --prefix src/sendInvitationBatchToRawMessageQueueLambda
+        npm install --prefix src/sendEnrichedMessageToNotifyQueueLambda
+        npm install --prefix src/nrdsMeshMailboxLambda
+
+        if [[ ${{ env.environment }} != prod ]]; then
+          {
+            aws eks update-kubeconfig --name ${{ env.environment }}-eks-cluster
+            URL=$(kubectl get service mesh-sandbox-service | grep mesh-sandbox-service | awk '{print $4}')
+            export TF_VAR_K8_URL="https://$URL"
+            echo "K8 URL is: $TF_VAR_K8_URL"
+          } || {
+            echo "No EKS deployment yet."
+          }
+        fi
+
+        terraform ${{ env.tf-action }} -no-color -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars -var="K8_URL=$TF_VAR_K8_URL"

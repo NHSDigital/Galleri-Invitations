@@ -1,21 +1,49 @@
-name: "CI/CD Dependabot"
+name: "DEV 10 - Umayr"
 
-# This is the run to test depandabot changes with api calls
 # The total recommended execution time for the "CI/CD Pull Request" workflow is around 20 minutes.
 
 on:
-  push:
-    branches:
-      - "dependabot/**"
+  workflow_dispatch:
+    inputs:
+      invitations_branch:
+        description: "This is the branch/tag of Galleri-Invitations be deployed to the DEV environment"
+        required: true
+      frontend_branch:
+        description: "This is the branch/tag of the Galleri frontend to be deployed to the DEV environment"
+        required: true
+      database_seeding:
+        description: "Determines if the seeding scripts are run to populate the database"
+        required: true
+        type: choice
+        default: "yes"
+        options:
+          - "yes"
+          - "no"
+      tf_action:
+        type: choice
+        description: Terraform action to be carried out against DEV environment
+        required: true
+        default: apply
+        options:
+          - apply
+          - destroy
+      test:
+        type: choice
+        description: Should tests be run?
+        required: true
+        default: "yes"
+        options:
+          - "yes"
+          - "no"
 
+env:
+  AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
 jobs:
   metadata:
     runs-on: ubuntu-latest
     timeout-minutes: 1
     env:
-      environment: "dev"
-      database_seeding: "yes"
-      test: "yes"
+      environment: "dev-10"
     outputs:
       build_datetime_london: ${{ steps.variables.outputs.build_datetime_london }}
       build_datetime: ${{ steps.variables.outputs.build_datetime }}
@@ -27,17 +55,23 @@ jobs:
       version: ${{ steps.variables.outputs.version }}
       does_pull_request_exist: ${{ steps.pr_exists.outputs.does_pull_request_exist }}
       environment: ${{ env.environment }}
-      database_seeding: ${{ env.environment }}
-      test: ${{ env.test }}
+      environment_type: ${{ steps.variables.outputs.environment_type }}
+      invitations_branch: ${{ github.event.inputs.invitations_branch }}
+      frontend_branch: ${{ github.event.inputs.invitations_branch }}
+      database_seeding: ${{ github.event.inputs.database_seeding }}
+      tf_action: ${{ github.event.inputs.tf_action }}
+      test: ${{ github.event.inputs.test }}
     steps:
       - name: "print environment vars"
         run: |
           echo job running on branch: ${{ github.base_ref }}
           echo environment is: ${{ env.environment }}
-          echo seed database: ${{ env.database_seeding }}
-          echo run tests: ${{ env.test }}
+          echo seed database: ${{ github.event.inputs.database_seeding }}
+          echo run tests: ${{ github.event.inputs.test }}
       - name: "Checkout code"
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.invitations_branch }}
       - name: "Set CI/CD variables"
         id: variables
         run: |
@@ -50,7 +84,8 @@ jobs:
           echo "python_version=$(grep python .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
-          echo "environment=test" >> $GITHUB_OUTPUT
+          echo "environment=dev-10" >> $GITHUB_OUTPUT
+          echo "environment_type=$(echo '${{ env.environment }}' | cut -f1 -d'-')" >> $GITHUB_OUTPUT
       - name: "Check if pull request exists for this branch"
         id: pr_exists
         env:
@@ -88,8 +123,8 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
+      invitations_branch: "${{ github.event.inputs.invitations_branch }}"
     secrets: inherit
-
   test-stage: # Recommended maximum execution time is 5 minutes
     needs: [metadata, commit-stage]
     uses: ./.github/workflows/stage-2-test.yaml
@@ -101,10 +136,11 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
+      invitations_branch: "${{ github.event.inputs.invitations_branch }}"
     secrets: inherit
 
   build-stage: # Recommended maximum execution time is 10 minutes
-    needs: [metadata, test-stage]
+    needs: [metadata]
     uses: ./.github/workflows/stage-3-build.yaml
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
@@ -116,11 +152,17 @@ jobs:
       invitations_branch: "${{ github.event.inputs.invitations_branch }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
-    secrets: inherit
+      frontend_branch: "${{ github.event.inputs.frontend_branch }}"
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
+      USERS: ${{ secrets.USERS }}
+      CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
 
   data-stage: # Recommended maximum execution time is 10 minutes
-    needs: [metadata, test-stage, build-stage]
+    needs: [metadata, build-stage]
     uses: ./.github/workflows/stage-4-load-data.yaml
+    if: needs.metadata.outputs.database_seeding == 'yes' && needs.metadata.outputs.tf_action != 'destroy'
     with:
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
@@ -129,11 +171,13 @@ jobs:
       python_version: "${{ needs.metadata.outputs.python_version }}"
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
-      environment: ${{ needs.metadata.outputs.environment }}
-    secrets: inherit
+      environment: "${{ needs.metadata.outputs.environment }}"
+      environment_type: "${{ needs.metadata.outputs.environment_type }}"
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
 
   acceptance-stage: # Recommended maximum execution time is 10 minutes
-    needs: [metadata, test-stage, build-stage, data-stage]
+    needs: [metadata, build-stage, data-stage]
     uses: ./.github/workflows/stage-5-acceptance.yaml
     if: needs.metadata.outputs.test == 'yes' && (needs.data-stage.result == 'success' || needs.data-stage.result == 'skipped')
     with:
@@ -145,4 +189,6 @@ jobs:
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
-    secrets: inherit
+      test: ${{ needs.metadata.outputs.test }}
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}

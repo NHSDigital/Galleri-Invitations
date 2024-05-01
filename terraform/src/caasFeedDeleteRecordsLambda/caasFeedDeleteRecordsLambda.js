@@ -70,8 +70,8 @@ export const handler = async (event) => {
     if (filteredRejectedRecords) {
       const timeNow = Date.now();
       const fileName = `validRecords/rejectedRecords/delete/rejectedRecords-${timeNow}.csv`;
-      console.log(
-        `${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-${bucket}/${fileName}`
+      console.error(
+        `Error: ${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-${bucket}/${fileName}`
       );
       // Generate the CSV format
       const rejectedRecordsString = generateCsvString(
@@ -85,7 +85,7 @@ export const handler = async (event) => {
     }
   } catch (error) {
     console.error(
-      "Error with CaaS Feed extraction, procession or uploading",
+      "Error: with CaaS Feed extraction, procession or uploading",
       error
     );
   }
@@ -103,7 +103,7 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
     );
     return response.Body.transformToString();
   } catch (err) {
-    console.log(`Failed to read from ${bucketName}/${key}`);
+    console.error(`Error: Failed to read from ${bucketName}/${key}`);
     throw err;
   }
 };
@@ -120,8 +120,8 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
     console.log(`Successfully pushed to ${bucketName}/${key}`);
     return response;
   } catch (err) {
-    console.log(
-      `Failed to push to ${bucketName}/${key}. Error Message: ${err}`
+    console.error(
+      `Error: Failed to push to ${bucketName}/${key}. Error Message: ${err}`
     );
     throw err;
   }
@@ -233,7 +233,9 @@ export async function updatePopulationTable(
   const command = new UpdateItemCommand(params);
   const response = await client.send(command);
   if (response.$metadata.httpStatusCode != 200) {
-    console.log(`record update failed for person ${partitionKeyValue}`);
+    console.error(
+      `Error: record update failed for person ${partitionKeyValue}`
+    );
   }
   return response.$metadata.httpStatusCode;
 }
@@ -260,7 +262,9 @@ export async function updateAppointmentTable(
   const command = new UpdateItemCommand(params);
   const response = await client.send(command);
   if (response.$metadata.httpStatusCode != 200) {
-    console.log(`record update failed for person ${partitionKeyValue}`);
+    console.error(
+      `Error: record update failed for person ${partitionKeyValue}`
+    );
   }
   return response.$metadata.httpStatusCode;
 }

@@ -1,12 +1,5 @@
-import {
-  DynamoDBClient,
-  QueryCommand
-} from "@aws-sdk/client-dynamodb";
-import {
-  S3Client,
-  PutObjectCommand
-}
-from '@aws-sdk/client-s3';
+import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const dbClient = new DynamoDBClient({ region: "eu-west-2" });
 const s3 = new S3Client({ region: "eu-west-2" });
@@ -19,12 +12,22 @@ export const handler = async (event) => {
   try {
     const insertedRecords = event.Records;
     const participantIds = extractParticipantIds(insertedRecords);
-    const batchArray = await getInvitationBatch(dbClient, ENVIRONMENT, participantIds);
+    const batchArray = await getInvitationBatch(
+      dbClient,
+      ENVIRONMENT,
+      participantIds
+    );
 
     let msg;
     if (batchArray.length) {
-      const timestamp = (new Date(Date.now())).toISOString();
-      await pushJsonToS3(s3, BUCKET, `${KEY_PREFIX}${timestamp}.json`, batchArray);
+      const timestamp = new Date(Date.now()).toISOString();
+      const invitationBatch = { InvitedParticipantBatch: batchArray };
+      await pushJsonToS3(
+        s3,
+        BUCKET,
+        `${KEY_PREFIX}${timestamp}.json`,
+        invitationBatch
+      );
       msg = "Finished creating invitation batch.";
     } else {
       msg = "Empty invitation batch not saved to S3.";
@@ -40,8 +43,8 @@ export const handler = async (event) => {
 export const extractParticipantIds = (insertedRecordsArray) => {
   console.log("Extracting participant ids.");
   const participantIdArray = [];
-  insertedRecordsArray.map(
-    (record) => participantIdArray.push(record.dynamodb.NewImage.Participant_Id.S)
+  insertedRecordsArray.map((record) =>
+    participantIdArray.push(record.dynamodb.NewImage.Participant_Id.S)
   );
   console.log("No. of participant ids extracted: ", participantIdArray.length);
   return participantIdArray;
@@ -54,46 +57,53 @@ export const getInvitationBatch = async (dbClient, environment, idArray) => {
     idArray.map(async (id) => {
       const participant = await lookupParticipant(dbClient, environment, id);
       if (participant) {
-        const nhsNumber = (participant.superseded_by_nhs_number.N !== "0"
-          ? participant.superseded_by_nhs_number.N
-          : participant.nhs_number.N);
+        const nhsNumber =
+          participant.superseded_by_nhs_number.N !== "0"
+            ? participant.superseded_by_nhs_number.N
+            : participant.nhs_number.N;
         const invitedParticipant = {
           participantId: id,
           nhsNumber: nhsNumber,
-          dateOfBirth: participant.date_of_birth.S
+          dateOfBirth: participant.date_of_birth.S,
         };
         invitationBatch.push(invitedParticipant);
       }
-  }));
+    })
+  );
   console.log("Generated invitation batch size: ", invitationBatch.length);
   return invitationBatch;
 };
 
-export const lookupParticipant = async (dbClient, environment, participantId) => {
+export const lookupParticipant = async (
+  dbClient,
+  environment,
+  participantId
+) => {
   console.log("Looking up participant: ", participantId);
-    const param = {
-      ExpressionAttributeValues: {
-        ":id": {
-          S: participantId,
-        },
+  const param = {
+    ExpressionAttributeValues: {
+      ":id": {
+        S: participantId,
       },
-      KeyConditionExpression: "PersonId = :id",
-      Limit: 1,
-      ProjectionExpression: "nhs_number, superseded_by_nhs_number, date_of_birth",
-      TableName: `${environment}-Population`
-    };
+    },
+    KeyConditionExpression: "PersonId = :id",
+    Limit: 1,
+    ProjectionExpression: "nhs_number, superseded_by_nhs_number, date_of_birth",
+    TableName: `${environment}-Population`,
+  };
 
-    const command = new QueryCommand(param);
-    const response = await dbClient.send(command);
+  const command = new QueryCommand(param);
+  const response = await dbClient.send(command);
 
-    if (response.$metadata.httpStatusCode !== 200 || !response.Items.length) {
-      console.error(`Participant id ${participantId} does not exist in Population table.`);
-      return undefined;
-    }
-    console.log("Found participant: ", participantId);
-    return response.Items[0];
+  if (response.$metadata.httpStatusCode !== 200 || !response.Items.length) {
+    console.error(
+      `Participant id ${participantId} does not exist in Population table.`
+    );
+    return undefined;
+  }
+  console.log("Found participant: ", participantId);
+  return response.Items[0];
 };
-
 
 export const pushJsonToS3 = async (client, bucketName, key, jsonArr) => {
   console.log(`Pushing object key ${key} to bucket ${bucketName}`);
@@ -112,4 +122,3 @@ export const pushJsonToS3 = async (client, bucketName, key, jsonArr) => {
     throw err;
   }
 };
-
