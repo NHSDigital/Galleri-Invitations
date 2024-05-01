@@ -1853,10 +1853,11 @@ module "process_appointment_event_type_lambda_cloudwatch" {
 }
 
 module "event_type_triggers" {
-  name       = "event_type_triggers"
-  source     = "./modules/lambda_s3_trigger"
-  bucket_arn = module.proccessed_appointments.bucket_arn
-  bucket_id  = module.proccessed_appointments.bucket_id
+  name        = "event_type_triggers"
+  source      = "./modules/lambda_s3_trigger"
+  bucket_arn  = module.proccessed_appointments.bucket_arn
+  bucket_id   = module.proccessed_appointments.bucket_id
+  environment = var.environment
   triggers = {
     complete_event = {
       lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn,
