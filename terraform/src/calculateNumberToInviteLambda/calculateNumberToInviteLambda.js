@@ -251,8 +251,9 @@ export const getParticipantsInQuintile = (
     console.log("!selectedParticipants.has(personSelectedId): " + !selectedParticipants.has(personSelectedId) )
     console.log("personSelectedId: " + personSelectedId)
 
-    if (personSelectedId && !selectedParticipants.has(personSelectedId)) {
-      console.log("personSelectedId2: " + personSelectedId)
+    if (!selectedParticipants.has(personSelectedId)) {
+      if(personSelectedId){
+      console.log("personSelectedId not null: " + personSelectedId)
       selectedParticipants.add(personSelectedId);
       const personSelectedForecastUptake =
         quintilePopulationObject[personSelectedId];
@@ -261,6 +262,7 @@ export const getParticipantsInQuintile = (
       selectedParticipantCount++;
       // remove that person from pool of people that can be invited
       delete quintilePopulationObject[personSelectedId];
+      }
     } else {
       console.log(`Person ${personSelectedId} has already been landed on`);
       // check if length of the original quintilePopulationObject isn't 0
