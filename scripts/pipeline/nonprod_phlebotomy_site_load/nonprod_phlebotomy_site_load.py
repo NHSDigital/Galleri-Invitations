@@ -140,7 +140,7 @@ def create_data_set(table_name):
             2 * week_unix + (random.randint(1, 7) * day_unix)
         )
         prev_invite_date_object = datetime.utcfromtimestamp(prev_invite_date_unix)
-        prev_invite_date.append(prev_invite_date_object.strftime("%A %-d %B %Y"))
+        prev_invite_date.append(prev_invite_date_object.strftime("%A %d %B %Y"))
 
     for i in range(1, 100):
         # Add Phlebotomy site
