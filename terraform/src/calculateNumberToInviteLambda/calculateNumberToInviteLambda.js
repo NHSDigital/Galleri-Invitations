@@ -238,7 +238,7 @@ export const getParticipantsInQuintile = (
 
     // person has not been previous indexed
     if (!selectedParticipants.has(personSelectedId)) {
-      console.log(`Person ${personSelectedId}`);
+      console.log(`Person ${personSelectedId} selected`);
       if(personSelectedId !== undefined){
       selectedParticipants.add(personSelectedId);
       const personSelectedForecastUptake =
