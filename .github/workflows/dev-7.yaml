@@ -186,7 +186,8 @@ jobs:
       terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
       invitations_branch: "${{ github.event.inputs.invitations_branch }}"
       version: "${{ needs.metadata.outputs.version }}"
-      environment: ${{ needs.metadata.outputs.environment }}
+      environment: "${{ needs.metadata.outputs.environment }}"
+      tf_action: "${{ needs.metadata.outputs.tf_action }}"
       frontend_branch: "${{ github.event.inputs.frontend_branch }}"
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
