@@ -237,19 +237,20 @@ export const getParticipantsInQuintile = (
     const localQuintilePopulationObjectKeys = Object.keys(
       quintilePopulationObject
     );
-    if(!localQuintilePopulationObjectKeys){
-    console.log("localQuintilePopulationObjectKeys: = ", localQuintilePopulationObjectKeys);
+    let personSelectedId = null;
+    if(localQuintilePopulationObjectKeys.size > 0){
+    console.log("localQuintilePopulationObjectKeys  and size: = ", localQuintilePopulationObjectKeys);
     const randomPersonIndex = Math.floor(
       Math.random() * localQuintilePopulationObjectKeys.length
     );
-    const personSelectedId =
+    personSelectedId =
       localQuintilePopulationObjectKeys[randomPersonIndex];
   }
     // person has not been previous indexed
     console.log("!selectedParticipants.has(personSelectedId): " + !selectedParticipants.has(personSelectedId) )
     console.log("personSelectedId: " + personSelectedId)
 
-    if (!selectedParticipants.has(personSelectedId)) {
+    if (personSelectedId && !selectedParticipants.has(personSelectedId)) {
       console.log("personSelectedId2: " + personSelectedId)
       selectedParticipants.add(personSelectedId);
       const personSelectedForecastUptake =
