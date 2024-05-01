@@ -21,6 +21,7 @@ resource "aws_lambda_function" "lambda" {
   environment {
     variables = var.environment_vars
   }
+  depends_on = [aws_cloudwatch_log_group.log_group]
 }
 
 resource "aws_s3_object" "lambda_s3_object" {
