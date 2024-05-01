@@ -3,7 +3,7 @@ resource "aws_lambda_permission" "allow_bucket" {
 
   statement_id  = "AllowExecution-${md5(each.value)}"
   action        = "lambda:InvokeFunction"
-  function_name = each.value
+  function_name = "${var.environment}-${each.value}"
   principal     = "s3.amazonaws.com"
   source_arn    = var.bucket_arn
 }
