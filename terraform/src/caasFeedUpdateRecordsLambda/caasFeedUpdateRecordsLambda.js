@@ -414,7 +414,7 @@ const updateRecord = async (record, recordFromTable) => {
       const batchId = episodeRecord.Batch_Id.S;
       const participantId = episodeRecord.Participant_Id.S;
 
-      const timeNow = Date.now();
+      const timeNow = new Date().toISOString();
 
       const updateEpisodeEvent = ["Episode_Event", "S", "Death Reversal"];
       const updateEpisodeEventUpdated = [
@@ -454,6 +454,27 @@ const updateRecord = async (record, recordFromTable) => {
         updateEpisodeEventNotes,
         updateEpisodeEventUpdatedBy,
         updateEpisodeStatusUpdated
+      );
+
+      const episodeHistoryParticipants = await getItemFromTable(
+        client,
+        "EpisodeHistory",
+        "Participant_Id",
+        "S",
+        participantId
+      );
+
+      const items = episodeHistoryParticipants.Item;
+
+      const sortedEpisodeHistoryParticipants = items.sort(
+        (a, b) =>
+          parseInt(b.Episode_Status_Updated.N) -
+          parseInt(a.Episode_Status_Updated.N)
+      );
+
+      console.log(
+        "sortedEpisodeHistoryParticipants ",
+        sortedEpisodeHistoryParticipants
       );
     }
   }
