@@ -60,7 +60,9 @@ export const handler = async (event) => {
 
   const episodeItems = episodeResponse.Items[0];
   console.log(
-    `episodeItems for participant: ${JSON.stringify(episodeItems.Participant_Id)} loaded.`
+    `episodeItems for participant: ${JSON.stringify(
+      episodeItems.Participant_Id
+    )} loaded.`
   );
 
   const appointmentResponse = await lookUp(
@@ -73,7 +75,9 @@ export const handler = async (event) => {
   );
   const appointmentItems = appointmentResponse.Items[0];
   console.log(
-    `appointmentItems for appointment: ${JSON.stringify(appointmentItems.Appointment_Id)} loaded.`
+    `appointmentItems for appointment: ${JSON.stringify(
+      appointmentItems.Appointment_Id
+    )} loaded.`
   );
 
   const dateTime = new Date(Date.now()).toISOString();
@@ -110,7 +114,8 @@ export const handler = async (event) => {
         );
       }
       if (Object.values(participantWithdrawn).includes(CancellationReason)) {
-        const episodeEvent = "Appointment Cancelled by Participant - Withdrawn";
+        const episodeEvent =
+          "Appointment Cancelled by Participant - No reminder";
         console.log(episodeEvent);
         await transactionalWrite(
           dbClient,
