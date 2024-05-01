@@ -33,8 +33,15 @@ resource "aws_s3_object" "lambda_s3_object" {
 }
 
 # Monitoring
+
+data "external" "existing_log_group" {
+  program = ["bash", "-c", "aws logs describe-log-groups --log-group-name-prefix '/aws/lambda/${var.environment}-${var.lambda_function_name}' | jq -r '.logGroups | length > 0'"]
+}
+
+# This will create the log group if it does not already exist, this is to prevent existing log groups causing errors that stop the terraform run
 resource "aws_cloudwatch_log_group" "log_group" {
-  name = "/aws/lambda/${var.environment}-${var.lambda_function_name}"
+  name  = "/aws/lambda/${var.environment}-${var.lambda_function_name}"
+  count = data.external.existing_log_group.result == "false" ? 1 : 0
 }
 
 resource "aws_cloudwatch_log_metric_filter" "error_filter" {
