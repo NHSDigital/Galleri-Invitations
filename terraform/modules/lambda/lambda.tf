@@ -44,16 +44,16 @@ resource "aws_cloudwatch_log_group" "log_group" {
   count = data.external.existing_log_group.result == "false" ? 1 : 0
 }
 
-resource "aws_cloudwatch_log_metric_filter" "error_filter" {
-  name           = "${var.environment}-${var.lambda_function_name}"
-  log_group_name = aws_cloudwatch_log_group.log_group.name
-  pattern        = "Error"
-  metric_transformation {
-    namespace = "LogErrors"
-    name      = "ErrorCount"
-    value     = "1"
-  }
-}
+# resource "aws_cloudwatch_log_metric_filter" "error_filter" {
+#   name           = "${var.environment}-${var.lambda_function_name}"
+#   log_group_name = aws_cloudwatch_log_group.log_group.name
+#   pattern        = "Error"
+#   metric_transformation {
+#     namespace = "LogErrors"
+#     name      = "ErrorCount"
+#     value     = "1"
+#   }
+# }
 
 # resource "aws_cloudwatch_metric_alarm" "error_alarm" {
 #   alarm_name                = "${var.environment}-${var.lambda_function_name}"
