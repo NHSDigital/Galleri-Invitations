@@ -36,6 +36,13 @@ resource "aws_s3_object" "lambda_s3_object" {
 # Monitoring
 resource "aws_cloudwatch_log_group" "log_group" {
   name = "/aws/lambda/${var.environment}-${var.lambda_function_name}"
+
+  lifecycle {
+    create_before_destroy = true
+    ignore_changes = [
+      tags, # Add any other attributes that might change outside of Terraform's management
+    ]
+  }
 }
 
 # resource "aws_cloudwatch_log_metric_filter" "error_filter" {
