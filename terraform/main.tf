@@ -149,11 +149,6 @@ module "eks" {
       }
     }
   }
-
-  tags = {
-    Environment = var.environment
-    Terraform   = "true"
-  }
 }
 
 module "s3_bucket" {
@@ -1588,8 +1583,7 @@ module "sdrs_table" {
     }
   ]
   tags = {
-    Name        = "Dynamodb Table Sdrs"
-    Environment = var.environment
+    Name = "Dynamodb Table Sdrs"
   }
 }
 
@@ -1832,8 +1826,7 @@ module "participating_icb_table" {
     }
   ]
   tags = {
-    Name        = "Dynamodb Table Participating Icb"
-    Environment = var.environment
+    Name = "Dynamodb Table Participating Icb"
   }
 }
 
@@ -1882,8 +1875,7 @@ module "gp_practice_table" {
     }
   ]
   tags = {
-    Name        = "Dynamodb Table Gp Practice"
-    Environment = var.environment
+    Name = "Dynamodb Table Gp Practice"
   }
 }
 
@@ -1921,8 +1913,7 @@ module "phlebotomy_site_table" {
     },
   ]
   tags = {
-    Name        = "Dynamodb Table Phlebotomy Site"
-    Environment = var.environment
+    Name = "Dynamodb Table Phlebotomy Site"
   }
 }
 
@@ -1953,8 +1944,7 @@ module "imd_table" {
     }
   ]
   tags = {
-    Name        = "Dynamodb Table Imd"
-    Environment = var.environment
+    Name = "Dynamodb Table Imd"
   }
 }
 
@@ -1974,8 +1964,7 @@ module "postcode_table" {
     }
   ]
   tags = {
-    Name        = "Dynamodb Table Postcode"
-    Environment = var.environment
+    Name = "Dynamodb Table Postcode"
   }
 }
 
@@ -2054,8 +2043,7 @@ module "population_table" {
     }
   ]
   tags = {
-    Name        = "Dynamodb Table Population"
-    Environment = var.environment
+    Name = "Dynamodb Table Population"
   }
 }
 
@@ -2091,8 +2079,7 @@ module "LSOA_table" {
     }
   ]
   tags = {
-    Name        = "Dynamodb Table LSOA"
-    Environment = var.environment
+    Name = "Dynamodb Table LSOA"
   }
 }
 
@@ -2108,8 +2095,7 @@ module "invitation_parameters_table" {
     }
   ]
   tags = {
-    Name        = "Dynamodb Table Invitation Parameters"
-    Environment = var.environment
+    Name = "Dynamodb Table Invitation Parameters"
   }
 }
 
@@ -2125,8 +2111,7 @@ module "user_accounts_table" {
     }
   ]
   tags = {
-    Name        = "Dynamodb Table User Accounts"
-    Environment = var.environment
+    Name = "Dynamodb Table User Accounts"
   }
 }
 
@@ -2181,8 +2166,7 @@ module "episode_table" {
     }
   ]
   tags = {
-    Name        = "Dynamodb Table Episode"
-    Environment = var.environment
+    Name = "Dynamodb Table Episode"
   }
 }
 
@@ -2204,8 +2188,7 @@ module "episode_history_table" {
     }
   ]
   tags = {
-    Name        = "Dynamodb Table Episode History"
-    Environment = var.environment
+    Name = "Dynamodb Table Episode History"
   }
 }
 
@@ -2233,8 +2216,7 @@ module "appointment_table" {
     }
   ]
   tags = {
-    Name        = "Dynamodb Table Appointments"
-    Environment = var.environment
+    Name = "Dynamodb Table Appointments"
   }
 }
 // Parameter Store
