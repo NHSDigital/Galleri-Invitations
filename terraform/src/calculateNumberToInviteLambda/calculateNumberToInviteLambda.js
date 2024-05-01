@@ -237,7 +237,11 @@ export const getParticipantsInQuintile = (
       localQuintilePopulationObjectKeys[randomPersonIndex];
 
     // person has not been previous indexed
+    console.log("!selectedParticipants.has(personSelectedId): " + !selectedParticipants.has(personSelectedId) )
+    console.log("personSelectedId: " + personSelectedId)
+
     if (!selectedParticipants.has(personSelectedId)) {
+      console.log("personSelectedId2: " + personSelectedId)
       selectedParticipants.add(personSelectedId);
       const personSelectedForecastUptake =
         quintilePopulationObject[personSelectedId];
