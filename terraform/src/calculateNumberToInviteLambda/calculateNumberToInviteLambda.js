@@ -143,7 +143,7 @@ export const handler = async (event, context) => {
     ];
     const numberOfPeopleToInvite = selectedParticipants.length;
     console.log("numberOfPeopleToInvite = ", numberOfPeopleToInvite);
-
+    console.log("selectedParticipants: = ", selectedParticipants);
     responseObject.statusCode = 200;
     responseObject.body = JSON.stringify({
       selectedParticipants: selectedParticipants,
