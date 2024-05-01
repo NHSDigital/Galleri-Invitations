@@ -353,6 +353,7 @@ module "sns_alert_lambda" {
   lambda_s3_object_key = "sns_alert_lambda.zip"
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
+    url         = "https://prod-08.uksouth.logic.azure.com:443/workflows/7edf4c6b99724691815d74a338b1146c/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=C6mpyBbevvm_sOZUHswhxplabaL34DqBjugX7oCY1UY"
   }
 }
 
