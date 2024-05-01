@@ -32,6 +32,7 @@ export const handler = async (event) => {
 
 // METHODS
 export async function processIncomingRecords(incomingRecordsArr, dbClient) {
+  console.log("Entered function processIncomingRecords");
   const episodeRecordsUpload = await Promise.allSettled(
     incomingRecordsArr.map(async (record) => {
       if (
@@ -53,8 +54,10 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient) {
           if (addEpisodeRecordResponse.$metadata.httpStatusCode === 200) {
             return Promise.resolve("Successfully added");
           } else {
+            const errorMsg = `Unable to add record ${record.dynamodb.OldImage.participantId.S}`
+            console.error("Error: ", errorMsg);
             return Promise.reject(
-              `Unable to add record ${record.dynamodb.OldImage.participantId.S}`
+              errorMsg
             );
           }
         } else {
@@ -70,10 +73,12 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient) {
       );
     })
   );
+  console.log("Exiting function processIncomingRecords");
   return episodeRecordsUpload;
 }
 
 function createEpisodeRecord(record) {
+  console.log("Entered function createEpisodeRecord");
   const createTime = String(Date.now());
   const item = {
     Batch_Id: {
@@ -86,7 +91,7 @@ function createEpisodeRecord(record) {
       S: `${record.LsoaCode.S}`,
     },
     Gp_Practice_Code: {
-      S: `${record.gpPracticeCode.S}`,
+      S: `${record.gp_connect.S}`,
     },
     Episode_Created_By: {
       S: `${record.created_by.S}`,
@@ -108,10 +113,12 @@ function createEpisodeRecord(record) {
     },
   };
 
+  console.log("Exiting function createEpisodeRecord");
   return item;
 }
 
 async function addEpisodeRecord(table, item) {
+  console.log("Entered function addEpisodeRecord");
   const input = {
     TableName: `${ENVIRONMENT}-${table}`,
     Item: item,
@@ -122,11 +129,13 @@ async function addEpisodeRecord(table, item) {
   const command = new PutItemCommand(input);
   const response = await client.send(command);
 
+  console.log("Exiting function addEpisodeRecord");
   return response;
 }
 
 // look into episode table and see if there exists a participant
 export const lookupParticipantId = async (participantId, table, dbClient) => {
+  console.log("Entered function lookupParticipantId");
   const input = {
     ExpressionAttributeValues: {
       ":participant": {
@@ -146,5 +155,6 @@ export const lookupParticipantId = async (participantId, table, dbClient) => {
     return true;
   }
   console.log("Duplicate exists");
+  console.log("Exiting function lookupParticipantId");
   return false;
 };

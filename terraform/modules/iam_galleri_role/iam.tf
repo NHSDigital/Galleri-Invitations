@@ -477,6 +477,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added sendInvitationBatchToRawMessageQueueLambda to this policy as lambda role exceeded policy limit
 # Added sendEnrichedMessageToNotifyQueueLambda to this policy as lambda role exceeded policy limit
 # Added sendSingleNotifyMessageLambda to this policy as lambda role exceeded policy limit
+# Added nrdsMeshMailboxLambda to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
   path        = "/"
@@ -544,6 +545,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:s3:::${var.environment}-sent-gtms-invited-participant-batch/*",
             "arn:aws:s3:::${var.environment}-galleri-processed-caas-data/*",
             "arn:aws:s3:::${var.environment}-proccessed-appointments/*",
+            "arn:aws:s3:::${var.environment}-inbound-processed-nrds-data/*",
           ]
         },
         {
@@ -575,7 +577,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_INT_1*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_CLIENT_ID*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:NHS_NOTIFY_API_KEY*",
-            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:COMMS_MANAGER_PRIVATE_KEY_TEST_1*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:COMMS_MANAGER_PRIVATE_KEY_TEST_1*"
           ]
         },
         {
@@ -754,6 +756,53 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
 #           "arn:aws:sqs:eu-west-2:${var.account_id}:${var.environment}-notifyRawMessageQueue.fifo",
 #         ]
 #       }
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+# }
+
+
+# Policy required by nrdsMeshMailboxLambda
+# resource "aws_iam_policy" "iam_policy_for_nrdsMeshMailboxLambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_nrdsMeshMailboxLambda_role"
+#   path        = "/"
+#   description = "AWS IAM Policy for managing aws lambda nrdsMeshMailboxLambda"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+#           "Sid" : "AllowS3Access",
+#           "Effect" : "Allow",
+#           "Action" : [
+#           "s3:*"
+#           ],
+#           "Resource" : [
+#           "arn:aws:s3:::${var.environment}-inbound-processed-nrds-data/*",
+#           ]
+#         },
+#         {
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "secretsmanager:GetResourcePolicy",
+#             "secretsmanager:GetSecretValue",
+#             "secretsmanager:DescribeSecret",
+#             "secretsmanager:ListSecretVersionIds"
+#           ],
+#           "Resource" : [
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SHARED_KEY_1*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:SAND_MESH_MAILBOX_ID*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:SAND_MESH_MAILBOX_PASSWORD*",
+#           ]
+#         },
 #       ],
 #       "Version" : "2012-10-17"
 #   })

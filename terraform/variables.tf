@@ -94,3 +94,8 @@ variable "invitations-hostname" {
 variable "dns_zone" {
   description = "the aws account the environment is part of, eg cicd, nft, uat, etc"
 }
+
+variable "K8_URL" {
+  description = "url for eks mesh service"
+  default     = null
+}
