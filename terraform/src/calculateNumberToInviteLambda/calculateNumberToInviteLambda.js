@@ -149,7 +149,7 @@ export const handler = async (event, context) => {
       selectedParticipants: selectedParticipants,
       numberOfPeopleToInvite: numberOfPeopleToInvite,
     });
-
+    console.log("responseObject Of PeopleToInvite = ", responseObject);
     return responseObject;
   } catch (e) {
     responseObject.statusCode = 404;
