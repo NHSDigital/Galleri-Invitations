@@ -7,24 +7,19 @@ export async function handler(event) {
   const message = event.Records[0].Sns.Message;
 
   const postData = JSON.stringify({
-    type: "message",
-    attachments: [
+    type: "AdaptiveCard",
+    version: "1.2",
+    body: [
       {
-        type: "AdaptiveCard",
-        version: "1.2",
-        body: [
-          {
-            type: "TextBlock",
-            text: "Galleri Alert Triggered!",
-            weight: "bolder",
-            size: "medium",
-          },
-          {
-            type: "TextBlock",
-            text: `Alert Details: ${message}`,
-            wrap: true,
-          },
-        ],
+        type: "TextBlock",
+        text: "Galleri Alert Triggered!",
+        weight: "bolder",
+        size: "medium",
+      },
+      {
+        type: "TextBlock",
+        text: `Alert Details: ${message}`,
+        wrap: true,
       },
     ],
   });
@@ -49,13 +44,23 @@ export async function handler(event) {
         result += d;
       });
       res.on("end", () => {
-        resolve({
-          statusCode: 200,
-          body: JSON.stringify({
-            message: "Message sent to 2nd line support",
-            data: result,
-          }),
-        });
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve({
+            statusCode: res.statusCode,
+            body: JSON.stringify({
+              message: "Message sent to Teams channel",
+              data: result,
+            }),
+          });
+        } else {
+          reject({
+            statusCode: res.statusCode,
+            body: JSON.stringify({
+              message: "Failed to send message",
+              data: result,
+            }),
+          });
+        }
       });
     });
 
@@ -63,7 +68,7 @@ export async function handler(event) {
       reject({
         statusCode: 500,
         body: JSON.stringify({
-          message: "Failed to send message",
+          message: "Network error",
           error: e.message,
         }),
       });
