@@ -26,3 +26,8 @@ variable "name" {
   type        = string
   description = "the name of the iam rule"
 }
+
+variable "environment" {
+  type = string
+  description = "Name of the environment this is deployed into"
+}
