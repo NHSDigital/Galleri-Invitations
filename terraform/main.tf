@@ -2231,6 +2231,29 @@ module "appointment_table" {
     Environment = var.environment
   }
 }
+
+module "galleri_blood_test_result_table" {
+  source      = "./modules/dynamodb"
+  table_name  = "GalleriBloodTestResult"
+  hash_key    = "Participant_Id"
+  range_key   = "Grail_Id"
+  environment = var.environment
+  attributes = [
+    {
+      name = "Participant_Id"
+      type = "S"
+    },
+    {
+      name = "Grail_Id"
+      type = "S"
+    }
+  ]
+  tags = {
+    Name        = "Dynamodb Table Galleri Blood Test Result"
+    Environment = var.environment
+  }
+}
+
 module "caas_eventbridge_scheduler" {
   source              = "./modules/eventbridge_scheduler"
   function_name       = "pollMeshMailboxLambda"
@@ -2244,6 +2267,7 @@ module "GTMS_eventbridge_scheduler" {
   schedule_expression = "cron(0/15 * * * ? *)"
   lambda_arn          = module.gtms_mesh_mailbox_lambda.lambda_arn
 }
+
 // Parameter Store
 resource "aws_ssm_parameter" "invited-notify" {
   name      = "invited-notify"
