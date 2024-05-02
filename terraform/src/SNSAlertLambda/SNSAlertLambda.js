@@ -1,80 +1,46 @@
-import { request } from "https";
-import { parse } from "url";
-
-const webhookUrl = process.env.url;
-
 export async function handler(event) {
-  // const message = event.Records[0].Sns.Message;
-
-  const postData = JSON.stringify({
+  const url =
+    "https://prod-08.uksouth.logic.azure.com:443/workflows/7edf4c6b99724691815d74a338b1146c/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=C6mpyBbevvm_sOZUHswhxplabaL34DqBjugX7oCY1UY";
+  const data = {
     type: "AdaptiveCard",
     version: "1.2",
-    body: [
-      {
-        type: "TextBlock",
-        text: "Simple Adaptive Card",
-        weight: "bolder",
-        size: "medium",
-      },
-      {
-        type: "TextBlock",
-        text: "This is a test call from the lambda.",
-        wrap: true,
-      },
-    ],
-  });
-
-  const webhook = parse(webhookUrl);
-
-  const options = {
-    hostname: webhook.hostname,
-    port: 443,
-    path: webhook.path,
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Content-Length": Buffer.byteLength(postData),
+    body: {
+      type: "TextBlock",
+      text: "Galleri alarm test!",
     },
   };
 
-  return new Promise((resolve, reject) => {
-    const req = request(options, (res) => {
-      let result = "";
-      res.on("data", (d) => {
-        result += d;
-      });
-      res.on("end", () => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve({
-            statusCode: res.statusCode,
-            body: JSON.stringify({
-              message: "Message sent to Teams channel",
-              data: result,
-            }),
-          });
-        } else {
-          reject({
-            statusCode: res.statusCode,
-            body: JSON.stringify({
-              message: "Failed to send message",
-              data: result,
-            }),
-          });
-        }
-      });
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
     });
 
-    req.on("error", (e) => {
-      reject({
-        statusCode: 500,
-        body: JSON.stringify({
-          message: "Network error",
-          error: e.message,
-        }),
-      });
-    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-    req.write(postData);
-    req.end();
-  });
+    const responseData = await response.json();
+    console.log("Success:", responseData);
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: "Request successful!",
+        data: responseData,
+      }),
+    };
+  } catch (error) {
+    console.error("Error:", error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        message: "Error making HTTP request",
+        error: error.message,
+      }),
+    };
+  }
 }
