@@ -583,7 +583,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           "Action" : "secretsmanager:ListSecrets",
           "Resource" : "*"
         },
-        {"Effect" : "Allow",
+        { "Effect" : "Allow",
           "Action" : "sts:AssumeRole",
           "Resource" : "*"
         },
