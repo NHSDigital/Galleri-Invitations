@@ -234,7 +234,7 @@ export const getParticipantsInQuintile = (
     console.log(`localQuintilePopulationObjectKeys: ${localQuintilePopulationObjectKeys}`);
     let personSelectedId = undefined
     // loop personSelectedId not undefined
-    while (personSelectedId === undefined) {
+    if (localQuintilePopulationObjectKeys.length > 0) {
       console.log(`personSelectedId: ${personSelectedId} is undefined`);
       const randomPersonIndex = Math.floor(
         Math.random() * localQuintilePopulationObjectKeys.length
@@ -245,7 +245,7 @@ export const getParticipantsInQuintile = (
 
     }
     // person has not been previous indexed
-    if (!selectedParticipants.has(personSelectedId)) {
+    if (personSelectedId !== undefined && !selectedParticipants.has(personSelectedId)) {
       if (personSelectedId !== undefined) {
         selectedParticipants.add(personSelectedId);
         console.log(`Person ${personSelectedId} to be invited`);
