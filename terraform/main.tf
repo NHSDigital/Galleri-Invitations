@@ -48,13 +48,12 @@ module "galleri_invitations_screen" {
   NEXT_PUBLIC_PUT_TARGET_PERCENTAGE                     = module.target_fill_to_percentage_put_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_TARGET_PERCENTAGE                         = module.target_fill_to_percentage_get_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_GENERATE_INVITES                          = module.generate_invites_api_gateway.rest_api_galleri_id
-  NEXT_PUBLIC_GET_USER_ROLE                             = module.get_user_role_api_gateway.rest_api_galleri_id
-  NEXT_PUBLIC_CIS2_SIGNED_JWT                           = module.cis2_signed_jwt_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_AUTHENTICATOR                             = module.authenticator_lambda_api_gateway.rest_api_galleri_id
   USERS                                                 = var.USERS
   CIS2_ID                                               = var.CIS2_ID
   NEXTAUTH_URL                                          = var.NEXTAUTH_URL
+  CIS2_REDIRECT_URL                                     = var.CIS2_REDIRECT_URL
   GALLERI_ACTIVITY_CODE                                 = var.GALLERI_ACTIVITY_CODE
-  GALLERI_ACTIVITY_NAME                                 = var.GALLERI_ACTIVITY_NAME
   hostname                                              = var.invitations-hostname
   dns_zone                                              = var.dns_zone
   region                                                = var.region
@@ -104,7 +103,7 @@ module "eks" {
 
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
-    instance_types = ["t3.medium"]
+    instance_types = ["t3.small"]
   }
 
   eks_managed_node_groups = {
@@ -113,7 +112,7 @@ module "eks" {
       max_size     = 3
       desired_size = 2
 
-      instance_types = ["t3.large"]
+      instance_types = ["t3.small"]
       capacity_type  = "SPOT"
     }
   }
@@ -304,6 +303,16 @@ module "proccessed_appointments" {
   account_id              = var.account_id
 }
 # End of GTMS buckets
+
+# NRDS Buckets
+module "proccessed_nrds" {
+  source                  = "./modules/s3"
+  bucket_name             = "inbound-processed-nrds-data"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+# End of NRDS buckets
 
 # Data Filter Gridall IMD
 module "data_filter_gridall_imd_lambda" {
@@ -1052,6 +1061,7 @@ module "poll_mesh_mailbox_lambda" {
     MESH_SENDER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.mesh_sender_mailbox_password.secret_string)["MESH_SENDER_MAILBOX_PASSWORD"],
     CAAS_MESH_MAILBOX_ID         = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_id.secret_string)["CAAS_MESH_MAILBOX_ID"],
     CAAS_MESH_MAILBOX_PASSWORD   = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_password.secret_string)["CAAS_MESH_MAILBOX_PASSWORD"],
+    EXIT_TIME                    = "12",
   }
 }
 
@@ -1178,34 +1188,30 @@ module "gtms_mesh_mailbox_lambda_cloudwatch" {
   retention_days       = 14
 }
 
-# Get User Role Lambda
-module "get_user_role_lambda" {
+# NRDS MESH lambda
+module "nrds_mesh_mailbox_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "getUserRoleLambda"
+  lambda_function_name = "nrdsMeshMailboxLambda"
   lambda_timeout       = 100
   memory_size          = 1024
-  lambda_s3_object_key = "get_user_role_lambda.zip"
+  lambda_s3_object_key = "nrds_mesh_mailbox_lambda.zip"
   environment_vars = {
-    ENVIRONMENT = "${var.environment}"
+    ENVIRONMENT                    = "${var.environment}",
+    MESH_SHARED_KEY                = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"],
+    MESH_RECEIVER_MAILBOX_ID       = jsondecode(data.aws_secretsmanager_secret_version.sand_mesh_mailbox_id.secret_string)["SAND_MESH_MAILBOX_ID"],
+    MESH_RECEIVER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.sand_mesh_mailbox_password.secret_string)["SAND_MESH_MAILBOX_PASSWORD"],
+    K8_URL                         = "${var.K8_URL}",
   }
 }
 
-module "get_user_role_cloudwatch" {
+module "nrds_mesh_mailbox_lambda_cloudwatch" {
   source               = "./modules/cloudwatch"
   environment          = var.environment
-  lambda_function_name = module.get_user_role_lambda.lambda_function_name
+  lambda_function_name = module.nrds_mesh_mailbox_lambda.lambda_function_name
   retention_days       = 14
-}
-module "get_user_role_api_gateway" {
-  source                 = "./modules/api-gateway"
-  environment            = var.environment
-  lambda_invoke_arn      = module.get_user_role_lambda.lambda_invoke_arn
-  path_part              = "get-user-role"
-  method_http_parameters = {}
-  lambda_function_name   = module.get_user_role_lambda.lambda_function_name
 }
 
 # GTMS Validate clinic Lambda
@@ -1300,40 +1306,48 @@ module "gps_jwks_api_gateway" {
   lambda_function_name   = module.gps_jwks_lambda.lambda_function_name
 }
 
-# CIS2 signed jwt
-module "cis2_signed_jwt" {
+# Authenticator Lambda
+module "authenticator_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "cis2SignedJwtLambda"
-  lambda_timeout       = 100
+  lambda_function_name = "authenticatorLambda"
+  lambda_timeout       = 900
   memory_size          = 1024
-  lambda_s3_object_key = "cis2_signed_jwt_lambda.zip"
+  lambda_s3_object_key = "authenticator_lambda.zip"
   environment_vars = {
     ENVIRONMENT             = "${var.environment}",
     CIS2_ID                 = "${var.CIS2_ID}",
     CIS2_TOKEN_ENDPOINT_URL = "${var.CIS2_TOKEN_ENDPOINT_URL}",
     CIS2_PUBLIC_KEY_ID      = "${var.CIS2_PUBLIC_KEY_ID}",
     CIS2_KEY_NAME           = "${var.CIS2_KNAME}"
+    CIS2_REDIRECT_URL       = "https://${var.environment}.${var.invitations-hostname}/api/auth/callback/cis2"
+    GALLERI_ACTIVITY_CODE   = "${data.aws_secretsmanager_secret_version.galleri_activity_code.secret_string}"
   }
 }
 
-module "cis2_signed_jwt_cloudwatch" {
+# Retrieve Galleri activity code
+data "aws_secretsmanager_secret_version" "galleri_activity_code" {
+  secret_id = "GALLERI_ACTIVITY_CODE"
+}
+
+module "authenticator_lambda_cloudwatch" {
   source               = "./modules/cloudwatch"
   environment          = var.environment
-  lambda_function_name = module.cis2_signed_jwt.lambda_function_name
+  lambda_function_name = module.authenticator_lambda.lambda_function_name
   retention_days       = 14
 }
 
-module "cis2_signed_jwt_api_gateway" {
+module "authenticator_lambda_api_gateway" {
   source                 = "./modules/api-gateway"
   environment            = var.environment
-  lambda_invoke_arn      = module.cis2_signed_jwt.lambda_invoke_arn
-  path_part              = "cis2-signed-jwt"
+  lambda_invoke_arn      = module.authenticator_lambda.lambda_invoke_arn
+  path_part              = "authenticator-lambda"
   method_http_parameters = {}
-  lambda_function_name   = module.cis2_signed_jwt.lambda_function_name
+  lambda_function_name   = module.authenticator_lambda.lambda_function_name
 }
+
 
 # GTMS validate clinic capacity
 module "validate_clinic_capacity_lambda" {
@@ -1682,6 +1696,14 @@ data "aws_secretsmanager_secret_version" "caas_mesh_mailbox_password" {
 
 data "aws_secretsmanager_secret_version" "gtms_mesh_receiver_mailbox_id" {
   secret_id = "GTMS_MESH_RECEIVER_MAILBOX_ID"
+}
+
+data "aws_secretsmanager_secret_version" "sand_mesh_mailbox_id" {
+  secret_id = "SAND_MESH_MAILBOX_ID"
+}
+
+data "aws_secretsmanager_secret_version" "sand_mesh_mailbox_password" {
+  secret_id = "SAND_MESH_MAILBOX_PASSWORD"
 }
 #END of MESH keys
 
@@ -2208,4 +2230,378 @@ module "appointment_table" {
     Name        = "Dynamodb Table Appointments"
     Environment = var.environment
   }
+}
+// Parameter Store
+resource "aws_ssm_parameter" "invited-notify" {
+  name      = "invited-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "invited-routing-id" {
+  name      = "invited-routing-id"
+  type      = "String"
+  value     = "a91601f5-ed53-4472-bbaa-580f418c7091"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "invited-tables" {
+  name      = "invited-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "withdrawn-notify" {
+  name      = "withdrawn-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "withdrawn-routing-id" {
+  name      = "withdrawn-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "withdrawn-tables" {
+  name      = "withdrawn-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-booked-letter-notify" {
+  name      = "appointment-booked-letter-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-booked-letter-routing-id" {
+  name      = "appointment-booked-letter-routing-id"
+  type      = "String"
+  value     = "4c4c4c06-0f6d-465a-ab6a-ca358c2721b0"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-booked-letter-tables" {
+  name      = "appointment-booked-letter-tables"
+  type      = "StringList"
+  value     = "appointment, phlebotomy"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-booked-text-notify" {
+  name      = "appointment-booked-text-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-booked-text-routing-id" {
+  name      = "appointment-booked-text-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-booked-text-tables" {
+  name      = "appointment-booked-text-tables"
+  type      = "StringList"
+  value     = "appointment, phlebotomy"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-rebooked-letter-notify" {
+  name      = "appointment-rebooked-letter-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-rebooked-letter-routing-id" {
+  name      = "appointment-rebooked-letter-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-rebooked-letter-tables" {
+  name      = "appointment-rebooked-letter-tables"
+  type      = "StringList"
+  value     = "appointment, phlebotomy"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-rebooked-text-notify" {
+  name      = "appointment-rebooked-text-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-rebooked-text-routing-id" {
+  name      = "appointment-rebooked-text-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-rebooked-text-tables" {
+  name      = "appointment-rebooked-text-tables"
+  type      = "StringList"
+  value     = "appointment, phlebotomy"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-by-nhs-notify" {
+  name      = "appointment-cancelled-by-nhs-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-by-nhs-routing-id" {
+  name      = "appointment-cancelled-by-nhs-routing-id"
+  type      = "String"
+  value     = "841ebf60-4ffa-45d3-874b-b3e9db895c70"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-by-nhs-tables" {
+  name      = "appointment-cancelled-by-nhs-tables"
+  type      = "StringList"
+  value     = "appointment, phlebotomy"
+  overwrite = true
+}
+resource "aws_ssm_parameter" "appointment-cancelled-by-participant-notify" {
+  name      = "appointment-cancelled-by-participant-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-by-participant-routing-id" {
+  name      = "appointment-cancelled-by-participant-routing-id"
+  type      = "String"
+  value     = "841ebf60-4ffa-45d3-874b-b3e9db895c70"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-by-participant-tables" {
+  name      = "appointment-cancelled-by-participant-tables"
+  type      = "StringList"
+  value     = "appointment, phlebotomy"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-by-participant-withdrawn-notify" {
+  name      = "appointment-cancelled-by-participant-withdrawn-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-by-participant-withdrawn-routing-id" {
+  name      = "appointment-cancelled-by-participant-withdrawn-routing-id"
+  type      = "String"
+  value     = "841ebf60-4ffa-45d3-874b-b3e9db895c70"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-cancelled-by-participant-withdrawn-tables" {
+  name      = "appointment-cancelled-by-participant-withdrawn-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
+}
+
+
+resource "aws_ssm_parameter" "appointment-attended-sample-taken-notify" {
+  name      = "appointment-attended-sample-taken-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-attended-sample-taken-routing-id" {
+  name      = "appointment-attended-sample-taken-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-attended-sample-taken-tables" {
+  name      = "appointment-attended-sample-taken-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-not-attended-notify" {
+  name      = "appointment-not-attended-notify"
+  type      = "String"
+  value     = "False"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-not-attended-routing-id" {
+  name      = "appointment-not-attended-routing-id"
+  type      = "String"
+  value     = "N/A"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "appointment-not-attended-tables" {
+  name      = "appointment-not-attended-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "result-no-csd-notify" {
+  name      = "result-no-csd-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "result-no-csd-routing-id" {
+  name      = "result-no-csd-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "result-no-csd-tables" {
+  name      = "result-no-csd-tables"
+  type      = "StringList"
+  value     = "appointment, phlebotomy"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "result-cancelled-test-notify" {
+  name      = "result-cancelled-test-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "result-cancelled-test-routing-id" {
+  name      = "result-cancelled-test-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "result-cancelled-test-tables" {
+  name      = "result-cancelled-test-tables"
+  type      = "StringList"
+  value     = "appointment, phlebotomy"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "referred-notify" {
+  name      = "referred-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "referred-routing-id" {
+  name      = "referred-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "referred-tables" {
+  name      = "referred-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
+}
+resource "aws_ssm_parameter" "consultation-call-no-consent-notify" {
+  name      = "consultation-call-no-consent-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "consultation-call-no-consent-routing-id" {
+  name      = "consultation-call-no-consent-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "consultation-call-no-consent-tables" {
+  name      = "consultation-call-no-consent-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
+}
+resource "aws_ssm_parameter" "unable-to-contact-csd-notify" {
+  name      = "unable-to-contact-csd-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "unable-to-contact-csd-routing-id" {
+  name      = "unable-to-contact-csd-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "unable-to-contact-csd--tables" {
+  name      = "unable-to-contact-csd-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
+}
+resource "aws_ssm_parameter" "private-referral-notify" {
+  name      = "private-referral-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "private-referral-routing-id" {
+  name      = "private-referral-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "private-referral-tables" {
+  name      = "private-referral-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
+}
+resource "aws_ssm_parameter" "contact-escalation-notify" {
+  name      = "contact-escalation-notify"
+  type      = "String"
+  value     = "True"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "contact-escalation-routing-id" {
+  name      = "contact-escalation-routing-id"
+  type      = "String"
+  value     = "Unavailable"
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "contact-escalation-tables" {
+  name      = "contact-escalation-tables"
+  type      = "StringList"
+  value     = "Null"
+  overwrite = true
 }

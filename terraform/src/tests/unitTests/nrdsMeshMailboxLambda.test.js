@@ -1,4 +1,3 @@
-import { processMessage } from "../../gtmsMeshMailboxLambda/gtmsMeshMailboxLambda";
 import { mockClient } from "aws-sdk-client-mock";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import {
@@ -8,7 +7,7 @@ import {
   getMessageArray,
   markRead,
   readMsg,
-} from "../../gtmsMeshMailboxLambda/helper";
+} from "../../nrdsMeshMailboxLambda/helper";
 import {
   SecretsManagerClient,
   GetSecretValueCommand,
@@ -115,170 +114,6 @@ describe("getSecret", () => {
     expect(logSpy).toHaveBeenCalledWith(
       "Failed: Error: Failed to retrieve secret to S3"
     );
-  });
-});
-
-describe("processMessage", () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-  const workflows = {
-    CLINIC_WORKFLOWID: "GTMS_CLINIC",
-    CLINIC_SCHEDULE_WORKFLOWID: "GTMS_CLINIC_SCHEDULE",
-    APPOINTMENT_WORKFLOWID: "GTMS_APPOINTMENT",
-    WITHDRAW_WORKFLOWID: "GTMS_WITHDRAW",
-  };
-
-  test("successfully identify clinicCreateOrUpdate, and push to S3", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
-    const environment = "dev-1";
-    const mockS3Client = mockClient(new S3Client({}));
-    mockS3Client.resolves({
-      $metadata: { httpStatusCode: 200 },
-    });
-    const clinicData = {
-      headers: {
-        "mex-workflowid": "GTMS_CLINIC",
-      },
-      ClinicCreateOrUpdate: {
-        ClinicName: "GRAIL Test Clinic",
-        Address: "210 Euston Rd, London NW1 2DA",
-        Postcode: "SO42 7BZ",
-      },
-    };
-
-    const result = await processMessage(
-      clinicData,
-      environment,
-      mockS3Client,
-      workflows,
-      29012024
-    );
-    console.log(result);
-    expect(logSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenNthCalledWith(
-      1,
-      `Successfully pushed to dev-1-inbound-gtms-clinic-create-or-update/clinic_create_or_update_29012024.json`
-    );
-    expect(logSpy).toHaveBeenNthCalledWith(2, {
-      $metadata: { httpStatusCode: 200 },
-    });
-  });
-
-  test("successfully identify Appointments, and push to S3", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
-
-    const environment = "dev-1";
-    const mockS3Client = mockClient(new S3Client({}));
-    mockS3Client.resolves({
-      $metadata: { httpStatusCode: 200 },
-    });
-    const appointmentData = {
-      headers: {
-        "mex-workflowid": "GTMS_APPOINTMENT",
-      },
-      Appointment: {
-        ParticipantID: "NHS-AB12-CD34",
-        AppointmentID: "00000000-0000-0000-0000-000000000000",
-        ClinicID: "D7E-G2H",
-        AppointmentDateTime: "2006-01-02T15:04:05.000Z",
-        BloodCollectionDate: "2006-01-02",
-        PrimaryPhoneNumber: "01999999999",
-        SecondaryPhoneNumber: "01999999999",
-        Email: "me@example.com",
-      },
-    };
-
-    const result = await processMessage(
-      appointmentData,
-      environment,
-      mockS3Client,
-      workflows,
-      29012024
-    );
-    console.log(result);
-    expect(logSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenNthCalledWith(
-      1,
-      `Successfully pushed to dev-1-inbound-gtms-appointment/appointment_29012024.json`
-    );
-    expect(logSpy).toHaveBeenNthCalledWith(2, {
-      $metadata: { httpStatusCode: 200 },
-    });
-  });
-
-  test("successfully identify ClinicScheduleSummary, and push to S3", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
-
-    const environment = "dev-1";
-    const mockS3Client = mockClient(new S3Client({}));
-    mockS3Client.resolves({
-      $metadata: { httpStatusCode: 200 },
-    });
-    const clinicCapacityData = {
-      headers: {
-        "mex-workflowid": "GTMS_CLINIC_SCHEDULE",
-      },
-      ClinicScheduleSummary: {
-        test_data: "example",
-      },
-    };
-
-    const result = await processMessage(
-      clinicCapacityData,
-      environment,
-      mockS3Client,
-      workflows,
-      29012024
-    );
-    console.log(result);
-    expect(logSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenNthCalledWith(
-      1,
-      `Successfully pushed to dev-1-inbound-gtms-clinic-schedule-summary/clinic_schedule_summary_29012024.json`
-    );
-    expect(logSpy).toHaveBeenNthCalledWith(2, {
-      $metadata: { httpStatusCode: 200 },
-    });
-  });
-
-  test("successfully identify Withdrawal, and push to S3", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
-
-    const environment = "dev-1";
-    const mockS3Client = mockClient(new S3Client({}));
-    mockS3Client.resolves({
-      $metadata: { httpStatusCode: 200 },
-    });
-    const withdrawalData = {
-      headers: {
-        "mex-workflowid": "GTMS_WITHDRAW",
-      },
-      Withdrawal: {
-        test_data: "example",
-      },
-    };
-
-    const result = await processMessage(
-      withdrawalData,
-      environment,
-      mockS3Client,
-      workflows,
-      29012024
-    );
-    console.log(result);
-    expect(logSpy).toHaveBeenCalled();
-    expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenNthCalledWith(
-      1,
-      `Successfully pushed to dev-1-inbound-gtms-withdrawal/withdrawal_29012024.json`
-    );
-    expect(logSpy).toHaveBeenNthCalledWith(2, {
-      $metadata: { httpStatusCode: 200 },
-    });
   });
 });
 
