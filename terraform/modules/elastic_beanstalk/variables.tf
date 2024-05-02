@@ -2,9 +2,9 @@ variable "environment" {
   description = "Which environment to deploy into: dev, test, uat, performance or prod"
 }
 
-variable "application_name" {
+variable "application_role" {
   description = "Used for tagging resource according to Cloud guidelines"
-  default = "Web"
+  default     = "Web"
 }
 
 variable "name" {

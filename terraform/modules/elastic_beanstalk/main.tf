@@ -31,6 +31,7 @@ resource "aws_acm_certificate" "example" {
   validation_method = "DNS"
   tags = {
     ApplicationRole = var.application_role
+    Name            = var.environment+"-acm-certificate"
   }
   lifecycle {
     create_before_destroy = true
