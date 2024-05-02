@@ -232,7 +232,7 @@ export const getParticipantsInQuintile = (
       quintilePopulationObject
     );
     console.log(`localQuintilePopulationObjectKeys: ${localQuintilePopulationObjectKeys}`);
-    let personSelectedId;
+    let personSelectedId = undefined
     // loop personSelectedId not undefined
     while (personSelectedId === undefined) {
       console.log(`personSelectedId: ${personSelectedId} is undefined`);
