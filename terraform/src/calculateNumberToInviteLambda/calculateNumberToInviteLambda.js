@@ -229,13 +229,15 @@ export const getParticipantsInQuintile = (
     const localQuintilePopulationObjectKeys = Object.keys(
       quintilePopulationObject
     );
-
+    console.log(`localQuintilePopulationObjectKeys: ${localQuintilePopulationObjectKeys}`);
     const randomPersonIndex = Math.floor(
       Math.random() * localQuintilePopulationObjectKeys.length
     );
+    console.log(`randomPersonIndex: ${randomPersonIndex}`);
     const personSelectedId =
       localQuintilePopulationObjectKeys[randomPersonIndex];
-
+    console.log(`localQuintilePopulationObjectKeys[randomPersonIndex]: ${localQuintilePopulationObjectKeys[randomPersonIndex]}`);
+    console.log(`personSelectedId: ${personSelectedId}`);
     // person has not been previous indexed
     if (!selectedParticipants.has(personSelectedId)) {
       // if (personSelectedId !== undefined) {
