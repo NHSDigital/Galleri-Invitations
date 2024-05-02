@@ -232,18 +232,14 @@ export const getParticipantsInQuintile = (
       quintilePopulationObject
     );
     console.log(`localQuintilePopulationObjectKeys: ${localQuintilePopulationObjectKeys}`);
-    let personSelectedId = undefined
-    // loop personSelectedId not undefined
-    if (localQuintilePopulationObjectKeys.length > 0) {
-      console.log(`personSelectedId: ${personSelectedId} is undefined`);
-      const randomPersonIndex = Math.floor(
-        Math.random() * localQuintilePopulationObjectKeys.length
-      );
-      console.log(`randomPersonIndex: ${randomPersonIndex}`);
-      personSelectedId = localQuintilePopulationObjectKeys[randomPersonIndex];
-      console.log(`localQuintilePopulationObjectKeys[randomPersonIndex]: ${localQuintilePopulationObjectKeys[randomPersonIndex]}`);
 
-    }
+    const randomPersonIndex = Math.floor(
+      Math.random() * localQuintilePopulationObjectKeys.length
+    );
+    console.log(`randomPersonIndex: ${randomPersonIndex}`);
+    console.log(`localQuintilePopulationObjectKeys[randomPersonIndex]: ${localQuintilePopulationObjectKeys[randomPersonIndex]}`);
+    const personSelectedId = localQuintilePopulationObjectKeys[randomPersonIndex];
+    console.log(`personSelectedId: ${personSelectedId} is undefined`);
     // person has not been previous indexed
     if (personSelectedId !== undefined && !selectedParticipants.has(personSelectedId)) {
       if (personSelectedId !== undefined) {
