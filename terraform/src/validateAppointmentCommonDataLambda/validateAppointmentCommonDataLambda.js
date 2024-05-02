@@ -64,6 +64,7 @@ export const handler = async (event) => {
       Appointment.PDSNHSNumber?.trim() !== ""
     ) {
       if (
+        validateParticipantIdResponse &&
         Appointment.InvitationNHSNumber !==
           validateParticipantIdResponse.Items[0].nhs_number.S &&
         Appointment.PDSNHSNumber !==
@@ -115,7 +116,7 @@ export const handler = async (event) => {
         validateAppointmentIdResponse.Items.length > 0;
       if (validateAppointmentId) {
         const oldAppointmentTime = new Date(
-          validateAppointmentIdResponse.Items.AppointmentDateTime
+          validateAppointmentIdResponse.Items[0].AppointmentDateTime.S
         );
         const newAppointmentTime = new Date(Appointment.AppointmentDateTime);
         if (oldAppointmentTime > newAppointmentTime) {
@@ -125,10 +126,6 @@ export const handler = async (event) => {
           );
           return;
         }
-      } else {
-        await rejectRecord(appointmentJson);
-        console.log("No Valid Appointment found");
-        return;
       }
     } else {
       await rejectRecord(appointmentJson);
