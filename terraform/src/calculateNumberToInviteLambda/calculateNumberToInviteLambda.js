@@ -238,6 +238,10 @@ export const getParticipantsInQuintile = (
 
     // person has not been previous indexed
     if (!selectedParticipants.has(personSelectedId)) {
+      // if (personSelectedId !== undefined) {
+      //   selectedParticipants.add(personSelectedId);
+      //   console.log(`Person ${personSelectedId} to be invited`);
+      // }
       selectedParticipants.add(personSelectedId);
       const personSelectedForecastUptake =
         quintilePopulationObject[personSelectedId];
@@ -262,8 +266,7 @@ export const getParticipantsInQuintile = (
     }
   }
   console.log(
-    `Highlighted participants size = ${
-      selectedParticipants.size
+    `Highlighted participants size = ${selectedParticipants.size
     } with an average quintile block uptake of ${Math.floor(
       (quintileTarget / selectedParticipants.size) * 100
     )}%`
