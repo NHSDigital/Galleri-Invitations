@@ -173,7 +173,7 @@ describe('getSecret', () => {
     );
   });
   test("Failure when retrieving secret", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
+    const logSpy = jest.spyOn(global.console, "error");
     const errorMsg = new Error("Failed to retrieve secret to S3");
     const smClient = {
       send: jest.fn().mockRejectedValue(errorMsg),
@@ -186,7 +186,7 @@ describe('getSecret', () => {
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith(
-      "Failed: Error: Failed to retrieve secret to S3"
+      "Error: failed to retrieve secret MESH_SENDER_CERT - Error: Failed to retrieve secret to S3"
     );
   });
 });
@@ -228,16 +228,22 @@ describe('getAccessToken', () => {
     expect(result).toEqual({ access_token: accessToken });
   });
 
-  it('should call axios with the correct arguments and return the undefined if we see a non 200 status code', async () => {
+  it('should call axios with the correct arguments and throw error if we see a non 200 status code', async () => {
     const tokenEndpointUrl = 'https://example.com/api/token';
     const signedJWT = 'mocked-signed-jwt-token';
+    let errorCaught = false;
 
     axios.mockResolvedValueOnce({
       status: 500
     });
 
-    const result = await getAccessToken(tokenEndpointUrl, signedJWT);
-    expect(result).toEqual(undefined);
+    try {
+      await getAccessToken(tokenEndpointUrl, signedJWT);
+    } catch (error) {
+      expect(error.message).toBe('Unable to get access token - Status code 500');
+      errorCaught = true;
+    }
+    expect(errorCaught).toBeTruthy();
   });
 });
 

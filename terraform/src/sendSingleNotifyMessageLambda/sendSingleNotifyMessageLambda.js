@@ -45,12 +45,12 @@ export async function processRecords(records, accessToken, dynamodbClient, sqsCl
       try {
         const {responseObject, numberOfAttempts} = await sendSingleMessage(messageBody, accessToken, messageReferenceId, process.env.MESSAGES_ENDPOINT_URL, process.env.INITIAL_RETRY_DELAY, process.env.MAX_RETRIES);
         const responseBody = responseObject.data;
-        console.log(`Request to NHS Notify for ${messageBody.participantId} successful  - MessageId: ${responseBody.id}`);
+        console.log(`Request to NHS Notify for ${messageBody.participantId} with event ${messageBody.episodeEvent} (${messageBody.routingId}) successful - MessageId: ${responseBody.id}`);
         await putSuccessResponseIntoTable(messageBody, messageSentAt, numberOfAttempts, responseBody, messageReferenceId, notifySendMessageStatusTable, dynamodbClient);
         recordsSuccessfullySent++;
       } catch(error) {
         if(error.status && error.details) {
-          console.error(`Error: Request to NHS Notify for participant ${messageBody.participantId} failed - Status code: ${error.status} and Details: ${error.details}`)
+          console.error(`Error: Request to NHS Notify for participant ${messageBody.participantId} with event ${messageBody.episodeEvent} (${messageBody.routingId}) failed - Status code: ${error.status} and Details: ${error.details}`)
           await putFailedResponseIntoTable(messageBody, error.messageSent, error.numberOfAttempts.toString(), error.status.toString(), error.details, messageReferenceId,  notifySendMessageStatusTable, dynamodbClient)
           recordsFailedToSend++;
         } else {
@@ -272,7 +272,7 @@ export const getSecret = async (secretName, client) => {
     console.log(`Retrieved value successfully ${secretName}`);
     return response.SecretString;
   } catch (error) {
-    console.log(`Failed: ${error}`);
+    console.error(`Error: failed to retrieve secret ${secretName} - ${error}`);
     throw error;
   }
 };
@@ -311,7 +311,7 @@ export const getAccessToken = async (tokenEndpointUrl, signedJWT) => {
   if (response.status === 200) {
     return response.data;
   } else {
-    return undefined;
+    throw new Error(`Unable to get access token - Status code ${response.status}`);
   }
 };
 
