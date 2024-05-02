@@ -133,7 +133,7 @@ describe("validateClinicCapacity function", () => {
     jest.clearAllMocks();
   });
 
-  xtest("Failed response when error occurs getting file to bucket", async () => {
+  test("Failed response when error occurs getting file to bucket", async () => {
     const logSpy = jest.spyOn(global.console, "log");
     const errorMsg = new Error("Mocked error");
     const mockClient = {
@@ -167,7 +167,7 @@ describe("validateClinicCapacity function", () => {
     expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
   });
 
-  xtest("Failed response when error occurs sending file to bucket", async () => {
+  test("Failed response when error occurs sending file to bucket", async () => {
     const logSpy = jest.spyOn(global.console, "log");
     const errorMsg = new Error("Mocked error");
     const mockClient = {
