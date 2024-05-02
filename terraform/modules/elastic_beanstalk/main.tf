@@ -12,6 +12,10 @@ data "archive_file" "screens" {
 data "aws_route53_zone" "example" {
   name         = "${var.hostname}."
   private_zone = false
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Route 53 Zone"
+  }
 }
 
 data "aws_secretsmanager_secret_version" "galleri_activity_code" {
@@ -31,7 +35,7 @@ resource "aws_acm_certificate" "example" {
   validation_method = "DNS"
   tags = {
     ApplicationRole = "${var.application_role}"
-    Name            = "${var.environment}-acm-certificate"
+    Name            = "${var.environment} ACM Certificate"
   }
   lifecycle {
     create_before_destroy = true
@@ -85,6 +89,10 @@ resource "aws_iam_role" "screens" {
       },
     ],
   })
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Elastic Beanstalk EC2 IAM Role"
+  }
 }
 
 # Attach the default policy for Elastic Beanstalk Web Tier to the IAM role
@@ -97,11 +105,19 @@ resource "aws_iam_role_policy_attachment" "screens" {
 resource "aws_iam_instance_profile" "screens" {
   name = "${var.environment}-${var.name}-instance_profile"
   role = aws_iam_role.screens.name
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Elastic Beanstalk EC2 IAM Instance Profile"
+  }
 }
 
 # S3 Bucket for storing application versions
 resource "aws_s3_bucket" "screens" {
   bucket = "${var.environment}-${var.name}-frontend"
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Application Versions Bucket"
+  }
 }
 
 # S3 Object for the application version
@@ -109,12 +125,20 @@ resource "aws_s3_object" "screens" {
   bucket = aws_s3_bucket.screens.id
   key    = "${var.name}-${local.source_hash}.zip"
   source = data.archive_file.screens.output_path
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Application Versions Object"
+  }
 }
 
 # Elastic Beanstalk Application
 resource "aws_elastic_beanstalk_application" "screens" {
   name        = "${var.environment}-${var.name}"
   description = var.description
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Elastic Beanstalk Application"
+  }
 }
 
 # Elastic Beanstalk Application Version
@@ -124,6 +148,10 @@ resource "aws_elastic_beanstalk_application_version" "screens" {
   bucket      = aws_s3_bucket.screens.bucket
   key         = aws_s3_object.screens.key
   depends_on  = [aws_acm_certificate_validation.example]
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Elastic Beanstalk Application Version"
+  }
 }
 
 # Security Group for the Elastic Beanstalk environment
@@ -131,6 +159,10 @@ resource "aws_security_group" "screens" {
   name        = "${var.environment}-${var.name}"
   description = "Security group for Elastic Beanstalk environment"
   vpc_id      = var.vpc_id
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Elastic Beanstalk SG"
+  }
 }
 
 resource "aws_security_group_rule" "https" {
@@ -372,5 +404,9 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "SecurityGroups"
     value     = aws_security_group.screens.id
+  }
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Elastic Beanstalk Elastic Beanstalk Environment"
   }
 }

@@ -5,7 +5,8 @@ resource "aws_vpc" "my_vpc" {
   enable_dns_support   = true
   enable_dns_hostnames = true
   tags = {
-    Name = "${var.environment}-${var.name}"
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment}-${var.name}"
   }
 }
 
@@ -16,7 +17,8 @@ resource "aws_subnet" "my_subnet_a" {
   vpc_id                  = aws_vpc.my_vpc.id
   map_public_ip_on_launch = true
   tags = {
-    Name = "${var.environment}-${var.name}-a"
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment}-${var.name}-a"
   }
 }
 
@@ -27,13 +29,18 @@ resource "aws_subnet" "my_subnet_b" {
   vpc_id                  = aws_vpc.my_vpc.id
   map_public_ip_on_launch = true
   tags = {
-    Name = "${var.environment}-${var.name}-b"
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment}-${var.name}-b"
   }
 }
 
 # set the gateway for the vpc
 resource "aws_internet_gateway" "my_igw" {
   vpc_id = aws_vpc.my_vpc.id
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} ${var.name} Gateway"
+  }
 }
 
 # set the route table so instances can call out
@@ -43,6 +50,10 @@ resource "aws_route_table" "my_rt" {
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.my_igw.id
+  }
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} ${var.name} Route Table"
   }
 }
 

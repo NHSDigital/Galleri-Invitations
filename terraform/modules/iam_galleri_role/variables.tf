@@ -6,3 +6,8 @@ variable "role_name" {
 variable "environment" {}
 
 variable "account_id" {}
+
+variable "application_role" {
+  description = "Used for tagging resource according to Cloud guidelines"
+  default     = "Security"
+}

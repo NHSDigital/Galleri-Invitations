@@ -1,6 +1,10 @@
 resource "aws_s3_bucket" "bucket" {
   bucket        = "${var.environment}-${var.bucket_name}"
   force_destroy = true
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} ${var.bucket_name} Bucket"
+  }
 }
 
 resource "aws_s3_bucket_public_access_block" "block_public_access" {
