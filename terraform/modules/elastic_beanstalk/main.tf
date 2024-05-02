@@ -33,7 +33,7 @@ resource "aws_acm_certificate" "example" {
   lifecycle {
     create_before_destroy = true
   }
-  tags {
+  tags = {
     ApplicationRole = "${var.application_role}"
     Name = "${var.environment}-acm-certificate"
   }
