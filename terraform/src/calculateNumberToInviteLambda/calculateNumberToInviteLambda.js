@@ -57,12 +57,13 @@ export const handler = async (event, context) => {
     payload,
     lambdaClient
   );
+  console.log("returnData = ", returnData);
   const participantInLsoa = returnData.sort((a, b) => {
     return a.imdDecile - b.imdDecile;
   });
   const numberOfPeople = participantInLsoa.length;
   console.log("participantInLsoa.length = ", numberOfPeople);
-
+  console.log("participantInLsoa = ", participantInLsoa);
   // Split incoming person data into quintile blocks
   const quintileBlockSize = Math.floor(numberOfPeople / 5);
   console.log(`quintileBlockSize = ${quintileBlockSize}`);
@@ -214,6 +215,7 @@ export const getParticipantsInQuintile = (
   ); // O(n)
   const quintilePopulationObjectKeys = Object.keys(quintilePopulationObject); // O(n)
 
+  console.log(`quintilePopulationObjectKeys: ${quintilePopulationObjectKeys}`);
   let count = 0;
   let iterationNumber = 0;
   let selectedParticipantCount = 1;
