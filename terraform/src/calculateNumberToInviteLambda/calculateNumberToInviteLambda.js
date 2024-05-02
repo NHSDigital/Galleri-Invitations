@@ -232,21 +232,24 @@ export const getParticipantsInQuintile = (
       quintilePopulationObject
     );
     console.log(`localQuintilePopulationObjectKeys: ${localQuintilePopulationObjectKeys}`);
-    const randomPersonIndex = Math.floor(
-      Math.random() * localQuintilePopulationObjectKeys.length
-    );
-    console.log(`randomPersonIndex: ${randomPersonIndex}`);
-    const personSelectedId =
-      localQuintilePopulationObjectKeys[randomPersonIndex];
-    console.log(`localQuintilePopulationObjectKeys[randomPersonIndex]: ${localQuintilePopulationObjectKeys[randomPersonIndex]}`);
-    console.log(`personSelectedId: ${personSelectedId}`);
+    let personSelectedId;
+    // loop personSelectedId not undefined
+    while (personSelectedId === undefined) {
+      console.log(`personSelectedId: ${personSelectedId} is undefined`);
+      const randomPersonIndex = Math.floor(
+        Math.random() * localQuintilePopulationObjectKeys.length
+      );
+      console.log(`randomPersonIndex: ${randomPersonIndex}`);
+      personSelectedId = localQuintilePopulationObjectKeys[randomPersonIndex];
+      console.log(`localQuintilePopulationObjectKeys[randomPersonIndex]: ${localQuintilePopulationObjectKeys[randomPersonIndex]}`);
+
+    }
     // person has not been previous indexed
     if (!selectedParticipants.has(personSelectedId)) {
-      // if (personSelectedId !== undefined) {
-      //   selectedParticipants.add(personSelectedId);
-      //   console.log(`Person ${personSelectedId} to be invited`);
-      // }
-      console.log(`Person ${personSelectedId} to be invited`);
+      if (personSelectedId !== undefined) {
+        selectedParticipants.add(personSelectedId);
+        console.log(`Person ${personSelectedId} to be invited`);
+      }
       selectedParticipants.add(personSelectedId);
       const personSelectedForecastUptake =
         quintilePopulationObject[personSelectedId];
