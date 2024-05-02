@@ -2187,6 +2187,7 @@ module "episode_history_table" {
   stream_view_type = "NEW_AND_OLD_IMAGES"
   table_name       = "EpisodeHistory"
   hash_key         = "Participant_Id"
+  range_key        = "Episode_Event_Updated"
   read_capacity    = 10
   write_capacity   = 10
   environment      = var.environment
@@ -2194,6 +2195,10 @@ module "episode_history_table" {
   attributes = [
     {
       name = "Participant_Id"
+      type = "S"
+    },
+    {
+      name = "Episode_Event_Updated"
       type = "S"
     }
   ]
