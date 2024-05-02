@@ -27,13 +27,12 @@ variable "environment_vars" {}
 
 variable "environment" {}
 
-# variable "alarm_actions" {
-#   type        = list(string)
-#   description = "The list of actions to execute when this alarm transitions into an ALARM state."
-#   default     = ["arn:aws:sns:ue-west-2:${var.account_id}:NotifyMe"]
-# }
-
 # variable "account_id" {
 #   type        = string
 #   description = "AWS Account ID"
 # }
+
+variable "sns_lambda_arn" {
+  type        = string
+  description = "The ARN of the lambda setup to make sns calls to 2nd line support, leave null if this is the sns lambda"
+}
