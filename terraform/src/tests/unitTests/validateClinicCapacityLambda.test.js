@@ -134,7 +134,7 @@ describe("validateClinicCapacity function", () => {
   });
 
   test("Failed response when error occurs getting file to bucket", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
+    const logSpy = jest.spyOn(global.console, "error");
     const errorMsg = new Error("Mocked error");
     const mockClient = {
       send: jest.fn().mockRejectedValue(errorMsg),
@@ -147,7 +147,7 @@ describe("validateClinicCapacity function", () => {
     }
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith("Failed: ", errorMsg);
+    expect(logSpy).toHaveBeenCalledWith("Error: ", errorMsg);
   });
 
   test("Successful response from sending file to bucket", async () => {
@@ -168,7 +168,7 @@ describe("validateClinicCapacity function", () => {
   });
 
   test("Failed response when error occurs sending file to bucket", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
+    const logSpy = jest.spyOn(global.console, "error");
     const errorMsg = new Error("Mocked error");
     const mockClient = {
       send: jest.fn().mockRejectedValue(errorMsg),
@@ -185,7 +185,7 @@ describe("validateClinicCapacity function", () => {
     }
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith("Failed: ", errorMsg);
+    expect(logSpy).toHaveBeenCalledWith("Error: ", errorMsg);
   });
 
   beforeEach(() => {
