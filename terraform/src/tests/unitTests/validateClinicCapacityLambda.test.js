@@ -185,7 +185,7 @@ describe("validateClinicCapacity function", () => {
     }
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith("Error: ", errorMsg);
+    expect(logSpy).toHaveBeenCalledWith("Error:", errorMsg);
   });
 
   beforeEach(() => {
