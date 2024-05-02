@@ -12,9 +12,6 @@ data "archive_file" "screens" {
 data "aws_route53_zone" "example" {
   name         = "${var.hostname}."
   private_zone = false
-  tags = {
-    ApplicationRole = "${var.application_role}"
-  }
 }
 
 data "aws_secretsmanager_secret_version" "galleri_activity_code" {
