@@ -2,6 +2,10 @@ resource "aws_cloudwatch_event_rule" "schedule_rule" {
   name                = var.function_name
   description         = "Trigger Lambda function depending on cron function"
   schedule_expression = var.schedule_expression
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Scheduling Rule"
+  }
 }
 
 resource "aws_cloudwatch_event_target" "lambda_target" {
