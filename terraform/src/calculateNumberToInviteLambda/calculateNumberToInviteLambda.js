@@ -242,6 +242,7 @@ export const getParticipantsInQuintile = (
       //   selectedParticipants.add(personSelectedId);
       //   console.log(`Person ${personSelectedId} to be invited`);
       // }
+      console.log(`Person ${personSelectedId} to be invited`);
       selectedParticipants.add(personSelectedId);
       const personSelectedForecastUptake =
         quintilePopulationObject[personSelectedId];
