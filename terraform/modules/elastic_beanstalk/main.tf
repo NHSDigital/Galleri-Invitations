@@ -29,13 +29,11 @@ data "aws_secretsmanager_secret_version" "cis2_client_id" {
 resource "aws_acm_certificate" "example" {
   domain_name       = "${var.environment}.${var.hostname}"
   validation_method = "DNS"
-
+  tags = {
+    ApplicationRole = var.application_role
+  }
   lifecycle {
     create_before_destroy = true
-  }
-  tags = {
-    ApplicationRole = "${var.application_role}"
-    Name = "${var.environment}-acm-certificate"
   }
 }
 
