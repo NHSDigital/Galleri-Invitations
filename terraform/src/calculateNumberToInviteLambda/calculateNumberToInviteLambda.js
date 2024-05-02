@@ -243,7 +243,6 @@ export const getParticipantsInQuintile = (
     console.log("personSelectedId: ", personSelectedId);
     // person has not been previous indexed
     if (!selectedParticipants.has(personSelectedId)) {
-      console.log(`Person ${personSelectedId} selected`);
       if (personSelectedId !== undefined) {
         selectedParticipants.add(personSelectedId);
         console.log(`Person ${personSelectedId} not null`);
