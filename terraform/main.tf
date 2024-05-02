@@ -1378,7 +1378,7 @@ module "validate_clinic_capacity_lambda_trigger" {
   bucket_id     = module.clinic_schedule_summary.bucket_id
   bucket_arn    = module.clinic_schedule_summary.bucket_arn
   lambda_arn    = module.validate_clinic_capacity_lambda.lambda_arn
-  filter_prefix = "clinic-schedule-summary"
+  filter_prefix = "clinic_schedule_summary"
 }
 
 
@@ -1409,7 +1409,7 @@ module "gtms_upload_clinic_capacity_data_trigger" {
   bucket_id     = module.processed_clinic_schedule_summary_bucket.bucket_id
   bucket_arn    = module.processed_clinic_schedule_summary_bucket.bucket_arn
   lambda_arn    = module.gtms_upload_clinic_capacity_data_lambda.lambda_arn
-  filter_prefix = "validRecords/clinic-schedule-summary"
+  filter_prefix = "validRecords/clinic_schedule_summary"
 }
 
 # Send Invitaion Batch to GTMS
@@ -2219,6 +2219,43 @@ module "appointment_table" {
     Name = "Dynamodb Table Appointments"
   }
 }
+
+module "galleri_blood_test_result_table" {
+  source      = "./modules/dynamodb"
+  table_name  = "GalleriBloodTestResult"
+  hash_key    = "Participant_Id"
+  range_key   = "Grail_Id"
+  environment = var.environment
+  attributes = [
+    {
+      name = "Participant_Id"
+      type = "S"
+    },
+    {
+      name = "Grail_Id"
+      type = "S"
+    }
+  ]
+  tags = {
+    Name        = "Dynamodb Table Galleri Blood Test Result"
+    Environment = var.environment
+  }
+}
+
+module "caas_eventbridge_scheduler" {
+  source              = "./modules/eventbridge_scheduler"
+  function_name       = "pollMeshMailboxLambda"
+  schedule_expression = "cron(0/30 * * * ? *)"
+  lambda_arn          = module.poll_mesh_mailbox_lambda.lambda_arn
+}
+
+module "GTMS_eventbridge_scheduler" {
+  source              = "./modules/eventbridge_scheduler"
+  function_name       = "gtmsMeshMailboxLambda"
+  schedule_expression = "cron(0/15 * * * ? *)"
+  lambda_arn          = module.gtms_mesh_mailbox_lambda.lambda_arn
+}
+
 // Parameter Store
 resource "aws_ssm_parameter" "invited-notify" {
   name      = "invited-notify"
