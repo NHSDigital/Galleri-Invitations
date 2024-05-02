@@ -1845,31 +1845,31 @@ module "event_type_triggers" {
     complete_event = {
       lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
-      filter_prefix = "validRecords/valid_records-COMPLETE",
+      filter_prefix = "validRecords/valid_records_COMPLETE",
       filter_suffix = ""
     },
     no_show_event = {
       lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
-      filter_prefix = "validRecords/valid_records-NO_SHOW",
+      filter_prefix = "validRecords/valid_records_NO_SHOW",
       filter_suffix = ""
     },
     aborted_event = {
       lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
-      filter_prefix = "validRecords/valid_records-ABORTED",
+      filter_prefix = "validRecords/valid_records_ABORTED",
       filter_suffix = ""
     },
     cancelled_event = {
       lambda_arn    = module.appointments_event_cancelled_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
-      filter_prefix = "validRecords/valid_records-CANCELLED",
+      filter_prefix = "validRecords/valid_records_CANCELLED",
       filter_suffix = ""
     },
     booked_event = {
       lambda_arn    = module.gtms_appointment_event_booked_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
-      filter_prefix = "validRecords/valid_records-BOOKED",
+      filter_prefix = "validRecords/valid_records_BOOKED",
       filter_suffix = ""
     }
   }
