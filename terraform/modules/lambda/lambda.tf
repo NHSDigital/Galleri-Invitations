@@ -23,16 +23,17 @@ resource "aws_cloudwatch_log_metric_filter" "error_filter" {
 
 resource "aws_cloudwatch_metric_alarm" "error_alarm" {
   alarm_name                = "${var.environment}-${var.lambda_function_name}"
+  alarm_description         = "${var.environment}-${var.lambda_function_name} has encountered an error"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = 1
   metric_name               = "ErrorCount"
-  namespace                 = "LogErrors"
+  namespace                 = "AWS/Lambda"
   period                    = 300
   statistic                 = "Sum"
   threshold                 = 1
-  alarm_description         = "This alarm fires when 'Error' occurrences are detected in the logs."
   actions_enabled           = true
   alarm_actions             = [aws_sns_topic.alarm_topic.arn]
+  ok_actions                = [aws_sns_topic.alarm_topic.arn]
   insufficient_data_actions = []
 }
 

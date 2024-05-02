@@ -1,12 +1,19 @@
 export async function handler(event) {
-  const url =
-    "https://prod-08.uksouth.logic.azure.com:443/workflows/7edf4c6b99724691815d74a338b1146c/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=C6mpyBbevvm_sOZUHswhxplabaL34DqBjugX7oCY1UY";
+  console.log("Received event:", JSON.stringify(event, null, 2));
+
+  const message = JSON.parse(event.Records[0].Sns.Message);
+  const alarmName = message.AlarmName;
+  const newState = message.NewStateValue;
+  const reason = message.NewStateReason;
+  const description = message.AlarmDescription;
+
+  const url = process.env.url;
   const data = {
     type: "AdaptiveCard",
     version: "1.2",
     body: {
       type: "TextBlock",
-      text: "Galleri alarm test!",
+      text: `Galleri alarm test! \n${alarmName}\n${newState}\n${reason},${description}`,
     },
   };
 
