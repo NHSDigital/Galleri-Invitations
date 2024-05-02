@@ -213,7 +213,7 @@ export const getParticipantsInQuintile = (
     {}
   ); // O(n)
   const quintilePopulationObjectKeys = Object.keys(quintilePopulationObject); // O(n)
-  console.log("quintilePopulationObjectKeys: ", quintilePopulationObjectKeys)
+  console.log("quintilePopulationObjectKeys: ", quintilePopulationObjectKeys);
   let count = 0;
   let iterationNumber = 0;
   let selectedParticipantCount = 1;
@@ -230,23 +230,27 @@ export const getParticipantsInQuintile = (
       quintilePopulationObject
     );
 
-    console.log("localQuintilePopulationObjectKeys: ", localQuintilePopulationObjectKeys)
+    console.log(
+      "localQuintilePopulationObjectKeys: ",
+      localQuintilePopulationObjectKeys
+    );
     const randomPersonIndex = Math.floor(
       Math.random() * localQuintilePopulationObjectKeys.length
     );
-    console.log("randomPersonIndex: ", randomPersonIndex)
+    console.log("randomPersonIndex: ", randomPersonIndex);
     const personSelectedId =
       localQuintilePopulationObjectKeys[randomPersonIndex];
-      console.log("personSelectedId: ", personSelectedId)
+    console.log("personSelectedId: ", personSelectedId);
     // person has not been previous indexed
     if (!selectedParticipants.has(personSelectedId)) {
       console.log(`Person ${personSelectedId} selected`);
-      console.log(`Person ${personSelectedId} not empty`);
-      selectedParticipants.add(personSelectedId);
-      const personSelectedForecastUptake =
-        quintilePopulationObject[personSelectedId];
+      if (personSelectedId !== undefined) {
+        selectedParticipants.add(personSelectedId);
+        console.log(`Person ${personSelectedId} not null`);
+      }
+      const personSelectedForecastUptake = quintilePopulationObject[personSelectedId];
       count += personSelectedForecastUptake / 100;
-     // }
+      // }
       // increment selectedPerson count
       selectedParticipantCount++;
       // remove that person from pool of people that can be invited
@@ -267,8 +271,7 @@ export const getParticipantsInQuintile = (
     }
   }
   console.log(
-    `Highlighted participants size = ${
-      selectedParticipants.size
+    `Highlighted participants size = ${selectedParticipants.size
     } with an average quintile block uptake of ${Math.floor(
       (quintileTarget / selectedParticipants.size) * 100
     )}%`
