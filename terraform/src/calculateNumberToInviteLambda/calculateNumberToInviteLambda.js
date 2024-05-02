@@ -241,13 +241,13 @@ export const getParticipantsInQuintile = (
     // person has not been previous indexed
     if (!selectedParticipants.has(personSelectedId)) {
       console.log(`Person ${personSelectedId} selected`);
-      if(personSelectedId !== undefined){
+      //if(personSelectedId !== undefined){
         console.log(`Person ${personSelectedId} not empty`);
       selectedParticipants.add(personSelectedId);
       const personSelectedForecastUptake =
         quintilePopulationObject[personSelectedId];
       count += personSelectedForecastUptake / 100;
-      }
+     // }
       // increment selectedPerson count
       selectedParticipantCount++;
       // remove that person from pool of people that can be invited
