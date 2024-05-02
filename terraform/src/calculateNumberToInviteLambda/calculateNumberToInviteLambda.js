@@ -242,11 +242,8 @@ export const getParticipantsInQuintile = (
     console.log(`personSelectedId: ${personSelectedId} is undefined`);
     // person has not been previous indexed
     if (personSelectedId !== undefined && !selectedParticipants.has(personSelectedId)) {
-      if (personSelectedId !== undefined) {
-        selectedParticipants.add(personSelectedId);
-        console.log(`Person ${personSelectedId} to be invited`);
-      }
       selectedParticipants.add(personSelectedId);
+      console.log(`Person ${personSelectedId} to be invited`);
       const personSelectedForecastUptake =
         quintilePopulationObject[personSelectedId];
       count += personSelectedForecastUptake / 100;
