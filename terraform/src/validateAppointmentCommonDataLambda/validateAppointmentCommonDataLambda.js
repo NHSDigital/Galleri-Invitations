@@ -195,9 +195,13 @@ export const rejectRecord = async (appointmentJson) => {
 export const acceptRecord = async (appointmentJson, eventType) => {
   const timeNow = new Date().toISOString();
   const jsonString = JSON.stringify(appointmentJson);
+  const processedEventType =
+    eventType === "BOOKED" || eventType === "CANCELLED"
+      ? eventType
+      : "COMPLETE";
   await pushToS3(
     `${ENVIRONMENT}-processed-appointments`,
-    `validRecords/valid_records-${eventType}-${timeNow}.json`,
+    `validRecords/valid_records-${processedEventType}-${timeNow}.json`,
     jsonString,
     s3
   );

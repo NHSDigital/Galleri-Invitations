@@ -1749,10 +1749,11 @@ module "caas_feed_add_records_lambda_cloudwatch" {
 }
 
 module "caas_data_triggers" {
-  source     = "./modules/lambda_s3_trigger"
-  name       = "caas_data_trigger"
-  bucket_arn = module.validated_records_bucket.bucket_arn
-  bucket_id  = module.validated_records_bucket.bucket_id
+  source      = "./modules/lambda_s3_trigger"
+  name        = "caas_data_trigger"
+  bucket_arn  = module.validated_records_bucket.bucket_arn
+  bucket_id   = module.validated_records_bucket.bucket_id
+  environment = var.environment
   triggers = {
     add_records = {
       lambda_arn    = module.caas_feed_add_records_lambda.lambda_arn,
@@ -1837,27 +1838,16 @@ module "process_appointment_event_type_lambda_cloudwatch" {
 }
 
 module "event_type_triggers" {
-  name       = "event_type_triggers"
-  source     = "./modules/lambda_s3_trigger"
-  bucket_arn = module.proccessed_appointments.bucket_arn
-  bucket_id  = module.proccessed_appointments.bucket_id
+  name        = "event_type_triggers"
+  source      = "./modules/lambda_s3_trigger"
+  bucket_arn  = module.proccessed_appointments.bucket_arn
+  bucket_id   = module.proccessed_appointments.bucket_id
+  environment = var.environment
   triggers = {
     complete_event = {
       lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn,
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records_COMPLETE",
-      filter_suffix = ""
-    },
-    no_show_event = {
-      lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn,
-      bucket_events = ["s3:ObjectCreated:*"],
-      filter_prefix = "validRecords/valid_records_NO_SHOW",
-      filter_suffix = ""
-    },
-    aborted_event = {
-      lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn,
-      bucket_events = ["s3:ObjectCreated:*"],
-      filter_prefix = "validRecords/valid_records_ABORTED",
       filter_suffix = ""
     },
     cancelled_event = {
