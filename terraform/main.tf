@@ -1749,11 +1749,10 @@ module "caas_feed_add_records_lambda_cloudwatch" {
 }
 
 module "caas_data_triggers" {
-  source      = "./modules/lambda_s3_trigger"
-  name        = "caas_data_trigger"
-  bucket_arn  = module.validated_records_bucket.bucket_arn
-  bucket_id   = module.validated_records_bucket.bucket_id
-  environment = var.environment
+  source     = "./modules/lambda_s3_trigger"
+  name       = "caas_data_trigger"
+  bucket_arn = module.validated_records_bucket.bucket_arn
+  bucket_id  = module.validated_records_bucket.bucket_id
   triggers = {
     add_records = {
       lambda_arn    = module.caas_feed_add_records_lambda.lambda_arn,
@@ -1838,11 +1837,10 @@ module "process_appointment_event_type_lambda_cloudwatch" {
 }
 
 module "event_type_triggers" {
-  name        = "event_type_triggers"
-  source      = "./modules/lambda_s3_trigger"
-  bucket_arn  = module.proccessed_appointments.bucket_arn
-  bucket_id   = module.proccessed_appointments.bucket_id
-  environment = var.environment
+  name       = "event_type_triggers"
+  source     = "./modules/lambda_s3_trigger"
+  bucket_arn = module.proccessed_appointments.bucket_arn
+  bucket_id  = module.proccessed_appointments.bucket_id
   triggers = {
     complete_event = {
       lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn,
