@@ -57,13 +57,12 @@ export const handler = async (event, context) => {
     payload,
     lambdaClient
   );
-  console.log("returnData = ", returnData);
   const participantInLsoa = returnData.sort((a, b) => {
     return a.imdDecile - b.imdDecile;
   });
   const numberOfPeople = participantInLsoa.length;
   console.log("participantInLsoa.length = ", numberOfPeople);
-  console.log("participantInLsoa = ", participantInLsoa);
+
   // Split incoming person data into quintile blocks
   const quintileBlockSize = Math.floor(numberOfPeople / 5);
   console.log(`quintileBlockSize = ${quintileBlockSize}`);
@@ -215,7 +214,6 @@ export const getParticipantsInQuintile = (
   ); // O(n)
   const quintilePopulationObjectKeys = Object.keys(quintilePopulationObject); // O(n)
 
-  console.log(`quintilePopulationObjectKeys: ${quintilePopulationObjectKeys}`);
   let count = 0;
   let iterationNumber = 0;
   let selectedParticipantCount = 1;
@@ -231,19 +229,16 @@ export const getParticipantsInQuintile = (
     const localQuintilePopulationObjectKeys = Object.keys(
       quintilePopulationObject
     );
-    console.log(`localQuintilePopulationObjectKeys: ${localQuintilePopulationObjectKeys}`);
 
     const randomPersonIndex = Math.floor(
       Math.random() * localQuintilePopulationObjectKeys.length
     );
-    console.log(`randomPersonIndex: ${randomPersonIndex}`);
-    console.log(`localQuintilePopulationObjectKeys[randomPersonIndex]: ${localQuintilePopulationObjectKeys[randomPersonIndex]}`);
-    const personSelectedId = localQuintilePopulationObjectKeys[randomPersonIndex];
-    console.log(`personSelectedId: ${personSelectedId} is undefined`);
+    const personSelectedId =
+      localQuintilePopulationObjectKeys[randomPersonIndex];
+
     // person has not been previous indexed
     if (personSelectedId !== undefined && !selectedParticipants.has(personSelectedId)) {
       selectedParticipants.add(personSelectedId);
-      console.log(`Person ${personSelectedId} to be invited`);
       const personSelectedForecastUptake =
         quintilePopulationObject[personSelectedId];
       count += personSelectedForecastUptake / 100;
