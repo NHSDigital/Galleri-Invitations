@@ -242,7 +242,7 @@ export const getParticipantsInQuintile = (
     if (!selectedParticipants.has(personSelectedId)) {
       console.log(`Person ${personSelectedId} selected`);
       //if(personSelectedId !== undefined){
-        console.log(`Person ${personSelectedId} not empty`);
+      console.log(`Person ${personSelectedId} not empty`);
       selectedParticipants.add(personSelectedId);
       const personSelectedForecastUptake =
         quintilePopulationObject[personSelectedId];
