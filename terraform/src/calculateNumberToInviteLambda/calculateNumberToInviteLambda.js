@@ -213,7 +213,7 @@ export const getParticipantsInQuintile = (
     {}
   ); // O(n)
   const quintilePopulationObjectKeys = Object.keys(quintilePopulationObject); // O(n)
-
+  console.log("quintilePopulationObjectKeys: ", quintilePopulationObjectKeys)
   let count = 0;
   let iterationNumber = 0;
   let selectedParticipantCount = 1;
@@ -230,16 +230,19 @@ export const getParticipantsInQuintile = (
       quintilePopulationObject
     );
 
+    console.log("localQuintilePopulationObjectKeys: ", localQuintilePopulationObjectKeys)
     const randomPersonIndex = Math.floor(
       Math.random() * localQuintilePopulationObjectKeys.length
     );
+    console.log("randomPersonIndex: ", randomPersonIndex)
     const personSelectedId =
       localQuintilePopulationObjectKeys[randomPersonIndex];
-
+      console.log("personSelectedId: ", personSelectedId)
     // person has not been previous indexed
     if (!selectedParticipants.has(personSelectedId)) {
       console.log(`Person ${personSelectedId} selected`);
       if(personSelectedId !== undefined){
+        console.log(`Person ${personSelectedId} not empty`);
       selectedParticipants.add(personSelectedId);
       const personSelectedForecastUptake =
         quintilePopulationObject[personSelectedId];
