@@ -63,9 +63,6 @@ module "galleri_invitations_screen" {
   hostname                                              = var.invitations-hostname
   dns_zone                                              = var.dns_zone
   region                                                = var.region
-  tags = {
-      ApplicationRole = "Web"
-  }
 }
 
 # the role that all lambda's are utilising,
