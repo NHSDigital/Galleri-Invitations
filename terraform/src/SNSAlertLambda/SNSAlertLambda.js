@@ -4,7 +4,7 @@ import { parse } from "url";
 const webhookUrl = process.env.url;
 
 export async function handler(event) {
-  const message = event.Records[0].Sns.Message;
+  // const message = event.Records[0].Sns.Message;
 
   const postData = JSON.stringify({
     type: "AdaptiveCard",
@@ -12,13 +12,13 @@ export async function handler(event) {
     body: [
       {
         type: "TextBlock",
-        text: "Galleri Alert Triggered!",
+        text: "Simple Adaptive Card",
         weight: "bolder",
         size: "medium",
       },
       {
         type: "TextBlock",
-        text: `Alert Details: ${message}`,
+        text: "This is a test call from the lambda.",
         wrap: true,
       },
     ],
