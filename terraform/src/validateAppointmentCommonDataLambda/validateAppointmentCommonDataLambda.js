@@ -201,7 +201,7 @@ export const acceptRecord = async (appointmentJson, eventType) => {
       : "COMPLETE";
   await pushToS3(
     `${ENVIRONMENT}-processed-appointments`,
-    `validRecords/valid_records-${processedEventType}-${timeNow}.json`,
+    `validRecords/valid_records_${processedEventType}-${timeNow}.json`,
     jsonString,
     s3
   );
