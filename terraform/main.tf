@@ -2254,6 +2254,29 @@ module "appointment_table" {
     Environment = var.environment
   }
 }
+
+module "galleri_blood_test_result_table" {
+  source      = "./modules/dynamodb"
+  table_name  = "GalleriBloodTestResult"
+  hash_key    = "Participant_Id"
+  range_key   = "Grail_Id"
+  environment = var.environment
+  attributes = [
+    {
+      name = "Participant_Id"
+      type = "S"
+    },
+    {
+      name = "Grail_Id"
+      type = "S"
+    }
+  ]
+  tags = {
+    Name        = "Dynamodb Table Galleri Blood Test Result"
+    Environment = var.environment
+  }
+}
+
 // Parameter Store
 resource "aws_ssm_parameter" "invited-notify" {
   name      = "invited-notify"
