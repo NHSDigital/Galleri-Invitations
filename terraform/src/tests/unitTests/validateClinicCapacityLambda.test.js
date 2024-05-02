@@ -177,7 +177,7 @@ describe("validateClinicCapacity function", () => {
       await moduleapi.pushToS3(
         "galleri-clinic-capacity",
         "test.txt",
-        "dfsdfd",
+        "dfsdfds",
         mockClient
       );
     } catch (err) {
