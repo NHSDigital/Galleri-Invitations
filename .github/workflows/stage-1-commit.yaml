@@ -42,10 +42,12 @@ jobs:
     timeout-minutes: 10
     name: "Scan secrets"
     steps:
+      - name: "Echo branch"
+        run: echo "Branch to checkout - ${{ inputs.invitations_branch }}"
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          ref: "${{ inputs.invitations_branch }}"
+          ref: ${{ inputs.invitations_branch }}
           fetch-depth: 0 # Full history is needed to scan all commits
       - name: "Scan secrets"
         uses: ./.github/actions/scan-secrets

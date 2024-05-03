@@ -41,10 +41,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: "Echo branch"
+        run: echo "Branch to checkout - ${{ inputs.invitations_branch }}"
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          ref: "${{ inputs.invitations_branch }}"
+          ref: ${{ inputs.invitations_branch }}
       - name: "Run unit test suite"
         run: |
           make test-unit
@@ -91,6 +93,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
+          ref: "${{ inputs.invitations_branch }}"
           fetch-depth: 0 # Full history is needed to improving relevancy of reporting
       - name: "Perform static analysis"
         uses: ./.github/actions/perform-static-analysis

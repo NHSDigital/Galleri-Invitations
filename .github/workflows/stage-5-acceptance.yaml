@@ -80,10 +80,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
+      - name: "Echo branch"
+        run: echo "Branch to checkout - ${{ inputs.invitations_branch }}"
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          ref: "${{ env.invitations-branch }}"
+          ref: ${{ env.invitations-branch }}
           fetch-depth: 0 # Full history is needed to scan all commits
 
       - name: "Test Backend"
