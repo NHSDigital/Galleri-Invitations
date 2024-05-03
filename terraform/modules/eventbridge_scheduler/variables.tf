@@ -12,3 +12,7 @@ variable "lambda_arn" {
   description = "ARN of the lambda function being invoked"
   type        = string
 }
+
+variable "environment" {
+  description = "The environment that built the resource"
+}
