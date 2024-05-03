@@ -35,15 +35,23 @@ export const handler = async (event) => {
       KID
     );
     const { tokens } = await getTokens(code, signedJWT.body, cis2ClientID); // getting tokens from CIS2
+    //Temporary console log
+    console.log("TOKENS: ", tokens);
     const userInfo = await getUserinfo(tokens); // exchanging the access token for user Info
+    //Temporary console log
+    console.log("userInfo: ", userInfo);
     const uuid = userInfo.uid.replace(/(.{4})(?!$)/g, "$1 ");
     const userRole = await getUserRole(uuid); // matching the user id from CIS2 with GPS user data base to grab the status and role
+    //Temporary console log
+    console.log("userRole: ", userRole);
     const userAuthData = {
       sub: userInfo.sub,
       role: userRole.Role,
       activityCodes: userInfo.nhsid_nrbac_roles[0].activity_codes,
       accountStatus: userRole.Status,
     };
+    //Temporary console log
+    console.log("userAuthData: ", userAuthData);
     const checkAuthorizationResult = await checkAuthorization(
       userAuthData,
       tokens,
@@ -60,9 +68,16 @@ export const handler = async (event) => {
       role: userRole.Role,
       isAuthorized: checkAuthorizationResult,
     };
-    console.log(
-      `This User has been authenticated and is authorized to access the Galleri App with role - ${userRole.Role}`
-    );
+    if (checkAuthorizationResult !== true) {
+      const errorMessage = checkAuthorizationResult
+        .split("error=")[1]
+        .replace(/\+/g, " ");
+      console.error("Error: ", errorMessage);
+    } else {
+      console.log(
+        `This User has been authenticated and is authorized to access the Galleri App with role - ${userRole.Role}`
+      );
+    }
     return { statusCode: 200, body: JSON.stringify(authResponse) };
   } catch (error) {
     console.error("Error: ", error);
@@ -93,7 +108,8 @@ export async function getCIS2SignedJWT(
     console.log("Returning CIS2 signed jwt");
     return responseObject;
   } catch (error) {
-    console.error(`Error getting CIS2 signed jwt: ${error}`);
+    console.error(`Error getting CIS2 signed jwt`);
+    console.error(`Error: ${error}`);
     const responseObject = createResponse(500, error.message);
     return responseObject;
   }
@@ -216,9 +232,15 @@ export async function getUserRole(uuid) {
     const data = await dynamoDBClient.send(command);
 
     if (!data.Item) {
-      return console.error("User not found");
+      console.error("Error: User not found");
+      return {
+        Role: "",
+        UUID: "",
+        Status: "User Not Found",
+        Email: "",
+        Name: "",
+      };
     }
-
     const item = unmarshall(data.Item);
     console.log("UUID exists on Galleri User database");
 
@@ -240,12 +262,16 @@ export async function checkAuthorization(
   checkTokenExpirationWithAuthTime,
   verifyTokenSignature
 ) {
+  //Temporary console log
+  console.log("STARTING CHECK AUTHORIZATION");
   // Care Identity Authentication OpenID Provider's Issue identifier as specified in the OpenID Provider Configuration Document.
   const INT_iss =
     "https://am.nhsint.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/NHSIdentity/realms/Healthcare";
   // ID Token claims Validation
   if (account.id_token) {
     const idTokenPayload = await parseTokenClaims(account.id_token);
+    //Temporary console log
+    console.log("ID TOKEN PAYLOAD : ", idTokenPayload);
     if (idTokenPayload?.iss !== INT_iss || idTokenPayload?.aud !== clientID) {
       return "/autherror?error=ID+Token+Validation+failed";
     }

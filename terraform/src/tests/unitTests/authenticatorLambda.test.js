@@ -510,7 +510,7 @@ describe("All Test", () => {
     });
   });
 
-  describe("generateJWT function", () => {
+  describe("generateJWT", () => {
     test("should generate JWT", () => {
       const clientId = "mocked_client_id";
       const tokenEndpointUrl = "mocked_token_endpoint_url";
@@ -528,7 +528,7 @@ describe("All Test", () => {
     });
   });
 
-  describe("createResponse function", () => {
+  describe("createResponse", () => {
     test("should create a valid response object", () => {
       const httpStatusCode = 200;
       const body = "mocked_body";
@@ -541,7 +541,7 @@ describe("All Test", () => {
     });
   });
 
-  describe("getTokens function", () => {
+  describe("getTokens", () => {
     it("should return tokens when authentication code is valid", async () => {
       const logSpy = jest.spyOn(global.console, "log");
       // Mocking the axios POST request response
