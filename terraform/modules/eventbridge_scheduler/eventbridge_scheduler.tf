@@ -6,7 +6,7 @@ resource "aws_cloudwatch_event_rule" "schedule_rule" {
     ApplicationRole = "${var.application_role}"
     Name            = "${var.environment} Scheduling Rule"
   }
-  state               = var.environment == can(regex("(prod|uat)", var.environment)) ? "ENABLED" : "DISABLED"
+  state = var.environment == can(regex("(prod|uat)", var.environment)) ? "ENABLED" : "DISABLED"
 }
 
 resource "aws_cloudwatch_event_target" "lambda_target" {
