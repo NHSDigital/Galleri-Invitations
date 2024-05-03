@@ -144,6 +144,7 @@ runs:
         npm install --prefix src/sendInvitationBatchToRawMessageQueueLambda
         npm install --prefix src/sendEnrichedMessageToNotifyQueueLambda
         npm install --prefix src/nrdsMeshMailboxLambda
+        npm install --prefix src/testResultReportFhirValidationLambda
 
         if [[ ${{ env.environment }} != prod ]]; then
           {
