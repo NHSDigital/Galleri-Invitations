@@ -1509,6 +1509,47 @@ module "notify_enriched_message_queue_sqs" {
   name                           = "notifyEnrichedMessageQueue.fifo"
   is_fifo_queue                  = true
   is_content_based_deduplication = true
+  visibility_timeout_seconds     = 370
+}
+
+# Send Single Notify Message
+module "send_single_notify_message_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "sendSingleNotifyMessageLambda"
+  lambda_timeout       = 370
+  memory_size          = 1024
+  lambda_s3_object_key = "send_single_notify_message_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                = "${var.environment}"
+    API_KEY                    = "${var.NOTIFY_API_KEY}"
+    PRIVATE_KEY_NAME           = "${var.NOTIFY_KNAME}"
+    PUBLIC_KEY_ID              = "${var.NOTIFY_PUBLIC_KEY_ID}"
+    TOKEN_ENDPOINT_URL         = "${var.NOTIFY_TOKEN_ENDPOINT_URL}"
+    MESSAGES_ENDPOINT_URL      = "${var.NOTIFY_MESSAGES_ENDPOINT_URL}"
+    INITIAL_RETRY_DELAY        = 5000
+    MAX_RETRIES                = 3
+    ENRICHED_MESSAGE_QUEUE_URL = module.notify_enriched_message_queue_sqs.sqs_queue_url
+  }
+}
+
+module "send_single_notify_message_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.send_single_notify_message_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "send_single_notify_message_SQS_trigger" {
+  source           = "./modules/lambda_sqs_trigger"
+  event_source_arn = module.notify_enriched_message_queue_sqs.sqs_queue_arn
+  lambda_arn       = module.send_single_notify_message_lambda.lambda_arn
+}
+
+data "aws_secretsmanager_secret_version" "nhs_notify_api_key" {
+  secret_id = "NHS_NOTIFY_API_KEY"
 }
 
 # Delete Caas feed records
@@ -2278,6 +2319,33 @@ module "GTMS_eventbridge_scheduler" {
   schedule_expression = "cron(0/15 * * * ? *)"
   lambda_arn          = module.gtms_mesh_mailbox_lambda.lambda_arn
   environment         = var.environment
+}
+
+
+module "notify_send_message_status_table" {
+  source         = "./modules/dynamodb"
+  billing_mode   = "PROVISIONED"
+  table_name     = "NotifySendMessageStatus"
+  hash_key       = "Participant_Id"
+  range_key      = "Message_Sent"
+  read_capacity  = 10
+  write_capacity = 10
+  environment    = var.environment
+
+  attributes = [
+    {
+      name = "Participant_Id"
+      type = "S"
+    },
+    {
+      name = "Message_Sent"
+      type = "S"
+    }
+  ]
+  tags = {
+    Name        = "Dynamodb Table Notify Send Message Status"
+    Environment = var.environment
+  }
 }
 
 // Parameter Store

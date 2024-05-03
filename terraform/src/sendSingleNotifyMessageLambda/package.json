@@ -1,0 +1,15 @@
+{
+  "name": "sendSingleNotifyMessageLambda",
+  "version": "1.0.0",
+  "main": "sendSingleNotifyMessageLambda.js",
+  "author": "",
+  "type": "module",
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2",
+    "axios": "^1.6.5",
+    "fetch-retry": "^6.0.0",
+    "node-fetch": "^2.7.0",
+    "qs": "^6.11.2",
+    "uuid": "^9.0.1"
+  }
+}
