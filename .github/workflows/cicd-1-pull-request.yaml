@@ -87,6 +87,7 @@ jobs:
     needs: [metadata]
     uses: ./.github/workflows/stage-1-commit.yaml
     with:
+      invitations_branch: "${{ github.event.pull_request.head.sha }}"
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
       build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
@@ -100,6 +101,7 @@ jobs:
     needs: [metadata]
     uses: ./.github/workflows/stage-2-test.yaml
     with:
+      invitations_branch: "${{ github.event.pull_request.head.sha }}"
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
       build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
@@ -113,7 +115,7 @@ jobs:
     needs: [metadata]
     uses: ./.github/workflows/stage-3-build.yaml
     with:
-      invitations_branch: ${{ github.event.pull_request.head.sha }}
+      invitations_branch: "${{ github.event.pull_request.head.sha }}"
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
       build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
@@ -132,6 +134,7 @@ jobs:
     needs: [metadata, build-stage]
     uses: ./.github/workflows/post-build.yaml
     with:
+      invitations_branch: "${{ github.event.pull_request.head.sha }}"
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
       build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
@@ -146,6 +149,7 @@ jobs:
     needs: [metadata, build-stage]
     uses: ./.github/workflows/stage-4-load-data.yaml
     with:
+      invitations_branch: "${{ github.event.pull_request.head.sha }}"
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
       build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
@@ -163,6 +167,7 @@ jobs:
     uses: ./.github/workflows/stage-5-acceptance.yaml
     if: needs.metadata.outputs.test == 'yes' && (needs.data-stage.result == 'success' || needs.data-stage.result == 'skipped')
     with:
+      invitations_branch: "${{ github.event.pull_request.head.sha }}"
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
       build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
