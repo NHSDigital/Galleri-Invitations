@@ -19,6 +19,7 @@ export const handler = async (event) => {
   );
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
   try {
+    let validateParticipantIdResponse;
     const appointmentString = await readFromS3(bucket, key, s3);
     const appointmentJson = JSON.parse(appointmentString);
     const { Appointment } = appointmentJson;
@@ -63,10 +64,11 @@ export const handler = async (event) => {
       Appointment.PDSNHSNumber?.trim() !== ""
     ) {
       if (
+        validateParticipantIdResponse &&
         Appointment.InvitationNHSNumber !==
-          validateParticipantIdResponse.Items.nhs_number &&
+          validateParticipantIdResponse.Items[0].nhs_number.S &&
         Appointment.PDSNHSNumber !==
-          validateParticipantIdResponse.Items.nhs_number
+          validateParticipantIdResponse.Items[0].nhs_number.S
       ) {
         await rejectRecord(appointmentJson);
         console.log(
@@ -114,7 +116,7 @@ export const handler = async (event) => {
         validateAppointmentIdResponse.Items.length > 0;
       if (validateAppointmentId) {
         const oldAppointmentTime = new Date(
-          validateAppointmentIdResponse.Items.AppointmentDateTime
+          validateAppointmentIdResponse.Items[0].AppointmentDateTime.S
         );
         const newAppointmentTime = new Date(Appointment.AppointmentDateTime);
         if (oldAppointmentTime > newAppointmentTime) {
@@ -124,17 +126,13 @@ export const handler = async (event) => {
           );
           return;
         }
-      } else {
-        await rejectRecord(appointmentJson);
-        console.log("No Valid Appointment found");
-        return;
       }
     } else {
       await rejectRecord(appointmentJson);
       console.log("No property AppointmentID found");
       return;
     }
-    await acceptRecord(appointmentJson);
+    await acceptRecord(appointmentJson, Appointment.EventType);
   } catch (error) {
     console.error(
       "Error with Appointment extraction, procession or uploading",
@@ -194,12 +192,16 @@ export const rejectRecord = async (appointmentJson) => {
   }
 };
 
-export const acceptRecord = async (appointmentJson) => {
+export const acceptRecord = async (appointmentJson, eventType) => {
   const timeNow = new Date().toISOString();
   const jsonString = JSON.stringify(appointmentJson);
+  const processedEventType =
+    eventType === "BOOKED" || eventType === "CANCELLED"
+      ? eventType
+      : "COMPLETE";
   await pushToS3(
     `${ENVIRONMENT}-processed-appointments`,
-    `validRecords/valid_records-${timeNow}.json`,
+    `validRecords/valid_records_${processedEventType}-${timeNow}.json`,
     jsonString,
     s3
   );

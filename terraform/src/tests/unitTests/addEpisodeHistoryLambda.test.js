@@ -39,10 +39,12 @@ describe("formatEpisodeHistoryRecord", () => {
         Participant_Id: {
           S: `ID_1`,
         },
+        Episode_Event_Updated: {
+          S: `20`,
+        },
       },
       ExpressionAttributeNames: {
         "#EE": "Episode_Event",
-        "#EEU": "Episode_Event_Updated",
         "#EED": "Episode_Event_Description",
         "#EEN": "Episode_Event_Notes",
         "#EEUB": "Episode_Event_Updated_By",
@@ -52,9 +54,6 @@ describe("formatEpisodeHistoryRecord", () => {
       ExpressionAttributeValues: {
         ":episode_event": {
           S: `Episode_Event_1`,
-        },
-        ":episode_event_updated": {
-          S: `20`,
         },
         ":episode_event_description": {
           S: `Episode_Event_Description_1`,
@@ -73,7 +72,7 @@ describe("formatEpisodeHistoryRecord", () => {
         },
       },
       TableName: `undefined-EpisodeHistory`,
-      UpdateExpression: `set #EE = :episode_event, #EEU = :episode_event_updated, #EED = :episode_event_description, #EEN = :episode_event_notes, #EEUB = :episode_event_updated_by, #ES = :episode_status, #ESU = :episode_status_updated`,
+      UpdateExpression: `set #EE = :episode_event, #EED = :episode_event_description, #EEN = :episode_event_notes, #EEUB = :episode_event_updated_by, #ES = :episode_status, #ESU = :episode_status_updated`,
     };
 
     const mockRecord = {

@@ -39,11 +39,11 @@ variable "NEXTAUTH_URL" {
   default = null
 }
 
-variable "GALLERI_ACTIVITY_CODE" {
+variable "CIS2_REDIRECT_URL" {
   default = null
 }
 
-variable "GALLERI_ACTIVITY_NAME" {
+variable "GALLERI_ACTIVITY_CODE" {
   default = null
 }
 
@@ -73,4 +73,9 @@ variable "invitations-hostname" {
 
 variable "dns_zone" {
   description = "the aws account the environment is part of, eg cicd, nft, uat, etc"
+}
+
+variable "K8_URL" {
+  description = "url for eks mesh service"
+  default     = null
 }

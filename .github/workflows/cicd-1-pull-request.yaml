@@ -3,7 +3,7 @@ name: "CI/CD nft"
 # The total recommended execution time for the "CI/CD Pull Request" workflow is around 20 minutes.
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, reopened, synchronize]
 
 concurrency:
@@ -39,6 +39,9 @@ jobs:
           echo environment is: $environment
       - name: "Checkout code"
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
       - name: "Set CI/CD variables"
         id: variables
         run: |
@@ -79,10 +82,12 @@ jobs:
           export VERSION="${{ steps.variables.outputs.version }}"
           export DOES_PULL_REQUEST_EXIST="${{ steps.pr_exists.outputs.does_pull_request_exist }}"
           make list-variables
+
   commit-stage: # Recommended maximum execution time is 2 minutes
     needs: [metadata]
     uses: ./.github/workflows/stage-1-commit.yaml
     with:
+      invitations_branch: "${{ github.event.pull_request.head.sha }}"
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
       build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
@@ -96,6 +101,7 @@ jobs:
     needs: [metadata]
     uses: ./.github/workflows/stage-2-test.yaml
     with:
+      invitations_branch: "${{ github.event.pull_request.head.sha }}"
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
       build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
@@ -109,6 +115,7 @@ jobs:
     needs: [metadata]
     uses: ./.github/workflows/stage-3-build.yaml
     with:
+      invitations_branch: "${{ github.event.pull_request.head.sha }}"
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
       build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
@@ -127,6 +134,7 @@ jobs:
     needs: [metadata, build-stage]
     uses: ./.github/workflows/post-build.yaml
     with:
+      invitations_branch: "${{ github.event.pull_request.head.sha }}"
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
       build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
@@ -141,6 +149,7 @@ jobs:
     needs: [metadata, build-stage]
     uses: ./.github/workflows/stage-4-load-data.yaml
     with:
+      invitations_branch: "${{ github.event.pull_request.head.sha }}"
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
       build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
@@ -158,6 +167,7 @@ jobs:
     uses: ./.github/workflows/stage-5-acceptance.yaml
     if: needs.metadata.outputs.test == 'yes' && (needs.data-stage.result == 'success' || needs.data-stage.result == 'skipped')
     with:
+      invitations_branch: "${{ github.event.pull_request.head.sha }}"
       build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
       build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
       build_epoch: "${{ needs.metadata.outputs.build_epoch }}"

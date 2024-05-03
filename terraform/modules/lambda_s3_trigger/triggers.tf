@@ -1,7 +1,7 @@
 resource "aws_lambda_permission" "allow_bucket" {
   for_each = local.unique_lambda_arns
 
-  statement_id  = "AllowExecution-${md5(each.value)}"
+  statement_id  = "${var.environment}-AllowExecution-${md5(each.value)}"
   action        = "lambda:InvokeFunction"
   function_name = each.value
   principal     = "s3.amazonaws.com"
