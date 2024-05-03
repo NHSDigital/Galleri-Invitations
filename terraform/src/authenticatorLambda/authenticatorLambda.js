@@ -35,23 +35,15 @@ export const handler = async (event) => {
       KID
     );
     const { tokens } = await getTokens(code, signedJWT.body, cis2ClientID); // getting tokens from CIS2
-    //Temporary console log
-    console.log("TOKENS: ", tokens);
     const userInfo = await getUserinfo(tokens); // exchanging the access token for user Info
-    //Temporary console log
-    console.log("userInfo: ", userInfo);
     const uuid = userInfo.uid.replace(/(.{4})(?!$)/g, "$1 ");
     const userRole = await getUserRole(uuid); // matching the user id from CIS2 with GPS user data base to grab the status and role
-    //Temporary console log
-    console.log("userRole: ", userRole);
     const userAuthData = {
       sub: userInfo.sub,
       role: userRole.Role,
       activityCodes: userInfo.nhsid_nrbac_roles[0].activity_codes,
       accountStatus: userRole.Status,
     };
-    //Temporary console log
-    console.log("userAuthData: ", userAuthData);
     const checkAuthorizationResult = await checkAuthorization(
       userAuthData,
       tokens,
@@ -262,16 +254,12 @@ export async function checkAuthorization(
   checkTokenExpirationWithAuthTime,
   verifyTokenSignature
 ) {
-  //Temporary console log
-  console.log("STARTING CHECK AUTHORIZATION");
   // Care Identity Authentication OpenID Provider's Issue identifier as specified in the OpenID Provider Configuration Document.
   const INT_iss =
     "https://am.nhsint.auth-ptl.cis2.spineservices.nhs.uk:443/openam/oauth2/realms/root/realms/NHSIdentity/realms/Healthcare";
   // ID Token claims Validation
   if (account.id_token) {
     const idTokenPayload = await parseTokenClaims(account.id_token);
-    //Temporary console log
-    console.log("ID TOKEN PAYLOAD : ", idTokenPayload);
     if (idTokenPayload?.iss !== INT_iss || idTokenPayload?.aud !== clientID) {
       return "/autherror?error=ID+Token+Validation+failed";
     }
