@@ -31,6 +31,10 @@ on:
         description: "the environment to deploy terraform into"
         required: true
         type: string
+      invitations_branch:
+        description: "Branch of invitations repository to checkout"
+        required: false
+        type: string
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -53,7 +57,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
-          ref: "${{ env.invitations-branch }}"
+          ref: "${{ inputs.invitations_branch }}"
           fetch-depth: 0 # Full history is needed to scan all commits
       - name: "Deploy to Kubernetes"
         uses: ./.github/actions/kubernetes

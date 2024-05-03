@@ -90,6 +90,11 @@ jobs:
           pip install boto3
           pip install rstr
           pip install random_word
+      - name: Setting tf-action environment variable
+        if: ${{ env.tf-action == '' }}
+        run: |
+          echo "tf-action environment variable is empty, setting to 'apply'"
+          echo "tf-action=apply" >> $GITHUB_ENV
       - name: "Create infrastructure"
         uses: ./.github/actions/terraform
         with:

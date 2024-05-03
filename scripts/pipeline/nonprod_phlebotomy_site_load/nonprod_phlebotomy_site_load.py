@@ -133,14 +133,14 @@ def create_data_set(table_name):
     for i in range(1, 7):
         invite_date_unix = unixtime_now + ((i + 1) * week_unix)
         invite_date_object = datetime.utcfromtimestamp(invite_date_unix)
-        week_date.append(invite_date_object.strftime("%-d %B %Y"))
+        week_date.append(invite_date_object.strftime("%d %B %Y"))
 
         # set previous invite date to between 2 to 3 weeks in the past
         prev_invite_date_unix = unixtime_now - (
             2 * week_unix + (random.randint(1, 7) * day_unix)
         )
         prev_invite_date_object = datetime.utcfromtimestamp(prev_invite_date_unix)
-        prev_invite_date.append(prev_invite_date_object.strftime("%A %-d %B %Y"))
+        prev_invite_date.append(prev_invite_date_object.strftime("%A %d %B %Y"))
 
     for i in range(1, 100):
         # Add Phlebotomy site
@@ -178,7 +178,7 @@ def create_data_set(table_name):
                         'Directions': {'S': f'{str(directions)}'},
                         'ICBCode': {'S': f'{str(icd_code)}'},
                         'ODSCode': {'S': f'{str(ods_code)}'},
-                        'PostCode': {'S': f'{str(postcode)}'},
+                        'Postcode': {'S': f'{str(postcode)}'},
                         'PrevInviteDate': {'S': f'{str(random.choice(prev_invite_date))}'},
                         'WeekCommencingDate':  {
                             'M':  {

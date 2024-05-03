@@ -36,3 +36,8 @@ variable "sns_lambda_arn" {
   type        = string
   description = "The ARN of the lambda setup to make sns calls to 2nd line support, leave null if this is the sns lambda"
 }
+
+variable "K8_URL" {
+  description = "url for eks mesh service"
+  default     = null
+}
