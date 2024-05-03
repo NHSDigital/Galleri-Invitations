@@ -467,15 +467,33 @@ const updateRecord = async (record, recordFromTable) => {
       const items = episodeHistoryParticipants.Item;
 
       const sortedEpisodeHistoryParticipants = items.sort(
-        (a, b) =>
-          parseInt(b.Episode_Status_Updated.N) -
-          parseInt(a.Episode_Status_Updated.N)
+        (a, b) => b.Episode_Event_Updated.S - a.Episode_Event_Updated.S
       );
+
+      let index;
+
+      for (
+        index = 0;
+        sortedEpisodeHistoryParticipants++;
+        index < sortedEpisodeHistoryParticipants.length
+      ) {
+        if (
+          sortedEpisodeHistoryParticipants.Episode_Status.S[index] ===
+          "Deceased"
+        )
+          return;
+      }
+
+      const recordBeforeDeath = sortedEpisodeHistoryParticipants[index - 1];
+
+      // record in episodeHistory table before death to overwrite what is in episode for that participantId
+      // recordBeforeDeath.Episode_Event =
 
       console.log(
         "sortedEpisodeHistoryParticipants ",
         sortedEpisodeHistoryParticipants
       );
+      console.log("recordBeforeDeath ", recordBeforeDeath);
     }
   }
 
