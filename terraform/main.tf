@@ -355,7 +355,7 @@ module "lsoa_loader_lambda" {
 }
 
 module "sns_alert_lambda" {
-  source               = "./modules/lambda"
+  source               = "./modules/alert_lambda"
   environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
@@ -367,7 +367,6 @@ module "sns_alert_lambda" {
     ENVIRONMENT = "${var.environment}"
     url         = "https://prod-08.uksouth.logic.azure.com:443/workflows/7edf4c6b99724691815d74a338b1146c/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=C6mpyBbevvm_sOZUHswhxplabaL34DqBjugX7oCY1UY"
   }
-  sns_lambda_arn = null
 }
 
 # clinic information
@@ -2479,3 +2478,5 @@ resource "aws_ssm_parameter" "contact-escalation-tables" {
   value     = "Null"
   overwrite = true
 }
+
+# Alerting lambda setup

@@ -44,13 +44,13 @@ resource "aws_sns_topic" "alarm_topic" {
 resource "aws_sns_topic_subscription" "email_subscription" {
   topic_arn = aws_sns_topic.alarm_topic.arn
   protocol  = "lambda"
-  endpoint  = var.sns_lambda_arn != null ? var.sns_lambda_arn : aws_lambda_function.lambda.arn
+  endpoint  = aws_lambda_function.lambda.arn
 }
 
 resource "aws_lambda_permission" "allow_sns_to_invoke_lambda" {
   statement_id  = "AllowExecutionFromSNS"
   action        = "lambda:InvokeFunction"
-  function_name = var.sns_lambda_arn
+  function_name = aws_lambda_function.lambda.arn
   principal     = "sns.amazonaws.com"
   source_arn    = aws_sns_topic.alarm_topic.arn
   depends_on    = [aws_lambda_function.lambda, aws_sns_topic.alarm_topic]

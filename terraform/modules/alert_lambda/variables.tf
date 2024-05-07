@@ -27,10 +27,10 @@ variable "environment_vars" {}
 
 variable "environment" {}
 
-variable "sns_lambda_arn" {
-  type        = string
-  description = "The ARN of the lambda setup to make sns calls to 2nd line support, leave null if this is the sns lambda"
-}
+# variable "account_id" {
+#   type        = string
+#   description = "AWS Account ID"
+# }
 
 variable "K8_URL" {
   description = "url for eks mesh service"
