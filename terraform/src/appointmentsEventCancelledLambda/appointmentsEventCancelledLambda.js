@@ -27,7 +27,8 @@ export const handler = async (event) => {
 
   const cancelledByNHS = {
     CLINIC_CLOSED_DUE_TO_LACK_OF_STAFF: "CLINIC_CLOSED_DUE_TO_LACK_OF_STAFF",
-    CLINIC_CLOSED_DUE_TO_LACK_OF_FACILITY: "CLINIC_CLOSED_DUE_TO_LACK_OF_FACILITY",
+    CLINIC_CLOSED_DUE_TO_LACK_OF_FACILITY:
+      "CLINIC_CLOSED_DUE_TO_LACK_OF_FACILITY",
     CLINIC_CLOSED_DUE_TO_OTHER_REASON: "CLINIC_CLOSED_DUE_TO_OTHER_REASON",
   };
 
@@ -43,15 +44,26 @@ export const handler = async (event) => {
     DONT_WANT_TO_TAKE_PART: "DONT_WANT_TO_TAKE_PART",
   };
 
-  const ParticipantID = js?.['Appointment']?.['ParticipantID'];
-  const AppointmentID = js?.['Appointment']?.['AppointmentID'];
-  const CancellationReason = js?.['Appointment']?.['CancellationReason'];
-  const EventType = js?.['Appointment']?.['EventType']; //CANCELLED
+  const ParticipantID = js?.["Appointment"]?.["ParticipantID"];
+  const AppointmentID = js?.["Appointment"]?.["AppointmentID"];
+  const CancellationReason = js?.["Appointment"]?.["CancellationReason"];
+  const EventType = js?.["Appointment"]?.["EventType"]; //CANCELLED
 
-  const episodeResponse = await lookUp(dbClient, ParticipantID, "Episode", "Participant_Id", "S", true);
+  const episodeResponse = await lookUp(
+    dbClient,
+    ParticipantID,
+    "Episode",
+    "Participant_Id",
+    "S",
+    true
+  );
 
   const episodeItems = episodeResponse.Items[0];
-  console.log(`episodeItems for participant: ${JSON.stringify(episodeItems.Participant_Id)} loaded.`);
+  console.log(
+    `episodeItems for participant: ${JSON.stringify(
+      episodeItems.Participant_Id
+    )} loaded.`
+  );
 
   const appointmentResponse = await lookUp(
     dbClient,
@@ -62,20 +74,26 @@ export const handler = async (event) => {
     true
   );
   const appointmentItems = appointmentResponse.Items[0];
-  console.log(`appointmentItems for appointment: ${JSON.stringify(appointmentItems.Appointment_Id)} loaded.`);
+  console.log(
+    `appointmentItems for appointment: ${JSON.stringify(
+      appointmentItems.Appointment_Id
+    )} loaded.`
+  );
 
   const dateTime = new Date(Date.now()).toISOString();
 
-  if (episodeItems && appointmentItems && EventType === 'CANCELLED') { //if both queries are not undefined
-    if (CancellationReason) { //cancellation reason is supplied
-      console.log('The Supplied Reason Is: ');
+  if (episodeItems && appointmentItems && EventType === "CANCELLED") {
+    //if both queries are not undefined
+    if (CancellationReason) {
+      //cancellation reason is supplied
+      console.log("The Supplied Reason Is: ");
       if (Object.values(cancelledByNHS).includes(CancellationReason)) {
-        const episodeEvent = 'Appointment Cancelled By NHS';
+        const episodeEvent = "Appointment Cancelled By NHS";
         console.log(episodeEvent);
         await transactionalWrite(
           dbClient,
           ParticipantID,
-          episodeItems['Batch_Id']['S'], //required PK for Episode update
+          episodeItems["Batch_Id"]["S"], //required PK for Episode update
           AppointmentID,
           EventType,
           episodeEvent, //Appointment Cancelled by NHS
@@ -83,12 +101,12 @@ export const handler = async (event) => {
         );
       }
       if (Object.values(cancelledByParticipant).includes(CancellationReason)) {
-        const episodeEvent = 'Appointment Cancelled by participant';
+        const episodeEvent = "Appointment Cancelled by participant";
         console.log(episodeEvent);
         await transactionalWrite(
           dbClient,
           ParticipantID,
-          episodeItems['Batch_Id']['S'],
+          episodeItems["Batch_Id"]["S"],
           AppointmentID,
           EventType,
           episodeEvent,
@@ -96,19 +114,25 @@ export const handler = async (event) => {
         );
       }
       if (Object.values(participantWithdrawn).includes(CancellationReason)) {
-        const episodeEvent = 'Appointment Cancelled by Participant - Withdrawn';
+        const episodeEvent =
+          "Appointment Cancelled by Participant - No reminder";
         console.log(episodeEvent);
         await transactionalWrite(
           dbClient,
           ParticipantID,
-          episodeItems['Batch_Id']['S'],
+          episodeItems["Batch_Id"]["S"],
           AppointmentID,
           EventType,
           episodeEvent,
-          CancellationReason
+          CancellationReason,
+          "Closed"
         );
       }
-      if (!Object.values(cancelledByNHS).includes(CancellationReason) && !Object.values(cancelledByParticipant).includes(CancellationReason) && !Object.values(participantWithdrawn).includes(CancellationReason)) {
+      if (
+        !Object.values(cancelledByNHS).includes(CancellationReason) &&
+        !Object.values(cancelledByParticipant).includes(CancellationReason) &&
+        !Object.values(participantWithdrawn).includes(CancellationReason)
+      ) {
         //edge case, reason is populated but incorrect
         const confirmation = await pushCsvToS3(
           `${bucket}`,
@@ -169,7 +193,9 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
     console.log(`Successfully pushed to ${bucketName}/${key}`);
     return response;
   } catch (err) {
-    console.log(`Failed to push to ${bucketName}/${key}. Error Message: ${err}`);
+    console.log(
+      `Failed to push to ${bucketName}/${key}. Error Message: ${err}`
+    );
     throw err;
   }
 };
@@ -213,8 +239,9 @@ export const transactionalWrite = async (
   eventType,
   episodeEvent,
   cancellationReason,
+  status = "Open"
 ) => {
-  const timeNow = String(Date.now());
+  const timeNow = new Date(Date.now()).toISOString();
   const params = {
     TransactItems: [
       {
@@ -223,13 +250,13 @@ export const transactionalWrite = async (
             Batch_Id: { S: batchId },
             Participant_Id: { S: participantId },
           },
-          UpdateExpression: `SET Episode_Event = :episodeEvent, Episode_Event_Updated = :timeNow, Episode_Event_Description = :eventDescription, Episode_Status = :open, Episode_Event_Notes = :null, Episode_Event_Updated_By = :gtms, Episode_Status_Updated = :timeNow`,
+          UpdateExpression: `SET Episode_Event = :episodeEvent, Episode_Event_Updated = :timeNow, Episode_Event_Description = :eventDescription, Episode_Status = :status, Episode_Event_Notes = :null, Episode_Event_Updated_By = :gtms, Episode_Status_Updated = :timeNow`,
           TableName: `${ENVIRONMENT}-Episode`,
           ExpressionAttributeValues: {
             ":episodeEvent": { S: episodeEvent },
             ":timeNow": { N: timeNow },
             ":eventDescription": { S: cancellationReason },
-            ":open": { S: "Open" },
+            ":status": { S: status },
             ":null": { S: "Null" },
             ":gtms": { S: "GTMS" },
           },
@@ -255,7 +282,9 @@ export const transactionalWrite = async (
     const command = new TransactWriteItemsCommand(params);
     const response = await client.send(command);
     if (response.$metadata.httpStatusCode !== 200) {
-      console.error(`Error occurred while trying to update db with item: ${participantId}`);
+      console.error(
+        `Error occurred while trying to update db with item: ${participantId}`
+      );
       return false;
     } else {
       console.log(`Successfully updated db with item: ${participantId}`);

@@ -16,7 +16,7 @@ export const handler = async (event) => {
   const record = event.Records[0];
   const bucket = record.s3.bucket.name;
   const key = decodeURIComponent(record.s3.object.key.replace(/\+/g, " "));
-  const validatedBucketName = 'processed-inbound-gtms-withdrawal';
+  const validatedBucketName = "processed-inbound-gtms-withdrawal";
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
   try {
     const jsonString = await readCsvFromS3(bucket, key, s3);
@@ -42,7 +42,7 @@ export const handler = async (event) => {
     } else {
       console.warn(
         "PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Data BELOW:\n" +
-        validateResult.errors,
+          validateResult.errors
       );
       await pushCsvToS3(
         `${ENVIRONMENT}-${validatedBucketName}`,
@@ -57,7 +57,6 @@ export const handler = async (event) => {
     throw new Error(message);
   }
 };
-
 
 //FUNCTIONS
 /**
@@ -106,7 +105,9 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
     console.log(`Successfully pushed to ${bucketName}/${key}`);
     return response;
   } catch (err) {
-    console.log(`Failed to push to ${bucketName}/${key}. Error Message: ${err}`);
+    console.log(
+      `Failed to push to ${bucketName}/${key}. Error Message: ${err}`
+    );
     throw err;
   }
 };
