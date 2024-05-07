@@ -142,10 +142,10 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
-      - name: Create markdown file
-        run: |
-          echo "${{ github.event.pull_request.body }}" >> ${{ env.file_name }}
-          # cat ${{ env.file_name }}
+      # - name: Create markdown file
+      #   run: |
+      #     echo "${{ github.event.pull_request.body }}" >> ${{ env.file_name }}
+      #     # cat ${{ env.file_name }}
       - name: "Run release python script"
         run: |
           export CONFLUENCE_API_TOKEN=${{ secrets.CONFLUENCE_API_TOKEN }}
