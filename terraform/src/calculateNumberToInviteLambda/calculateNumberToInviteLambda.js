@@ -237,6 +237,9 @@ export const getParticipantsInQuintile = (
       localQuintilePopulationObjectKeys[randomPersonIndex];
 
     // person has not been previous indexed
+    console.log(`Person ${personSelectedId}  `);
+    console.log(`personSelectedId !== undefined ${personSelectedId !== undefined} `);
+    console.log(`!selectedParticipants.has(personSelectedId) ${!selectedParticipants.has(personSelectedId)} `);
     if (personSelectedId !== undefined && !selectedParticipants.has(personSelectedId)) {
       console.log(`Person ${personSelectedId} to be invited`);
       selectedParticipants.add(personSelectedId);
