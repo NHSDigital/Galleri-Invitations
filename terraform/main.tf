@@ -1341,6 +1341,7 @@ module "send_single_notify_message_lambda" {
     MAX_RETRIES                = 3
     ENRICHED_MESSAGE_QUEUE_URL = module.notify_enriched_message_queue_sqs.sqs_queue_url
   }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
 }
 
 module "send_single_notify_message_lambda_cloudwatch" {
