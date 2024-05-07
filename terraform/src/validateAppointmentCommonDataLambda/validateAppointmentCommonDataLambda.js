@@ -274,7 +274,7 @@ export async function updateAppointmentTable(
       [partitionKeyName]: partitionKeyValue,
     },
     UpdateExpression:
-      "SET primary_phone_number = :primaryNumber, secondary_phone_number = :secondaryNumber, email_address = :email_address, appointment_accessibility = :appointmentAccessibility, communications_accessibility = :communicationsAccessibility, notification_preferences= :notificationPreferences, Time_stamp = :timestamp ",
+      "SET primary_phone_number = :primaryNumber, secondary_phone_number = :secondaryNumber, email_address = :email_address, appointment_accessibility = :appointmentAccessibility, communications_accessibility = :communicationsAccessibility, notification_preferences= :notificationPreferences, Time_stamp = :time_stamp ",
     ExpressionAttributeValues: {
       ":primaryNumber": { S: appointment.PrimaryPhoneNumber },
       ":secondaryNumber": { S: appointment.SecondaryPhoneNumber },
@@ -284,7 +284,7 @@ export async function updateAppointmentTable(
         M: appointment.CommunicationsAccessibility,
       },
       ":notificationPreferences": { M: appointment.NotificationPreferences },
-      ":timestamp": { S: appointment.Timestamp },
+      ":time_stamp": { S: appointment.Timestamp },
     },
   };
   const command = new UpdateItemCommand(params);

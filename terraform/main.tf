@@ -910,22 +910,6 @@ module "gtms_appointment_event_booked_lambda_cloudwatch" {
   retention_days       = 14
 }
 
-module "gtms_appointment_event_booked_lambda_trigger" {
-  name       = "gtms_event_trigger"
-  source     = "./modules/lambda_s3_trigger"
-  bucket_arn = module.proccessed_appointments.bucket_arn
-  bucket_id  = module.proccessed_appointments.bucket_id
-  triggers = {
-    booked_records = {
-      lambda_arn    = module.gtms_appointment_event_booked_lambda.lambda_arn,
-      bucket_events = ["s3:ObjectCreated:*"],
-      filter_prefix = "validRecords/valid_records-BOOKED",
-      filter_suffix = ""
-    },
-  }
-}
-
-
 module "appointments_event_cancelled_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
@@ -1377,7 +1361,7 @@ module "validate_clinic_capacity_lambda_trigger" {
   bucket_id     = module.clinic_schedule_summary.bucket_id
   bucket_arn    = module.clinic_schedule_summary.bucket_arn
   lambda_arn    = module.validate_clinic_capacity_lambda.lambda_arn
-  filter_prefix = "clinic-schedule-summary"
+  filter_prefix = "clinic_schedule_summary"
 }
 
 
@@ -1408,7 +1392,7 @@ module "gtms_upload_clinic_capacity_data_trigger" {
   bucket_id     = module.processed_clinic_schedule_summary_bucket.bucket_id
   bucket_arn    = module.processed_clinic_schedule_summary_bucket.bucket_arn
   lambda_arn    = module.gtms_upload_clinic_capacity_data_lambda.lambda_arn
-  filter_prefix = "validRecords/clinic-schedule-summary"
+  filter_prefix = "validRecords/clinic_schedule_summary"
 }
 
 # Send Invitaion Batch to GTMS
@@ -1765,10 +1749,11 @@ module "caas_feed_add_records_lambda_cloudwatch" {
 }
 
 module "caas_data_triggers" {
-  source     = "./modules/lambda_s3_trigger"
-  name       = "caas_data_trigger"
-  bucket_arn = module.validated_records_bucket.bucket_arn
-  bucket_id  = module.validated_records_bucket.bucket_id
+  source      = "./modules/lambda_s3_trigger"
+  name        = "caas_data_trigger"
+  bucket_arn  = module.validated_records_bucket.bucket_arn
+  bucket_id   = module.validated_records_bucket.bucket_id
+  environment = var.environment
   triggers = {
     add_records = {
       lambda_arn    = module.caas_feed_add_records_lambda.lambda_arn,
@@ -1852,12 +1837,32 @@ module "process_appointment_event_type_lambda_cloudwatch" {
   retention_days       = 14
 }
 
-module "process_appointment_event_type_lambda_trigger" {
-  source        = "./modules/lambda_trigger"
-  bucket_id     = module.proccessed_appointments.bucket_id
-  bucket_arn    = module.proccessed_appointments.bucket_arn
-  lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn
-  filter_prefix = "validRecords/valid_records-"
+module "event_type_triggers" {
+  name        = "event_type_triggers"
+  source      = "./modules/lambda_s3_trigger"
+  bucket_arn  = module.proccessed_appointments.bucket_arn
+  bucket_id   = module.proccessed_appointments.bucket_id
+  environment = var.environment
+  triggers = {
+    complete_event = {
+      lambda_arn    = module.process_appointment_event_type_lambda.lambda_arn,
+      bucket_events = ["s3:ObjectCreated:*"],
+      filter_prefix = "validRecords/valid_records_COMPLETE",
+      filter_suffix = ""
+    },
+    cancelled_event = {
+      lambda_arn    = module.appointments_event_cancelled_lambda.lambda_arn,
+      bucket_events = ["s3:ObjectCreated:*"],
+      filter_prefix = "validRecords/valid_records_CANCELLED",
+      filter_suffix = ""
+    },
+    booked_event = {
+      lambda_arn    = module.gtms_appointment_event_booked_lambda.lambda_arn,
+      bucket_events = ["s3:ObjectCreated:*"],
+      filter_prefix = "validRecords/valid_records_BOOKED",
+      filter_suffix = ""
+    }
+  }
 }
 
 module "gp_practice_table" {
@@ -2187,6 +2192,7 @@ module "episode_history_table" {
   stream_view_type = "NEW_AND_OLD_IMAGES"
   table_name       = "EpisodeHistory"
   hash_key         = "Participant_Id"
+  range_key        = "Episode_Event_Updated"
   read_capacity    = 10
   write_capacity   = 10
   environment      = var.environment
@@ -2194,6 +2200,10 @@ module "episode_history_table" {
   attributes = [
     {
       name = "Participant_Id"
+      type = "S"
+    },
+    {
+      name = "Episode_Event_Updated"
       type = "S"
     }
   ]
@@ -2231,6 +2241,45 @@ module "appointment_table" {
     Environment = var.environment
   }
 }
+
+module "galleri_blood_test_result_table" {
+  source      = "./modules/dynamodb"
+  table_name  = "GalleriBloodTestResult"
+  hash_key    = "Participant_Id"
+  range_key   = "Grail_Id"
+  environment = var.environment
+  attributes = [
+    {
+      name = "Participant_Id"
+      type = "S"
+    },
+    {
+      name = "Grail_Id"
+      type = "S"
+    }
+  ]
+  tags = {
+    Name        = "Dynamodb Table Galleri Blood Test Result"
+    Environment = var.environment
+  }
+}
+
+module "caas_eventbridge_scheduler" {
+  source              = "./modules/eventbridge_scheduler"
+  function_name       = "pollMeshMailboxLambda"
+  schedule_expression = "cron(0/30 * * * ? *)"
+  lambda_arn          = module.poll_mesh_mailbox_lambda.lambda_arn
+  environment         = var.environment
+}
+
+module "GTMS_eventbridge_scheduler" {
+  source              = "./modules/eventbridge_scheduler"
+  function_name       = "gtmsMeshMailboxLambda"
+  schedule_expression = "cron(0/15 * * * ? *)"
+  lambda_arn          = module.gtms_mesh_mailbox_lambda.lambda_arn
+  environment         = var.environment
+}
+
 // Parameter Store
 resource "aws_ssm_parameter" "invited-notify" {
   name      = "invited-notify"
