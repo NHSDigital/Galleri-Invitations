@@ -2,6 +2,7 @@ resource "aws_cloudwatch_event_rule" "schedule_rule" {
   name                = var.function_name
   description         = "Trigger Lambda function depending on cron function"
   schedule_expression = var.schedule_expression
+  state               = var.environment == can(regex("(prod|uat)", var.environment)) ? "ENABLED" : "DISABLED"
 }
 
 resource "aws_cloudwatch_event_target" "lambda_target" {
@@ -11,7 +12,7 @@ resource "aws_cloudwatch_event_target" "lambda_target" {
 }
 
 resource "aws_lambda_permission" "allow_eventbridge" {
-  statement_id  = "AllowExecutionFromEventBridge"
+  statement_id  = "${var.environment}-AllowExecutionFromEventBridge-${md5(var.lambda_arn)}"
   action        = "lambda:InvokeFunction"
   function_name = var.lambda_arn
   principal     = "events.amazonaws.com"
