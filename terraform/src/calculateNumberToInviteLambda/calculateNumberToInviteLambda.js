@@ -241,7 +241,7 @@ export const getParticipantsInQuintile = (
     console.log(`personSelectedId !== undefined ${personSelectedId !== undefined} `);
     console.log(`!selectedParticipants.has(personSelectedId) ${!selectedParticipants.has(personSelectedId)} `);
     console.log(`Person undefined selectedParticipants.has ${personSelectedId !== undefined && !selectedParticipants.has(personSelectedId)}  `);
-    if (personSelectedId !== undefined && !selectedParticipants.has(personSelectedId)) {
+    if (!selectedParticipants.has(personSelectedId)) {
       console.log(`Person ${personSelectedId} to be invited`);
       selectedParticipants.add(personSelectedId);
       const personSelectedForecastUptake =
