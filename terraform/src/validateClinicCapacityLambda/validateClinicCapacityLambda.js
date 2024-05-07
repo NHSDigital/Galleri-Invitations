@@ -52,11 +52,9 @@ export const handler = async (event) => {
         jsonString,
         s3
       );
-      console.warn(
-        "PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Capacity BELOW:\n" +
-          validationResult.errors,
-        null,
-        2
+      console.error(
+        "Error: PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Capacity BELOW:\n" +
+          validationResult.errors
       );
     }
     return `Finished validating object ${key} in bucket ${bucket}`;
@@ -78,7 +76,7 @@ export const readFromS3 = async (bucketName, key, client) => {
 
     return response.Body.transformToString();
   } catch (err) {
-    console.log("Failed: ", err);
+    console.error("Error: ", err);
     throw err;
   }
 };
@@ -95,7 +93,7 @@ export const pushToS3 = async (bucketName, key, body, client) => {
 
     return response;
   } catch (err) {
-    console.log("Failed: ", err);
+    console.error("Error: ", err);
     throw err;
   }
 };
@@ -106,7 +104,7 @@ export async function validateRecord(record, client) {
     message: "success",
   };
 
-  console.log("record:", record);
+  console.log("record:", JSON.stringify(record));
 
   const numberOfClinics =
     record.ClinicScheduleSummary.ClinicScheduleSummary.length;

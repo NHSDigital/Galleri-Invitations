@@ -39,11 +39,11 @@ variable "NEXTAUTH_URL" {
   default = null
 }
 
-variable "GALLERI_ACTIVITY_CODE" {
+variable "CIS2_REDIRECT_URL" {
   default = null
 }
 
-variable "GALLERI_ACTIVITY_NAME" {
+variable "GALLERI_ACTIVITY_CODE" {
   default = null
 }
 
@@ -63,6 +63,26 @@ variable "CIS2_KNAME" {
   description = "The CIS2 private key secret name in AWS secrets manager"
 }
 
+variable "NOTIFY_API_KEY" {
+  description = "The NHS Notify API Key"
+}
+
+variable "NOTIFY_TOKEN_ENDPOINT_URL" {
+  description = "The NHS Notify token endpoint URL"
+}
+
+variable "NOTIFY_MESSAGES_ENDPOINT_URL" {
+  description = "The NHS Notify messages endpoint URL"
+}
+
+variable "NOTIFY_PUBLIC_KEY_ID" {
+  description = "The NHS Notify public key id (kid)"
+}
+
+variable "NOTIFY_KNAME" {
+  description = "The NHS_NOTIFY_KNAME private key secret name in AWS secrets manager"
+}
+
 variable "region" {
   default = "eu-west-2"
 }
@@ -73,4 +93,9 @@ variable "invitations-hostname" {
 
 variable "dns_zone" {
   description = "the aws account the environment is part of, eg cicd, nft, uat, etc"
+}
+
+variable "K8_URL" {
+  description = "url for eks mesh service"
+  default     = null
 }

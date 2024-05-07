@@ -32,6 +32,7 @@ export const handler = async (event) => {
 
 // METHODS
 export async function processIncomingRecords(incomingRecordsArr, dbClient) {
+  console.log("Entered function processIncomingRecords");
   const episodeRecordsUpload = await Promise.allSettled(
     incomingRecordsArr.map(async (record) => {
       if (
@@ -72,11 +73,13 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient) {
       );
     })
   );
+  console.log("Exiting function processIncomingRecords");
   return episodeRecordsUpload;
 }
 
 function createEpisodeRecord(record) {
-  const createTime = String(Date.now());
+  console.log("Entered function createEpisodeRecord");
+  const createTime = new Date(Date.now()).toISOString();
   const item = {
     Batch_Id: {
       S: `${record.Batch_Id.S}`,
@@ -110,10 +113,12 @@ function createEpisodeRecord(record) {
     },
   };
 
+  console.log("Exiting function createEpisodeRecord");
   return item;
 }
 
 async function addEpisodeRecord(table, item) {
+  console.log("Entered function addEpisodeRecord");
   const input = {
     TableName: `${ENVIRONMENT}-${table}`,
     Item: item,
@@ -124,11 +129,13 @@ async function addEpisodeRecord(table, item) {
   const command = new PutItemCommand(input);
   const response = await client.send(command);
 
+  console.log("Exiting function addEpisodeRecord");
   return response;
 }
 
 // look into episode table and see if there exists a participant
 export const lookupParticipantId = async (participantId, table, dbClient) => {
+  console.log("Entered function lookupParticipantId");
   const input = {
     ExpressionAttributeValues: {
       ":participant": {
@@ -148,5 +155,6 @@ export const lookupParticipantId = async (participantId, table, dbClient) => {
     return true;
   }
   console.log("Duplicate exists");
+  console.log("Exiting function lookupParticipantId");
   return false;
 };

@@ -60,7 +60,9 @@ export const handler = async (event) => {
 
   const episodeItems = episodeResponse.Items[0];
   console.log(
-    `episodeItems for participant: ${JSON.stringify(episodeItems.Participant_Id)} loaded.`
+    `episodeItems for participant: ${JSON.stringify(
+      episodeItems.Participant_Id
+    )} loaded.`
   );
 
   const appointmentResponse = await lookUp(
@@ -73,7 +75,9 @@ export const handler = async (event) => {
   );
   const appointmentItems = appointmentResponse.Items[0];
   console.log(
-    `appointmentItems for appointment: ${JSON.stringify(appointmentItems.Appointment_Id)} loaded.`
+    `appointmentItems for appointment: ${JSON.stringify(
+      appointmentItems.Appointment_Id
+    )} loaded.`
   );
 
   const dateTime = new Date(Date.now()).toISOString();
@@ -110,7 +114,8 @@ export const handler = async (event) => {
         );
       }
       if (Object.values(participantWithdrawn).includes(CancellationReason)) {
-        const episodeEvent = "Appointment Cancelled by Participant - Withdrawn";
+        const episodeEvent =
+          "Appointment Cancelled by Participant - No reminder";
         console.log(episodeEvent);
         await transactionalWrite(
           dbClient,
@@ -119,7 +124,8 @@ export const handler = async (event) => {
           AppointmentID,
           EventType,
           episodeEvent,
-          CancellationReason
+          CancellationReason,
+          "Closed"
         );
       }
       if (
@@ -232,9 +238,10 @@ export const transactionalWrite = async (
   appointmentId,
   eventType,
   episodeEvent,
-  cancellationReason
+  cancellationReason,
+  status = "Open"
 ) => {
-  const timeNow = String(Date.now());
+  const timeNow = new Date(Date.now()).toISOString();
   const params = {
     TransactItems: [
       {
@@ -243,13 +250,13 @@ export const transactionalWrite = async (
             Batch_Id: { S: batchId },
             Participant_Id: { S: participantId },
           },
-          UpdateExpression: `SET Episode_Event = :episodeEvent, Episode_Event_Updated = :timeNow, Episode_Event_Description = :eventDescription, Episode_Status = :open, Episode_Event_Notes = :null, Episode_Event_Updated_By = :gtms, Episode_Status_Updated = :timeNow`,
+          UpdateExpression: `SET Episode_Event = :episodeEvent, Episode_Event_Updated = :timeNow, Episode_Event_Description = :eventDescription, Episode_Status = :status, Episode_Event_Notes = :null, Episode_Event_Updated_By = :gtms, Episode_Status_Updated = :timeNow`,
           TableName: `${ENVIRONMENT}-Episode`,
           ExpressionAttributeValues: {
             ":episodeEvent": { S: episodeEvent },
             ":timeNow": { N: timeNow },
             ":eventDescription": { S: cancellationReason },
-            ":open": { S: "Open" },
+            ":status": { S: status },
             ":null": { S: "Null" },
             ":gtms": { S: "GTMS" },
           },
