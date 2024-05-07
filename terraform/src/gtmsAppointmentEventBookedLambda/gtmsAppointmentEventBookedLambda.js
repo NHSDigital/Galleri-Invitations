@@ -22,7 +22,7 @@ const myFormat = printf(
   ({ level, message, timestamp }) => `[${timestamp}] ${level}: ${message}`
 );
 
-const DATEPARAM = process.env.DATEPARAM;
+const DATEPARAM = Number(process.env.DATEPARAM);
 
 //HANDLER
 export const handler = async (event) => {
