@@ -154,7 +154,7 @@ export const handler = async (event) => {
       await rejectRecord(appointmentJson, "No property AppointmentID found");
       return;
     }
-    await acceptRecord(appointmentJson);
+    await acceptRecord(appointmentJson, Appointment.EventType);
   } catch (error) {
     console.error(
       "Error with Appointment extraction, procession or uploading",

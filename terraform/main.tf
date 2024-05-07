@@ -899,7 +899,7 @@ module "gtms_appointment_event_booked_lambda" {
   lambda_s3_object_key = "gtms_appointment_event_booked_lambda.zip"
   environment_vars = {
     ENVIRONMENT = "${var.environment}",
-    DATEPARAM   = "5"
+    DATEPARAM   = 5
   }
 }
 
