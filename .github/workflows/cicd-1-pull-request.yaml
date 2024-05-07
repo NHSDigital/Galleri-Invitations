@@ -2,9 +2,9 @@ name: "CI/CD nft"
 
 # The total recommended execution time for the "CI/CD Pull Request" workflow is around 20 minutes.
 
-# on:
-#   pull_request:
-#     types: [opened, reopened, edited, synchronize]
+on:
+  pull_request:
+    types: [opened, reopened, edited, synchronize]
 
 jobs:
   metadata:
