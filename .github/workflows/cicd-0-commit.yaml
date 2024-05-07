@@ -2,11 +2,11 @@ name: "CI/CD Dev"
 
 # The total recommended execution time for the "CI/CD Pull Request" workflow is around 20 minutes.
 
-on:
-  push:
-    branches:
-      - "feature/**"
-      - "hotfix/**"
+# on:
+#   push:
+#     branches:
+#       - "feature/**"
+#       - "hotfix/**"
 
 env:
   AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
