@@ -241,7 +241,7 @@ export const transactionalWrite = async (
   cancellationReason,
   status = "Open"
 ) => {
-  const timeNow = String(Date.now());
+  const timeNow = new Date(Date.now()).toISOString();
   const params = {
     TransactItems: [
       {
