@@ -187,7 +187,7 @@ export const saveObjToEpisodeTable = async (
   reason,
   personId
 ) => {
-  const createTime = String(Date.now());
+  const createTime = new Date(Date.now()).toISOString();
   const params = {
     Key: {
       Batch_Id: {
