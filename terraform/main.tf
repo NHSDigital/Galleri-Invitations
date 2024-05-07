@@ -2244,11 +2244,12 @@ module "episode_history_table" {
 }
 
 module "appointment_table" {
-  source      = "./modules/dynamodb"
-  table_name  = "Appointments"
-  hash_key    = "Participant_Id"
-  range_key   = "Appointment_Id"
-  environment = var.environment
+  source          = "./modules/dynamodb"
+  table_name      = "Appointments"
+  hash_key        = "Participant_Id"
+  range_key       = "Appointment_Id"
+  environment     = var.environment
+  projection_type = "ALL"
   attributes = [
     {
       name = "Participant_Id"
@@ -2261,9 +2262,10 @@ module "appointment_table" {
   ]
   global_secondary_index = [
     {
-      name      = "Appointment_Id-index"
-      hash_key  = "Appointment_Id"
-      range_key = null
+      name            = "Appointment_Id-index"
+      hash_key        = "Appointment_Id"
+      range_key       = null
+      projection_type = "ALL"
     }
   ]
   tags = {
