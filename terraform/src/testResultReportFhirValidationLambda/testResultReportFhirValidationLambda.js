@@ -1,4 +1,4 @@
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import {
   SecretsManagerClient,
   GetSecretValueCommand,
@@ -10,8 +10,8 @@ const s3 = new S3Client();
 const smClient = new SecretsManagerClient({ region: "eu-west-2" });
 const TRR_SUCCESSFUL_BUCKET = process.env.TRR_SUCCESSFUL_BUCKET;
 const TRR_UNSUCCESSFUL_BUCKET = process.env.TRR_UNSUCCESSFUL_BUCKET;
-const FHIR_VALIDATION_SERVICE_NAME = process.env.FHIR_VALIDATION_SERVICE_NAME
-let fhirValidationServiceURL;
+const ENVIRONMENT = process.env.ENVIRONMENT;
+let validationServiceUrl;
 
 //HANDLER
 export const handler = async (event, context) => {
@@ -22,9 +22,9 @@ export const handler = async (event, context) => {
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
   try {
-    fhirValidationServiceURL = await getSecret(FHIR_VALIDATION_SERVICE_NAME, smClient);
+    validationServiceUrl = await getSecret(process.env.FHIR_VALIDATION_SERVICE_URL, smClient);
     const testResultReport = await retrieveAndParseJSON(getJSONFromS3, bucket, key, s3);
-    await processTRR(testResultReport, key);
+    await processTRR(testResultReport, key, bucket);
   } catch (error) {
     console.error("Error occurred whilst processing JSON file from S3");
     console.error("Error:", error);
@@ -32,38 +32,96 @@ export const handler = async (event, context) => {
 };
 
 //FUNCTIONS
-export async function processTRR(testResultReport, reportName) {
-  const validTRR = await validateTRR(testResultReport, reportName);
+export async function processTRR(testResultReport, reportName, originalBucket) {
+  const validTRR = await validateTRR(testResultReport, reportName, validationServiceUrl);
+  if (validTRR) {
+    await putTRRInS3Bucket(testResultReport, reportName, TRR_SUCCESSFUL_BUCKET, s3);
+  } else {
+    await putTRRInS3Bucket(testResultReport, reportName, TRR_UNSUCCESSFUL_BUCKET, s3);
+  };
+  await deleteTRRinS3Bucket(reportName, originalBucket, s3);
 };
 
 // Validate TRR
-export async function validateTRR(testResultReport, reportName) {
-  await axios({
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-    },
-    data: JSON.stringify(testResultReport),
-    url: `${FHIR_VALIDATION_SERVICE_URL}/FHIR/R4/$validate`,
-  }).then((response) => {
-    console.log(`FHIR validation successful for ${reportName}`);
-    return true;
-  })
-  .catch((error) => {
+export async function validateTRR(testResultReport, reportName, validationServiceUrl) {
+  try {
+    const response = await axios({
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      data: JSON.stringify(testResultReport),
+      url: `${validationServiceUrl}/FHIR/R4/$validate`,
+    });
+
+    if (!responseHasErrors(response.data)) {
+      console.log(`FHIR validation successful for ${reportName}`);
+      return true;
+    } else {
+      console.error(`FHIR validation unsuccessful for ${reportName} - Status ${response.status} - Response data: `, response.data);
+      return false;
+    }
+  } catch (error) {
     if (error.response) {
       console.error(`Error: Unsuccessful request to FHIR validation service for ${reportName} - Status ${error.response.status} - Error body: ${error.response.data}`);
     } else if (error.request) {
-      console.log(`Error: Unsuccessful request to FHIR validation service for ${reportName} - Error request: `, error.request);
+      console.error(`Error: Unsuccessful request to FHIR validation service for ${reportName} - Error request: `, error.request);
     } else {
-      console.log(`Error: Unsuccessful request to FHIR validation service for ${reportName} - due to issue with setting up request message: `, error.message);
+      console.error(`Error: Unsuccessful request to FHIR validation service for ${reportName} - due to issue with setting up request message: `, error.message);
     }
     return false;
-  });
+  }
 };
 
 // Move TRR to S3 bucket
-export async function putTRRInS3Bucket(testResultReport, bucketName) {
+export async function putTRRInS3Bucket(testResultReport, reportName, bucketName, client) {
+  try {
+    const response = await client.send(
+      new PutObjectCommand({
+        Bucket: `${ENVIRONMENT}-${bucketName}`,
+        Key: reportName,
+        Body: JSON.stringify(testResultReport),
+      })
+    );
+    console.log(`Successfully pushed to ${bucketName}/${reportName}`);
+    return response;
+  } catch (err) {
+    console.error(
+      `Error: Failed to push to ${bucketName}/${reportName}. Error Message: ${err}`
+    );
+    throw err;
+  }
+};
 
+export async function deleteTRRinS3Bucket(reportName, bucketName, client) {
+  try {
+    const response = await client.send(
+      new DeleteObjectCommand({
+        Bucket: bucketName,
+        Key: reportName,
+      })
+    );
+
+    console.log(`Successfully deleted ${reportName} from ${bucketName}`);
+    return response;
+  } catch (error) {
+    console.error(`Error: deleting ${reportName} from ${bucketName}:`, error);
+    throw error;
+  }
+};
+
+export function responseHasErrors(response) {
+  const issues = response.issue;
+  let hasError = false;
+
+  for (const issue of issues) {
+    if (issue.severity === "error") {
+      console.error("Error: FHIR diagnostic message: ", issue.diagnostics);
+      hasError = true;
+    }
+  }
+
+  return hasError;
 };
 
 // Retrieve and Parse the JSON file
