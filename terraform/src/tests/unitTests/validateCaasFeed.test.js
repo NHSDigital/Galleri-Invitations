@@ -252,7 +252,6 @@ describe("validateCaasFeed function", () => {
     const mockClient = {
       send: jest.fn().mockRejectedValue(errorMsg),
     };
-
     try {
       await readCsvFromS3("aaaaaaa", "aaaaaaa", mockClient);
     } catch (err) {
