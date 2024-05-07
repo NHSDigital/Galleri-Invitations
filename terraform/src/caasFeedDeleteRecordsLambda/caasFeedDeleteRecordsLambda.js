@@ -233,7 +233,9 @@ export async function updatePopulationTable(
   const command = new UpdateItemCommand(params);
   const response = await client.send(command);
   if (response.$metadata.httpStatusCode != 200) {
-    console.error(`Error: record update failed for person ${partitionKeyValue}`);
+    console.error(
+      `Error: record update failed for person ${partitionKeyValue}`
+    );
   }
   return response.$metadata.httpStatusCode;
 }
@@ -260,7 +262,9 @@ export async function updateAppointmentTable(
   const command = new UpdateItemCommand(params);
   const response = await client.send(command);
   if (response.$metadata.httpStatusCode != 200) {
-    console.error(`Error: record update failed for person ${partitionKeyValue}`);
+    console.error(
+      `Error: record update failed for person ${partitionKeyValue}`
+    );
   }
   return response.$metadata.httpStatusCode;
 }
