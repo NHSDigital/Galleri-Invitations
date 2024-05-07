@@ -3,7 +3,11 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBClient,
+  QueryCommand,
+  UpdateItemCommand,
+} from "@aws-sdk/client-dynamodb";
 
 const s3 = new S3Client();
 const dbClient = new DynamoDBClient({
@@ -117,9 +121,9 @@ export const handler = async (event) => {
         validateAppointmentIdResponse.Items.length > 0;
       if (validateAppointmentId) {
         const oldAppointmentTime = new Date(
-          validateAppointmentIdResponse.Items[0].AppointmentDateTime.S
+          validateAppointmentIdResponse.Items[0].Time_stamp.S
         );
-        const newAppointmentTime = new Date(Appointment.AppointmentDateTime);
+        const newAppointmentTime = new Date(Appointment.Timestamp);
         if (oldAppointmentTime > newAppointmentTime) {
           await rejectRecord(
             appointmentJson,
@@ -145,9 +149,6 @@ export const handler = async (event) => {
             return;
           }
         }
-      } else {
-        await rejectRecord(appointmentJson, "No Valid Appointment found");
-        return;
       }
     } else {
       await rejectRecord(appointmentJson, "No property AppointmentID found");
@@ -273,7 +274,7 @@ export async function updateAppointmentTable(
       [partitionKeyName]: partitionKeyValue,
     },
     UpdateExpression:
-      "SET primary_phone_number = :primaryNumber, secondary_phone_number = :secondaryNumber, email_address = :email_address, appointment_accessibility = :appointmentAccessibility, communications_accessibility = :communicationsAccessibility, notification_preferences= :notificationPreferences, timestamp = :timestamp ",
+      "SET primary_phone_number = :primaryNumber, secondary_phone_number = :secondaryNumber, email_address = :email_address, appointment_accessibility = :appointmentAccessibility, communications_accessibility = :communicationsAccessibility, notification_preferences= :notificationPreferences, Time_stamp = :timestamp ",
     ExpressionAttributeValues: {
       ":primaryNumber": { S: appointment.PrimaryPhoneNumber },
       ":secondaryNumber": { S: appointment.SecondaryPhoneNumber },
@@ -283,7 +284,7 @@ export async function updateAppointmentTable(
         M: appointment.CommunicationsAccessibility,
       },
       ":notificationPreferences": { M: appointment.NotificationPreferences },
-      ":timestamp": { S: Timestamp },
+      ":timestamp": { S: appointment.Timestamp },
     },
   };
   const command = new UpdateItemCommand(params);
