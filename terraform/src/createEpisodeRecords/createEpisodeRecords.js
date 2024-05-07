@@ -80,7 +80,6 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient) {
 function createEpisodeRecord(record) {
   console.log("Entered function createEpisodeRecord");
   const createTime = new Date(Date.now()).toISOString();
-  console.log("Episode create time: ", createTime);
   const item = {
     Batch_Id: {
       S: `${record.Batch_Id.S}`,
