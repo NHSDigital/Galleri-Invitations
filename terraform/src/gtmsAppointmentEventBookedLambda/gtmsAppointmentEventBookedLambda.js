@@ -22,7 +22,7 @@ const myFormat = printf(
   ({ level, message, timestamp }) => `[${timestamp}] ${level}: ${message}`
 );
 
-const DATEPARAM = process.env.DATEPARAM;
+const DATEPARAM = 5;
 
 //HANDLER
 export const handler = async (event) => {
@@ -37,8 +37,9 @@ export const handler = async (event) => {
   const payloadParticipantID = js?.["Appointment"]?.["ParticipantID"];
   const payloadAppointmentID = js?.["Appointment"]?.["AppointmentID"];
   const payloadEventType = js?.["Appointment"]?.["EventType"]; //BOOKED
-  const payloadAppointmentDateTime =
-    js?.["Appointment"]?.["AppointmentDateTime"];
+  const payloadAppointmentDateTime = new Date(
+    js?.["Appointment"]?.["AppointmentDateTime"]
+  );
   const payloadAppointmentReplaces = js?.["Appointment"]?.["Replaces"]; //replaces existing appointment id
   const payloadTimestamp = js?.["Appointment"]?.["Timestamp"]; //most recent
 
@@ -52,7 +53,9 @@ export const handler = async (event) => {
   );
   const episodeItems = episodeResponse.Items[0];
   logger.info(
-    `episodeItems for participant: ${JSON.stringify(episodeItems?.Participant_Id)} loaded.`
+    `episodeItems for participant: ${JSON.stringify(
+      episodeItems?.Participant_Id
+    )} loaded.`
   );
   //doesn't pull associated appointment id as in scenario it is new but links to existing
 
@@ -66,7 +69,9 @@ export const handler = async (event) => {
   );
   const appointmentItems = appointmentResponse.Items[0];
   logger.info(
-    `appointmentItems for appointment: ${JSON.stringify(appointmentItems?.Appointment_Id)} loaded.`
+    `appointmentItems for appointment: ${JSON.stringify(
+      appointmentItems?.Appointment_Id
+    )} loaded.`
   );
   //bring back most recent appointment, with timestamp
 
@@ -86,14 +91,16 @@ export const handler = async (event) => {
   });
   const appointmentParticipantItems = sortedApptParticipants[0];
   logger.info(
-    `appointmentParticipantItems for appointment: ${JSON.stringify(appointmentParticipantItems?.Appointment_Id)} loaded.`
+    `appointmentParticipantItems for appointment: ${JSON.stringify(
+      appointmentParticipantItems?.Appointment_Id
+    )} loaded.`
   );
 
   let date = new Date();
   const dateTime = new Date(Date.now()).toISOString();
   try {
     if (
-      payloadAppointmentDateTime > date.toISOString() &&
+      payloadAppointmentDateTime.toISOString() > date.toISOString() &&
       payloadEventType === "BOOKED" &&
       episodeItems
     ) {
@@ -108,7 +115,9 @@ export const handler = async (event) => {
         // new appointment ID, and no existing = ADD
         console.info("Identified payload is for booked appointment");
         date.setDate(date.getDate() + DATEPARAM);
-        if (payloadAppointmentDateTime > date.toISOString()) {
+        console.log(payloadAppointmentDateTime.toISOString());
+        console.log(date.toISOString());
+        if (payloadAppointmentDateTime.toISOString() > date.toISOString()) {
           //greater than date param, e.g. 5
           const episodeEvent = "Appointment Booked Letter";
           logger.info(episodeEvent);
@@ -143,7 +152,7 @@ export const handler = async (event) => {
       ) {
         //same appointmentID = UPDATE
         console.info("Identified payload is for rebooked appointment");
-        if (payloadAppointmentDateTime > date.toISOString()) {
+        if (payloadAppointmentDateTime.toISOString() > date.toISOString()) {
           //greater than date param, e.g. 5
           const episodeEvent = "Appointment Rebooked Letter";
           logger.info(episodeEvent);
