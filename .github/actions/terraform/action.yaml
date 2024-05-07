@@ -144,6 +144,7 @@ runs:
         npm install --prefix src/sendInvitationBatchToRawMessageQueueLambda
         npm install --prefix src/sendEnrichedMessageToNotifyQueueLambda
         npm install --prefix src/SNSAlertLambda
+        npm install --prefix src/sendSingleNotifyMessageLambda
         npm install --prefix src/nrdsMeshMailboxLambda
 
         if [[ ${{ env.environment }} != prod ]]; then

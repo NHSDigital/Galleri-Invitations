@@ -63,6 +63,26 @@ variable "CIS2_KNAME" {
   description = "The CIS2 private key secret name in AWS secrets manager"
 }
 
+variable "NOTIFY_API_KEY" {
+  description = "The NHS Notify API Key"
+}
+
+variable "NOTIFY_TOKEN_ENDPOINT_URL" {
+  description = "The NHS Notify token endpoint URL"
+}
+
+variable "NOTIFY_MESSAGES_ENDPOINT_URL" {
+  description = "The NHS Notify messages endpoint URL"
+}
+
+variable "NOTIFY_PUBLIC_KEY_ID" {
+  description = "The NHS Notify public key id (kid)"
+}
+
+variable "NOTIFY_KNAME" {
+  description = "The NHS_NOTIFY_KNAME private key secret name in AWS secrets manager"
+}
+
 variable "region" {
   default = "eu-west-2"
 }

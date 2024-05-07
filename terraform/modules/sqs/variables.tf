@@ -18,3 +18,8 @@ variable "visibility_timeout_seconds" {
 }
 
 variable "environment" {}
+
+variable "application_role" {
+  description = "Used for tagging resource according to Cloud guidelines"
+  default     = "Messaging"
+}

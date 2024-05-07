@@ -224,7 +224,7 @@ export async function updatePopulationTable(
       [partitionKeyName]: partitionKeyValue,
     },
     UpdateExpression:
-      "SET address_line_1 = :null, address_line_2 = :null, address_line_3 = :null, address_line_4 = :null, address_line_5 = :null, postcode = :null, telephone_number_home = :null, telephone_number_mobile = :null, email_address_home = :null, primary_care_provider = :null, nbo_comms = :true",
+      "SET address_line_1 = :null, address_line_2 = :null, address_line_3 = :null, address_line_4 = :null, address_line_5 = :null, postcode = :null, telephone_number = :null, mobile_number = :null, email_address = :null, primary_care_provider = :null, nbo_comms = :true",
     ExpressionAttributeValues: {
       ":null": "null",
       ":true": true,

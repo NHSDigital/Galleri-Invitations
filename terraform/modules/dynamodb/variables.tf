@@ -66,6 +66,11 @@ variable "server_side_encryption" {
   default = true
 }
 
+variable "application_role" {
+  description = "Used for tagging resource according to Cloud guidelines"
+  default     = "DB"
+}
+
 variable "tags" {
   description = "A map of tags for the db"
   type        = map(string)

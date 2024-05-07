@@ -78,7 +78,7 @@ export const handler = async (event) => {
         "----------------------------------------------------------------"
       );
 
-      if (filteredRejectedRecords) {
+      if (filteredRejectedRecords.length) {
         const timeNow = Date.now();
         const fileName = `validRecords/rejectedRecords/rejectedRecords-${timeNow}.csv`;
         console.error(

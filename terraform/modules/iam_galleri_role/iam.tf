@@ -13,6 +13,10 @@ resource "aws_iam_role" "galleri_lambda_role" {
       }
     ]
   })
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Galleri Lambda Role"
+  }
 }
 
 resource "aws_iam_policy" "iam_policy_for_lambda" {
@@ -44,6 +48,10 @@ resource "aws_iam_policy" "iam_policy_for_lambda" {
       ],
       "Version" : "2012-10-17"
   })
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Galleri Lambda Policy"
+  }
 }
 
 
@@ -76,6 +84,10 @@ resource "aws_iam_policy" "clinic_information_lambda" {
       ],
       "Version" : "2012-10-17"
   })
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Clinic Information Policy"
+  }
 }
 
 # Policy required by gpPracticesLoaderLambda
@@ -140,6 +152,10 @@ resource "aws_iam_policy" "participating_icb_list_lambda" {
       ],
       "Version" : "2012-10-17"
   })
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Participating ICB Policy"
+  }
 }
 
 resource "aws_iam_policy" "clinic_summary_list_lambda" {
@@ -171,6 +187,10 @@ resource "aws_iam_policy" "clinic_summary_list_lambda" {
       ],
       "Version" : "2012-10-17"
   })
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Clinic Summary Policy"
+  }
 }
 
 resource "aws_iam_policy" "target_percentage_lambda" {
@@ -202,6 +222,10 @@ resource "aws_iam_policy" "target_percentage_lambda" {
       ],
       "Version" : "2012-10-17"
   })
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Target Percentage Policy"
+  }
 }
 
 resource "aws_iam_policy" "invitation_parameters_lambda" {
@@ -233,6 +257,10 @@ resource "aws_iam_policy" "invitation_parameters_lambda" {
       ],
       "Version" : "2012-10-17"
   })
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Invitation Parameter Policy"
+  }
 }
 resource "aws_iam_policy" "iam_policy_for_calculate_num_to_invite_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_calculate_num_to_invite_lambda_role"
@@ -273,6 +301,10 @@ resource "aws_iam_policy" "iam_policy_for_calculate_num_to_invite_lambda" {
       ],
       "Version" : "2012-10-17"
   })
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Calculate Num. to Invite Policy"
+  }
 }
 
 resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
@@ -314,6 +346,10 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
       ],
       "Version" : "2012-10-17"
   })
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Get LSOA in Range Policy"
+  }
 }
 
 # Policy required by validateClinicDataLambda
@@ -476,6 +512,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added processAppointmentEventTypeLambda to this policy as lambda role exceeded policy limit
 # Added sendInvitationBatchToRawMessageQueueLambda to this policy as lambda role exceeded policy limit
 # Added sendEnrichedMessageToNotifyQueueLambda to this policy as lambda role exceeded policy limit
+# Added sendSingleNotifyMessageLambda to this policy as lambda role exceeded policy limit
 # Added nrdsMeshMailboxLambda to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
@@ -512,6 +549,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-EpisodeHistory",
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Episode",
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-EpisodeHistory/*/*",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-NotifySendMessageStatus"
           ]
         },
         {
@@ -574,8 +612,8 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CAAS_MESH_CERT*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_INT_1*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_CLIENT_ID*",
-            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:SAND_MESH_MAILBOX_ID*",
-            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:SAND_MESH_MAILBOX_PASSWORD*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:NHS_NOTIFY_API_KEY*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:COMMS_MANAGER_PRIVATE_KEY_TEST_1*"
           ]
         },
         {
@@ -597,6 +635,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           "Effect" : "Allow",
           "Resource" : [
             "arn:aws:sqs:eu-west-2:${var.account_id}:${var.environment}-notifyRawMessageQueue.fifo",
+            "arn:aws:sqs:eu-west-2:${var.account_id}:${var.environment}-notifyEnrichedMessageQueue.fifo",
           ]
         },
         {
@@ -618,6 +657,10 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
       ],
       "Version" : "2012-10-17"
   })
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Get Participants in LSOA Policy"
+  }
 }
 resource "aws_iam_policy" "iam_policy_for_generate_invites_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_generate_invites_lambda_role"
@@ -678,6 +721,10 @@ resource "aws_iam_policy" "iam_policy_for_generate_invites_lambda" {
       ],
       "Version" : "2012-10-17"
   })
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Generate Invites Policy"
+  }
 }
 
 resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
@@ -729,6 +776,10 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
       ],
       "Version" : "2012-10-17"
   })
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Create Episode Record Policy"
+  }
 }
 
 # Policy required by sendInvitationBatchToRawMessageQueueLambda
@@ -1226,6 +1277,10 @@ resource "aws_iam_role" "api_gateway_logging_role" {
       },
     ]
   })
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Galleri Logging Role"
+  }
 }
 
 resource "aws_iam_policy" "api_gateway_logging_policy" {
@@ -1248,6 +1303,10 @@ resource "aws_iam_policy" "api_gateway_logging_policy" {
       },
     ]
   })
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Api Gateway Logging Policy"
+  }
 }
 resource "aws_iam_role_policy_attachment" "api_gateway_logging_attach" {
   role       = aws_iam_role.api_gateway_logging_role.name
