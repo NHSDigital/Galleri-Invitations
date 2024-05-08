@@ -2,9 +2,11 @@ name: "CI/CD publish"
 
 on:
   pull_request:
-    types: [closed]
-    branches:
-      - main
+  pull_request:
+    types: [opened, reopened, edited, synchronize]
+    # types: [closed]
+    # branches:
+    #   - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -57,10 +59,26 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
-      - name: "Bump patch version"
-        uses: ./.github/actions/versioning
+      # - name: "Bump patch version"
+      #   uses: ./.github/actions/versioning
+      #   with:
+      #     version_bump: ${{ env.version_bump }}
+      - name: "Checkout wiki"
+        uses: actions/checkout@v4
         with:
-          version_bump: ${{ env.version_bump }}
+          repository: ${{ github.repository }}.wiki
+          path: ${{ env.wiki_path }}
+      - name: Create Release Notes
+        run: |
+          echo "${{ github.event.pull_request.body }}" >> "${{ env.wiki_path }}/${{ env.file_name }}"
+      - name: Push to wiki
+        run: |
+          cd ${{ env.wiki_path }}
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          git add .
+          git commit -m "docs: Added new file"
+          git push
       - name: "create tagged versions of lambdas"
         run: |
           echo "TODO first: create release versions of lambdas"
