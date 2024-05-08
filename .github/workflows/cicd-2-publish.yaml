@@ -54,7 +54,9 @@ jobs:
     # if: github.event.pull_request.merged == true
     timeout-minutes: 3
     env:
+      file_name: "Release-0.1.0.md"
       version_bump: "PATCH"
+      wiki_path: "wiki/Releases"
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
