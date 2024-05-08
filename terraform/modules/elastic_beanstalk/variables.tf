@@ -2,6 +2,11 @@ variable "environment" {
   description = "Which environment to deploy into: dev, test, uat, performance or prod"
 }
 
+variable "application_role" {
+  description = "Used for tagging resource according to Cloud guidelines"
+  default     = "Web"
+}
+
 variable "name" {
   description = "Name of the elastic beanstalk deployment"
 }
@@ -98,11 +103,7 @@ variable "NEXT_PUBLIC_GENERATE_INVITES" {
 
 }
 
-variable "NEXT_PUBLIC_GET_USER_ROLE" {
-
-}
-
-variable "NEXT_PUBLIC_CIS2_SIGNED_JWT" {
+variable "NEXT_PUBLIC_AUTHENTICATOR" {
 
 }
 
@@ -127,10 +128,10 @@ variable "NEXTAUTH_SECRET" {
 variable "NEXTAUTH_URL" {
 }
 
-variable "GALLERI_ACTIVITY_CODE" {
+variable "CIS2_REDIRECT_URL" {
 }
 
-variable "GALLERI_ACTIVITY_NAME" {
+variable "GALLERI_ACTIVITY_CODE" {
 }
 
 variable "hostname" {

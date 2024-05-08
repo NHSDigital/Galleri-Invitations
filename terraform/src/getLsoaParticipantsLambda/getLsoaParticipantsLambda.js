@@ -47,7 +47,8 @@ export async function queryEligiblePopulation(client, lsoaCode, tableItems) {
       },
     },
     KeyConditionExpression: "LsoaCode = :code",
-    ProjectionExpression: "PersonId, Invited, date_of_death, reason_for_removal_effective_from_date, identified_to_be_invited, reason_for_removal, superseded_by_nhs_number",
+    ProjectionExpression:
+      "PersonId, Invited, date_of_death, reason_for_removal_effective_from_date, identified_to_be_invited, reason_for_removal, superseded_by_nhs_number",
     TableName: `${ENVIRONMENT}-Population`,
     IndexName: "LsoaCode-index",
   };
@@ -75,17 +76,20 @@ export async function getPopulation(lsoaList, client) {
       let eligiblePopulation = 0;
       response.forEach((person) => {
         if (
-          person?.date_of_death?.S == "NULL" &&
-          person?.reason_for_removal_effective_from_date?.S == "NULL"
+          person?.date_of_death?.S == "null" &&
+          person?.reason_for_removal_effective_from_date?.S == "null"
         ) {
           ++eligiblePopulation;
-          if (person?.Invited?.S == "true" || person?.identified_to_be_invited.BOOL) {
+          if (
+            person?.Invited?.S == "true" ||
+            person?.identified_to_be_invited.BOOL
+          ) {
             ++invitedPopulation;
           }
         }
       });
 
-      if (eligiblePopulation - invitedPopulation > 0){
+      if (eligiblePopulation - invitedPopulation > 0) {
         populationObject[lsoaCode] = {
           ELIGIBLE_POPULATION: { S: eligiblePopulation },
           INVITED_POPULATION: { S: invitedPopulation },
@@ -115,10 +119,10 @@ export async function getEligiblePopulation(lsoaList, client) {
         if (
           !person?.identified_to_be_invited?.BOOL &&
           person?.Invited?.S == "false" &&
-          person?.date_of_death?.S == "NULL" &&
-          person?.reason_for_removal_effective_from_date?.S == "NULL" &&
+          person?.date_of_death?.S == "null" &&
+          person?.reason_for_removal_effective_from_date?.S == "null" &&
           person?.superseded_by_nhs_number?.N == 0 &&
-          person?.reason_for_removal?.S == "NULL"
+          person?.reason_for_removal?.S == "null"
         ) {
           populationArray.push({
             personId: person?.PersonId.S,

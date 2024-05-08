@@ -62,7 +62,7 @@ describe("lookUp", () => {
 
 describe("S3 Operations", () => {
   test("Failed response when error occurs getting file to bucket", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
+    const logSpy = jest.spyOn(global.console, "error");
     const errorMsg = new Error("Mocked error");
     const mockClient = {
       send: jest.fn().mockRejectedValue(errorMsg),
@@ -75,11 +75,11 @@ describe("S3 Operations", () => {
     }
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith("Failed: ", errorMsg);
+    expect(logSpy).toHaveBeenCalledWith("Error: ", errorMsg);
   });
 
   test("Successful response from sending file to bucket", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
+    const logSpy = jest.spyOn(global.console, "error");
     const mockS3Client = mockClient(new S3Client({}));
     mockS3Client.resolves({
       $metadata: { httpStatusCode: 200 },
@@ -95,7 +95,7 @@ describe("S3 Operations", () => {
   });
 
   test("Failed response when error occurs sending file to bucket", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
+    const logSpy = jest.spyOn(global.console, "error");
     const errorMsg = new Error("Mocked error");
     const mockClient = {
       send: jest.fn().mockRejectedValue(errorMsg),
@@ -112,7 +112,7 @@ describe("S3 Operations", () => {
     }
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith("Failed: ", errorMsg);
+    expect(logSpy).toHaveBeenCalledWith("Error: ", errorMsg);
   });
 
   beforeEach(() => {

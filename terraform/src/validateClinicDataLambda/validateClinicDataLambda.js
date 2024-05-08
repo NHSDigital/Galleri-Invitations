@@ -13,36 +13,55 @@ const client = new DynamoDBClient({ region: "eu-west-2" });
 
 export const handler = async (event) => {
   const bucket = event.Records[0].s3.bucket.name;
-  const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
+  const key = decodeURIComponent(
+    event.Records[0].s3.object.key.replace(/\+/g, " ")
+  );
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
   try {
     const jsonString = await readFromS3(bucket, key, s3);
-    const validationResults = await validateRecord(JSON.parse(jsonString), client); //need parse as s3 resolves as string
+    const validationResults = await validateRecord(
+      JSON.parse(jsonString),
+      client
+    ); //need parse as s3 resolves as string
 
     console.log(`Finished validating object ${key} in bucket ${bucket}`);
-    console.log('----------------------------------------------------------------');
+    console.log(
+      "----------------------------------------------------------------"
+    );
 
-    console.log(`Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${bucket}`);
+    console.log(
+      `Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${bucket}`
+    );
 
     // Valid Records Arrangement
     if (validationResults.success) {
       // Deposit to S3 bucket
-      await pushToS3(`${ENVIRONMENT}-processed-inbound-gtms-clinic-create-or-update`, `validRecords/${key}`, JSON.stringify(validationResults.key), s3);
-    }
-    else {
-      await pushToS3(`${ENVIRONMENT}-processed-inbound-gtms-clinic-create-or-update`, `invalidRecords/${key}`, jsonString, s3);
-      console.warn("PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Data BELOW:\n" + validationResults.message);
+      await pushToS3(
+        `${ENVIRONMENT}-processed-inbound-gtms-clinic-create-or-update`,
+        `validRecords/${key}`,
+        JSON.stringify(validationResults.key),
+        s3
+      );
+    } else {
+      await pushToS3(
+        `${ENVIRONMENT}-processed-inbound-gtms-clinic-create-or-update`,
+        `invalidRecords/${key}`,
+        jsonString,
+        s3
+      );
+      console.warn(
+        "PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Data BELOW:\n" +
+          validationResults.message
+      );
     }
     return `Finished validating object ${key} in bucket ${bucket}`;
-
   } catch (err) {
     const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
     console.error(message);
     throw new Error(message);
-  };
+  }
 };
-
 
 export const readFromS3 = async (bucketName, key, client) => {
   try {
@@ -89,7 +108,10 @@ export async function validateRecord(record, client) {
   const validation = validate(record, json);
   if (validation.valid) {
     // validate the JSON Schema
-    const postcodeValidation = await isPostcodeInGridall(record.ClinicCreateOrUpdate.Postcode, client);
+    const postcodeValidation = await isPostcodeInGridall(
+      record.ClinicCreateOrUpdate.Postcode,
+      client
+    );
     if (postcodeValidation.hasOwnProperty("Item")) {
       // AC - not covered Postcode provided (if supplied)
       const ICBValidation = postcodeValidation.Item.ICB.S;
@@ -98,26 +120,28 @@ export async function validateRecord(record, client) {
         validationResults.success = false;
         validationResults.message = `Invalid ICB Code : ${ICBValidation}`;
         return validationResults;
-      }
-      else if(!(record.ClinicCreateOrUpdate).hasOwnProperty("ICBCode")){
-        record.ClinicCreateOrUpdate["ICBCode"]=ICBValidation;
+      } else if (!record.ClinicCreateOrUpdate.hasOwnProperty("ICBCode")) {
+        record.ClinicCreateOrUpdate["ICBCode"] = ICBValidation;
         validationResults.key = record;
         return validationResults;
-      }
-      else if(ICBValidation !=record.ClinicCreateOrUpdate.ICBCode){
+      } else if (record.ClinicCreateOrUpdate.ICBCode === null) {
+        record.ClinicCreateOrUpdate["ICBCode"] = ICBValidation;
+        return validationResults;
+      } else if (ICBValidation != record.ClinicCreateOrUpdate.ICBCode) {
         validationResults.success = false;
         validationResults.message = `Invalid ICB Code provided in GTMS message: ${record.ClinicCreateOrUpdate.ICBCode}`;
         return validationResults;
       }
-    }
-    else {
+    } else {
       validationResults.success = false;
       validationResults.message = `Invalid PostCode : ${record.ClinicCreateOrUpdate.Postcode}`;
-      console.log("Postcode does not exists in Gridall:", record.ClinicCreateOrUpdate.Postcode);
+      console.log(
+        "Postcode does not exists in Gridall:",
+        record.ClinicCreateOrUpdate.Postcode
+      );
       return validationResults;
     }
-  }
-  else {
+  } else {
     validationResults.success = false;
     validationResults.message = "Invalid JSON";
     console.error("errors : ", validation.errors);
@@ -129,14 +153,14 @@ export async function validateRecord(record, client) {
 export const isPostcodeInGridall = async (key, client) => {
   //AC - Check if Postcode exists in the Postcode DynamoDB Table
   const getParams = {
-    "TableName": `${ENVIRONMENT}-Postcode`,
-    "Key": {
-      "POSTCODE": {
-        "S": key
-      }
+    TableName: `${ENVIRONMENT}-Postcode`,
+    Key: {
+      POSTCODE: {
+        S: key,
+      },
     },
-    "ConsistentRead": true,
-    "ProjectionExpression": "ICB"
+    ConsistentRead: true,
+    ProjectionExpression: "ICB",
   };
   const getCommand = new GetItemCommand(getParams);
   const response = await client.send(getCommand);
