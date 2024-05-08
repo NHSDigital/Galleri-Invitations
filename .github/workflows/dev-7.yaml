@@ -141,7 +141,7 @@ jobs:
     timeout-minutes: 3
     env:
       file_name: "Release-0.1.0.md"
-      wiki_path: "/wiki"
+      wiki_path: "wiki"
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
