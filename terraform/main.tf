@@ -2478,5 +2478,3 @@ resource "aws_ssm_parameter" "contact-escalation-tables" {
   value     = "Null"
   overwrite = true
 }
-
-# Alerting lambda setup
