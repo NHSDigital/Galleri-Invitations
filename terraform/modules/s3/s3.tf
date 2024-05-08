@@ -37,3 +37,10 @@ data "aws_iam_policy_document" "allow_access_to_lambda" {
     ]
   }
 }
+
+resource "aws_s3_bucket_versioning" "bucket_versioning" {
+  bucket = "${var.environment}-${var.bucket_name}"
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
