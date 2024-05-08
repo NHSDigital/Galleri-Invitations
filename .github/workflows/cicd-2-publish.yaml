@@ -14,7 +14,7 @@ concurrency:
 jobs:
   metadata:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
+    # if: github.event.pull_request.merged == true
     timeout-minutes: 1
     outputs:
       build_datetime: ${{ steps.variables.outputs.build_datetime }}
@@ -51,7 +51,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     needs: [metadata]
-    if: github.event.pull_request.merged == true
+    # if: github.event.pull_request.merged == true
     timeout-minutes: 3
     env:
       version_bump: "PATCH"
