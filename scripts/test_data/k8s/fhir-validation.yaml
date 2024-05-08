@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fhir-validator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fhir-validator
+  template:
+    metadata:
+      labels:
+        app: fhir-validator
+    spec:
+      containers:
+        - name: fhir-validator
+          image: thorlogic/fhir-validator-r4:6.10.33
+          env:
+            - name: fhir.igs
+              value: "fhir.r4.ukcore.stu3.currentbuild#0.0.8-pre-release"
+            - name: fhir.server.baseUrl
+              value: "http://localhost"
+          ports:
+            - containerPort: 9001
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fhir-validator
+spec:
+  selector:
+    app: fhir-validator
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 9001
