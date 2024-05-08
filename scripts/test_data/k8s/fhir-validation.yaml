@@ -13,6 +13,7 @@ spec:
         app: fhir-validator
     spec:
       containers:
+        # Fhir validation container
         - name: fhir-validator
           image: thorlogic/fhir-validator-r4:6.10.33
           env:
@@ -22,6 +23,18 @@ spec:
               value: "http://localhost"
           ports:
             - containerPort: 9001
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "4"
+              memory: "5Gi"
+        # Nginx container
+        - name: nginx-lb
+          image: nginx
+          ports:
+            - containerPort: 80
           resources:
             requests:
               cpu: "500m"
