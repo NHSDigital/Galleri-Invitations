@@ -1553,6 +1553,79 @@ data "aws_secretsmanager_secret_version" "nhs_notify_api_key" {
   secret_id = "NHS_NOTIFY_API_KEY"
 }
 
+# Place Holder Error S3 buckets for Step 1-4 FHIR Validation
+module "fhir_validation_step1_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "fhir-validation-step1-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "fhir_validation_step2_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "fhir-validation-step2-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "fhir_validation_step3_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "fhir-validation-step3-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+module "fhir_validation_step4_error" {
+  source                  = "./modules/s3"
+  bucket_name             = "fhir-validation-step4-error"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
+
+# Test Result Acknowledgement Queue
+module "test_result_ack_queue_sqs" {
+  source                         = "./modules/sqs"
+  environment                    = var.environment
+  name                           = "testResultAckQueue.fifo"
+  is_fifo_queue                  = true
+  is_content_based_deduplication = true
+  visibility_timeout_seconds     = 100
+}
+
+# Send Test Result Error Acknowledgement Queue Lambda
+module "send_test_result_error_ack_queue_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "sendTestResultErrorAckQueueLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "send_test_result_error_ack_queue_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT               = "${var.environment}"
+    TEST_RESULT_ACK_QUEUE_URL = module.test_result_ack_queue_sqs.sqs_queue_url
+  }
+}
+
+module "send_test_result_error_ack_queue_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.send_test_result_error_ack_queue_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "send_test_result_step1_error_ack_queue_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.fhir_validation_step1_error.bucket_id
+  bucket_arn = module.fhir_validation_step1_error.bucket_arn
+  lambda_arn = module.send_test_result_error_ack_queue_lambda.lambda_arn
+}
+
 # Delete Caas feed records
 module "caas_feed_delete_records_lambda" {
   source               = "./modules/lambda"
