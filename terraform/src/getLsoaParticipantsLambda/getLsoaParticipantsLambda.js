@@ -76,8 +76,8 @@ export async function getPopulation(lsoaList, client) {
       let eligiblePopulation = 0;
       response.forEach((person) => {
         if (
-          person?.date_of_death?.S == "NULL" &&
-          person?.reason_for_removal_effective_from_date?.S == "NULL"
+          person?.date_of_death?.S == "null" &&
+          person?.reason_for_removal_effective_from_date?.S == "null"
         ) {
           ++eligiblePopulation;
           if (
@@ -119,10 +119,10 @@ export async function getEligiblePopulation(lsoaList, client) {
         if (
           !person?.identified_to_be_invited?.BOOL &&
           person?.Invited?.S == "false" &&
-          person?.date_of_death?.S == "NULL" &&
-          person?.reason_for_removal_effective_from_date?.S == "NULL" &&
+          person?.date_of_death?.S == "null" &&
+          person?.reason_for_removal_effective_from_date?.S == "null" &&
           person?.superseded_by_nhs_number?.N == 0 &&
-          person?.reason_for_removal?.S == "NULL"
+          person?.reason_for_removal?.S == "null"
         ) {
           populationArray.push({
             personId: person?.PersonId.S,
