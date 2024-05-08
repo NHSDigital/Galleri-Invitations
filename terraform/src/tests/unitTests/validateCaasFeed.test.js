@@ -141,6 +141,17 @@ describe("validateCaasFeed function", () => {
     );
   });
 
+  test("should return failure for missing other given name", () => {
+    const validationResult = validateRecord({
+      ...validRecord,
+      action: "DEL",
+      primary_care_provider: "null",
+      reason_for_removal: "null",
+    });
+
+    expect(validationResult.success).toBe(true);
+  });
+
   test("should return failure for invalid DOB format or is in the future", () => {
     const validationResult = validateRecord({
       ...validRecord,
@@ -241,7 +252,6 @@ describe("validateCaasFeed function", () => {
     const mockClient = {
       send: jest.fn().mockRejectedValue(errorMsg),
     };
-
     try {
       await readCsvFromS3("aaaaaaa", "aaaaaaa", mockClient);
     } catch (err) {
@@ -266,7 +276,6 @@ describe("validateCaasFeed function", () => {
       "dfsdfd",
       mockS3Client
     );
-
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith(`Succeeded`);

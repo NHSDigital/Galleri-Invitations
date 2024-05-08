@@ -20,3 +20,8 @@ variable "policy" {
 # variable "aws_account_number" {}
 
 variable "environment" {}
+
+variable "application_role" {
+  description = "Used for tagging resource according to Cloud guidelines"
+  default     = "Security"
+}

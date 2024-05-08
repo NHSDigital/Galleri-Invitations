@@ -60,9 +60,16 @@ export const handler = async (event) => {
       role: userRole.Role,
       isAuthorized: checkAuthorizationResult,
     };
-    console.log(
-      `This User has been authenticated and is authorized to access the Galleri App with role - ${userRole.Role}`
-    );
+    if (checkAuthorizationResult !== true) {
+      const errorMessage = checkAuthorizationResult
+        .split("error=")[1]
+        .replace(/\+/g, " ");
+      console.error("Error: ", errorMessage);
+    } else {
+      console.log(
+        `This User has been authenticated and is authorized to access the Galleri App with role - ${userRole.Role}`
+      );
+    }
     return { statusCode: 200, body: JSON.stringify(authResponse) };
   } catch (error) {
     console.error("Error: ", error);
@@ -93,7 +100,8 @@ export async function getCIS2SignedJWT(
     console.log("Returning CIS2 signed jwt");
     return responseObject;
   } catch (error) {
-    console.error(`Error getting CIS2 signed jwt: ${error}`);
+    console.error(`Error getting CIS2 signed jwt`);
+    console.error(`Error: ${error}`);
     const responseObject = createResponse(500, error.message);
     return responseObject;
   }
@@ -216,9 +224,15 @@ export async function getUserRole(uuid) {
     const data = await dynamoDBClient.send(command);
 
     if (!data.Item) {
-      return console.error("User not found");
+      console.error("Error: User not found");
+      return {
+        Role: "",
+        UUID: "",
+        Status: "User Not Found",
+        Email: "",
+        Name: "",
+      };
     }
-
     const item = unmarshall(data.Item);
     console.log("UUID exists on Galleri User database");
 
