@@ -152,7 +152,7 @@ jobs:
           path: ${{ env.wiki_path }}
       - name: Create Release Notes
         run: |
-          echo "# My release notes" >> ${{ env.wiki_path }}/${{ env.file_name }
+          echo "# My release notes" >> "${{ env.wiki_path }}/${{ env.file_name }}"
       - name: Push to wiki
         run: |
           cd ${{ env.wiki_path }}
