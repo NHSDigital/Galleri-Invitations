@@ -23,7 +23,8 @@ export const handler = async (event, context) => {
 
   let responseObject = {
     headers: {
-      "Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+      "Access-Control-Allow-Headers":
+        "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "OPTIONS,POST",
     },
@@ -256,7 +257,8 @@ export const getParticipantsInQuintile = (
     }
   }
   console.log(
-    `Highlighted participants size = ${selectedParticipants.size
+    `Highlighted participants size = ${
+      selectedParticipants.size
     } with an average quintile block uptake of ${Math.floor(
       (quintileTarget / selectedParticipants.size) * 100
     )}%`
