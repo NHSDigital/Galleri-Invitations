@@ -45,7 +45,7 @@ export const handler = async (event, context) => {
   const quintile2Target = Math.ceil(targetAppsToFill * (quintile2 / 100));
   const quintile3Target = Math.ceil(targetAppsToFill * (quintile3 / 100));
   const quintile4Target = Math.ceil(targetAppsToFill * (quintile4 / 100));
-  const quintile5Target = Math.floor(targetAppsToFill * (quintile5 / 100));
+  const quintile5Target = Math.ceil(targetAppsToFill * (quintile5 / 100));
 
   // Return participants available to invite
   const payload = {
@@ -214,13 +214,11 @@ export const getParticipantsInQuintile = (
   ); // O(n)
   const quintilePopulationObjectKeys = Object.keys(quintilePopulationObject); // O(n)
 
-  let count = 0;
   let iterationNumber = 0;
-  let selectedParticipantCount = 1;
+  let selectedParticipantCount = 0;
   const selectedParticipants = new Set();
-
   // Select random person within quintile, loop through until quintile target is met
-  while (count < quintileTarget) {
+  while (selectedParticipantCount < quintilePopulationObjectKeys.length) {
     iterationNumber++;
 
     const sizeAfterIteration =
@@ -237,16 +235,8 @@ export const getParticipantsInQuintile = (
       localQuintilePopulationObjectKeys[randomPersonIndex];
 
     // person has not been previous indexed
-    console.log(`Person ${personSelectedId}  `);
-    console.log(`personSelectedId !== undefined ${personSelectedId !== undefined} `);
-    console.log(`!selectedParticipants.has(personSelectedId) ${!selectedParticipants.has(personSelectedId)} `);
-    console.log(`Person undefined selectedParticipants.has ${personSelectedId !== undefined && !selectedParticipants.has(personSelectedId)}  `);
     if (!selectedParticipants.has(personSelectedId)) {
-      console.log(`Person ${personSelectedId} to be invited`);
       selectedParticipants.add(personSelectedId);
-      const personSelectedForecastUptake =
-        quintilePopulationObject[personSelectedId];
-      count += personSelectedForecastUptake / 100;
       // increment selectedPerson count
       selectedParticipantCount++;
       // remove that person from pool of people that can be invited
