@@ -45,7 +45,7 @@ export const handler = async (event, context) => {
   const quintile2Target = Math.ceil(targetAppsToFill * (quintile2 / 100));
   const quintile3Target = Math.ceil(targetAppsToFill * (quintile3 / 100));
   const quintile4Target = Math.ceil(targetAppsToFill * (quintile4 / 100));
-  const quintile5Target = Math.ceil(targetAppsToFill * (quintile5 / 100));
+  const quintile5Target = Math.floor(targetAppsToFill * (quintile5 / 100));
 
   // Return participants available to invite
   const payload = {
