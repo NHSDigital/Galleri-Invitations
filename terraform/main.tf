@@ -2295,6 +2295,24 @@ module "galleri_blood_test_result_table" {
   }
 }
 
+module "cancer_signal_origin_table" {
+  source      = "./modules/dynamodb"
+  table_name  = "CancerSignalOrigin"
+  hash_key    = "Id"
+  projection_type = "ALL"
+  environment = var.environment
+  attributes = [
+    {
+      name = "Id"
+      type = "S"
+    },
+  ]
+  tags = {
+    Name        = "Dynamodb Table Cancer Signal Origin"
+    Environment = var.environment
+  }
+}
+
 module "caas_eventbridge_scheduler" {
   source              = "./modules/eventbridge_scheduler"
   function_name       = "pollMeshMailboxLambda"
