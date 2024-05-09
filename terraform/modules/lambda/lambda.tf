@@ -25,7 +25,7 @@ resource "aws_cloudwatch_metric_alarm" "error_alarm" {
   alarm_name                = "${var.environment}-${var.lambda_function_name}"
   alarm_description         = "${var.environment}-${var.lambda_function_name} has encountered an error"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
-  evaluation_periods        = 1
+  evaluation_periods        = 12
   metric_name               = "ErrorCount"
   namespace                 = "AWS/Lambda"
   period                    = 300
