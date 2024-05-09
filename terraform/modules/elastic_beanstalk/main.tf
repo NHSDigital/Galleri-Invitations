@@ -66,7 +66,7 @@ resource "aws_route53_record" "actual_record" {
   name    = "${var.environment}.${var.hostname}"
   type    = "CNAME"
   ttl     = "300"
-  records = ["${var.environment}-${var.dns_zone}-gps-cancer-detection-blood-test.${var.region}.elasticbeanstalk.com"]
+  records = ["${var.environment}-${var.dns_zone}-gps-multi-cancer-blood-test.${var.region}.elasticbeanstalk.com"]
 }
 
 # IAM Role for Elastic Beanstalk environment's EC2 instances
