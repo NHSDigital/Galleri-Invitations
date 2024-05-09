@@ -1,3 +1,5 @@
+Test;
+
 //IMPORTS
 import {
   DynamoDBClient,
@@ -42,6 +44,25 @@ export const handler = async (event) => {
   );
   const payloadAppointmentReplaces = js?.["Appointment"]?.["Replaces"]; //replaces existing appointment id
   const payloadTimestamp = js?.["Appointment"]?.["Timestamp"]; //most recent
+  const clinicID = js?.["Appointment"]?.["ClinicID"]; //required
+  const channel = js?.["Appointment"]?.["Channel"]; //required
+  const appointmentAccessibility =
+    js?.["Appointment"]?.["AppointmentAccessibility"]; //required
+  const communicationsAccessibility =
+    js?.["Appointment"]?.["CommunicationsAccessibility"]; //required
+  const notificationPreferences =
+    js?.["Appointment"]?.["NotificationPreferences"]; //required
+  const invitationNHSNumber = js?.["Appointment"]?.["InvitationNHSNumber"];
+  const pdsNHSNumber = js?.["Appointment"]?.["PDSNHSNumber"];
+  const dateOfBirth = js?.["Appointment"]?.["DateOfBirth"];
+  const bloodNotCollectedReason =
+    js?.["Appointment"]?.["BloodNotCollectedReason"];
+  const grailID = js?.["Appointment"]?.["GrailID"];
+  const primaryPhoneNumber = js?.["Appointment"]?.["PrimaryPhoneNumber"];
+  const secondaryPhoneNumber = js?.["Appointment"]?.["SecondaryPhoneNumber"];
+  const email = js?.["Appointment"]?.["Email"];
+  const bloodCollectionDate = js?.["Appointment"]?.["BloodCollectionDate"];
+  const cancellationReason = js?.["Appointment"]?.["CancellationReason"];
 
   const episodeResponse = await lookUp(
     dbClient,
@@ -121,27 +142,11 @@ export const handler = async (event) => {
           //greater than date param, e.g. 5
           const episodeEvent = "Appointment Booked Letter";
           logger.info(episodeEvent);
-          await transactionalWrite(
-            dbClient,
-            payloadParticipantID,
-            episodeItems["Batch_Id"]["S"], //required PK for Episode update
-            payloadAppointmentID,
-            payloadEventType,
-            episodeEvent,
-            payloadTimestamp
-          );
+          await writeToEpisodeAndAppointments(episodeEvent);
         } else {
           const episodeEvent = "Appointment Booked Text";
           logger.info(episodeEvent);
-          await transactionalWrite(
-            dbClient,
-            payloadParticipantID,
-            episodeItems["Batch_Id"]["S"], //required PK for Episode update
-            payloadAppointmentID,
-            payloadEventType,
-            episodeEvent,
-            payloadTimestamp
-          );
+          writeToEpisodeAndAppointments(episodeEvent);
         }
       } else if (
         !appointmentItems &&
@@ -156,27 +161,11 @@ export const handler = async (event) => {
           //greater than date param, e.g. 5
           const episodeEvent = "Appointment Rebooked Letter";
           logger.info(episodeEvent);
-          await transactionalWrite(
-            dbClient,
-            payloadParticipantID,
-            episodeItems["Batch_Id"]["S"], //required PK for Episode update
-            payloadAppointmentID,
-            payloadEventType,
-            episodeEvent,
-            payloadTimestamp
-          );
+          writeToEpisodeAndAppointments(episodeEvent);
         } else {
           const episodeEvent = "Appointment Rebooked Text";
           logger.info(episodeEvent);
-          await transactionalWrite(
-            dbClient,
-            payloadParticipantID,
-            episodeItems["Batch_Id"]["S"], //required PK for Episode update
-            payloadAppointmentID,
-            payloadEventType,
-            episodeEvent,
-            payloadTimestamp
-          );
+          writeToEpisodeAndAppointments(episodeEvent);
         }
       } else {
         // has appointment id and different one supplied, REJECT
@@ -205,6 +194,37 @@ export const handler = async (event) => {
     const message = `Error: processing object ${key} in bucket ${bucket}: ${err}`;
     logger.error(message);
     throw new Error(message);
+  }
+
+  async function writeToEpisodeAndAppointments(episodeEvent) {
+    await transactionalWrite(
+      dbClient,
+      payloadParticipantID,
+      episodeItems["Batch_Id"]["S"], //required PK for Episode update
+      payloadAppointmentID,
+      payloadEventType,
+      episodeEvent,
+      payloadTimestamp,
+      payloadAppointmentID,
+      clinicID,
+      payloadAppointmentDateTime,
+      channel,
+      payloadEventType,
+      appointmentAccessibility,
+      communicationsAccessibility,
+      notificationPreferences,
+      invitationNHSNumber,
+      pdsNHSNumber,
+      dateOfBirth,
+      cancellationReason, //reason its cancelled coming from payload
+      grailID,
+      bloodNotCollectedReason,
+      primaryPhoneNumber,
+      secondaryPhoneNumber,
+      email,
+      bloodCollectionDate,
+      payloadAppointmentReplaces
+    );
   }
 };
 
@@ -307,21 +327,38 @@ export const lookUp = async (dbClient, ...params) => {
  * This function is used to write to both episode and appointments table depending on the received payload
  *
  * @param {Object} client Instance of DynamoDB client
- * @param {string} participantId The id of the participant
+ * @param {string} ParticipantID The id of the participant
  * @param {string} batchId The batch id attached to the episode record
- * @param {string} appointmentId The appointment id relating to the entry payload
- * @param {string} eventType The eventType extracted from the payload from GTMS
+ * @param {string} AppointmentID The appointment id relating to the entry payload
+ * @param {string} EventType The eventType extracted from the payload from GTMS
  * @param {string} episodeEvent Text which is added added to the episode record to signify the type of Episode event update
  * @returns {boolean} Returns either true of false depending on the success writing to 2 DynamoDB's
  */
 export const transactionalWrite = async (
   client,
-  participantId,
+  ParticipantID,
   batchId,
-  appointmentId,
-  eventType,
+  AppointmentID,
+  EventType,
   episodeEvent,
-  timestamp
+  Timestamp,
+  ClinicID,
+  AppointmentDateTime,
+  Channel,
+  AppointmentAccessibility,
+  CommunicationsAccessibility,
+  NotificationPreferences,
+  InvitationNHSNumber,
+  PDSNHSNumber,
+  DateOfBirth,
+  CancellationReason, //reason its cancelled coming from payload
+  GrailID,
+  BloodNotCollectedReason,
+  PrimaryPhoneNumber,
+  SecondaryPhoneNumber,
+  Email,
+  BloodCollectionDate,
+  AppointmentReplaces
 ) => {
   const timeNow = String(new Date(Date.now()).toISOString());
   const params = {
@@ -330,7 +367,7 @@ export const transactionalWrite = async (
         Update: {
           Key: {
             Batch_Id: { S: batchId },
-            Participant_Id: { S: participantId },
+            Participant_Id: { S: ParticipantID },
           },
           UpdateExpression: `SET Episode_Event = :episodeEvent, Episode_Event_Updated = :timeNow, Episode_Event_Description = :eventDescription, Episode_Status = :open, Episode_Event_Notes = :null, Episode_Event_Updated_By = :gtms, Episode_Status_Updated = :timeNow`,
           TableName: `${ENVIRONMENT}-Episode`,
@@ -344,17 +381,38 @@ export const transactionalWrite = async (
           },
         },
       },
+
       {
         Update: {
           Key: {
-            Participant_Id: { S: participantId },
-            Appointment_Id: { S: appointmentId },
+            Participant_Id: { S: ParticipantID },
+            Appointment_Id: { S: AppointmentID },
           },
-          UpdateExpression: `SET event_type = :eventType, Time_stamp = :timestamp`,
+          UpdateExpression: `SET event_type = :eventType, Time_stamp = :time_stamp, clinic_id = :clinicID, appointment_date_time = :appointmentDateTime, channel = :channel, appointment_accessibility = :appointmentAccessibility, communications_accessibility = :communicationsAccessibility, notification_preferences= :notificationPreferences, invitation_nhs_number= :invitationNHSNumber, pds_nhs_number= :pdsNHSNumber, data_of_birth= :dateOfBirth, cancellation_reason= :cancellationReason, blood_not_collected_reason= :bloodNotCollectedReason, grail_id= :grailID, primary_phone_number = :primaryNumber, secondary_phone_number = :secondaryNumber, email_address = :email_address, blood_collection_date= :bloodCollectionDate, appointment_replaces= :appointmentReplaces `,
+
           TableName: `${ENVIRONMENT}-Appointments`,
           ExpressionAttributeValues: {
-            ":eventType": { S: eventType },
-            ":timestamp": { S: timestamp },
+            ":eventType": { S: EventType },
+            ":time_stamp": { S: Timestamp },
+            ":clinicID": { S: ClinicID },
+            ":appointmentDateTime": { S: AppointmentDateTime },
+            ":channel": { S: Channel },
+            ":appointmentAccessibility": { M: AppointmentAccessibility },
+            ":communicationsAccessibility": {
+              M: CommunicationsAccessibility,
+            },
+            ":notificationPreferences": { M: NotificationPreferences },
+            ":invitationNHSNumber": { S: InvitationNHSNumber },
+            ":pdsNHSNumber": { S: PDSNHSNumber },
+            ":dateOfBirth": { S: DateOfBirth },
+            ":cancellationReason": { S: CancellationReason },
+            ":bloodNotCollectedReason": { S: BloodNotCollectedReason },
+            ":grailID": { S: GrailID },
+            ":primaryNumber": { S: PrimaryPhoneNumber },
+            ":secondaryNumber": { S: SecondaryPhoneNumber },
+            ":email_address": { S: Email },
+            ":bloodCollectionDate": { S: BloodCollectionDate },
+            ":appointmentReplaces": { S: AppointmentReplaces },
           },
         },
       },
@@ -366,11 +424,11 @@ export const transactionalWrite = async (
     const response = await client.send(command);
     if (response.$metadata.httpStatusCode !== 200) {
       console.error(
-        `Error: occurred while trying to update db with item: ${participantId}`
+        `Error: occurred while trying to update db with item: ${ParticipantID}`
       );
       return false;
     } else {
-      console.log(`Successfully updated db with item: ${participantId}`);
+      console.log(`Successfully updated db with item: ${ParticipantID}`);
       return true;
     }
   } catch (error) {
