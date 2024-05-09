@@ -1588,33 +1588,56 @@ module "send_test_result_error_ack_queue_lambda_cloudwatch" {
 }
 
 # Lambda triggers for Step 1-4 fhir validation error buckets
-module "send_test_result_step1_error_ack_queue_lambda_trigger" {
-  source     = "./modules/lambda_trigger"
-  bucket_id  = module.inbound_nrds_galleritestresult_step1_error.bucket_id
-  bucket_arn = module.inbound_nrds_galleritestresult_step1_error.bucket_arn
-  lambda_arn = module.send_test_result_error_ack_queue_lambda.lambda_arn
+module "fhir_validation_step1_error_bucket_lambda_trigger" {
+  source       = "./modules/lambda_trigger"
+  statement_id = "${var.environment}-AllowExecution-Step-1"
+  bucket_id    = module.inbound_nrds_galleritestresult_step1_error.bucket_id
+  bucket_arn   = module.inbound_nrds_galleritestresult_step1_error.bucket_arn
+  lambda_arn   = module.send_test_result_error_ack_queue_lambda.lambda_arn
 }
 
-module "send_test_result_step2_error_ack_queue_lambda_trigger" {
-  source     = "./modules/lambda_trigger"
-  bucket_id  = module.inbound_nrds_galleritestresult_step2_error.bucket_id
-  bucket_arn = module.inbound_nrds_galleritestresult_step2_error.bucket_arn
-  lambda_arn = module.send_test_result_error_ack_queue_lambda.lambda_arn
+module "fhir_validation_step2_error_bucket_lambda_trigger" {
+  source       = "./modules/lambda_trigger"
+  statement_id = "${var.environment}-AllowExecution-Step-2"
+  bucket_id    = module.inbound_nrds_galleritestresult_step2_error.bucket_id
+  bucket_arn   = module.inbound_nrds_galleritestresult_step2_error.bucket_arn
+  lambda_arn   = module.send_test_result_error_ack_queue_lambda.lambda_arn
 }
 
-module "send_test_result_step3_error_ack_queue_lambda_trigger" {
-  source     = "./modules/lambda_trigger"
-  bucket_id  = module.inbound_nrds_galleritestresult_step3_error.bucket_id
-  bucket_arn = module.inbound_nrds_galleritestresult_step3_error.bucket_arn
-  lambda_arn = module.send_test_result_error_ack_queue_lambda.lambda_arn
+module "fhir_validation_step3_error_bucket_lambda_trigger" {
+  source       = "./modules/lambda_trigger"
+  statement_id = "${var.environment}-AllowExecution-Step-3"
+  bucket_id    = module.inbound_nrds_galleritestresult_step3_error.bucket_id
+  bucket_arn   = module.inbound_nrds_galleritestresult_step3_error.bucket_arn
+  lambda_arn   = module.send_test_result_error_ack_queue_lambda.lambda_arn
 }
 
-module "send_test_result_step4_error_ack_queue_lambda_trigger" {
-  source     = "./modules/lambda_trigger"
-  bucket_id  = module.inbound_nrds_galleritestresult_step4_error.bucket_id
-  bucket_arn = module.inbound_nrds_galleritestresult_step4_error.bucket_arn
-  lambda_arn = module.send_test_result_error_ack_queue_lambda.lambda_arn
+module "fhir_validation_step4_error_bucket_lambda_trigger" {
+  source       = "./modules/lambda_trigger"
+  statement_id = "${var.environment}-AllowExecution-Step-4"
+  bucket_id    = module.inbound_nrds_galleritestresult_step4_error.bucket_id
+  bucket_arn   = module.inbound_nrds_galleritestresult_step4_error.bucket_arn
+  lambda_arn   = module.send_test_result_error_ack_queue_lambda.lambda_arn
 }
+
+# Lambda triggers for Step 1-4 fhir validation error buckets
+# module "fhir_validation_step1_error_bucket_lambda_trigger" {
+#   source      = "./modules/lambda_s3_trigger"
+#   bucket_arn  = "arn:aws:s3:::bucket-name"
+#   bucket_id   = "bucket-name"
+#   name        = "Step_1_validation_error_bucket_trigger"
+#   environment = var.environment
+
+#   triggers = {
+#     trigger1 = {
+#       lambda_arn    = "arn:aws:lambda:region:account-id:function:function-name"
+#       bucket_events = ["s3:ObjectCreated:*"]
+#       filter_prefix = "prefix/"
+#       filter_suffix = ".txt"
+#     },
+#   }
+# }
+
 
 # Delete Caas feed records
 module "caas_feed_delete_records_lambda" {
