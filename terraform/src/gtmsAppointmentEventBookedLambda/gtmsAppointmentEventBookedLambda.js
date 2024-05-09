@@ -72,8 +72,11 @@ export const handler = async (event) => {
   );
   const episodeItems = episodeResponse.Items[0];
   logger.info(
+    `episodeItems for participant: ${JSON.stringify(episodeItems)} loaded.`
+  );
+  logger.info(
     `episodeItems for participant: ${JSON.stringify(
-      episodeItems?.Participant_Id
+      episodeItems?.ParticipantID
     )} loaded.`
   );
   //doesn't pull associated appointment id as in scenario it is new but links to existing
@@ -89,7 +92,7 @@ export const handler = async (event) => {
   const appointmentItems = appointmentResponse.Items[0];
   logger.info(
     `appointmentItems for appointment: ${JSON.stringify(
-      appointmentItems?.Appointment_Id
+      appointmentItems?.AppointmentID
     )} loaded.`
   );
   //bring back most recent appointment, with timestamp
