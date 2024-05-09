@@ -506,25 +506,27 @@ const updateRecord = async (record, recordFromTable) => {
       const recordBeforeDeath = sortedEpisodeHistoryParticipants[index - 1];
       console.log("recordBeforeDeath ", recordBeforeDeath);
 
-      const updateEpisodeParams = {
-        TableName: `${ENVIRONMENT}-Episode`,
-        Key: {
-          Batch_Id: recordBeforeDeath.Batch_Id.S,
-          Participant_Id: recordBeforeDeath.Participant_Id.S,
-        },
-        UpdateExpression: "SET Episode_Event = :event",
-        ExpressionAttributeValues: {
-          ":event": recordBeforeDeath.Episode_Event.S,
-        },
-      };
-
-      try {
-        const command = new UpdateItemCommand(updateEpisodeParams);
-        const response = await client.send(command);
-        console.log("Record in Episode table updated successfully:", response);
-      } catch (error) {
-        console.error("Error updating record in Episode table:", error);
-      }
+      await updateRecordInTable(
+        client,
+        "Episode",
+        recordBeforeDeath.Batch_Id.S,
+        "Batch_Id",
+        recordBeforeDeath.Participant_Id.S,
+        "Participant_Id",
+        ["Episode_Event", "S", "Death Reversal"],
+        ["Episode_Event_Updated", "N", String(Date.now())],
+        [
+          "Episode_Event_Updated_By",
+          "S",
+          recordBeforeDeath.Episode_Event_Updated_By.S,
+        ],
+        [
+          "Episode_Event_Description",
+          "S",
+          recordBeforeDeath.Episode_Event_Description.S,
+        ],
+        ["Episode_Event_Notes", "S", recordBeforeDeath.Episode_Event_Notes.S]
+      );
 
       console.log(
         "sortedEpisodeHistoryParticipants ",
