@@ -1,5 +1,3 @@
-Test;
-
 //IMPORTS
 import {
   DynamoDBClient,
