@@ -1046,13 +1046,6 @@ module "nrds_mesh_mailbox_lambda" {
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
 }
 
-module "nrds_mesh_mailbox_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.nrds_mesh_mailbox_lambda.lambda_function_name
-  retention_days       = 14
-}
-
 # GTMS Validate clinic Lambda
 module "validate_clinic_data_lambda" {
   source               = "./modules/lambda"
@@ -1152,13 +1145,6 @@ module "authenticator_lambda" {
 # Retrieve Galleri activity code
 data "aws_secretsmanager_secret_version" "galleri_activity_code" {
   secret_id = "GALLERI_ACTIVITY_CODE"
-}
-
-module "authenticator_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.authenticator_lambda.lambda_function_name
-  retention_days       = 14
 }
 
 module "authenticator_lambda_api_gateway" {
@@ -1341,13 +1327,6 @@ module "send_single_notify_message_lambda" {
     ENRICHED_MESSAGE_QUEUE_URL = module.notify_enriched_message_queue_sqs.sqs_queue_url
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
-}
-
-module "send_single_notify_message_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.send_single_notify_message_lambda.lambda_function_name
-  retention_days       = 14
 }
 
 module "send_single_notify_message_SQS_trigger" {
