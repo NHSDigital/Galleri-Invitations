@@ -1,18 +1,18 @@
 # Monitoring
-resource "aws_cloudwatch_log_group" "log_group" {
-  name = "/aws/lambda/${var.environment}-${var.lambda_function_name}"
+# resource "aws_cloudwatch_log_group" "log_group" {
+#   name = "/aws/lambda/${var.environment}-${var.lambda_function_name}"
 
-  lifecycle {
-    create_before_destroy = true
-    ignore_changes = [
-      tags, # Add any other attributes that might change outside of Terraform's management
-    ]
-  }
-}
+#   lifecycle {
+#     create_before_destroy = true
+#     ignore_changes = [
+#       tags, # Add any other attributes that might change outside of Terraform's management
+#     ]
+#   }
+# }
 
 resource "aws_cloudwatch_log_metric_filter" "error_filter" {
   name           = "${var.environment}-${var.lambda_function_name}"
-  log_group_name = aws_cloudwatch_log_group.log_group.name
+  log_group_name = "/aws/lambda/${var.environment}-${var.lambda_function_name}"
   pattern        = "Error"
   metric_transformation {
     namespace = "LogErrors"
@@ -80,7 +80,6 @@ resource "aws_lambda_function" "lambda" {
   environment {
     variables = var.environment_vars
   }
-  depends_on = [aws_cloudwatch_log_group.log_group]
   tags = {
     ApplicationRole = "${var.application_role}"
     Name            = "${var.environment} ${var.lambda_function_name} Lambda App"
