@@ -1553,38 +1553,6 @@ data "aws_secretsmanager_secret_version" "nhs_notify_api_key" {
   secret_id = "NHS_NOTIFY_API_KEY"
 }
 
-# Place Holder Error S3 buckets for Step 1-4 FHIR Validation
-module "fhir_validation_step1_error" {
-  source                  = "./modules/s3"
-  bucket_name             = "fhir-validation-step1-error"
-  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  environment             = var.environment
-  account_id              = var.account_id
-}
-
-module "fhir_validation_step2_error" {
-  source                  = "./modules/s3"
-  bucket_name             = "fhir-validation-step2-error"
-  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  environment             = var.environment
-  account_id              = var.account_id
-}
-
-module "fhir_validation_step3_error" {
-  source                  = "./modules/s3"
-  bucket_name             = "fhir-validation-step3-error"
-  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  environment             = var.environment
-  account_id              = var.account_id
-}
-
-module "fhir_validation_step4_error" {
-  source                  = "./modules/s3"
-  bucket_name             = "fhir-validation-step4-error"
-  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  environment             = var.environment
-  account_id              = var.account_id
-}
 
 # Test Result Acknowledgement Queue
 module "test_result_ack_queue_sqs" {
@@ -1619,10 +1587,32 @@ module "send_test_result_error_ack_queue_lambda_cloudwatch" {
   retention_days       = 14
 }
 
+# Lambda triggers for Step 1-4 fhir validation error buckets
 module "send_test_result_step1_error_ack_queue_lambda_trigger" {
   source     = "./modules/lambda_trigger"
-  bucket_id  = module.fhir_validation_step1_error.bucket_id
-  bucket_arn = module.fhir_validation_step1_error.bucket_arn
+  bucket_id  = module.inbound_nrds_galleritestresult_step1_error.bucket_id
+  bucket_arn = module.inbound_nrds_galleritestresult_step1_error.bucket_arn
+  lambda_arn = module.send_test_result_error_ack_queue_lambda.lambda_arn
+}
+
+module "send_test_result_step2_error_ack_queue_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.inbound_nrds_galleritestresult_step2_error.bucket_id
+  bucket_arn = module.inbound_nrds_galleritestresult_step2_error.bucket_arn
+  lambda_arn = module.send_test_result_error_ack_queue_lambda.lambda_arn
+}
+
+module "send_test_result_step3_error_ack_queue_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.inbound_nrds_galleritestresult_step3_error.bucket_id
+  bucket_arn = module.inbound_nrds_galleritestresult_step3_error.bucket_arn
+  lambda_arn = module.send_test_result_error_ack_queue_lambda.lambda_arn
+}
+
+module "send_test_result_step4_error_ack_queue_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.inbound_nrds_galleritestresult_step4_error.bucket_id
+  bucket_arn = module.inbound_nrds_galleritestresult_step4_error.bucket_arn
   lambda_arn = module.send_test_result_error_ack_queue_lambda.lambda_arn
 }
 

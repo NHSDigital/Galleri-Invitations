@@ -583,7 +583,10 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:s3:::${var.environment}-galleri-processed-caas-data/*",
             "arn:aws:s3:::${var.environment}-proccessed-appointments/*",
             "arn:aws:s3:::${var.environment}-inbound-processed-nrds-data/*",
-            "arn:aws:s3:::${var.environment}-fhir-validation-step1-error/*", ### placeholder for step 1 fhir validation error bucket
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step1-error/*", ### step 1 fhir validation error bucket
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step2-error/*", ### step 2 fhir validation error bucket
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step3-error/*", ### step 3 fhir validation error bucket
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step4-error/*", ### step 4 fhir validation error bucket
           ]
         },
         {
