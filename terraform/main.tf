@@ -2712,3 +2712,11 @@ resource "aws_ssm_parameter" "contact-escalation-tables" {
   value     = "Null"
   overwrite = true
 }
+
+module "fhir_cert" {
+  source      = "./modules/route_53"
+  environment = var.environment
+  region      = var.region
+  dns_zone    = var.dns_zone
+  hostname    = var.invitations-hostname
+}
