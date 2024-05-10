@@ -99,3 +99,11 @@ variable "K8_URL" {
   description = "url for eks mesh service"
   default     = null
 }
+
+variable "alias_name" {
+  description = "Name of ALB of FHIR service"
+}
+
+variable "alias_zone_id" {
+  description = "Zone ID of ALB of FHIR service"
+}

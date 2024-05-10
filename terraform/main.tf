@@ -2714,9 +2714,11 @@ resource "aws_ssm_parameter" "contact-escalation-tables" {
 }
 
 module "fhir_cert" {
-  source      = "./modules/route_53"
-  environment = var.environment
-  region      = var.region
-  dns_zone    = var.dns_zone
-  hostname    = var.invitations-hostname
+  source        = "./modules/route_53"
+  environment   = var.environment
+  region        = var.region
+  dns_zone      = var.dns_zone
+  hostname      = var.invitations-hostname
+  alias_name    = var.alias_name
+  alias_zone_id = var.alias_zone_id
 }

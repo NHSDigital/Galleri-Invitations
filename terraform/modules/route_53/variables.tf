@@ -18,3 +18,11 @@ variable "region" {
 variable "hostname" {
 
 }
+
+variable "alias_name" {
+
+}
+
+variable "alias_zone_id" {
+
+}
