@@ -1620,24 +1620,46 @@ module "fhir_validation_step4_error_bucket_lambda_trigger" {
   lambda_arn   = module.send_test_result_error_ack_queue_lambda.lambda_arn
 }
 
-# Lambda triggers for Step 1-4 fhir validation error buckets
-# module "fhir_validation_step1_error_bucket_lambda_trigger" {
-#   source      = "./modules/lambda_s3_trigger"
-#   bucket_arn  = "arn:aws:s3:::bucket-name"
-#   bucket_id   = "bucket-name"
-#   name        = "Step_1_validation_error_bucket_trigger"
-#   environment = var.environment
+# SNS Topic to publish and read test result ok Acknowledgement response
+module "test_result_ok_ack_topic" {
+  source                         = "./modules/sns_topic"
+  environment                    = var.environment
+  name                           = "testResultOkAckTopic.fifo"
+  is_fifo_topic                  = true
+  is_content_based_deduplication = true
 
-#   triggers = {
-#     trigger1 = {
-#       lambda_arn    = "arn:aws:lambda:region:account-id:function:function-name"
-#       bucket_events = ["s3:ObjectCreated:*"]
-#       filter_prefix = "prefix/"
-#       filter_suffix = ".txt"
-#     },
-#   }
-# }
+}
 
+# Send Test Result Ok Acknowledgement Lambda
+module "send_test_result_ok_ack_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "sendTestResultOkAckLambda"
+  lambda_timeout       = 370
+  memory_size          = 1024
+  lambda_s3_object_key = "send_test_result_ok_ack_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT               = "${var.environment}"
+    TEST_RESULT_ACK_QUEUE_URL = module.test_result_ack_queue_sqs.sqs_queue_url
+  }
+}
+
+module "send_test_result_ok_ack_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.send_test_result_ok_ack_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+# Lambda subscription/trigger for Test result SNS Topic
+module "send_test_result_ok_ack_lambda_sns_topic_subscription" {
+  source                = "./modules/lambda_sns_trigger"
+  sns_topic_arn         = module.test_result_ok_ack_topic.sns_topic_arn
+  subscription_endpoint = module.send_test_result_ok_ack_lambda.lambda_arn
+  lambda_name           = module.send_test_result_ok_ack_lambda.lambda_function_name
+}
 
 # Delete Caas feed records
 module "caas_feed_delete_records_lambda" {

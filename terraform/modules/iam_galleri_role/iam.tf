@@ -515,6 +515,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added sendSingleNotifyMessageLambda to this policy as lambda role exceeded policy limit
 # Added nrdsMeshMailboxLambda to this policy as lambda role exceeded policy limit
 # Added sendTestResultErrorAckQueueLambda to this policy as lambda role exceeded policy limit
+# Added SNS Topic ploicy to publich message
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
   path        = "/"
@@ -530,6 +531,12 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           ],
           "Effect" : "Allow",
           "Resource" : "arn:aws:logs:*:*:*"
+        },
+        {
+          "Sid" : "AllowSNSAccess",
+          "Effect" : "Allow",
+          "Action" : "sns:Publish",
+          "Resource" : "arn:aws:sns:region:account-id:topic-name"
         },
         {
           "Sid" : "AllowDynamodbAccess",
