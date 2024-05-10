@@ -1622,12 +1622,9 @@ module "fhir_validation_step4_error_bucket_lambda_trigger" {
 
 # SNS Topic to publish and read test result ok Acknowledgement response
 module "test_result_ok_ack_topic" {
-  source                         = "./modules/sns_topic"
-  environment                    = var.environment
-  name                           = "testResultOkAckTopic.fifo"
-  is_fifo_topic                  = true
-  is_content_based_deduplication = true
-
+  source      = "./modules/sns_topic"
+  environment = var.environment
+  name        = "testResultOkAckTopic.fifo"
 }
 
 # Send Test Result Ok Acknowledgement Lambda
