@@ -1631,34 +1631,34 @@ module "test_result_ok_ack_topic" {
 }
 
 # Send Test Result Ok Acknowledgement Lambda
-module "send_test_result_ok_ack_lambda" {
+module "send_test_result_ok_ack_queue_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "sendTestResultOkAckLambda"
+  lambda_function_name = "sendTestResultOkAckQueueLambda"
   lambda_timeout       = 370
   memory_size          = 1024
-  lambda_s3_object_key = "send_test_result_ok_ack_lambda.zip"
+  lambda_s3_object_key = "send_test_result_ok_ack_queue_lambda.zip"
   environment_vars = {
     ENVIRONMENT               = "${var.environment}"
     TEST_RESULT_ACK_QUEUE_URL = module.test_result_ack_queue_sqs.sqs_queue_url
   }
 }
 
-module "send_test_result_ok_ack_lambda_cloudwatch" {
+module "send_test_result_ok_ack_queue_lambda_cloudwatch" {
   source               = "./modules/cloudwatch"
   environment          = var.environment
-  lambda_function_name = module.send_test_result_ok_ack_lambda.lambda_function_name
+  lambda_function_name = module.send_test_result_ok_ack_queue_lambda.lambda_function_name
   retention_days       = 14
 }
 
 # Lambda subscription/trigger for Test result SNS Topic
-module "send_test_result_ok_ack_lambda_sns_topic_subscription" {
+module "send_test_result_ok_ack_queue_lambda_sns_topic_subscription" {
   source                = "./modules/lambda_sns_trigger"
   sns_topic_arn         = module.test_result_ok_ack_topic.sns_topic_arn
-  subscription_endpoint = module.send_test_result_ok_ack_lambda.lambda_arn
-  lambda_name           = module.send_test_result_ok_ack_lambda.lambda_function_name
+  subscription_endpoint = module.send_test_result_ok_ack_queue_lambda.lambda_arn
+  lambda_name           = module.send_test_result_ok_ack_queue_lambda.lambda_function_name
 }
 
 # Delete Caas feed records
