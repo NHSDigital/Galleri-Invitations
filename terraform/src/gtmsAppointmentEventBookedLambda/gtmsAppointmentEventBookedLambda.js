@@ -34,15 +34,15 @@ export const handler = async (event) => {
   const csvString = await readCsvFromS3(bucket, key, s3);
   const js = JSON.parse(csvString); //convert string retrieved from S3 to object
 
-  const payloadParticipantID = js?.["Appointment"]?.["ParticipantID"];
-  const payloadAppointmentID = js?.["Appointment"]?.["AppointmentID"];
+  const payloadParticipantId = js?.["Appointment"]?.["ParticipantID"];
+  const payloadAppointmentId = js?.["Appointment"]?.["AppointmentID"];
   const payloadEventType = js?.["Appointment"]?.["EventType"]; //BOOKED
   const payloadAppointmentDateTime = new Date(
     js?.["Appointment"]?.["AppointmentDateTime"]
   );
   const payloadAppointmentReplaces = js?.["Appointment"]?.["Replaces"]; //replaces existing appointment id
   const payloadTimestamp = js?.["Appointment"]?.["Timestamp"]; //most recent
-  const clinicID = js?.["Appointment"]?.["ClinicID"];
+  const clinicId = js?.["Appointment"]?.["ClinicID"];
   const channel = js?.["Appointment"]?.["Channel"];
   const appointmentAccessibility =
     js?.["Appointment"]?.["AppointmentAccessibility"];
@@ -55,7 +55,7 @@ export const handler = async (event) => {
   const dateOfBirth = js?.["Appointment"]?.["DateOfBirth"];
   const bloodNotCollectedReason =
     js?.["Appointment"]?.["BloodNotCollectedReason"];
-  const grailID = js?.["Appointment"]?.["GrailID"];
+  const grailId = js?.["Appointment"]?.["GrailID"];
   const primaryPhoneNumber = js?.["Appointment"]?.["PrimaryPhoneNumber"];
   const secondaryPhoneNumber = js?.["Appointment"]?.["SecondaryPhoneNumber"];
   const email = js?.["Appointment"]?.["Email"];
@@ -64,7 +64,7 @@ export const handler = async (event) => {
 
   const episodeResponse = await lookUp(
     dbClient,
-    payloadParticipantID,
+    payloadParticipantId,
     "Episode",
     "Participant_Id",
     "S",
@@ -80,7 +80,7 @@ export const handler = async (event) => {
 
   const appointmentResponse = await lookUp(
     dbClient,
-    payloadAppointmentID,
+    payloadAppointmentId,
     "Appointments",
     "Appointment_Id",
     "S",
@@ -96,7 +96,7 @@ export const handler = async (event) => {
 
   const appointmentParticipant = await lookUp(
     dbClient,
-    payloadParticipantID,
+    payloadParticipantId,
     "Appointments",
     "Participant_Id",
     "S",
@@ -128,7 +128,7 @@ export const handler = async (event) => {
       );
       if (
         !appointmentItems &&
-        payloadAppointmentID !== null &&
+        payloadAppointmentId !== null &&
         !appointmentParticipantItems
       ) {
         // new appointment ID, and no existing = ADD
@@ -197,13 +197,13 @@ export const handler = async (event) => {
   async function writeToEpisodeAndAppointments(episodeEvent) {
     await transactionalWrite(
       dbClient,
-      payloadParticipantID,
+      payloadParticipantId,
       episodeItems["Batch_Id"]["S"], //required PK for Episode update
-      payloadAppointmentID,
+      payloadAppointmentId,
       payloadEventType,
       episodeEvent,
       payloadTimestamp,
-      clinicID,
+      clinicId,
       payloadAppointmentDateTime,
       channel,
       appointmentAccessibility,
@@ -213,7 +213,7 @@ export const handler = async (event) => {
       pdsNHSNumber,
       dateOfBirth,
       cancellationReason, //reason its cancelled coming from payload
-      grailID,
+      grailId,
       bloodNotCollectedReason,
       primaryPhoneNumber,
       secondaryPhoneNumber,
