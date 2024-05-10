@@ -1,3 +1,8 @@
+data "aws_route53_zone" "example" {
+  name         = "${var.hostname}."
+  private_zone = false
+}
+
 resource "aws_acm_certificate" "example" {
   domain_name       = "${var.environment}.${var.hostname}"
   validation_method = "DNS"
@@ -45,7 +50,6 @@ resource "aws_route53_record" "api_domain_cname" {
   records = [aws_api_gateway_domain_name.api_domain.cloudfront_domain_name]
   ttl     = 300
 }
-
 
 # Set up cloudwatch logging
 resource "aws_cloudwatch_log_group" "api_gateway_log_group" {
