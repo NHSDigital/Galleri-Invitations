@@ -72,11 +72,11 @@ export const handler = async (event) => {
   );
   const episodeItems = episodeResponse.Items[0];
   logger.info(
-    `episodeItems for participant: ${JSON.stringify(episodeItems)} loaded.`
+    `episodeItems for participant 1: ${JSON.stringify(episodeItems)}.`
   );
   logger.info(
-    `episodeItems for participant: ${JSON.stringify(
-      episodeItems?.ParticipantID
+    `episodeItems for participant 2: ${JSON.stringify(
+      episodeItems?.Participant_Id
     )} loaded.`
   );
   //doesn't pull associated appointment id as in scenario it is new but links to existing
@@ -91,8 +91,13 @@ export const handler = async (event) => {
   );
   const appointmentItems = appointmentResponse.Items[0];
   logger.info(
-    `appointmentItems for appointment: ${JSON.stringify(
-      appointmentItems?.AppointmentID
+    `appointmentItems for appointment 1: ${JSON.stringify(
+      appointmentItems
+    )} loaded.`
+  );
+  logger.info(
+    `appointmentItems for appointment2: ${JSON.stringify(
+      appointmentItems?.Appointment_Id
     )} loaded.`
   );
   //bring back most recent appointment, with timestamp
@@ -112,6 +117,11 @@ export const handler = async (event) => {
       : -1;
   });
   const appointmentParticipantItems = sortedApptParticipants[0];
+  logger.info(
+    `appointmentParticipantItems: ${JSON.stringify(
+      appointmentParticipantItems
+    )}`
+  );
   logger.info(
     `appointmentParticipantItems for appointment: ${JSON.stringify(
       appointmentParticipantItems?.Appointment_Id
@@ -206,11 +216,9 @@ export const handler = async (event) => {
       payloadEventType,
       episodeEvent,
       payloadTimestamp,
-      payloadAppointmentID,
       clinicID,
       payloadAppointmentDateTime,
       channel,
-      payloadEventType,
       appointmentAccessibility,
       communicationsAccessibility,
       notificationPreferences,
@@ -390,7 +398,7 @@ export const transactionalWrite = async (
             Appointment_Id: { S: AppointmentID },
           },
           UpdateExpression:
-            "SET event_type = :eventType, Time_stamp = :time_stamp, clinic_id = :clinicID, appointment_date_time = :appointmentDateTime, channel = :channel, appointment_accessibility = :appointmentAccessibility, communications_accessibility = :communicationsAccessibility, notification_preferences= :notificationPreferences, invitation_nhs_number= :invitationNHSNumber, pds_nhs_number= :pdsNHSNumber, data_of_birth= :dateOfBirth, cancellation_reason= :cancellationReason, blood_not_collected_reason= :bloodNotCollectedReason, grail_id= :grailID, primary_phone_number = :primaryNumber, secondary_phone_number = :secondaryNumber, email_address = :email_address, blood_collection_date= :bloodCollectionDate, appointment_replaces= :appointmentReplaces ",
+            "SET event_type = :eventType, Time_stamp = :time_stamp, clinic_id = :clinicID, appointment_date_time = :appointmentDateTime, channel = :channel, invitation_nhs_number= :invitationNHSNumber, pds_nhs_number= :pdsNHSNumber, data_of_birth= :dateOfBirth, cancellation_reason= :cancellationReason, blood_not_collected_reason= :bloodNotCollectedReason, grail_id= :grailID, primary_phone_number = :primaryNumber, secondary_phone_number = :secondaryNumber, email_address = :email_address, blood_collection_date= :bloodCollectionDate, appointment_replaces= :appointmentReplaces",
 
           TableName: `${ENVIRONMENT}-Appointments`,
           ExpressionAttributeValues: {
@@ -399,9 +407,6 @@ export const transactionalWrite = async (
             ":clinicID": { S: ClinicID },
             ":appointmentDateTime": { S: AppointmentDateTime },
             ":channel": { S: Channel },
-            ":appointmentAccessibility": { S: AppointmentAccessibility },
-            ":communicationsAccessibility": { S: CommunicationsAccessibility },
-            ":notificationPreferences": { S: NotificationPreferences },
             ":invitationNHSNumber": { S: InvitationNHSNumber },
             ":pdsNHSNumber": { S: PDSNHSNumber },
             ":dateOfBirth": { S: DateOfBirth },
@@ -420,6 +425,10 @@ export const transactionalWrite = async (
   };
 
   try {
+    logger.info(`params: ${JSON.stringify(params)}.`);
+    logger.info(
+      `NotificationPreferences: ${JSON.stringify(NotificationPreferences)}.`
+    );
     const command = new TransactWriteItemsCommand(params);
     const response = await client.send(command);
     if (response.$metadata.httpStatusCode !== 200) {
