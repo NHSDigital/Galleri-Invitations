@@ -60,7 +60,7 @@ variable "alb_name" {
 resource "aws_route53_record" "actual_record" {
   zone_id = data.aws_route53_zone.example.id
   name    = aws_acm_certificate.certificate.domain_name
-  type    = "CNAME"
+  type    = "A"
   # ttl     = "300"
   # records = ["${var.environment}-${var.dns_zone}-gps-multi-cancer-blood-test.${var.region}.nginx.com"]
   # records = ["dev-7.fhir.cicd-gps-multi-cancer-blood-test.nhs.uk"]
@@ -73,7 +73,6 @@ resource "aws_route53_record" "actual_record" {
     # zone_id                = data.aws_lb.test.zone_id ## Updated ##
     name    = var.alias_name
     zone_id = var.alias_zone_id
-    # zone_id = data.aws_route53_zone.example.zone_id
-    evaluate_target_health = false
+    evaluate_target_health = true
   }
 }
