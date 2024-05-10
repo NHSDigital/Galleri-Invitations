@@ -397,7 +397,6 @@ module "clinic_information_api_gateway" {
   lambda_function_name = module.clinic_information_lambda.lambda_function_name
   hostname             = var.invitations-hostname
   dns_zone             = var.dns_zone
-  region               = var.region
 }
 
 
@@ -428,7 +427,6 @@ module "clinic_icb_list_api_gateway" {
   lambda_function_name = module.clinic_icb_list_lambda.lambda_function_name
   hostname             = var.invitations-hostname
   dns_zone             = var.dns_zone
-  region               = var.region
 }
 
 
@@ -457,7 +455,6 @@ module "participating_icb_list_api_gateway" {
   lambda_function_name   = module.participating_icb_list_lambda.lambda_function_name
   hostname               = var.invitations-hostname
   dns_zone               = var.dns_zone
-  region                 = var.region
 }
 
 
@@ -488,7 +485,6 @@ module "clinic_summary_list_api_gateway" {
   lambda_function_name = module.clinic_summary_list_lambda.lambda_function_name
   hostname             = var.invitations-hostname
   dns_zone             = var.dns_zone
-  region               = var.region
 }
 
 
@@ -517,7 +513,6 @@ module "invitation_parameters_api_gateway" {
   lambda_function_name   = module.invitation_parameters_lambda.lambda_function_name
   hostname               = var.invitations-hostname
   dns_zone               = var.dns_zone
-  region                 = var.region
 }
 
 
@@ -548,7 +543,6 @@ module "invitation_parameters_put_forecast_uptake_api_gateway" {
   method                    = "/*/PUT/*"
   hostname                  = var.invitations-hostname
   dns_zone                  = var.dns_zone
-  region                    = var.region
 }
 
 
@@ -579,7 +573,6 @@ module "invitation_parameters_put_quintiles_api_gateway" {
   method                    = "/*/PUT/*"
   hostname                  = var.invitations-hostname
   dns_zone                  = var.dns_zone
-  region                    = var.region
 }
 
 
@@ -613,7 +606,6 @@ module "target_fill_to_percentage_put_api_gateway" {
   method               = "/*/PUT/*"
   hostname             = var.invitations-hostname
   dns_zone             = var.dns_zone
-  region               = var.region
 }
 
 
@@ -640,7 +632,6 @@ module "target_fill_to_percentage_get_api_gateway" {
   lambda_function_name   = module.target_fill_to_percentage_get_lambda.lambda_function_name
   hostname               = var.invitations-hostname
   dns_zone               = var.dns_zone
-  region                 = var.region
 }
 
 # LSOA in range
@@ -670,7 +661,6 @@ module "lsoa_in_range_api_gateway" {
   environment          = var.environment
   hostname             = var.invitations-hostname
   dns_zone             = var.dns_zone
-  region               = var.region
 }
 
 # Population in LSOA
@@ -718,7 +708,6 @@ module "calculate_number_to_invite_api_gateway" {
   environment          = var.environment
   hostname             = var.invitations-hostname
   dns_zone             = var.dns_zone
-  region               = var.region
 }
 
 # Calculate number of participatnts to invite
@@ -752,7 +741,6 @@ module "generate_invites_api_gateway" {
   environment          = var.environment
   hostname             = var.invitations-hostname
   dns_zone             = var.dns_zone
-  region               = var.region
 }
 
 # GP Practices Loader
@@ -1156,7 +1144,6 @@ module "gps_jwks_api_gateway" {
   lambda_function_name   = module.gps_jwks_lambda.lambda_function_name
   hostname               = var.invitations-hostname
   dns_zone               = var.dns_zone
-  region                 = var.region
 }
 
 # Authenticator Lambda
@@ -1195,7 +1182,6 @@ module "authenticator_lambda_api_gateway" {
   lambda_function_name   = module.authenticator_lambda.lambda_function_name
   hostname               = var.invitations-hostname
   dns_zone               = var.dns_zone
-  region                 = var.region
 }
 
 

@@ -65,4 +65,5 @@ variable "dns_zone" {
 }
 
 variable "region" {
+  default = "us-east-1"
 }
