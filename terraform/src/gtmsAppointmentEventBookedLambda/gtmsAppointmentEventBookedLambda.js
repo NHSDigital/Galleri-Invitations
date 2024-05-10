@@ -157,7 +157,7 @@ export const handler = async (event) => {
         } else {
           const episodeEvent = "Appointment Booked Text";
           logger.info(episodeEvent);
-          writeToEpisodeAndAppointments(episodeEvent);
+          await writeToEpisodeAndAppointments(episodeEvent);
         }
       } else if (
         !appointmentItems &&
@@ -172,11 +172,11 @@ export const handler = async (event) => {
           //greater than date param, e.g. 5
           const episodeEvent = "Appointment Rebooked Letter";
           logger.info(episodeEvent);
-          writeToEpisodeAndAppointments(episodeEvent);
+          await writeToEpisodeAndAppointments(episodeEvent);
         } else {
           const episodeEvent = "Appointment Rebooked Text";
           logger.info(episodeEvent);
-          writeToEpisodeAndAppointments(episodeEvent);
+          await writeToEpisodeAndAppointments(episodeEvent);
         }
       } else {
         // has appointment id and different one supplied, REJECT
@@ -336,9 +336,9 @@ export const lookUp = async (dbClient, ...params) => {
  * This function is used to write to both episode and appointments table depending on the received payload
  *
  * @param {Object} client Instance of DynamoDB client
- * @param {string} ParticipantID The id of the participant
+ * @param {string} participantID The id of the participant
  * @param {string} batchId The batch id attached to the episode record
- * @param {string} AppointmentID The appointment id relating to the entry payload
+ * @param {string} appointmentID The appointment id relating to the entry payload
  * @param {string} EventType The eventType extracted from the payload from GTMS
  * @param {string} episodeEvent Text which is added added to the episode record to signify the type of Episode event update
  * @param {string} Timestamp
@@ -363,9 +363,9 @@ export const lookUp = async (dbClient, ...params) => {
  */
 export const transactionalWrite = async (
   client,
-  ParticipantID,
+  participantID,
   batchId,
-  AppointmentID,
+  appointmentID,
   EventType,
   episodeEvent,
   Timestamp,
@@ -394,7 +394,7 @@ export const transactionalWrite = async (
         Update: {
           Key: {
             Batch_Id: { S: batchId },
-            Participant_Id: { S: ParticipantID },
+            Participant_Id: { S: participantID },
           },
           UpdateExpression: `SET Episode_Event = :episodeEvent, Episode_Event_Updated = :timeNow, Episode_Event_Description = :eventDescription, Episode_Status = :open, Episode_Event_Notes = :null, Episode_Event_Updated_By = :gtms, Episode_Status_Updated = :timeNow`,
           TableName: `${ENVIRONMENT}-Episode`,
@@ -412,8 +412,8 @@ export const transactionalWrite = async (
       {
         Update: {
           Key: {
-            Participant_Id: { S: ParticipantID },
-            Appointment_Id: { S: AppointmentID },
+            Participant_Id: { S: participantID },
+            Appointment_Id: { S: appointmentID },
           },
           UpdateExpression:
             "SET event_type = :eventType, Time_stamp = :time_stamp, clinic_id = :clinicID, appointment_date_time = :appointmentDateTime, channel = :channel, invitation_nhs_number= :invitationNHSNumber, pds_nhs_number= :pdsNHSNumber, data_of_birth= :dateOfBirth, cancellation_reason= :cancellationReason, blood_not_collected_reason= :bloodNotCollectedReason, grail_id= :grailID, primary_phone_number = :primaryNumber, secondary_phone_number = :secondaryNumber, email_address = :email_address, blood_collection_date= :bloodCollectionDate, appointment_replaces= :appointmentReplaces, appointment_accessibility = :appointmentAccessibility, communications_accessibility = :communicationsAccessibility, notification_preferences= :notificationPreferences ",
@@ -495,11 +495,11 @@ export const transactionalWrite = async (
     const response = await client.send(command);
     if (response.$metadata.httpStatusCode !== 200) {
       console.error(
-        `Error: occurred while trying to update db with item: ${ParticipantID}`
+        `Error: occurred while trying to update db with item: ${participantID}`
       );
       return false;
     } else {
-      console.log(`Successfully updated db with item: ${ParticipantID}`);
+      console.log(`Successfully updated db with item: ${participantID}`);
       return true;
     }
   } catch (error) {
