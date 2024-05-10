@@ -42,14 +42,14 @@ export const handler = async (event) => {
   );
   const payloadAppointmentReplaces = js?.["Appointment"]?.["Replaces"]; //replaces existing appointment id
   const payloadTimestamp = js?.["Appointment"]?.["Timestamp"]; //most recent
-  const clinicID = js?.["Appointment"]?.["ClinicID"]; //required
-  const channel = js?.["Appointment"]?.["Channel"]; //required
+  const clinicID = js?.["Appointment"]?.["ClinicID"];
+  const channel = js?.["Appointment"]?.["Channel"];
   const appointmentAccessibility =
-    js?.["Appointment"]?.["AppointmentAccessibility"]; //required
+    js?.["Appointment"]?.["AppointmentAccessibility"];
   const communicationsAccessibility =
-    js?.["Appointment"]?.["CommunicationsAccessibility"]; //required
+    js?.["Appointment"]?.["CommunicationsAccessibility"];
   const notificationPreferences =
-    js?.["Appointment"]?.["NotificationPreferences"]; //required
+    js?.["Appointment"]?.["NotificationPreferences"];
   const invitationNHSNumber = js?.["Appointment"]?.["InvitationNHSNumber"];
   const pdsNHSNumber = js?.["Appointment"]?.["PDSNHSNumber"];
   const dateOfBirth = js?.["Appointment"]?.["DateOfBirth"];
@@ -339,26 +339,26 @@ export const lookUp = async (dbClient, ...params) => {
  * @param {string} participantID The id of the participant
  * @param {string} batchId The batch id attached to the episode record
  * @param {string} appointmentID The appointment id relating to the entry payload
- * @param {string} EventType The eventType extracted from the payload from GTMS
+ * @param {string} eventType The eventType extracted from the payload from GTMS
  * @param {string} episodeEvent Text which is added added to the episode record to signify the type of Episode event update
- * @param {string} Timestamp
- * @param {string} ClinicID
- * @param {string} AppointmentDateTime
- * @param {string} Channel
- * @param {Object} AppointmentAccessibility
- * @param {Object} CommunicationsAccessibility
- * @param {Object} NotificationPreferences
- * @param {string} InvitationNHSNumber
- * @param {string} PDSNHSNumber
- * @param {string} DateOfBirth
- * @param {string} CancellationReason
- * @param {string} GrailID
- * @param {string} BloodNotCollectedReason
- * @param {string} PrimaryPhoneNumber
- * @param {string} SecondaryPhoneNumber
- * @param {string} Email
- * @param {string} BloodCollectionDate
- * @param {string} AppointmentReplaces
+ * @param {string} timestamp
+ * @param {string} clinicID
+ * @param {string} appointmentDateTime
+ * @param {string} channel
+ * @param {Object} appointmentAccessibility
+ * @param {Object} communicationsAccessibility
+ * @param {Object} notificationPreferences
+ * @param {string} invitationNHSNumber
+ * @param {string} pdsNHSNumber
+ * @param {string} dateOfBirth
+ * @param {string} cancellationReason
+ * @param {string} grailID
+ * @param {string} bloodNotCollectedReason
+ * @param {string} primaryPhoneNumber
+ * @param {string} secondaryPhoneNumber
+ * @param {string} email
+ * @param {string} bloodCollectionDate
+ * @param {string} appointmentReplaces
  * @returns {boolean} Returns either true of false depending on the success writing to 2 DynamoDB's
  */
 export const transactionalWrite = async (
@@ -366,26 +366,26 @@ export const transactionalWrite = async (
   participantID,
   batchId,
   appointmentID,
-  EventType,
+  eventType,
   episodeEvent,
-  Timestamp,
-  ClinicID,
-  AppointmentDateTime,
-  Channel,
-  AppointmentAccessibility,
-  CommunicationsAccessibility,
-  NotificationPreferences,
-  InvitationNHSNumber,
-  PDSNHSNumber,
-  DateOfBirth,
-  CancellationReason, //reason its cancelled coming from payload
-  GrailID,
-  BloodNotCollectedReason,
-  PrimaryPhoneNumber,
-  SecondaryPhoneNumber,
-  Email,
-  BloodCollectionDate,
-  AppointmentReplaces
+  timestamp,
+  clinicID,
+  appointmentDateTime,
+  channel,
+  appointmentAccessibility,
+  communicationsAccessibility,
+  notificationPreferences,
+  invitationNHSNumber,
+  pdsNHSNumber,
+  dateOfBirth,
+  cancellationReason, //reason its cancelled coming from payload
+  grailID,
+  bloodNotCollectedReason,
+  primaryPhoneNumber,
+  secondaryPhoneNumber,
+  email,
+  bloodCollectionDate,
+  appointmentReplaces
 ) => {
   const timeNow = String(new Date(Date.now()).toISOString());
   const params = {
@@ -420,22 +420,22 @@ export const transactionalWrite = async (
 
           TableName: `${ENVIRONMENT}-Appointments`,
           ExpressionAttributeValues: {
-            ":eventType": { S: EventType },
-            ":time_stamp": { S: Timestamp },
-            ":clinicID": { S: ClinicID },
-            ":appointmentDateTime": { S: AppointmentDateTime },
-            ":channel": { S: Channel },
-            ":invitationNHSNumber": { S: InvitationNHSNumber },
-            ":pdsNHSNumber": { S: PDSNHSNumber },
-            ":dateOfBirth": { S: DateOfBirth },
-            ":cancellationReason": { S: CancellationReason },
-            ":bloodNotCollectedReason": { S: BloodNotCollectedReason },
-            ":grailID": { S: GrailID },
-            ":primaryNumber": { S: PrimaryPhoneNumber },
-            ":secondaryNumber": { S: SecondaryPhoneNumber },
-            ":email_address": { S: Email },
-            ":bloodCollectionDate": { S: BloodCollectionDate },
-            ":appointmentReplaces": { S: AppointmentReplaces },
+            ":eventType": { S: eventType },
+            ":time_stamp": { S: timestamp },
+            ":clinicID": { S: clinicID },
+            ":appointmentDateTime": { S: appointmentDateTime },
+            ":channel": { S: channel },
+            ":invitationNHSNumber": { S: invitationNHSNumber },
+            ":pdsNHSNumber": { S: pdsNHSNumber },
+            ":dateOfBirth": { S: dateOfBirth },
+            ":cancellationReason": { S: cancellationReason },
+            ":bloodNotCollectedReason": { S: bloodNotCollectedReason },
+            ":grailID": { S: grailID },
+            ":primaryNumber": { S: primaryPhoneNumber },
+            ":secondaryNumber": { S: secondaryPhoneNumber },
+            ":email_address": { S: email },
+            ":bloodCollectionDate": { S: bloodCollectionDate },
+            ":appointmentReplaces": { S: appointmentReplaces },
             ":appointmentAccessibility": {
               M: {
                 accessibleToilet: {
