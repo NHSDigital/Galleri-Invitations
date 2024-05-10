@@ -341,6 +341,24 @@ export const lookUp = async (dbClient, ...params) => {
  * @param {string} AppointmentID The appointment id relating to the entry payload
  * @param {string} EventType The eventType extracted from the payload from GTMS
  * @param {string} episodeEvent Text which is added added to the episode record to signify the type of Episode event update
+ * @param {string} Timestamp
+ * @param {string} ClinicID
+ * @param {string} AppointmentDateTime
+ * @param {string} Channel
+ * @param {Object} AppointmentAccessibility
+ * @param {Object} CommunicationsAccessibility
+ * @param {Object} NotificationPreferences
+ * @param {string} InvitationNHSNumber
+ * @param {string} PDSNHSNumber
+ * @param {string} DateOfBirth
+ * @param {string} CancellationReason
+ * @param {string} GrailID
+ * @param {string} BloodNotCollectedReason
+ * @param {string} PrimaryPhoneNumber
+ * @param {string} SecondaryPhoneNumber
+ * @param {string} Email
+ * @param {string} BloodCollectionDate
+ * @param {string} AppointmentReplaces
  * @returns {boolean} Returns either true of false depending on the success writing to 2 DynamoDB's
  */
 export const transactionalWrite = async (
