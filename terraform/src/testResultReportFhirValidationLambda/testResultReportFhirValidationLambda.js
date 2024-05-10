@@ -54,20 +54,18 @@ export async function validateTRR(testResultReport, reportName, validationServic
       url: `${validationServiceUrl}/FHIR/R4/$validate`,
     });
 
-    if (!responseHasErrors(response.data)) {
+    if (!responseHasErrors(response.data, reportName)) {
       console.log(`FHIR validation successful for ${reportName}`);
       return true;
     } else {
-      console.error(`FHIR validation unsuccessful for ${reportName} - Status ${response.status} - Response data: `, response.data);
+      console.error(`FHIR validation unsuccessful for ${reportName} - Status ${response.status}`);
       return false;
     }
   } catch (error) {
     if (error.response) {
       console.error(`Error: Unsuccessful request to FHIR validation service for ${reportName} - Status ${error.response.status} - Error body: ${error.response.data}`);
-    } else if (error.request) {
-      console.error(`Error: Unsuccessful request to FHIR validation service for ${reportName} - Error request: `, error.request);
     } else {
-      console.error(`Error: Unsuccessful request to FHIR validation service for ${reportName} - due to issue with setting up request message: `, error.message);
+      console.error(`Error: Unsuccessful request to FHIR validation service for ${reportName} - : Error: ${error.message}`);
     }
     return false;
   }
@@ -105,18 +103,18 @@ export async function deleteTRRinS3Bucket(reportName, bucketName, client) {
     console.log(`Successfully deleted ${reportName} from ${bucketName}`);
     return response;
   } catch (error) {
-    console.error(`Error: deleting ${reportName} from ${bucketName}:`, error);
+    console.error(`Error: deleting ${reportName} from ${bucketName}: ${error}`);
     throw error;
   }
 };
 
-export function responseHasErrors(response) {
+export function responseHasErrors(response, reportName) {
   const issues = response.issue;
   let hasError = false;
 
   for (const issue of issues) {
     if (issue.severity === "error") {
-      console.error("Error: FHIR diagnostic message: ", issue.diagnostics);
+      console.error(`Error: FHIR diagnostic message for ${reportName} : ${issue.diagnostics}`);
       hasError = true;
     }
   }
@@ -165,7 +163,7 @@ export const getSecret = async (secretName, client) => {
     console.log(`Retrieved value successfully ${secretName}`);
     return response.SecretString;
   } catch (error) {
-    console.log(`Failed: ${error}`);
+    console.error(`Error: Failed to retrieve ${secretName}`);
     throw error;
   }
 };
