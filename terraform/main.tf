@@ -1624,7 +1624,7 @@ module "fhir_validation_step4_error_bucket_lambda_trigger" {
 module "test_result_ok_ack_topic" {
   source      = "./modules/sns_topic"
   environment = var.environment
-  name        = "testResultOkAckTopic.fifo"
+  name        = "testResultOkAckTopic"
 }
 
 # Send Test Result Ok Acknowledgement Lambda
