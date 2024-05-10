@@ -6,14 +6,13 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 
-// VARIABLES
-const QUEUE_URL = process.env.TEST_RESULT_ACK_QUEUE_URL;
-const QUEUE_NAME = QUEUE_URL.split("/").pop();
-const s3 = new S3Client();
-const sqs = new SQSClient({});
-
 //HANDLER
 export const handler = async (event) => {
+  // VARIABLES
+  const QUEUE_URL = process.env.TEST_RESULT_ACK_QUEUE_URL;
+  const QUEUE_NAME = QUEUE_URL.split("/").pop();
+  const s3 = new S3Client();
+  const sqs = new SQSClient({});
   try {
     const bucket = event.Records[0].s3.bucket.name;
     const key = decodeURIComponent(
@@ -26,9 +25,18 @@ export const handler = async (event) => {
       key,
       s3
     );
-    await sendMessageToQueue(JSONMsgObject, QUEUE_URL, sqs);
+    const grailFhirResultId = JSONMsgObject.id;
+    const errorAckResponseObject = {
+      grail_fhir_result_id: grailFhirResultId,
+      ack_code: "fatal-error",
+    };
+    console.log(
+      "Preview of error acknowledgement response object attributes",
+      errorAckResponseObject
+    );
+    await sendMessageToQueue(errorAckResponseObject, QUEUE_URL, sqs, key);
     await deleteObjectFromS3(bucket, key, s3);
-    console.log(`Successfully sent the message to SQS Queue - ${QUEUE_NAME}`);
+    console.log(`Successfully sent the message to SQS Queue: ${QUEUE_NAME}`);
   } catch (error) {
     console.error(`Lambda process was not successful in this instance`);
     console.error(`Error: ${error}`);
@@ -36,9 +44,8 @@ export const handler = async (event) => {
 };
 
 //FUNCTIONS
-
 // Function to send Message to SQS Queue
-export async function sendMessageToQueue(message, queue, sqsClient) {
+export async function sendMessageToQueue(message, queue, sqsClient, key) {
   const sendMessageCommand = new SendMessageCommand({
     QueueUrl: queue,
     MessageBody: JSON.stringify(message),
@@ -47,10 +54,10 @@ export async function sendMessageToQueue(message, queue, sqsClient) {
 
   try {
     await sqsClient.send(sendMessageCommand);
-    console.log(`Message sent to SQS queue for object: ${bucket}/${key}.`);
+    console.log(`Message sent to SQS queue for object:${key}.`);
   } catch (error) {
     console.error(`Error: Failed to send message to SQS queue`);
-    throw new Error(error);
+    throw error;
   }
 }
 
@@ -66,11 +73,12 @@ export const retrieveAndParseJSON = async (
     return JSON.parse(JSONMsgStr);
   } catch (error) {
     console.error(
-      `Error: Failed to retrieve and parse JSON File ${key} from bucket ${bucketName}`
+      `Error: Failed to retrieve and parse JSON File ${key} from bucket ${bucket}`
     );
-    throw new Error(error);
+    throw error;
   }
 };
+
 // Get JSON File from the bucket
 export async function getJSONFromS3(bucketName, key, client) {
   console.log(`Getting object key ${key} from bucket ${bucketName}`);
@@ -86,7 +94,7 @@ export async function getJSONFromS3(bucketName, key, client) {
   } catch (err) {
     console.error(`Error getting object "${key}" from bucket "${bucketName}"`);
     console.error("Error: ", err);
-    throw new Error(err);
+    throw err;
   }
 }
 
@@ -108,6 +116,6 @@ export async function deleteObjectFromS3(bucketName, objectKey, client) {
       `Error deleting object "${objectKey}" from bucket "${bucketName}"`
     );
     console.error("Error: ", err);
-    throw new Error(err);
+    throw err;
   }
 }
