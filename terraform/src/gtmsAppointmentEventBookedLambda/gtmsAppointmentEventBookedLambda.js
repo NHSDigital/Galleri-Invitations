@@ -398,7 +398,7 @@ export const transactionalWrite = async (
             Appointment_Id: { S: AppointmentID },
           },
           UpdateExpression:
-            "SET event_type = :eventType, Time_stamp = :time_stamp, clinic_id = :clinicID, appointment_date_time = :appointmentDateTime, channel = :channel, invitation_nhs_number= :invitationNHSNumber, pds_nhs_number= :pdsNHSNumber, data_of_birth= :dateOfBirth, cancellation_reason= :cancellationReason, blood_not_collected_reason= :bloodNotCollectedReason, grail_id= :grailID, primary_phone_number = :primaryNumber, secondary_phone_number = :secondaryNumber, email_address = :email_address, blood_collection_date= :bloodCollectionDate, appointment_replaces= :appointmentReplaces",
+            "SET event_type = :eventType, Time_stamp = :time_stamp, clinic_id = :clinicID, appointment_date_time = :appointmentDateTime, channel = :channel, invitation_nhs_number= :invitationNHSNumber, pds_nhs_number= :pdsNHSNumber, data_of_birth= :dateOfBirth, cancellation_reason= :cancellationReason, blood_not_collected_reason= :bloodNotCollectedReason, grail_id= :grailID, primary_phone_number = :primaryNumber, secondary_phone_number = :secondaryNumber, email_address = :email_address, blood_collection_date= :bloodCollectionDate, appointment_replaces= :appointmentReplaces, appointment_accessibility = :appointmentAccessibility, communications_accessibility = :communicationsAccessibility, notification_preferences= :notificationPreferences ",
 
           TableName: `${ENVIRONMENT}-Appointments`,
           ExpressionAttributeValues: {
@@ -418,6 +418,54 @@ export const transactionalWrite = async (
             ":email_address": { S: Email },
             ":bloodCollectionDate": { S: BloodCollectionDate },
             ":appointmentReplaces": { S: AppointmentReplaces },
+            ":appointmentAccessibility": {
+              M: {
+                accessibleToilet: {
+                  BOOL: true,
+                },
+                disabledParking: {
+                  BOOL: true,
+                },
+                inductionLoop: {
+                  BOOL: true,
+                },
+                signLanguage: {
+                  BOOL: true,
+                },
+                stepFreeAccess: {
+                  BOOL: true,
+                },
+                wheelchairAccess: {
+                  BOOL: true,
+                },
+              },
+            },
+            ":communicationsAccessibility": {
+              M: {
+                signLanguage: {
+                  BOOL: true,
+                },
+                braille: {
+                  BOOL: false,
+                },
+                interpreter: {
+                  BOOL: false,
+                },
+                language: {
+                  S: "ARABIC",
+                },
+              },
+            },
+            ":notificationPreferences": {
+              M: {
+                canEmail: {
+                  BOOL: true,
+                },
+                canSMS: {
+                  BOOL: false,
+                },
+              },
+            },
           },
         },
       },
@@ -425,10 +473,6 @@ export const transactionalWrite = async (
   };
 
   try {
-    logger.info(`params: ${JSON.stringify(params)}.`);
-    logger.info(
-      `NotificationPreferences: ${JSON.stringify(NotificationPreferences)}.`
-    );
     const command = new TransactWriteItemsCommand(params);
     const response = await client.send(command);
     if (response.$metadata.httpStatusCode !== 200) {
