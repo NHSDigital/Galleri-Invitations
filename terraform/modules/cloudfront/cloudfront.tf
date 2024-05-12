@@ -7,6 +7,13 @@ resource "aws_s3_bucket" "bucket" {
   }
 }
 
+resource "aws_s3_bucket_versioning" "bucket_versioning" {
+  bucket = aws_s3_bucket.bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
 resource "aws_cloudfront_origin_access_identity" "oai" {
   comment = "OAI for S3 access"
 }

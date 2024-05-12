@@ -127,6 +127,14 @@ resource "aws_s3_object" "screens" {
   }
 }
 
+# S3 Versioning for bucket
+resource "aws_s3_bucket_versioning" "bucket_versioning" {
+  bucket = aws_s3_bucket.screens.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
 # Elastic Beanstalk Application
 resource "aws_elastic_beanstalk_application" "screens" {
   name        = "${var.environment}-${var.name}"
