@@ -12,6 +12,7 @@ spec:
       labels:
         app: fhir-validator
     spec:
+      automountServiceAccountToken: false
       containers:
         # Fhir validation container
         - name: fhir-validator
