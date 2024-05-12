@@ -89,7 +89,7 @@ runs:
       shell: bash
       run: |
         cd ./terraform
-        terraform plan -no-color -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars -var="alias_name=" -var="alias_zone_id="
+        terraform plan -no-color -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars
 
     - name: Terraform Plan Status
       if: steps.plan.outcome == 'failure'
