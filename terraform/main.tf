@@ -1199,6 +1199,35 @@ module "nrds_mesh_mailbox_lambda_cloudwatch" {
   retention_days       = 14
 }
 
+module "nrds_update_blood_test_result_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "nrdsUpdateBloodTestResultLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "nrds_update_blood_test_result_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "nrds_update_blood_test_result_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.nrds_update_blood_test_result_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "nrds_update_blood_test_result_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.inbound_nrds_galleritestresult_step3_success.bucket_id
+  bucket_arn    = module.inbound_nrds_galleritestresult_step3_success.bucket_arn
+  lambda_arn    = module.nrds_update_blood_test_result_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records"
+}
+
 # GTMS Validate clinic Lambda
 module "validate_clinic_data_lambda" {
   source               = "./modules/lambda"
