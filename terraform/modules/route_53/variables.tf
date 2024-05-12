@@ -20,9 +20,10 @@ variable "hostname" {
 }
 
 variable "alias_name" {
+  description = "Name of ALB of FHIR service"
 
 }
 
 variable "alias_zone_id" {
-
+  description = "Zone ID of ALB of FHIR service"
 }
