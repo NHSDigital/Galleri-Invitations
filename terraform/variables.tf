@@ -102,10 +102,10 @@ variable "K8_URL" {
 
 variable "alias_name" {
   description = "Name of ALB of FHIR service"
-  default     = null
+  default     = false
 }
 
 variable "alias_zone_id" {
   description = "Zone ID of ALB of FHIR service"
-  default     = null
+  default     = false
 }
