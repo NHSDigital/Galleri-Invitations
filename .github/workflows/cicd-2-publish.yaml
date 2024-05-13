@@ -77,7 +77,7 @@ jobs:
         run: |
           echo "Using following tag to create markdown file: ${{ env.release_tag }}"
           echo "${{ github.event.pull_request.body }}" >> "v${{ env.release_tag }}.md"
-          echo "- ['v${{ env.release_tag }}'](https://github.com/NHSDigital/Galleri-Invitations/wiki/'v${{ env.release_tag }}')" >> Home.md
+          echo "- [v${{ env.release_tag }}](https://github.com/NHSDigital/Galleri-Invitations/wiki/v${{ env.release_tag }})" >> Home.md
       - name: Push to wiki
         run: |
           git config user.email "action@github.com"
