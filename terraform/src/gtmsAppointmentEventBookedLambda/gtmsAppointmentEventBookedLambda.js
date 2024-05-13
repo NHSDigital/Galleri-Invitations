@@ -51,19 +51,30 @@ export const handler = async (event) => {
       InvitationNHSNumber: invitationNHSNumber,
       PDSNHSNumber: pdsNHSNumber,
       DateOfBirth: dateOfBirth,
-      BloodNotCollectedReason: bloodNotCollectedReason,
-      GrailID: grailId,
-      PrimaryPhoneNumber: primaryPhoneNumber,
-      SecondaryPhoneNumber: secondaryPhoneNumber,
-      Email: email,
-      BloodCollectionDate: bloodCollectionDate,
-      CancellationReason: cancellationReason,
+      BloodNotCollectedReason: payloadBloodNotCollectedReason,
+      GrailID: payloadGrailId,
+      PrimaryPhoneNumber: payloadPrimaryPhoneNumber,
+      SecondaryPhoneNumber: payloadSecondaryPhoneNumber,
+      Email: payloadEmail,
+      BloodCollectionDate: payloadBloodCollectionDate,
+      CancellationReason: payloadCancellationReason,
     },
   } = js;
 
   const payloadAppointmentDateTime = appointmentDateTime
     ? new Date(appointmentDateTime)
     : null;
+
+  const primaryPhoneNumber = payloadPrimaryPhoneNumber ?? "null";
+  const secondaryPhoneNumber = payloadSecondaryPhoneNumber ?? "null";
+  const email = payloadEmail ?? "null";
+  const cancellationReason = payloadCancellationReason ?? "null";
+  const bloodCollectionDate = payloadBloodCollectionDate ?? "null";
+  const bloodNotCollectedReason = payloadBloodNotCollectedReason ?? "null";
+  const grailId = payloadGrailId ?? "null";
+  const replaces = payloadAppointmentReplaces ?? "null";
+
+  // InterpreterLanguage;
 
   const episodeResponse = await lookUp(
     dbClient,
@@ -223,7 +234,7 @@ export const handler = async (event) => {
       secondaryPhoneNumber,
       email,
       bloodCollectionDate,
-      payloadAppointmentReplaces
+      replaces
     );
   }
 };
@@ -461,7 +472,7 @@ export const transactionalWrite = async (
                   BOOL: communicationsAccessibility.interpreter,
                 },
                 language: {
-                  S: communicationsAccessibility.language,
+                  S: communicationsAccessibility.language ?? "null",
                 },
               },
             },
