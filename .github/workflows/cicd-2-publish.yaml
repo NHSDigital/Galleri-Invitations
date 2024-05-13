@@ -71,13 +71,12 @@ jobs:
         with:
           repository: ${{ github.repository }}.wiki
           path: ${{ env.wiki_path }}
-      - if: ${{ env:release_tag == '0.2.28' }}
+      - if: ${{ env.release_tag == '0.2.28' }}
         run: |
           echo "Error: The release tag has not been found"
           exit 1
       - name: Create Release Notes
         run: |
-          if ${{ env.release_tag }}
           echo "Using following tag to create markdown file: ${{ env.release_tag }}"
           echo "${{ github.event.pull_request.body }}" >> "${{ env.wiki_path }}/v${{ env.release_tag }}.md"
       - name: Push to wiki
