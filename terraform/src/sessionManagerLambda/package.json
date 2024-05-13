@@ -1,0 +1,16 @@
+{
+  "name": "sessionmanagerlambda",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "sessionManagerLambda.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.575.0",
+    "@aws-sdk/util-dynamodb": "^3.575.0"
+  }
+}
