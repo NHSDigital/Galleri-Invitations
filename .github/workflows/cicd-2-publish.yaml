@@ -55,6 +55,7 @@ jobs:
     timeout-minutes: 3
     env:
       # file_name: "Release-0.1.0.md"
+      release_tag: ""
       version_bump: "PATCH"
       wiki_path: "wiki/Releases"
     steps:
@@ -64,6 +65,7 @@ jobs:
         id: "bump-path-version"
         uses: ./.github/actions/versioning
         with:
+          release_tag: ${{ env.release_tag }}
           version_bump: ${{ env.version_bump }}
       - name: "Checkout wiki"
         uses: actions/checkout@v4
@@ -72,8 +74,8 @@ jobs:
           path: ${{ env.wiki_path }}
       - name: Create Release Notes
         run: |
-          echo "@@@ Current relese tag: ${{ steps.bump-path-version.outputs.RELEASE_TAG }}"
-          echo "${{ github.event.pull_request.body }}" >> "${{ env.wiki_path }}/${{ steps.bump-path-version.outputs.RELEASE_TAG }}.md"
+          echo "@@@ Current relese tag: ${{ env.release_tag }}"
+          echo "${{ github.event.pull_request.body }}" >> "${{ env.wiki_path }}/${{ env.release_tag }}.md"
       - name: Push to wiki
         run: |
           cd ${{ env.wiki_path }}
