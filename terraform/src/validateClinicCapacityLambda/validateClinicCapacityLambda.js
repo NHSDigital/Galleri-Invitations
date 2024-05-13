@@ -112,12 +112,12 @@ export async function validateRecord(record, client) {
   let count = 0;
 
   while (count < numberOfClinics) {
-    const clinicValidation = await isClinicIDvalid(
+    const validClinic = await isClinicIDvalid(
       record.ClinicScheduleSummary.ClinicScheduleSummary[count].ClinicID,
       client
     );
 
-    if (clinicValidation.Count === 1) {
+    if (validClinic) {
       const validation = validate(record, ClinicSchemaGTMS);
       if (!validation.valid) {
         // validate the JSON Schema
@@ -155,19 +155,29 @@ export async function validateRecord(record, client) {
 }
 
 export async function isClinicIDvalid(record, client) {
-  const input = {
-    ExpressionAttributeValues: {
-      ":ClinicId": {
-        S: `${record}`,
+
+  if (record === undefined || record === "") {
+    console.error('Error: ClinicID value is undefined');
+    return false;
+  } else {
+    const input = {
+      ExpressionAttributeValues: {
+        ":ClinicId": {
+          S: `${record}`,
+        },
       },
-    },
-    KeyConditionExpression: "ClinicId = :ClinicId",
-    ProjectionExpression: "ClinicName",
-    TableName: `${ENVIRONMENT}-PhlebotomySite`,
-  };
+      KeyConditionExpression: "ClinicId = :ClinicId",
+      ProjectionExpression: "ClinicName",
+      TableName: `${ENVIRONMENT}-PhlebotomySite`,
+    };
 
-  const command = new QueryCommand(input);
-  const response = await client.send(command);
+    const command = new QueryCommand(input);
+    const response = await client.send(command);
 
-  return response;
+    if (response.Count === 1) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
