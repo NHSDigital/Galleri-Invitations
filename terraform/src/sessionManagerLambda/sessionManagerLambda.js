@@ -6,7 +6,7 @@ const environment = process.env.ENVIRONMENT;
 
 export async function retrieveSession(sessionId) {
   const params = {
-    TableName: `${environment}-session`,
+    TableName: `${environment}-next-auth`,
     Key: {
       sessionId: { S: sessionId },
     },
