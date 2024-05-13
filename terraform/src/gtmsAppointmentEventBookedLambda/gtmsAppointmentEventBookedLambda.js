@@ -34,33 +34,36 @@ export const handler = async (event) => {
   const csvString = await readCsvFromS3(bucket, key, s3);
   const js = JSON.parse(csvString); //convert string retrieved from S3 to object
 
-  const payloadParticipantId = js?.["Appointment"]?.["ParticipantID"];
-  const payloadAppointmentId = js?.["Appointment"]?.["AppointmentID"];
-  const payloadEventType = js?.["Appointment"]?.["EventType"]; //BOOKED
-  const payloadAppointmentDateTime = new Date(
-    js?.["Appointment"]?.["AppointmentDateTime"]
-  );
-  const payloadAppointmentReplaces = js?.["Appointment"]?.["Replaces"]; //replaces existing appointment id
-  const payloadTimestamp = js?.["Appointment"]?.["Timestamp"]; //most recent
-  const clinicId = js?.["Appointment"]?.["ClinicID"];
-  const channel = js?.["Appointment"]?.["Channel"];
-  const appointmentAccessibility =
-    js?.["Appointment"]?.["AppointmentAccessibility"];
-  const communicationsAccessibility =
-    js?.["Appointment"]?.["CommunicationsAccessibility"];
-  const notificationPreferences =
-    js?.["Appointment"]?.["NotificationPreferences"];
-  const invitationNHSNumber = js?.["Appointment"]?.["InvitationNHSNumber"];
-  const pdsNHSNumber = js?.["Appointment"]?.["PDSNHSNumber"];
-  const dateOfBirth = js?.["Appointment"]?.["DateOfBirth"];
-  const bloodNotCollectedReason =
-    js?.["Appointment"]?.["BloodNotCollectedReason"];
-  const grailId = js?.["Appointment"]?.["GrailID"];
-  const primaryPhoneNumber = js?.["Appointment"]?.["PrimaryPhoneNumber"];
-  const secondaryPhoneNumber = js?.["Appointment"]?.["SecondaryPhoneNumber"];
-  const email = js?.["Appointment"]?.["Email"];
-  const bloodCollectionDate = js?.["Appointment"]?.["BloodCollectionDate"];
-  const cancellationReason = js?.["Appointment"]?.["CancellationReason"];
+  const {
+    Appointment: {
+      ParticipantID: payloadParticipantId,
+      AppointmentID: payloadAppointmentId,
+      EventType: payloadEventType,
+      AppointmentDateTime: appointmentDateTime,
+
+      Replaces: payloadAppointmentReplaces,
+      Timestamp: payloadTimestamp,
+      ClinicID: clinicId,
+      Channel: channel,
+      AppointmentAccessibility: appointmentAccessibility,
+      CommunicationsAccessibility: communicationsAccessibility,
+      NotificationPreferences: notificationPreferences,
+      InvitationNHSNumber: invitationNHSNumber,
+      PDSNHSNumber: pdsNHSNumber,
+      DateOfBirth: dateOfBirth,
+      BloodNotCollectedReason: bloodNotCollectedReason,
+      GrailID: grailId,
+      PrimaryPhoneNumber: primaryPhoneNumber,
+      SecondaryPhoneNumber: secondaryPhoneNumber,
+      Email: email,
+      BloodCollectionDate: bloodCollectionDate,
+      CancellationReason: cancellationReason,
+    },
+  } = js;
+
+  const payloadAppointmentDateTime = appointmentDateTime
+    ? new Date(appointmentDateTime)
+    : null;
 
   const episodeResponse = await lookUp(
     dbClient,
