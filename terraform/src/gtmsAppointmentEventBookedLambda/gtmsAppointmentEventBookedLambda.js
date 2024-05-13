@@ -158,6 +158,7 @@ export const handler = async (event) => {
       ) {
         //same appointmentID = UPDATE
         console.info("Identified payload is for rebooked appointment");
+        date.setDate(date.getDate() + DATEPARAM);
         if (payloadAppointmentDateTime.toISOString() > date.toISOString()) {
           //greater than date param, e.g. 5
           const episodeEvent = "Appointment Rebooked Letter";
