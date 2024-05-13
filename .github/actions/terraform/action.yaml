@@ -149,12 +149,8 @@ runs:
         if [[ ${{ env.environment }} != prod ]]; then
           {
             aws eks update-kubeconfig --name ${{ env.environment }}-eks-cluster
-            pwd
-            cd ..
-            kubectl apply -f ./scripts/test_data/k8s/mesh-sandbox.yaml
-            kubectl apply -f ./scripts/test_data/k8s/fhir-validation.yaml
-            cd terraform/
-            pwd
+            kubectl apply -f ../scripts/test_data/k8s/mesh-sandbox.yaml
+            kubectl apply -f ../scripts/test_data/k8s/fhir-validation.yaml
             URL=$(kubectl get service mesh-sandbox-service | grep mesh-sandbox-service | awk '{print $4}')
             export TF_VAR_K8_URL="https://$URL"
             export TF_VAR_ALIAS_NAME=$(kubectl get service fhir-validator | grep fhir-validator | awk '{print $4}')
