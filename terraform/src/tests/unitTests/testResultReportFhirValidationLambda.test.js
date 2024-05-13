@@ -1,50 +1,94 @@
 import { mockClient } from 'aws-sdk-client-mock';
-import { validateTRR, getSecret, getJSONFromS3, retrieveAndParseJSON, responseHasErrors, putTRRInS3Bucket, deleteTRRinS3Bucket } from '../../testResultReportFhirValidationLambda/testResultReportFhirValidationLambda';
+import { processTRR, validateTRR, getSecret, getJSONFromS3, retrieveAndParseJSON, responseHasErrors, putTRRInS3Bucket, deleteTRRinS3Bucket } from '../../testResultReportFhirValidationLambda/testResultReportFhirValidationLambda';
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 jest.mock('axios');
 import axios from 'axios';
 
+const errorIssues = {
+  issue: [
+  {
+    severity: "error",
+    diagnostics: "error1"
+  },
+  {
+    severity: "info",
+    diagnostics: "info1"
+  },
+  {
+    severity: "error",
+    diagnostics: "error2"
+  },
+  {
+    severity: "info",
+    diagnostics: "info2"
+  }
+]};
+
+const noErrorIssues = {
+  issue: [
+    {
+      severity: "info",
+      diagnostics: "info1"
+    },
+    {
+      severity: "info",
+      diagnostics: "info2"
+    }
+  ]
+};
 
 describe("processTRR", () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('should process valid TRR', async () => {
+    const logSpy = jest.spyOn(global.console, "log");
+    const mockS3Client = mockClient(new S3Client({}));
+    mockS3Client.resolves({
+      $metadata: { httpStatusCode: 200 },
+    });
+    axios.mockResolvedValueOnce({
+      status: 200,
+      data: noErrorIssues
+    });
+
+    await processTRR(noErrorIssues, "report1", "bucket1", mockS3Client);
+
+    expect(logSpy).toHaveBeenCalledWith('FHIR validation successful for report1');
+    expect(logSpy).toHaveBeenCalledWith('Successfully pushed to undefined/report1');
+    expect(logSpy).toHaveBeenCalledWith('Successfully deleted report1 from bucket1');
+    expect(logSpy).toHaveBeenCalledTimes(3);
+  });
+
+  test('should process invalid TRR', async () => {
+    const errorSpy = jest.spyOn(global.console, "error");
+    const logSpy = jest.spyOn(global.console, "log");
+    const mockS3Client = mockClient(new S3Client({}));
+    mockS3Client.resolves({
+      $metadata: { httpStatusCode: 200 },
+    });
+    axios.mockRejectedValueOnce({
+      response: {
+        status: 400,
+        statusText: 'Bad Request',
+        data: 'Invalid request'
+      }
+    });
+
+    await processTRR(errorIssues, "report1", "bucket1", mockS3Client);
+
+    expect(errorSpy).toHaveBeenCalledWith('Error: Unsuccessful request to FHIR validation service for report1 - Status 400 - Error body: Invalid request');
+    expect(logSpy).toHaveBeenCalledWith('Successfully pushed to undefined/report1');
+    expect(logSpy).toHaveBeenCalledWith('Successfully deleted report1 from bucket1');
+    expect(logSpy).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe("validateTRR", () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
-
-  const errorIssues = {
-    issue: [
-    {
-      severity: "error",
-      diagnostics: "error1"
-    },
-    {
-      severity: "info",
-      diagnostics: "info1"
-    },
-    {
-      severity: "error",
-      diagnostics: "error2"
-    },
-    {
-      severity: "info",
-      diagnostics: "info2"
-    }
-  ]};
-
-  const noErrorIssues = {
-    issue: [
-      {
-        severity: "info",
-        diagnostics: "info1"
-      },
-      {
-        severity: "info",
-        diagnostics: "info2"
-      }
-    ]
-  };
 
   test("Should expect success response", async () => {
     const logSpy = jest.spyOn(global.console, "log");
@@ -72,7 +116,7 @@ describe("validateTRR", () => {
 
     expect(result).toBeFalsy();
     expect(logSpy).toHaveBeenCalledTimes(3);
-    expect(logSpy).toHaveBeenCalledWith('FHIR validation unsuccessful for report1 - Status 200');
+    expect(logSpy).toHaveBeenCalledWith('Error: FHIR validation unsuccessful for report1 - Status 200');
   });
 
   test("Should expect failed request to service with response", async() => {
@@ -188,39 +232,6 @@ describe("responseHasErrors", () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
-
-  const errorIssues = {
-    issue: [
-    {
-      severity: "error",
-      diagnostics: "error1"
-    },
-    {
-      severity: "info",
-      diagnostics: "info1"
-    },
-    {
-      severity: "error",
-      diagnostics: "error2"
-    },
-    {
-      severity: "info",
-      diagnostics: "info2"
-    }
-  ]};
-
-  const noErrorIssues = {
-    issue: [
-      {
-        severity: "info",
-        diagnostics: "info1"
-      },
-      {
-        severity: "info",
-        diagnostics: "info2"
-      }
-    ]
-  };
 
   test("should return true when error issues are present", () => {
     const logSpy = jest.spyOn(global.console, "error");

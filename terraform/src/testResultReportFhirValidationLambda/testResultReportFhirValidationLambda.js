@@ -24,15 +24,15 @@ export const handler = async (event, context) => {
   try {
     validationServiceUrl = await getSecret(process.env.FHIR_VALIDATION_SERVICE_URL, smClient);
     const testResultReport = await retrieveAndParseJSON(getJSONFromS3, bucket, key, s3);
-    await processTRR(testResultReport, key, bucket);
+    await processTRR(testResultReport, key, bucket, s3);
   } catch (error) {
-    console.error("Error occurred whilst processing JSON file from S3");
+    console.error("Error: Issue occurred whilst processing JSON file from S3");
     console.error("Error:", error);
   }
 };
 
 //FUNCTIONS
-export async function processTRR(testResultReport, reportName, originalBucket) {
+export async function processTRR(testResultReport, reportName, originalBucket, s3) {
   const validTRR = await validateTRR(testResultReport, reportName, validationServiceUrl);
   if (validTRR) {
     await putTRRInS3Bucket(testResultReport, reportName, TRR_SUCCESSFUL_BUCKET, s3);
@@ -58,7 +58,7 @@ export async function validateTRR(testResultReport, reportName, validationServic
       console.log(`FHIR validation successful for ${reportName}`);
       return true;
     } else {
-      console.error(`FHIR validation unsuccessful for ${reportName} - Status ${response.status}`);
+      console.error(`Error: FHIR validation unsuccessful for ${reportName} - Status ${response.status}`);
       return false;
     }
   } catch (error) {
@@ -146,7 +146,7 @@ export async function getJSONFromS3(bucketName, key, client) {
     console.log(`Finished getting object key ${key} from bucket ${bucketName}`);
     return response.Body.transformToString();
   } catch (err) {
-    console.error(`Failed to get object key ${key} from bucket ${bucketName}`);
+    console.error(`Error: Failed to get object key ${key} from bucket ${bucketName}`);
     console.error("Error:", err);
     throw err;
   }
