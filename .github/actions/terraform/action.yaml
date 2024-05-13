@@ -152,7 +152,7 @@ runs:
             URL=$(kubectl get service mesh-sandbox-service | grep mesh-sandbox-service | awk '{print $4}')
             export TF_VAR_K8_URL="https://$URL"
             export TF_VAR_ALIAS_NAME=$(kubectl get service fhir-validator | grep fhir-validator | awk '{print $4}')
-            cut_alias_name=$(kubectl get service fhir-validator | grep fhir-validator | awk '{print $4}' | cut -d '-' -f 1)
+            export cut_alias_name=$(kubectl get service fhir-validator | grep fhir-validator | awk '{print $4}' | cut -d '-' -f 1)
             export TF_VAR_ALIAS_ZONE_ID=$(aws elb describe-load-balancers --load-balancer-names $cut_alias_name | jq '.LoadBalancerDescriptions[0].CanonicalHostedZoneNameID' | tr -d '"')
 
             echo "K8 URL is: $TF_VAR_K8_URL"
