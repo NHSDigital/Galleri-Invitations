@@ -4,7 +4,7 @@ data "aws_route53_zone" "example" {
 }
 
 resource "aws_acm_certificate" "certificate" {
-  domain_name       = "${var.environment}.fhir.cicd-gps-multi-cancer-blood-test.nhs.uk"
+  domain_name       = "${var.environment}.fhir.${var.dns_zone}-gps-multi-cancer-blood-test.nhs.uk"
   validation_method = "DNS"
 
   tags = {
@@ -36,7 +36,7 @@ resource "aws_route53_record" "route_record" {
 
 resource "aws_acm_certificate_validation" "example" {
   certificate_arn         = aws_acm_certificate.certificate.arn
-  validation_record_fqdns = [for record in aws_route53_record.route_record : record.fqdn] //unsure about fqdn
+  validation_record_fqdns = [for record in aws_route53_record.route_record : record.fqdn]
 }
 
 resource "aws_route53_record" "actual_record" {
