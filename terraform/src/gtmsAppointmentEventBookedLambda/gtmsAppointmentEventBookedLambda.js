@@ -426,48 +426,48 @@ export const transactionalWrite = async (
             ":appointmentAccessibility": {
               M: {
                 accessibleToilet: {
-                  BOOL: true,
+                  BOOL: appointmentAccessibility.accessibleToilet,
                 },
                 disabledParking: {
-                  BOOL: true,
+                  BOOL: appointmentAccessibility.disabledParking,
                 },
                 inductionLoop: {
-                  BOOL: true,
+                  BOOL: appointmentAccessibility.inductionLoop,
                 },
                 signLanguage: {
-                  BOOL: true,
+                  BOOL: appointmentAccessibility.signLanguage,
                 },
                 stepFreeAccess: {
-                  BOOL: true,
+                  BOOL: appointmentAccessibility.stepFreeAccess,
                 },
                 wheelchairAccess: {
-                  BOOL: true,
+                  BOOL: appointmentAccessibility.wheelchairAccess,
                 },
               },
             },
             ":communicationsAccessibility": {
               M: {
                 signLanguage: {
-                  BOOL: true,
+                  BOOL: communicationsAccessibility.signLanguage,
                 },
                 braille: {
-                  BOOL: false,
+                  BOOL: communicationsAccessibility.braille,
                 },
                 interpreter: {
-                  BOOL: false,
+                  BOOL: communicationsAccessibility.interpreter,
                 },
                 language: {
-                  S: "ARABIC",
+                  S: communicationsAccessibility.language,
                 },
               },
             },
             ":notificationPreferences": {
               M: {
                 canEmail: {
-                  BOOL: true,
+                  BOOL: notificationPreferences.canEmail,
                 },
                 canSMS: {
-                  BOOL: false,
+                  BOOL: notificationPreferences.canSMS,
                 },
               },
             },
