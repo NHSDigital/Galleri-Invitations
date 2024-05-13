@@ -2978,7 +2978,7 @@ resource "null_resource" "deploy_manifests" {
   depends_on = [module.eks]
 
   provisioner "local-exec" {
-    command = "aws eks update-kubeconfig --name ${env.environment}-eks-cluster && kubectl apply -f ./scripts/test_data/k8s/fhir-validation.yaml"
+    command = "aws eks update-kubeconfig --name ${var.environment}-eks-cluster && kubectl apply -f ./scripts/test_data/k8s/fhir-validation.yaml"
     # environment = {
     # KUBECONFIG = "~/.kube/config"
     # }
