@@ -54,16 +54,16 @@ jobs:
     # if: github.event.pull_request.merged == true
     timeout-minutes: 3
     env:
-      file_name: "Release-0.1.0.md"
+      # file_name: "Release-0.1.0.md"
       version_bump: "PATCH"
       wiki_path: "wiki/Releases"
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
-      # - name: "Bump patch version"
-      #   uses: ./.github/actions/versioning
-      #   with:
-      #     version_bump: ${{ env.version_bump }}
+      - name: "Bump patch version"
+        uses: ./.github/actions/versioning
+        with:
+          version_bump: ${{ env.version_bump }}
       - name: "Checkout wiki"
         uses: actions/checkout@v4
         with:
@@ -71,7 +71,8 @@ jobs:
           path: ${{ env.wiki_path }}
       - name: Create Release Notes
         run: |
-          echo "${{ github.event.pull_request.body }}" >> "${{ env.wiki_path }}/${{ env.file_name }}"
+          echo "@@@ Current relese tag: ${{ env.RELEASE_TAG }}"
+          echo "${{ github.event.pull_request.body }}" >> "${{ env.wiki_path }}/${{ env.RELEASE_TAG }}.md"
       - name: Push to wiki
         run: |
           cd ${{ env.wiki_path }}
