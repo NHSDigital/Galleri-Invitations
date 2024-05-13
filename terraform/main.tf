@@ -131,7 +131,7 @@ module "eks" {
     # One access entry with a policy associated
     example = {
       kubernetes_groups = []
-      principal_arn     = var.sso_iam_role_arn
+      principal_arn     = "arn:aws:iam::${var.account_id}:role/aws-reserved/sso.amazonaws.com/eu-west-2/${var.sso_iam_role_arn}"
 
       policy_associations = {
         eksAdmin = {
