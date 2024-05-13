@@ -14,27 +14,6 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 
-// jest.mock("../../sendTestResultErrorAckQueueLambda", () => ({
-//   retrieveAndParseJSON: jest.fn(),
-//   deleteObjectFromS3: jest.fn(),
-//   handler: jest.fn(),
-//   getJSONFromS3: jest.fn(),
-//   sendMessageToQueue: jest.fn(),
-// }));
-
-// Mock AWS SDK
-// jest.mock("@aws-sdk/client-sqs", () => ({
-//   SQSClient: jest.fn(() => ({
-//     send: jest.fn(),
-//   })),
-//   SendMessageCommand: jest.fn(),
-// }));
-
-// Mock the SQSClient and its send method
-const mockSQSClient = {
-  send: jest.fn(),
-};
-
 jest.mock("@aws-sdk/client-s3", () => ({
   S3Client: jest.fn(() => ({
     send: jest.fn(),
@@ -249,23 +228,6 @@ describe("All Tests", () => {
       deleteObjectFromS3.mockResolvedValueOnce();
 
       await handler(event);
-      // expect(retrieveAndParseJSON).toHaveBeenCalledWith(
-      //   getJSONFromS3,
-      //   "test-bucket",
-      //   "test-key",
-      //   mockS3Client
-      // );
-      // expect(sendMessageToQueue).toHaveBeenCalledWith(
-      //   { grail_fhir_result_id: "test-id", ack_code: "fatal-error" },
-      //   expect.any(String),
-      //   expect.any(SQSClient),
-      //   "test-key"
-      // );
-      // expect(deleteObjectFromS3).toHaveBeenCalledWith(
-      //   "test-bucket",
-      //   "test-key",
-      //   expect.any(S3Client)
-      // );
       expect(logSpy).toHaveBeenCalledTimes(3);
       expect(errorLogSpy).toHaveBeenCalledTimes(7);
     });
@@ -300,13 +262,6 @@ describe("All Tests", () => {
       );
 
       await handler(event);
-
-      // expect(retrieveAndParseJSON).toHaveBeenCalledWith(
-      //   getJSONFromS3,
-      //   "test-bucket",
-      //   "test-key",
-      //   expect.any(S3Client)
-      // );
       expect(sendMessageToQueue).not.toHaveBeenCalled();
       expect(deleteObjectFromS3).not.toHaveBeenCalled();
       expect(logSpy).toHaveBeenCalledTimes(3);

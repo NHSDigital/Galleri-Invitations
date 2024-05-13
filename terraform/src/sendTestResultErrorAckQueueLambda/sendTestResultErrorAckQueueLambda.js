@@ -25,6 +25,10 @@ export const handler = async (event) => {
       key,
       s3
     );
+    // Check if required FHIR result id exist in the parsed JSON file from the bucket
+    if (!JSONMsgObject || !JSONMsgObject.id) {
+      throw new Error("Missing required fields in JSON object");
+    }
     const grailFhirResultId = JSONMsgObject.id;
     const errorAckResponseObject = {
       grail_fhir_result_id: grailFhirResultId,
