@@ -29,7 +29,7 @@
     "csv-parser": "^3.0.0",
     "csv-stringify": "^6.4.4",
     "date-fns": "^3.6.0",
-    "dayjs": "^1.11.10",
+    "dayjs": "^1.11.11",
     "jsonschema": "^1.4.1",
     "jsonwebtoken": "^9.0.2",
     "jwks-rsa": "^3.1.0",
