@@ -61,6 +61,7 @@ jobs:
       - name: "Checkout code"
         uses: actions/checkout@v4
       - name: "Bump patch version"
+        id: "bump-path-version"
         uses: ./.github/actions/versioning
         with:
           version_bump: ${{ env.version_bump }}
@@ -71,8 +72,8 @@ jobs:
           path: ${{ env.wiki_path }}
       - name: Create Release Notes
         run: |
-          echo "@@@ Current relese tag: ${{ env.RELEASE_TAG }}"
-          echo "${{ github.event.pull_request.body }}" >> "${{ env.wiki_path }}/${{ env.RELEASE_TAG }}.md"
+          echo "@@@ Current relese tag: ${{ steps.bump-path-version.outputs.RELEASE_TAG }}"
+          echo "${{ github.event.pull_request.body }}" >> "${{ env.wiki_path }}/${{ steps.bump-path-version.outputs.RELEASE_TAG }}.md"
       - name: Push to wiki
         run: |
           cd ${{ env.wiki_path }}
