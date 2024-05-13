@@ -2718,7 +2718,7 @@ module "fhir_cert" {
   environment   = var.environment
   region        = var.region
   dns_zone      = var.dns_zone
-  hostname      = var.invitations-hostname
+  hostname      = var.invitations_hostname
   alias_name    = var.alias_name
   alias_zone_id = var.alias_zone_id
 }
