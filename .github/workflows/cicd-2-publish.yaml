@@ -85,6 +85,8 @@ jobs:
           git add .
           git commit -m "docs: Added ${{ env.release_tag }} release file to wiki"
           git push
+      - name: "Checkout code"
+        uses: actions/checkout@v4
       - name: "create tagged versions of lambdas"
         run: |
           echo "TODO first: create release versions of lambdas"
