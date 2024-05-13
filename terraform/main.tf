@@ -1549,10 +1549,6 @@ module "send_single_notify_message_SQS_trigger" {
   lambda_arn       = module.send_single_notify_message_lambda.lambda_arn
 }
 
-data "aws_secretsmanager_secret_version" "nhs_notify_api_key" {
-  secret_id = "NHS_NOTIFY_API_KEY"
-}
-
 # Delete Caas feed records
 module "caas_feed_delete_records_lambda" {
   source               = "./modules/lambda"
@@ -1607,10 +1603,6 @@ module "test_result_report_fhir_validation_lambda_trigger" {
   bucket_arn    = module.proccessed_nrds.bucket_arn
   lambda_arn    = module.test_result_report_fhir_validation_lambda.lambda_arn
   filter_prefix = "record_"
-}
-
-data "aws_secretsmanager_secret_version" "fhir_validation_service_url" {
-  secret_id = "FHIR_VALIDATION_SERVICE_URL"
 }
 
 # Dynamodb tables
