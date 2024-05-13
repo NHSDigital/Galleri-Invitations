@@ -79,7 +79,7 @@ export const handler = async (event) => {
         "----------------------------------------------------------------"
       );
       if (filteredRejectedRecords.length > 0) {
-        const timeNow = Date.now();
+        const timeNow = new Date(Date.now()).toISOString();
         const fileName = `validRecords/rejectedRecords/update/rejectedRecords-${timeNow}.csv`;
         console.error(
           `Error: ${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-${bucket}/${fileName}`
@@ -371,7 +371,7 @@ const updateRecord = async (record, recordFromTable) => {
       const batchId = episodeRecord.Batch_Id.S;
       const participantId = episodeRecord.Participant_Id.S;
 
-      const timeNow = Date.now();
+      const timeNow = new Date(Date.now()).toISOString();
 
       const updateEpisodeEvent = ["Episode_Event", "S", "Deceased"];
       const updateEpisodeEventUpdated = [

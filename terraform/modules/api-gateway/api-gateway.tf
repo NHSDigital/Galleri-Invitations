@@ -2,6 +2,10 @@
 resource "aws_cloudwatch_log_group" "api_gateway_log_group" {
   name              = "${var.environment}/aws/apigateway/${var.path_part}"
   retention_in_days = 90
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} API Gateway Cloudwatch Logging"
+  }
 }
 
 # Create API Gateway
@@ -10,6 +14,10 @@ resource "aws_api_gateway_rest_api" "galleri" {
   description = "API for the galleri webapp"
   endpoint_configuration {
     types = ["REGIONAL"]
+  }
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} API Gateway"
   }
 }
 

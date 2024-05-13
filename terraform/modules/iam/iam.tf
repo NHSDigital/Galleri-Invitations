@@ -14,6 +14,10 @@ resource "aws_iam_role" "iam_role" {
       }
     ]
   })
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} ${var.role_name} IAM Role"
+  }
 }
 
 resource "aws_iam_policy" "iam_policy" {
@@ -22,6 +26,10 @@ resource "aws_iam_policy" "iam_policy" {
   description = var.description
 
   policy = var.policy
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} ${var.name} IAM Policy"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "attach_policy" {

@@ -2,7 +2,11 @@ resource "aws_cloudwatch_event_rule" "schedule_rule" {
   name                = var.function_name
   description         = "Trigger Lambda function depending on cron function"
   schedule_expression = var.schedule_expression
-  state               = var.environment == can(regex("(prod|uat)", var.environment)) ? "ENABLED" : "DISABLED"
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Scheduling Rule"
+  }
+  state = var.environment == can(regex("(prod|uat)", var.environment)) ? "ENABLED" : "DISABLED"
 }
 
 resource "aws_cloudwatch_event_target" "lambda_target" {

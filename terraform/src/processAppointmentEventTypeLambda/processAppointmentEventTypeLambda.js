@@ -209,7 +209,7 @@ export const transactionalWrite = async (
   episodeEvent,
   eventDescription = "Null"
 ) => {
-  const timeNow = String(Date.now());
+  const timeNow = new Date(Date.now()).toISOString();
   const params = {
     TransactItems: [
       {
@@ -222,7 +222,7 @@ export const transactionalWrite = async (
           TableName: `${ENVIRONMENT}-Episode`,
           ExpressionAttributeValues: {
             ":episodeEvent": { S: episodeEvent },
-            ":timeNow": { N: timeNow },
+            ":timeNow": { S: timeNow },
             ":eventDescription": { S: eventDescription },
             ":open": { S: "Open" },
             ":null": { S: "Null" },

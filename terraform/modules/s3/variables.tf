@@ -14,3 +14,8 @@ variable "galleri_lambda_role_arn" {}
 variable "environment" {}
 
 variable "account_id" {}
+
+variable "application_role" {
+  description = "Used for tagging resource according to Cloud guidelines"
+  default     = "Data Storage"
+}

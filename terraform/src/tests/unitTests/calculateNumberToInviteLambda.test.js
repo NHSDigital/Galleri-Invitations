@@ -68,7 +68,7 @@ describe("getParticipantsInQuintile", () => {
       obj["moderator"] = 1;
       return obj;
     });
-    const quintileTarget = 5;
+    const quintileTarget = 1;
     const nationalForecastUptake = 100;
     const Q = "test";
     const result = getParticipantsInQuintile(
@@ -78,6 +78,6 @@ describe("getParticipantsInQuintile", () => {
       Q
     );
 
-    expect(result.size).toEqual(5);
+    expect(result.size).toEqual(10);
   });
 });

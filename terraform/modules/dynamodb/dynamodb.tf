@@ -38,11 +38,20 @@ resource "aws_dynamodb_table" "dynamodb_table" {
     enabled = var.server_side_encryption
   }
 
-  tags = var.tags
+  tags = merge(
+    var.tags,
+    {
+      ApplicationRole = "${var.application_role}"
+    }
+  )
 }
 
 resource "aws_backup_vault" "dynamodb_vault" {
   name = "${var.environment}-${var.table_name}"
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} DynamoDB Vault"
+  }
 }
 
 resource "aws_backup_plan" "dynamodb_backup_plan" {
@@ -58,6 +67,10 @@ resource "aws_backup_plan" "dynamodb_backup_plan" {
     lifecycle {
       delete_after = 35
     }
+  }
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} DynamoDB Backup Plan"
   }
 }
 
@@ -84,6 +97,10 @@ resource "aws_iam_role" "backup_role" {
       },
     ]
   })
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} DynamoDB IAM Backup Role"
+  }
 }
 
 resource "aws_iam_role_policy" "backup_policy" {

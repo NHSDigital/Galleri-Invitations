@@ -214,13 +214,11 @@ export const getParticipantsInQuintile = (
   ); // O(n)
   const quintilePopulationObjectKeys = Object.keys(quintilePopulationObject); // O(n)
 
-  let count = 0;
   let iterationNumber = 0;
-  let selectedParticipantCount = 1;
+  let selectedParticipantCount = 0;
   const selectedParticipants = new Set();
-
   // Select random person within quintile, loop through until quintile target is met
-  while (count < quintileTarget) {
+  while (selectedParticipantCount < quintilePopulationObjectKeys.length) {
     iterationNumber++;
 
     const sizeAfterIteration =
@@ -239,9 +237,6 @@ export const getParticipantsInQuintile = (
     // person has not been previous indexed
     if (!selectedParticipants.has(personSelectedId)) {
       selectedParticipants.add(personSelectedId);
-      const personSelectedForecastUptake =
-        quintilePopulationObject[personSelectedId];
-      count += personSelectedForecastUptake / 100;
       // increment selectedPerson count
       selectedParticipantCount++;
       // remove that person from pool of people that can be invited

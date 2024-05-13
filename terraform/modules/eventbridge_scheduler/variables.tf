@@ -13,6 +13,11 @@ variable "lambda_arn" {
   type        = string
 }
 
+variable "application_role" {
+  description = "Used for tagging resource according to Cloud guidelines"
+  default     = "Schedular"
+}
+
 variable "environment" {
   description = "The environment that built the resource"
 }

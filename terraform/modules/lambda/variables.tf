@@ -31,3 +31,8 @@ variable "K8_URL" {
   description = "url for eks mesh service"
   default     = null
 }
+
+variable "application_role" {
+  description = "Used for tagging resource according to Cloud guidelines"
+  default     = "App"
+}
