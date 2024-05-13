@@ -54,7 +54,6 @@ jobs:
     # if: github.event.pull_request.merged == true
     timeout-minutes: 3
     env:
-      # file_name: "Release-0.1.0.md"
       release_tag: "MY_RELEASE_TAG"
       version_bump: "PATCH"
       wiki_path: "wiki/Releases"
@@ -74,15 +73,15 @@ jobs:
           path: ${{ env.wiki_path }}
       - name: Create Release Notes
         run: |
-          echo "@@@ Current relese tag: ${{ env.release_tag }}"
-          echo "${{ github.event.pull_request.body }}" >> "${{ env.wiki_path }}/${{ env.release_tag }}.md"
+          echo "Using following tag to create markdown file: ${{ env.release_tag }}"
+          echo "${{ github.event.pull_request.body }}" >> "${{ env.wiki_path }}/v${{ env.release_tag }}.md"
       - name: Push to wiki
         run: |
           cd ${{ env.wiki_path }}
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
           git add .
-          git commit -m "docs: Added new file"
+          git commit -m "docs: Added ${{ env.release_tag }} release file to wiki"
           git push
       - name: "create tagged versions of lambdas"
         run: |

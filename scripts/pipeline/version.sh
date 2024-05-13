@@ -33,7 +33,6 @@ fi
 echo OLD VERSION - $VERSION
 echo NEW VERSION - $NEW_VERSION
 # Set GH Actions Environment File
-echo "@@@ Job-level release tag: $release_tag"
 echo "release_tag=$NEW_VERSION" >> $GITHUB_ENV
 
 # git config --global user.name "galleri-invitations"
