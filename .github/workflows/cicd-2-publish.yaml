@@ -55,7 +55,7 @@ jobs:
     timeout-minutes: 3
     env:
       # file_name: "Release-0.1.0.md"
-      release_tag: ""
+      release_tag: "MY_RELEASE_TAG"
       version_bump: "PATCH"
       wiki_path: "wiki/Releases"
     steps:
