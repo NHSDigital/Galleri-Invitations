@@ -60,7 +60,7 @@ module "galleri_invitations_screen" {
   NEXTAUTH_URL                                          = var.NEXTAUTH_URL
   CIS2_REDIRECT_URL                                     = var.CIS2_REDIRECT_URL
   GALLERI_ACTIVITY_CODE                                 = var.GALLERI_ACTIVITY_CODE
-  hostname                                              = var.invitations-hostname
+  hostname                                              = var.invitations_hostname
   dns_zone                                              = var.dns_zone
   region                                                = var.region
 }
@@ -131,7 +131,7 @@ module "eks" {
     # One access entry with a policy associated
     example = {
       kubernetes_groups = []
-      principal_arn     = "arn:aws:iam::136293001324:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_Admin_603cb786ef89bc37"
+      principal_arn     = var.sso_iam_role_arn
 
       policy_associations = {
         eksAdmin = {
@@ -1307,7 +1307,7 @@ module "authenticator_lambda" {
     CIS2_TOKEN_ENDPOINT_URL = "${var.CIS2_TOKEN_ENDPOINT_URL}",
     CIS2_PUBLIC_KEY_ID      = "${var.CIS2_PUBLIC_KEY_ID}",
     CIS2_KEY_NAME           = "${var.CIS2_KNAME}"
-    CIS2_REDIRECT_URL       = "https://${var.environment}.${var.invitations-hostname}/api/auth/callback/cis2"
+    CIS2_REDIRECT_URL       = "https://${var.environment}.${var.invitations_hostname}/api/auth/callback/cis2"
     GALLERI_ACTIVITY_CODE   = "${data.aws_secretsmanager_secret_version.galleri_activity_code.secret_string}"
   }
 }

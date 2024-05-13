@@ -87,7 +87,7 @@ variable "region" {
   default = "eu-west-2"
 }
 
-variable "invitations-hostname" {
+variable "invitations_hostname" {
   description = "the dns name for the account"
 }
 
@@ -98,4 +98,8 @@ variable "dns_zone" {
 variable "K8_URL" {
   description = "url for eks mesh service"
   default     = null
+}
+
+variable "sso_iam_role_arn" {
+  description = "The IAM role that is used by users via SSO"
 }
