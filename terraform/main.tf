@@ -1374,6 +1374,38 @@ module "session_table" {
   }
 }
 
+module "session_manager_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "sessionManagerLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "session_manager_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "session_manager_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.session_manager_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "session_manager_lambda_api_gateway" {
+  source                    = "./modules/api-gateway"
+  environment               = var.environment
+  lambda_invoke_arn         = module.session_manager_lambda.lambda_invoke_arn
+  path_part                 = "session_manager_lambda"
+  method_http_parameters    = {}
+  lambda_api_gateway_method = "POST"
+  lambda_function_name      = module.session_manager_lambda.lambda_function_name
+  method                    = "/*/POST/*"
+}
+
 # GTMS validate clinic capacity
 module "validate_clinic_capacity_lambda" {
   source               = "./modules/lambda"
