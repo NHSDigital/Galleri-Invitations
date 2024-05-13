@@ -56,7 +56,6 @@ jobs:
     env:
       release_tag: ""
       version_bump: "PATCH"
-      wiki_path: "wiki/Releases"
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v4
@@ -70,7 +69,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}.wiki
-          path: ${{ env.wiki_path }}
       - if: ${{ env.release_tag == '' }}
         run: |
           echo "Error: The current release tag has not been found"
@@ -78,10 +76,10 @@ jobs:
       - name: Create Release Notes
         run: |
           echo "Using following tag to create markdown file: ${{ env.release_tag }}"
-          echo "${{ github.event.pull_request.body }}" >> "${{ env.wiki_path }}/v${{ env.release_tag }}.md"
+          echo "${{ github.event.pull_request.body }}" >> "v${{ env.release_tag }}.md"
+          echo "- ['v${{ env.release_tag }}'](https://github.com/NHSDigital/Galleri-Invitations/wiki/'v${{ env.release_tag }}')" >> Home.md
       - name: Push to wiki
         run: |
-          cd ${{ env.wiki_path }}
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
           git add .
