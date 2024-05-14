@@ -103,3 +103,18 @@ variable "K8_URL" {
 variable "sso_iam_role_arn" {
   description = "The IAM role that is used by users via SSO"
 }
+
+variable "alias_name" {
+  description = "Name of ALB of FHIR service"
+  default     = false
+}
+
+variable "alias_zone_id" {
+  description = "Zone ID of ALB of FHIR service"
+  default     = false
+}
+
+variable "route53_count" {
+  description = "how many route53 to provision"
+  default     = 1
+}

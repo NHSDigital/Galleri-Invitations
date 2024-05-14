@@ -66,7 +66,7 @@ resource "aws_route53_record" "actual_record" {
   name    = "${var.environment}.${var.hostname}"
   type    = "CNAME"
   ttl     = "300"
-  records = ["${var.environment}-${var.dns_zone}-gps-cancer-detection-blood-test.${var.region}.elasticbeanstalk.com"]
+  records = ["${var.environment}-${var.dns_zone}-gps-multi-cancer-blood-test.${var.region}.elasticbeanstalk.com"]
 }
 
 # IAM Role for Elastic Beanstalk environment's EC2 instances
@@ -184,7 +184,7 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   application         = aws_elastic_beanstalk_application.screens.name
   solution_stack_name = var.solution_stack_name
   version_label       = aws_elastic_beanstalk_application_version.screens.name
-  cname_prefix        = "${var.environment}-${var.dns_zone}-gps-cancer-detection-blood-test"
+  cname_prefix        = "${var.environment}-${var.dns_zone}-gps-multi-cancer-blood-test"
 
   depends_on = [aws_acm_certificate_validation.example]
 
