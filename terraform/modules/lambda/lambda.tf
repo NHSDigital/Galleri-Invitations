@@ -5,15 +5,15 @@ resource "aws_cloudwatch_log_group" "log_group" {
   lifecycle {
     create_before_destroy = true
     ignore_changes = [
-      tags, # Add any other attributes that might change outside of Terraform's management
+      tags,
     ]
   }
 }
 
 resource "aws_cloudwatch_log_metric_filter" "error_filter" {
-  name           = "${var.environment}-${var.lambda_function_name}"
+  name           = "${var.environment}-${var.lambda_function_name}-error-filter"
   log_group_name = aws_cloudwatch_log_group.log_group.name
-  pattern        = "Error"
+  pattern        = "'Error: '"
   metric_transformation {
     namespace = "LogErrors"
     name      = "ErrorCount"
@@ -22,13 +22,13 @@ resource "aws_cloudwatch_log_metric_filter" "error_filter" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "error_alarm" {
-  alarm_name                = "${var.environment}-${var.lambda_function_name}"
+  alarm_name                = "${var.environment}-${var.lambda_function_name}-error-alarm"
   alarm_description         = "${var.environment}-${var.lambda_function_name} has encountered an error"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
-  evaluation_periods        = 12
+  evaluation_periods        = 1
   metric_name               = "ErrorCount"
-  namespace                 = "AWS/Lambda"
-  period                    = 300
+  namespace                 = "LogErrors"
+  period                    = 60
   statistic                 = "Sum"
   threshold                 = 1
   actions_enabled           = true
@@ -38,7 +38,7 @@ resource "aws_cloudwatch_metric_alarm" "error_alarm" {
 }
 
 resource "aws_sns_topic" "alarm_topic" {
-  name = "${var.environment}-${var.lambda_function_name}"
+  name = "${var.environment}-${var.lambda_function_name}-alarm-topic"
 }
 
 resource "aws_sns_topic_subscription" "email_subscription" {
@@ -47,19 +47,9 @@ resource "aws_sns_topic_subscription" "email_subscription" {
   endpoint  = var.sns_lambda_arn != null ? var.sns_lambda_arn : aws_lambda_function.lambda.arn
 }
 
-# resource "aws_lambda_permission" "allow_sns_to_invoke_lambda" {
-#   statement_id  = "AllowExecutionFromSNS"
-#   action        = "lambda:InvokeFunction"
-#   function_name = var.sns_lambda_arn
-#   principal     = "sns.amazonaws.com"
-#   source_arn    = aws_sns_topic.alarm_topic.arn
-#   depends_on    = [aws_lambda_function.lambda, aws_sns_topic.alarm_topic]
-# }
-
 # Lambda config
 data "archive_file" "lambda_archive" {
   type = "zip"
-
   source_dir  = "${path.cwd}/src/${var.lambda_function_name}"
   output_path = "${path.cwd}/src/${var.lambda_function_name}/${var.lambda_function_name}.zip"
 }
@@ -89,7 +79,6 @@ resource "aws_lambda_function" "lambda" {
 
 resource "aws_s3_object" "lambda_s3_object" {
   bucket = var.bucket_id
-
   key    = var.lambda_s3_object_key
   source = data.archive_file.lambda_archive.output_path
 
@@ -99,4 +88,3 @@ resource "aws_s3_object" "lambda_s3_object" {
     Name            = "${var.environment} ${var.lambda_function_name} Lambda S3 Object"
   }
 }
-
