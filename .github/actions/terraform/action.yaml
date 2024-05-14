@@ -149,12 +149,13 @@ runs:
         if [[ ${{ env.environment }} != prod ]]; then
           {
             aws eks update-kubeconfig --name ${{ env.environment }}-eks-cluster
-            if [ $? -eq 0 ]; then
-              echo "continue"
-            else
-              echo "no EKS, skip setting variables"
-              terraform ${{ env.tf-action }} -no-color -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars -var="route53_count=0"
-              exit 1
+            if [[ $? -eq 0 ]]; then
+              {
+                echo "continue"
+              } || {
+                echo "no EKS, skip setting variables"
+                terraform ${{ env.tf-action }} -no-color -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars -var="route53_count=0"
+                exit 1
             fi
             kubectl apply -f ../scripts/test_data/k8s/mesh-sandbox.yaml
             kubectl apply -f ../scripts/test_data/k8s/fhir-validation.yaml
