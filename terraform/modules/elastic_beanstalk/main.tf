@@ -409,8 +409,15 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     name      = "SecurityGroups"
     value     = aws_security_group.screens.id
   }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:managedactions"
+    name      = "ServiceRoleForManagedUpdates"
+    value     = "AWSServiceRoleForElasticBeanstalkManagedUpdates"
+  }
+
   tags = {
     ApplicationRole = "${var.application_role}"
-    Name            = "${var.environment} Elastic Beanstalk Elastic Beanstalk Environment"
+    Name            = "${var.environment} Elastic Beanstalk Environment"
   }
 }
