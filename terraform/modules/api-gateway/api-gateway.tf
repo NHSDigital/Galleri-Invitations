@@ -1,8 +1,8 @@
-# # This is required becuase the global components are based out of us-east-1
-# provider "aws" {
-#   alias  = "us_east_1"
-#   region = "us-east-1"
-# }
+# This is required becuase the global components are based out of us-east-1
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
+}
 
 # data "aws_route53_zone" "example" {
 #   name         = "${var.hostname}."
