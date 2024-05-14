@@ -15,9 +15,11 @@ resource "aws_cloudwatch_log_metric_filter" "error_filter" {
   log_group_name = aws_cloudwatch_log_group.log_group.name
   pattern        = "Error"
   metric_transformation {
-    namespace = "LogErrors"
-    name      = "ErrorCount"
-    value     = "1"
+    namespace     = "LogErrors"
+    name          = "ErrorCount"
+    value         = "1"
+    unit          = "Count"
+    default_value = "0"
   }
 }
 
