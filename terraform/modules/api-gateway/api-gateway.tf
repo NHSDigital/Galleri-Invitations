@@ -4,7 +4,7 @@ data "aws_route53_zone" "example" {
 }
 
 resource "aws_acm_certificate" "example" {
-  domain_name       = "${var.lambda_function_name}.${var.environment}.${var.hostname}"
+  domain_name       = "${var.path_part}.${var.environment}.${var.hostname}"
   validation_method = "DNS"
   tags = {
     ApplicationRole = "${var.application_role}"
@@ -38,14 +38,14 @@ resource "aws_acm_certificate_validation" "example" {
 }
 
 resource "aws_api_gateway_domain_name" "api_domain" {
-  domain_name     = "${var.lambda_function_name}.${var.environment}.${var.hostname}"
+  domain_name     = "${var.path_part}.${var.environment}.${var.hostname}"
   certificate_arn = aws_acm_certificate.example.arn
 }
 
 # Once we have validated that the domain is owned and correct then we create the actual record
 # resource "aws_route53_record" "api_domain_cname" {
 #   zone_id = data.aws_route53_zone.example.id
-#   name    = "${var.lambda_function_name}.${var.environment}.${var.hostname}"
+#   name    = "${var.path_part}.${var.environment}.${var.hostname}"
 #   type    = "CNAME"
 #   records = [aws_api_gateway_domain_name.api_domain.cloudfront_domain_name]
 #   ttl     = 300
@@ -53,7 +53,7 @@ resource "aws_api_gateway_domain_name" "api_domain" {
 
 resource "aws_route53_record" "actual_record" {
   zone_id = data.aws_route53_zone.example.id
-  name    = "${var.lambda_function_name}.${var.environment}.${var.hostname}"
+  name    = "${var.path_part}.${var.environment}.${var.hostname}"
   type    = "CNAME"
   ttl     = "300"
   records = ["${var.environment}-${var.dns_zone}-gps-cancer-detection-blood-test.${var.region}.elasticbeanstalk.com"]
