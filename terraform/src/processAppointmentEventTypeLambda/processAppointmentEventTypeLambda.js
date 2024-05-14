@@ -35,7 +35,7 @@ export const handler = async (event) => {
   const appointmentResponse = await lookUp(
     dbClient,
     ParticipantID,
-    "Appointment",
+    "Appointments",
     "Participant_Id",
     "S",
     false
