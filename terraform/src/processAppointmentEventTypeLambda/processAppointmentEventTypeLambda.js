@@ -28,7 +28,27 @@ export const handler = async (event) => {
     GrailID,
     BloodNotCollectedReason,
     EventType,
+    Timestamp,
   } = Appointment;
+
+  // Appointment must match latest participant appointment
+  const appointmentResponse = await lookUp(
+    dbClient,
+    ParticipantID,
+    "Appointment",
+    "Participant_Id",
+    "S",
+    false
+  );
+  const numAppointments = appointmentResponse.Items?.length;
+  if (!numAppointments) {
+    await rejectRecord(appointmentJson);
+    throw new Error("Invalid Appointment - no participant appointment found");
+  } else if (appointmentResponse.Items.sort()[numAppointments - 1].AppointmentID !== AppointmentID) {
+    await rejectRecord(appointmentJson);
+    throw new Error("Invalid Appointment - does not match latest participant appointment");
+  };
+
   const episodeResponse = await lookUp(
     dbClient,
     ParticipantID,
@@ -56,6 +76,7 @@ export const handler = async (event) => {
             episodeItems.Batch_Id.S,
             AppointmentID,
             EventType,
+            Timestamp,
             episodeEvent.complete
           );
         } else {
@@ -74,6 +95,7 @@ export const handler = async (event) => {
           episodeItems.Batch_Id.S,
           AppointmentID,
           EventType,
+          Timestamp,
           episodeEvent.no_show
         );
         break;
@@ -87,6 +109,7 @@ export const handler = async (event) => {
             episodeItems.Batch_Id.S,
             AppointmentID,
             EventType,
+            Timestamp,
             episodeEvent.aborted,
             BloodNotCollectedReason
           );
@@ -110,7 +133,7 @@ export const handler = async (event) => {
       console.error("Error: Could not Update Episode and Appointment Table");
     }
   } catch (error) {
-    const message = `Error processing object ${key} in bucket ${bucket}: ${error}`;
+    const message = `Error: processing object ${key} in bucket ${bucket}: ${error}`;
     console.error(message);
     throw new Error(message);
   }
@@ -206,6 +229,7 @@ export const transactionalWrite = async (
   batchId,
   appointmentId,
   eventType,
+  appointmentTimestamp,
   episodeEvent,
   eventDescription = "Null"
 ) => {
@@ -236,10 +260,11 @@ export const transactionalWrite = async (
             Participant_Id: { S: participantId },
             Appointment_Id: { S: appointmentId },
           },
-          UpdateExpression: `SET event_type = :eventType`,
+          UpdateExpression: `SET event_type = :eventType, Time_stamp = :appointmentTimestamp`,
           TableName: `${ENVIRONMENT}-Appointments`,
           ExpressionAttributeValues: {
             ":eventType": { S: eventType },
+            ":appointmentTimestamp": { S: appointmentTimestamp },
           },
         },
       },
@@ -251,6 +276,6 @@ export const transactionalWrite = async (
     const response = await client.send(command);
     return true;
   } catch (error) {
-    console.error("Transactional write failed:", error);
+    console.error("Error: Transactional write failed:", error);
   }
 };
