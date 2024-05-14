@@ -30,6 +30,7 @@
     "csv-parser": "^3.0.0",
     "csv-stringify": "^6.4.4",
     "date-fns": "^3.6.0",
+    "fetch-retry": "^6.0.0",
     "dayjs": "^1.11.11",
     "fetch-retry": "^6.0.0",
     "jsonschema": "^1.4.1",
