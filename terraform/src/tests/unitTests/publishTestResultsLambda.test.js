@@ -47,7 +47,7 @@ describe("formatTestResultRecord", () => {
         }
       },
       MessageStructure: 'json',
-      TopicName: `undefined-testResultTopic`    
+      TopicName: `undefined-testResultTopic`
     };
 
     const mockRecord = {

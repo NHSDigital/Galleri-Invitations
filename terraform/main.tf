@@ -2439,11 +2439,13 @@ module "appointment_table" {
 }
 
 module "galleri_blood_test_result_table" {
-  source      = "./modules/dynamodb"
-  table_name  = "GalleriBloodTestResult"
-  hash_key    = "Participant_Id"
-  range_key   = "Grail_Id"
-  environment = var.environment
+  source                   = "./modules/dynamodb"
+  stream_enabled           = true
+  stream_view_type         = "NEW_AND_OLD_IMAGES"
+  table_name               = "GalleriBloodTestResult"
+  hash_key                 = "Participant_Id"
+  range_key                = "Grail_Id"
+  environment              = var.environment
   attributes = [
     {
       name = "Participant_Id"
