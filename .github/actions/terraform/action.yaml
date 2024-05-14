@@ -169,10 +169,9 @@ runs:
             echo "K8 URL is: $TF_VAR_K8_URL"
             echo "ALIAS NAME is: $TF_VAR_ALIAS_NAME"
             echo "ALIAS ZONE ID is: $TF_VAR_ALIAS_ZONE_ID"
-
           } || {
             echo "No EKS deployment yet."
           }
         fi
 
-        terraform ${{ env.tf-action }} -no-color -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars -var="K8_URL=$TF_VAR_K8_URL" -var="alias_name=$TF_VAR_ALIAS_NAME" -var="alias_zone_id=$TF_VAR_ALIAS_ZONE_ID -var="route53_count=1"
+        terraform ${{ env.tf-action }} -no-color -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars -var="K8_URL=$TF_VAR_K8_URL" -var="alias_name=$TF_VAR_ALIAS_NAME" -var="alias_zone_id=$TF_VAR_ALIAS_ZONE_ID" -var="route53_count=1"
