@@ -510,6 +510,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added validateAppointmentCommonDataLambda to this policy as lambda role exceeded policy limit
 # Added appointmentEventCancelledLambda to this policy as lambda role exceeded policy limit
 # Added processAppointmentEventTypeLambda to this policy as lambda role exceeded policy limit
+# Added publishTestResultsLambda to this policy as lambda role exceeded policy limit
 # Added sendInvitationBatchToRawMessageQueueLambda to this policy as lambda role exceeded policy limit
 # Added sendEnrichedMessageToNotifyQueueLambda to this policy as lambda role exceeded policy limit
 # Added sendSingleNotifyMessageLambda to this policy as lambda role exceeded policy limit
@@ -1062,6 +1063,44 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
 #             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GpPractice"
 #           ]
 #         },
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+# }
+
+# Policy required by publishTestResultsLambda
+# resource "aws_iam_policy" "iam_policy_for_publish_test_results_lambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_publish_test_results_lambda_role"
+#   path        = "/"
+#   description = "AWS IAM Policy for managing aws lambda publishTestResultsLambda"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+#           "Sid" : "AllowGalleriBloodTestResultDynamodbAccess",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "dynamodb:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GalleriBloodTestResult"
+#           ]
+#         },
+#         {
+#           "Sid" : "AllowSNSAccess",
+#           "Effect" : "Allow",
+#           "Action" : "sns:Publish",
+#           "Resource" : "arn:aws:sns:eu-west-2:${var.account_id}:topic-name/${var.environment}-testResultTopic"
+#         }
 #       ],
 #       "Version" : "2012-10-17"
 #   })

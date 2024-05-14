@@ -1576,6 +1576,38 @@ module "caas_feed_delete_records_lambda_cloudwatch" {
 }
 # trigger replaced by group trigger for bucket
 
+# Publish test results Lambda
+module "publish_test_results_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "publishTestResultsLambda"
+  lambda_timeout       = 900
+  memory_size          = 1024
+  lambda_s3_object_key = "publish_test_results_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+}
+
+module "publish_test_results_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.publish_test_results_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "publish_test_results_dynamodb_stream" {
+  source                             = "./modules/dynamodb_stream"
+  enabled                            = true
+  event_source_arn                   = module.galleri_blood_test_result_table.dynamodb_stream_arn
+  function_name                      = module.publish_test_results_lambda.lambda_function_name
+  starting_position                  = "LATEST"
+  batch_size                         = 200
+  maximum_batching_window_in_seconds = 30
+}
+
 # Dynamodb tables
 module "sdrs_table" {
   source      = "./modules/dynamodb"
