@@ -1,9 +1,16 @@
+# This is required becuase the global components are based out of us-east-1
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
+}
+
 data "aws_route53_zone" "example" {
   name         = "${var.hostname}."
   private_zone = false
 }
 
 resource "aws_acm_certificate" "example" {
+  provider          = aws.us_east_1
   domain_name       = "${var.path_part}.${var.environment}.${var.hostname}"
   validation_method = "DNS"
   tags = {
@@ -33,6 +40,7 @@ resource "aws_route53_record" "example" {
 }
 
 resource "aws_acm_certificate_validation" "example" {
+  provider                = aws.us_east_1
   certificate_arn         = aws_acm_certificate.example.arn
   validation_record_fqdns = [for record in aws_route53_record.example : record.fqdn]
 }
@@ -51,12 +59,14 @@ resource "aws_api_gateway_domain_name" "api_domain" {
 #   ttl     = 300
 # }
 
-resource "aws_route53_record" "actual_record" {
+resource "aws_route53_record" "api_domain_cname" {
   zone_id = data.aws_route53_zone.example.id
   name    = "${var.path_part}.${var.environment}.${var.hostname}"
   type    = "CNAME"
-  ttl     = "300"
-  records = ["${var.environment}-${var.dns_zone}-gps-cancer-detection-blood-test.${var.region}.elasticbeanstalk.com"]
+  ttl     = 300
+  records = [aws_api_gateway_domain_name.api_domain.cloudfront_domain_name]
+
+  depends_on = [aws_api_gateway_domain_name.api_domain]
 }
 
 # Set up cloudwatch logging
