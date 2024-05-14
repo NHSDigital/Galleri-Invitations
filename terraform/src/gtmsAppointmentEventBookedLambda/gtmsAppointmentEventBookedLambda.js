@@ -22,7 +22,7 @@ const myFormat = printf(
   ({ level, message, timestamp }) => `[${timestamp}] ${level}: ${message}`
 );
 
-const DATEPARAM = process.env.DATEPARAM;
+const DATEPARAM = Number(process.env.DATEPARAM);
 
 //HANDLER
 export const handler = async (event) => {
@@ -34,17 +34,51 @@ export const handler = async (event) => {
   const csvString = await readCsvFromS3(bucket, key, s3);
   const js = JSON.parse(csvString); //convert string retrieved from S3 to object
 
-  const payloadParticipantID = js?.["Appointment"]?.["ParticipantID"];
-  const payloadAppointmentID = js?.["Appointment"]?.["AppointmentID"];
-  const payloadEventType = js?.["Appointment"]?.["EventType"]; //BOOKED
-  const payloadAppointmentDateTime =
-    js?.["Appointment"]?.["AppointmentDateTime"];
-  const payloadAppointmentReplaces = js?.["Appointment"]?.["Replaces"]; //replaces existing appointment id
-  const payloadTimestamp = js?.["Appointment"]?.["Timestamp"]; //most recent
+  const {
+    Appointment: {
+      ParticipantID: payloadParticipantId,
+      AppointmentID: payloadAppointmentId,
+      EventType: payloadEventType,
+      AppointmentDateTime: appointmentDateTime,
+
+      Replaces: payloadAppointmentReplaces,
+      Timestamp: payloadTimestamp,
+      ClinicID: clinicId,
+      Channel: channel,
+      AppointmentAccessibility: appointmentAccessibility,
+      CommunicationsAccessibility: communicationsAccessibility,
+      NotificationPreferences: notificationPreferences,
+      InvitationNHSNumber: invitationNHSNumber,
+      PDSNHSNumber: pdsNHSNumber,
+      DateOfBirth: dateOfBirth,
+      BloodNotCollectedReason: payloadBloodNotCollectedReason,
+      GrailID: payloadGrailId,
+      PrimaryPhoneNumber: payloadPrimaryPhoneNumber,
+      SecondaryPhoneNumber: payloadSecondaryPhoneNumber,
+      Email: payloadEmail,
+      BloodCollectionDate: payloadBloodCollectionDate,
+      CancellationReason: payloadCancellationReason,
+    },
+  } = js;
+
+  const payloadAppointmentDateTime = appointmentDateTime
+    ? new Date(appointmentDateTime)
+    : null;
+
+  const primaryPhoneNumber = payloadPrimaryPhoneNumber ?? "null";
+  const secondaryPhoneNumber = payloadSecondaryPhoneNumber ?? "null";
+  const email = payloadEmail ?? "null";
+  const cancellationReason = payloadCancellationReason ?? "null";
+  const bloodCollectionDate = payloadBloodCollectionDate ?? "null";
+  const bloodNotCollectedReason = payloadBloodNotCollectedReason ?? "null";
+  const grailId = payloadGrailId ?? "null";
+  const replaces = payloadAppointmentReplaces ?? "null";
+
+  // InterpreterLanguage;
 
   const episodeResponse = await lookUp(
     dbClient,
-    payloadParticipantID,
+    payloadParticipantId,
     "Episode",
     "Participant_Id",
     "S",
@@ -52,13 +86,15 @@ export const handler = async (event) => {
   );
   const episodeItems = episodeResponse.Items[0];
   logger.info(
-    `episodeItems for participant: ${JSON.stringify(episodeItems?.Participant_Id)} loaded.`
+    `episodeItems for participant : ${JSON.stringify(
+      episodeItems?.Participant_Id
+    )} loaded.`
   );
   //doesn't pull associated appointment id as in scenario it is new but links to existing
 
   const appointmentResponse = await lookUp(
     dbClient,
-    payloadAppointmentID,
+    payloadAppointmentId,
     "Appointments",
     "Appointment_Id",
     "S",
@@ -66,13 +102,15 @@ export const handler = async (event) => {
   );
   const appointmentItems = appointmentResponse.Items[0];
   logger.info(
-    `appointmentItems for appointment: ${JSON.stringify(appointmentItems?.Appointment_Id)} loaded.`
+    `appointmentItems for appointment: ${JSON.stringify(
+      appointmentItems?.Appointment_Id
+    )} loaded.`
   );
   //bring back most recent appointment, with timestamp
 
   const appointmentParticipant = await lookUp(
     dbClient,
-    payloadParticipantID,
+    payloadParticipantId,
     "Appointments",
     "Participant_Id",
     "S",
@@ -86,14 +124,16 @@ export const handler = async (event) => {
   });
   const appointmentParticipantItems = sortedApptParticipants[0];
   logger.info(
-    `appointmentParticipantItems for appointment: ${JSON.stringify(appointmentParticipantItems?.Appointment_Id)} loaded.`
+    `appointmentParticipantItems for appointment: ${JSON.stringify(
+      appointmentParticipantItems?.Appointment_Id
+    )} loaded.`
   );
 
   let date = new Date();
   const dateTime = new Date(Date.now()).toISOString();
   try {
     if (
-      payloadAppointmentDateTime > date.toISOString() &&
+      payloadAppointmentDateTime.toISOString() > date.toISOString() &&
       payloadEventType === "BOOKED" &&
       episodeItems
     ) {
@@ -102,37 +142,23 @@ export const handler = async (event) => {
       );
       if (
         !appointmentItems &&
-        payloadAppointmentID !== null &&
+        payloadAppointmentId !== null &&
         !appointmentParticipantItems
       ) {
         // new appointment ID, and no existing = ADD
         console.info("Identified payload is for booked appointment");
         date.setDate(date.getDate() + DATEPARAM);
-        if (payloadAppointmentDateTime > date.toISOString()) {
+        console.log(payloadAppointmentDateTime.toISOString());
+        console.log(date.toISOString());
+        if (payloadAppointmentDateTime.toISOString() > date.toISOString()) {
           //greater than date param, e.g. 5
           const episodeEvent = "Appointment Booked Letter";
           logger.info(episodeEvent);
-          await transactionalWrite(
-            dbClient,
-            payloadParticipantID,
-            episodeItems["Batch_Id"]["S"], //required PK for Episode update
-            payloadAppointmentID,
-            payloadEventType,
-            episodeEvent,
-            payloadTimestamp
-          );
+          await writeToEpisodeAndAppointments(episodeEvent);
         } else {
           const episodeEvent = "Appointment Booked Text";
           logger.info(episodeEvent);
-          await transactionalWrite(
-            dbClient,
-            payloadParticipantID,
-            episodeItems["Batch_Id"]["S"], //required PK for Episode update
-            payloadAppointmentID,
-            payloadEventType,
-            episodeEvent,
-            payloadTimestamp
-          );
+          await writeToEpisodeAndAppointments(episodeEvent);
         }
       } else if (
         !appointmentItems &&
@@ -143,31 +169,16 @@ export const handler = async (event) => {
       ) {
         //same appointmentID = UPDATE
         console.info("Identified payload is for rebooked appointment");
-        if (payloadAppointmentDateTime > date.toISOString()) {
+        date.setDate(date.getDate() + DATEPARAM);
+        if (payloadAppointmentDateTime.toISOString() > date.toISOString()) {
           //greater than date param, e.g. 5
           const episodeEvent = "Appointment Rebooked Letter";
           logger.info(episodeEvent);
-          await transactionalWrite(
-            dbClient,
-            payloadParticipantID,
-            episodeItems["Batch_Id"]["S"], //required PK for Episode update
-            payloadAppointmentID,
-            payloadEventType,
-            episodeEvent,
-            payloadTimestamp
-          );
+          await writeToEpisodeAndAppointments(episodeEvent);
         } else {
           const episodeEvent = "Appointment Rebooked Text";
           logger.info(episodeEvent);
-          await transactionalWrite(
-            dbClient,
-            payloadParticipantID,
-            episodeItems["Batch_Id"]["S"], //required PK for Episode update
-            payloadAppointmentID,
-            payloadEventType,
-            episodeEvent,
-            payloadTimestamp
-          );
+          await writeToEpisodeAndAppointments(episodeEvent);
         }
       } else {
         // has appointment id and different one supplied, REJECT
@@ -196,6 +207,35 @@ export const handler = async (event) => {
     const message = `Error: processing object ${key} in bucket ${bucket}: ${err}`;
     logger.error(message);
     throw new Error(message);
+  }
+
+  async function writeToEpisodeAndAppointments(episodeEvent) {
+    await transactionalWrite(
+      dbClient,
+      payloadParticipantId,
+      episodeItems["Batch_Id"]["S"], //required PK for Episode update
+      payloadAppointmentId,
+      payloadEventType,
+      episodeEvent,
+      payloadTimestamp,
+      clinicId,
+      payloadAppointmentDateTime,
+      channel,
+      appointmentAccessibility,
+      communicationsAccessibility,
+      notificationPreferences,
+      invitationNHSNumber,
+      pdsNHSNumber,
+      dateOfBirth,
+      cancellationReason, //reason its cancelled coming from payload
+      grailId,
+      bloodNotCollectedReason,
+      primaryPhoneNumber,
+      secondaryPhoneNumber,
+      email,
+      bloodCollectionDate,
+      replaces
+    );
   }
 };
 
@@ -303,6 +343,24 @@ export const lookUp = async (dbClient, ...params) => {
  * @param {string} appointmentId The appointment id relating to the entry payload
  * @param {string} eventType The eventType extracted from the payload from GTMS
  * @param {string} episodeEvent Text which is added added to the episode record to signify the type of Episode event update
+ * @param {string} timestamp
+ * @param {string} clinicId
+ * @param {string} appointmentDateTime
+ * @param {string} channel
+ * @param {Object} appointmentAccessibility
+ * @param {Object} communicationsAccessibility
+ * @param {Object} notificationPreferences
+ * @param {string} invitationNHSNumber
+ * @param {string} pdsNHSNumber
+ * @param {string} dateOfBirth
+ * @param {string} cancellationReason
+ * @param {string} grailId
+ * @param {string} bloodNotCollectedReason
+ * @param {string} primaryPhoneNumber
+ * @param {string} secondaryPhoneNumber
+ * @param {string} email
+ * @param {string} bloodCollectionDate
+ * @param {string} appointmentReplaces
  * @returns {boolean} Returns either true of false depending on the success writing to 2 DynamoDB's
  */
 export const transactionalWrite = async (
@@ -312,7 +370,24 @@ export const transactionalWrite = async (
   appointmentId,
   eventType,
   episodeEvent,
-  timestamp
+  timestamp,
+  clinicId,
+  appointmentDateTime,
+  channel,
+  appointmentAccessibility,
+  communicationsAccessibility,
+  notificationPreferences,
+  invitationNHSNumber,
+  pdsNHSNumber,
+  dateOfBirth,
+  cancellationReason, //reason its cancelled coming from payload
+  grailId,
+  bloodNotCollectedReason,
+  primaryPhoneNumber,
+  secondaryPhoneNumber,
+  email,
+  bloodCollectionDate,
+  appointmentReplaces
 ) => {
   const timeNow = String(new Date(Date.now()).toISOString());
   const params = {
@@ -335,17 +410,82 @@ export const transactionalWrite = async (
           },
         },
       },
+
       {
         Update: {
           Key: {
             Participant_Id: { S: participantId },
             Appointment_Id: { S: appointmentId },
           },
-          UpdateExpression: `SET event_type = :eventType, Time_stamp = :timestamp`,
+          UpdateExpression:
+            "SET event_type = :eventType, Time_stamp = :time_stamp, clinic_id = :clinicID, appointment_date_time = :appointmentDateTime, channel = :channel, invitation_nhs_number= :invitationNHSNumber, pds_nhs_number= :pdsNHSNumber, data_of_birth= :dateOfBirth, cancellation_reason= :cancellationReason, blood_not_collected_reason= :bloodNotCollectedReason, grail_id= :grailID, primary_phone_number = :primaryNumber, secondary_phone_number = :secondaryNumber, email_address = :email_address, blood_collection_date= :bloodCollectionDate, appointment_replaces= :appointmentReplaces, appointment_accessibility = :appointmentAccessibility, communications_accessibility = :communicationsAccessibility, notification_preferences= :notificationPreferences ",
+
           TableName: `${ENVIRONMENT}-Appointments`,
           ExpressionAttributeValues: {
             ":eventType": { S: eventType },
-            ":timestamp": { S: timestamp },
+            ":time_stamp": { S: timestamp },
+            ":clinicID": { S: clinicId },
+            ":appointmentDateTime": { S: appointmentDateTime },
+            ":channel": { S: channel },
+            ":invitationNHSNumber": { S: invitationNHSNumber },
+            ":pdsNHSNumber": { S: pdsNHSNumber },
+            ":dateOfBirth": { S: dateOfBirth },
+            ":cancellationReason": { S: cancellationReason },
+            ":bloodNotCollectedReason": { S: bloodNotCollectedReason },
+            ":grailID": { S: grailId },
+            ":primaryNumber": { S: primaryPhoneNumber },
+            ":secondaryNumber": { S: secondaryPhoneNumber },
+            ":email_address": { S: email },
+            ":bloodCollectionDate": { S: bloodCollectionDate },
+            ":appointmentReplaces": { S: appointmentReplaces },
+            ":appointmentAccessibility": {
+              M: {
+                accessibleToilet: {
+                  BOOL: appointmentAccessibility.accessibleToilet,
+                },
+                disabledParking: {
+                  BOOL: appointmentAccessibility.disabledParking,
+                },
+                inductionLoop: {
+                  BOOL: appointmentAccessibility.inductionLoop,
+                },
+                signLanguage: {
+                  BOOL: appointmentAccessibility.signLanguage,
+                },
+                stepFreeAccess: {
+                  BOOL: appointmentAccessibility.stepFreeAccess,
+                },
+                wheelchairAccess: {
+                  BOOL: appointmentAccessibility.wheelchairAccess,
+                },
+              },
+            },
+            ":communicationsAccessibility": {
+              M: {
+                signLanguage: {
+                  BOOL: communicationsAccessibility.signLanguage,
+                },
+                braille: {
+                  BOOL: communicationsAccessibility.braille,
+                },
+                interpreter: {
+                  BOOL: communicationsAccessibility.interpreter,
+                },
+                language: {
+                  S: communicationsAccessibility.language ?? "null",
+                },
+              },
+            },
+            ":notificationPreferences": {
+              M: {
+                canEmail: {
+                  BOOL: notificationPreferences.canEmail,
+                },
+                canSMS: {
+                  BOOL: notificationPreferences.canSMS,
+                },
+              },
+            },
           },
         },
       },

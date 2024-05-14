@@ -60,7 +60,7 @@ module "galleri_invitations_screen" {
   NEXTAUTH_URL                                          = var.NEXTAUTH_URL
   CIS2_REDIRECT_URL                                     = var.CIS2_REDIRECT_URL
   GALLERI_ACTIVITY_CODE                                 = var.GALLERI_ACTIVITY_CODE
-  hostname                                              = var.invitations-hostname
+  hostname                                              = var.invitations_hostname
   dns_zone                                              = var.dns_zone
   region                                                = var.region
 }
@@ -131,7 +131,7 @@ module "eks" {
     # One access entry with a policy associated
     example = {
       kubernetes_groups = []
-      principal_arn     = "arn:aws:iam::136293001324:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_Admin_603cb786ef89bc37"
+      principal_arn     = "arn:aws:iam::${var.account_id}:role/aws-reserved/sso.amazonaws.com/eu-west-2/${var.sso_iam_role_arn}"
 
       policy_associations = {
         eksAdmin = {
@@ -395,7 +395,7 @@ module "clinic_information_api_gateway" {
     "method.request.querystring.clinicName" = true
   }
   lambda_function_name = module.clinic_information_lambda.lambda_function_name
-  hostname             = var.invitations-hostname
+  hostname             = var.invitations_hostname
   dns_zone             = var.dns_zone
 }
 
@@ -425,7 +425,7 @@ module "clinic_icb_list_api_gateway" {
     "method.request.querystring.participatingIcb" = true
   }
   lambda_function_name = module.clinic_icb_list_lambda.lambda_function_name
-  hostname             = var.invitations-hostname
+  hostname             = var.invitations_hostname
   dns_zone             = var.dns_zone
 }
 
@@ -453,7 +453,7 @@ module "participating_icb_list_api_gateway" {
   path_part              = "participating-icb-list"
   method_http_parameters = {}
   lambda_function_name   = module.participating_icb_list_lambda.lambda_function_name
-  hostname               = var.invitations-hostname
+  hostname               = var.invitations_hostname
   dns_zone               = var.dns_zone
 }
 
@@ -483,7 +483,7 @@ module "clinic_summary_list_api_gateway" {
     "method.request.querystring.participatingIcb" = true
   }
   lambda_function_name = module.clinic_summary_list_lambda.lambda_function_name
-  hostname             = var.invitations-hostname
+  hostname             = var.invitations_hostname
   dns_zone             = var.dns_zone
 }
 
@@ -511,7 +511,7 @@ module "invitation_parameters_api_gateway" {
   path_part              = "invitation-parameters"
   method_http_parameters = {}
   lambda_function_name   = module.invitation_parameters_lambda.lambda_function_name
-  hostname               = var.invitations-hostname
+  hostname               = var.invitations_hostname
   dns_zone               = var.dns_zone
 }
 
@@ -541,7 +541,7 @@ module "invitation_parameters_put_forecast_uptake_api_gateway" {
   lambda_api_gateway_method = "PUT"
   lambda_function_name      = module.invitation_parameters_put_forecast_uptake_lambda.lambda_function_name
   method                    = "/*/PUT/*"
-  hostname                  = var.invitations-hostname
+  hostname                  = var.invitations_hostname
   dns_zone                  = var.dns_zone
 }
 
@@ -571,7 +571,7 @@ module "invitation_parameters_put_quintiles_api_gateway" {
   lambda_api_gateway_method = "PUT"
   lambda_function_name      = module.invitation_parameters_put_quintiles_lambda.lambda_function_name
   method                    = "/*/PUT/*"
-  hostname                  = var.invitations-hostname
+  hostname                  = var.invitations_hostname
   dns_zone                  = var.dns_zone
 }
 
@@ -604,7 +604,7 @@ module "target_fill_to_percentage_put_api_gateway" {
   }
   lambda_function_name = module.target_fill_to_percentage_put_lambda.lambda_function_name
   method               = "/*/PUT/*"
-  hostname             = var.invitations-hostname
+  hostname             = var.invitations_hostname
   dns_zone             = var.dns_zone
 }
 
@@ -630,7 +630,7 @@ module "target_fill_to_percentage_get_api_gateway" {
   path_part              = "target-percentage"
   method_http_parameters = {}
   lambda_function_name   = module.target_fill_to_percentage_get_lambda.lambda_function_name
-  hostname               = var.invitations-hostname
+  hostname               = var.invitations_hostname
   dns_zone               = var.dns_zone
 }
 
@@ -659,7 +659,7 @@ module "lsoa_in_range_api_gateway" {
 
   lambda_function_name = module.lsoa_in_range_lambda.lambda_function_name
   environment          = var.environment
-  hostname             = var.invitations-hostname
+  hostname             = var.invitations_hostname
   dns_zone             = var.dns_zone
 }
 
@@ -706,7 +706,7 @@ module "calculate_number_to_invite_api_gateway" {
   lambda_function_name = module.calculate_number_to_invite_lambda.lambda_function_name
   method               = "/*/POST/*"
   environment          = var.environment
-  hostname             = var.invitations-hostname
+  hostname             = var.invitations_hostname
   dns_zone             = var.dns_zone
 }
 
@@ -739,7 +739,7 @@ module "generate_invites_api_gateway" {
   lambda_function_name = module.generate_invites_lambda.lambda_function_name
   method               = "/*/POST/*"
   environment          = var.environment
-  hostname             = var.invitations-hostname
+  hostname             = var.invitations_hostname
   dns_zone             = var.dns_zone
 }
 
@@ -1142,7 +1142,7 @@ module "gps_jwks_api_gateway" {
   path_part              = "gps-jwks"
   method_http_parameters = {}
   lambda_function_name   = module.gps_jwks_lambda.lambda_function_name
-  hostname               = var.invitations-hostname
+  hostname               = var.invitations_hostname
   dns_zone               = var.dns_zone
 }
 
@@ -1162,7 +1162,7 @@ module "authenticator_lambda" {
     CIS2_TOKEN_ENDPOINT_URL = "${var.CIS2_TOKEN_ENDPOINT_URL}",
     CIS2_PUBLIC_KEY_ID      = "${var.CIS2_PUBLIC_KEY_ID}",
     CIS2_KEY_NAME           = "${var.CIS2_KNAME}"
-    CIS2_REDIRECT_URL       = "https://${var.environment}.${var.invitations-hostname}/api/auth/callback/cis2"
+    CIS2_REDIRECT_URL       = "https://${var.environment}.${var.invitations_hostname}/api/auth/callback/cis2"
     GALLERI_ACTIVITY_CODE   = "${data.aws_secretsmanager_secret_version.galleri_activity_code.secret_string}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
@@ -1180,7 +1180,7 @@ module "authenticator_lambda_api_gateway" {
   path_part              = "authenticator-lambda"
   method_http_parameters = {}
   lambda_function_name   = module.authenticator_lambda.lambda_function_name
-  hostname               = var.invitations-hostname
+  hostname               = var.invitations_hostname
   dns_zone               = var.dns_zone
 }
 
@@ -1363,10 +1363,6 @@ module "send_single_notify_message_SQS_trigger" {
   lambda_arn       = module.send_single_notify_message_lambda.lambda_arn
 }
 
-data "aws_secretsmanager_secret_version" "nhs_notify_api_key" {
-  secret_id = "NHS_NOTIFY_API_KEY"
-}
-
 # Delete Caas feed records
 module "caas_feed_delete_records_lambda" {
   source               = "./modules/lambda"
@@ -1381,6 +1377,34 @@ module "caas_feed_delete_records_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+}
+# trigger replaced by group trigger for bucket
+
+# Validate Test Result Report using FHIR Validation Service
+module "test_result_report_fhir_validation_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "testResultReportFhirValidationLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "test_result_report_fhir_validation_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                 = "${var.environment}"
+    TRR_SUCCESSFUL_BUCKET       = "inbound-nrds-galleritestresult-step1-success"
+    TRR_UNSUCCESSFUL_BUCKET     = "inbound-nrds-galleritestresult-step1-error"
+    FHIR_VALIDATION_SERVICE_URL = "FHIR_VALIDATION_SERVICE_URL"
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+}
+
+module "test_result_report_fhir_validation_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.proccessed_nrds.bucket_id
+  bucket_arn    = module.proccessed_nrds.bucket_arn
+  lambda_arn    = module.test_result_report_fhir_validation_lambda.lambda_arn
+  filter_prefix = "record_"
 }
 
 # Dynamodb tables
@@ -2019,11 +2043,12 @@ module "episode_history_table" {
 }
 
 module "appointment_table" {
-  source      = "./modules/dynamodb"
-  table_name  = "Appointments"
-  hash_key    = "Participant_Id"
-  range_key   = "Appointment_Id"
-  environment = var.environment
+  source          = "./modules/dynamodb"
+  table_name      = "Appointments"
+  hash_key        = "Participant_Id"
+  range_key       = "Appointment_Id"
+  environment     = var.environment
+  projection_type = "ALL"
   attributes = [
     {
       name = "Participant_Id"
@@ -2036,9 +2061,10 @@ module "appointment_table" {
   ]
   global_secondary_index = [
     {
-      name      = "Appointment_Id-index"
-      hash_key  = "Appointment_Id"
-      range_key = null
+      name            = "Appointment_Id-index"
+      hash_key        = "Appointment_Id"
+      range_key       = null
+      projection_type = "ALL"
     }
   ]
   tags = {

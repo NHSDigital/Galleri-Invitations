@@ -41,7 +41,7 @@ export const handler = async (event) => {
   const episodeEvent = {
     complete: "Appointment Attended - Sample Taken",
     no_show: "Did Not Attend Appointment",
-    aborted: "Invalid Appointment: Blood not collected reason not supplied",
+    aborted: "Appointment Attended – No Sample Taken",
   };
   try {
     let response = false;
@@ -60,8 +60,8 @@ export const handler = async (event) => {
           );
         } else {
           await rejectRecord(appointmentJson);
-          console.log(
-            "Invalid Appointment: Blood collection date and Grail ID not both supplied"
+          console.error(
+            "Error: Invalid Appointment - Blood collection date and Grail ID not both supplied for complete"
           );
         }
         break;
@@ -92,8 +92,8 @@ export const handler = async (event) => {
           );
         } else {
           await rejectRecord(appointmentJson);
-          console.log(
-            "Invalid Appointment: Blood not collected reason not supplied"
+          console.error(
+            "Error: Invalid Appointment - Blood not collected reason not supplied for aborted"
           );
         }
         break;
@@ -101,13 +101,13 @@ export const handler = async (event) => {
       default:
         await rejectRecord(appointmentJson);
         console.error(
-          `This was a ${EventType}, which is not an expected Event Type`
+          `Error: This was a ${EventType}, which is not an expected Event Type`
         );
         break;
     }
     if (!response) {
       await rejectRecord(appointmentJson);
-      console.log("Could not Update Episode and Appointment Table");
+      console.error("Error: Could not Update Episode and Appointment Table");
     }
   } catch (error) {
     const message = `Error processing object ${key} in bucket ${bucket}: ${error}`;
@@ -222,7 +222,7 @@ export const transactionalWrite = async (
           TableName: `${ENVIRONMENT}-Episode`,
           ExpressionAttributeValues: {
             ":episodeEvent": { S: episodeEvent },
-            ":timeNow": { N: timeNow },
+            ":timeNow": { S: timeNow },
             ":eventDescription": { S: eventDescription },
             ":open": { S: "Open" },
             ":null": { S: "Null" },
