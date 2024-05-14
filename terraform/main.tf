@@ -2715,6 +2715,7 @@ resource "aws_ssm_parameter" "contact-escalation-tables" {
 
 module "fhir_cert" {
   source        = "./modules/route_53"
+  count         = var.route53_count ? 1 : 0
   environment   = var.environment
   region        = var.region
   dns_zone      = var.dns_zone

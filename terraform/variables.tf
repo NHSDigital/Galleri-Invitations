@@ -113,3 +113,8 @@ variable "alias_zone_id" {
   description = "Zone ID of ALB of FHIR service"
   default     = false
 }
+
+variable "route53_count" {
+  description = "how many route53 to provision"
+  default     = null
+}
