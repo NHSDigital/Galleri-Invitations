@@ -145,7 +145,10 @@ runs:
         npm install --prefix src/sendEnrichedMessageToNotifyQueueLambda
         npm install --prefix src/sendSingleNotifyMessageLambda
         npm install --prefix src/nrdsMeshMailboxLambda
+        npm install --prefix src/sendTestResultErrorAckQueueLambda
+        npm install --prefix src/sendTestResultOkAckQueueLambda
         npm install --prefix src/testResultReportFhirValidationLambda
+
 
         if [[ ${{ env.environment }} != prod ]]; then
           {

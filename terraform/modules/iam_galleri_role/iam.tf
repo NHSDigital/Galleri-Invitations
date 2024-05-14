@@ -494,6 +494,93 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 #   })
 # }
 
+# Policy required by sendTestResultErrorAckQueueLambda
+# resource "aws_iam_policy" "iam_policy_for_send_test_result_error_ack_queue_lambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_send_test_result_error_ack_queue_lambda"
+#   path        = "/"
+#   description = "AWS IAM Policy for getting S3 object and writing to a SQS Queue"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+#           "Sid" : "AllowS3Access",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "s3:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step1-error/*",
+#             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step2-error/*",
+#             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step3-error/*",
+#             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step4-error/*",
+#           ]
+#         },
+#         {
+#           "Sid" : "AllowSQSAccess",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "sqs:SendMessage",
+#             "sqs:ReceiveMessage",
+#             "sqs:DeleteMessage",
+#             "sqs:GetQueueAttributes"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : [
+#             "arn:aws:sqs:eu-west-2:${var.account_id}:${var.environment}-testResultAckQueue.fifo",
+
+#           ]
+#         },
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+# }
+
+# Policy required by sendTestResultOkAckQueueLambda
+# resource "aws_iam_policy" "iam_policy_for_send_test_result_ok_ack_queue_lambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_send_test_result_ok_ack_queue_lambda"
+#   path        = "/"
+#   description = "AWS IAM Policy for writing to a SQS Queue"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+#           "Sid" : "AllowSQSAccess",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "sqs:SendMessage",
+#             "sqs:ReceiveMessage",
+#             "sqs:DeleteMessage",
+#             "sqs:GetQueueAttributes"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : [
+#             "arn:aws:sqs:eu-west-2:${var.account_id}:${var.environment}-testResultAckQueue.fifo",
+
+#           ]
+#         },
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+# }
+
 
 # Added GpPractice and Postcode to this policy as lambda role exceeded policy limit
 # Added validate CLinic Data to this policy as lambda role exceeded policy limit
@@ -514,6 +601,8 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added sendEnrichedMessageToNotifyQueueLambda to this policy as lambda role exceeded policy limit
 # Added sendSingleNotifyMessageLambda to this policy as lambda role exceeded policy limit
 # Added nrdsMeshMailboxLambda to this policy as lambda role exceeded policy limit
+# Added sendTestResultOkAckQueueLambda to this policy as lambda role exceeded policy limit
+# Added sendTestResultErrorAckQueueLambda to this policy as lambda role exceeded policy limit
 # Added testResultReportFhirValidationLambda to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
@@ -530,6 +619,12 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           ],
           "Effect" : "Allow",
           "Resource" : "arn:aws:logs:*:*:*"
+        },
+        {
+          "Sid" : "AllowSNSAccess",
+          "Effect" : "Allow",
+          "Action" : "sns:Publish",
+          "Resource" : "arn:aws:sns:region:account-id:topic-name"
         },
         {
           "Sid" : "AllowDynamodbAccess",
@@ -583,6 +678,10 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:s3:::${var.environment}-galleri-processed-caas-data/*",
             "arn:aws:s3:::${var.environment}-proccessed-appointments/*",
             "arn:aws:s3:::${var.environment}-inbound-processed-nrds-data/*",
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step1-error/*", ### step 1 fhir validation error bucket
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step2-error/*", ### step 2 fhir validation error bucket
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step3-error/*", ### step 3 fhir validation error bucket
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step4-error/*", ### step 4 fhir validation error bucket
             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step1-success/*",
             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step1-error/*"
           ]
@@ -642,17 +741,8 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           "Resource" : [
             "arn:aws:sqs:eu-west-2:${var.account_id}:${var.environment}-notifyRawMessageQueue.fifo",
             "arn:aws:sqs:eu-west-2:${var.account_id}:${var.environment}-notifyEnrichedMessageQueue.fifo",
-          ]
-        },
-        {
-          "Action" : [
-            "sqs:SendMessage",
-            "sqs:DeleteMessage",
-            "sqs:GetQueueAttributes"
-          ],
-          "Effect" : "Allow",
-          "Resource" : [
-            "arn:aws:sqs:eu-west-2:${var.account_id}:${var.environment}-notifyEnrichedMessageQueue.fifo",
+            "arn:aws:sqs:eu-west-2:${var.account_id}:${var.environment}-testResultAckQueue.fifo",
+
           ]
         },
         {
@@ -1266,6 +1356,18 @@ resource "aws_iam_role_policy_attachment" "generate_invites_policy" {
 # resource "aws_iam_role_policy_attachment" "validate_appointment_common_data_lambda" {
 #   role       = aws_iam_role.galleri_lambda_role.name
 #   policy_arn = aws_iam_policy.iam_policy_for_validate_appointment_common_data_lambda.arn
+# }
+
+# Role exceeded quota for PoliciesPerRole: 10
+# resource "aws_iam_role_policy_attachment" "send_test_result_ok_ack_queue_lambda" {
+#   role       = aws_iam_role.galleri_lambda_role.name
+#   policy_arn = aws_iam_policy.iam_policy_for_send_test_result_ok_ack_queue_lambda.arn
+# }
+
+# Role exceeded quota for PoliciesPerRole: 10
+# resource "aws_iam_role_policy_attachment" "send_test_result_error_ack_queue_lambda" {
+#   role       = aws_iam_role.galleri_lambda_role.name
+#   policy_arn = aws_iam_policy.iam_policy_for_send_test_result_error_ack_queue_lambda.arn
 # }
 
 resource "aws_iam_role" "api_gateway_logging_role" {
