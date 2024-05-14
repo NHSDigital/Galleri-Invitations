@@ -1616,10 +1616,10 @@ module "fhir_validation_step4_error_bucket_lambda_trigger" {
 }
 
 # SNS Topic to publish and read test result ok Acknowledgement response
-module "test_result_ok_ack_topic" {
+module "test_result_topic" {
   source      = "./modules/sns_topic"
   environment = var.environment
-  name        = "testResultOkAckTopic"
+  name        = "testResultTopic"
 }
 
 # Send Test Result Ok Acknowledgement Lambda
@@ -1648,7 +1648,7 @@ module "send_test_result_ok_ack_queue_lambda_cloudwatch" {
 # Lambda subscription/trigger for Test result SNS Topic
 module "send_test_result_ok_ack_queue_lambda_sns_topic_subscription" {
   source                = "./modules/lambda_sns_trigger"
-  sns_topic_arn         = module.test_result_ok_ack_topic.sns_topic_arn
+  sns_topic_arn         = module.test_result_topic.sns_topic_arn
   subscription_endpoint = module.send_test_result_ok_ack_queue_lambda.lambda_arn
   lambda_name           = module.send_test_result_ok_ack_queue_lambda.lambda_function_name
 }
