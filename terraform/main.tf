@@ -1618,8 +1618,8 @@ module "test_cross_check_report_appointment_validation_lambda" {
   lambda_s3_object_key = "test_cross_check_report_appointment_validation_lambda.zip"
   environment_vars = {
     ENVIRONMENT                 = "${var.environment}"
-    TRR_SUCCESSFUL_BUCKET       = "inbound-nrds-galleritestresult-step3-success"
-    TRR_UNSUCCESSFUL_BUCKET     = "inbound-nrds-galleritestresult-step3-error"
+    CR_TRR_SUCCESSFUL_BUCKET       = "inbound-nrds-galleritestresult-step3-success"
+    CR_TRR_UNSUCCESSFUL_BUCKET     = "inbound-nrds-galleritestresult-step3-error"
     APPOINTMENT_VALIDATION_SERVICE_URL = "APPOINTMENT_VALIDATION_SERVICE_URL"
   }
 }

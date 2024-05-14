@@ -515,6 +515,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added sendSingleNotifyMessageLambda to this policy as lambda role exceeded policy limit
 # Added nrdsMeshMailboxLambda to this policy as lambda role exceeded policy limit
 # Added testResultReportFhirValidationLambda to this policy as lambda role exceeded policy limit
+# Added testCrossCheckReportAppointmentValidationLambda to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
   path        = "/"
@@ -584,7 +585,9 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:s3:::${var.environment}-proccessed-appointments/*",
             "arn:aws:s3:::${var.environment}-inbound-processed-nrds-data/*",
             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step1-success/*",
-            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step1-error/*"
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step1-error/*",
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step3-success/*",
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step3-error/*"
           ]
         },
         {

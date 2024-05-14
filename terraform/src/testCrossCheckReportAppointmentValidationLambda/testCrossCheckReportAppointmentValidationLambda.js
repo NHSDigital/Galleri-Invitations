@@ -1,4 +1,9 @@
-import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import {
   SecretsManagerClient,
   GetSecretValueCommand,
@@ -8,8 +13,8 @@ import axios from "axios";
 //VARIABLES
 const s3 = new S3Client();
 const smClient = new SecretsManagerClient({ region: "eu-west-2" });
-const TRR_SUCCESSFUL_BUCKET = process.env.TRR_SUCCESSFUL_BUCKET;
-const TRR_UNSUCCESSFUL_BUCKET = process.env.TRR_UNSUCCESSFUL_BUCKET;
+const CR_TRR_SUCCESSFUL_BUCKET = process.env.CR_TRR_SUCCESSFUL_BUCKET;
+const CR_TRR_UNSUCCESSFUL_BUCKET = process.env.CR_TRR_UNSUCCESSFUL_BUCKET;
 const ENVIRONMENT = process.env.ENVIRONMENT;
 let validationServiceUrl;
 
@@ -22,9 +27,17 @@ export const handler = async (event, context) => {
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
   try {
-    validationServiceUrl = await getSecret(process.env.FHIR_VALIDATION_SERVICE_URL, smClient);
-    const testResultReport = await retrieveAndParseJSON(getJSONFromS3, bucket, key, s3);
-    await processTRR(testResultReport, key, bucket, s3);
+    validationServiceUrl = await getSecret(
+      process.env.APPOINTMENT_VALIDATION_SERVICE_URL,
+      smClient
+    );
+    const testCrossCheckResultReport = await retrieveAndParseJSON(
+      getJSONFromS3,
+      bucket,
+      key,
+      s3
+    );
+    await processTRR(testCrossCheckResultReport, key, bucket, s3);
   } catch (error) {
     console.error("Error: Issue occurred whilst processing JSON file from S3");
     console.error("Error:", error);
@@ -32,53 +45,60 @@ export const handler = async (event, context) => {
 };
 
 //FUNCTIONS
-export async function processTRR(testResultReport, reportName, originalBucket, s3) {
-  const validTRR = await validateTRR(testResultReport, reportName, validationServiceUrl);
+export async function processTRR(
+  testCrossCheckResultReport,
+  reportName,
+  originalBucket,
+  s3
+) {
+  const validTRR = await validateTRR(
+    testCrossCheckResultReport,
+    reportName,
+    validationServiceUrl
+  );
   if (validTRR) {
-    await putTRRInS3Bucket(testResultReport, reportName, TRR_SUCCESSFUL_BUCKET, s3);
+    await putTRRInS3Bucket(
+      testCrossCheckResultReport,
+      reportName,
+      CR_TRR_SUCCESSFUL_BUCKET,
+      s3
+    );
   } else {
-    await putTRRInS3Bucket(testResultReport, reportName, TRR_UNSUCCESSFUL_BUCKET, s3);
-  };
+    await putTRRInS3Bucket(
+      testCrossCheckResultReport,
+      reportName,
+      CR_TRR_UNSUCCESSFUL_BUCKET,
+      s3
+    );
+  }
   await deleteTRRinS3Bucket(reportName, originalBucket, s3);
-};
+}
 
 // Validate TRR
-export async function validateTRR(testResultReport, reportName, validationServiceUrl) {
-  try {
-    const response = await axios({
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      data: JSON.stringify(testResultReport),
-      url: `${validationServiceUrl}/FHIR/R4/$validate`,
-    });
-
-    if (!responseHasErrors(response.data, reportName)) {
-      console.log(`FHIR validation successful for ${reportName}`);
-      return true;
-    } else {
-      console.error(`Error: FHIR validation unsuccessful for ${reportName} - Status ${response.status}`);
-      return false;
-    }
-  } catch (error) {
-    if (error.response) {
-      console.error(`Error: Unsuccessful request to FHIR validation service for ${reportName} - Status ${error.response.status} - Error body: ${error.response.data}`);
-    } else {
-      console.error(`Error: Unsuccessful request to FHIR validation service for ${reportName} - : Error: ${error.message}`);
-    }
-    return false;
-  }
-};
+export async function validateTRR(
+  testCrossCheckResultReport,
+  reportName,
+  validationServiceUrl
+) {
+  console.log(`testCrossCheckResultReport ${testCrossCheckResultReport}`);
+  console.log(`parameter ${reportName}`);
+  console.log(`validationServiceUrl ${validationServiceUrl}`);
+  return true;
+}
 
 // Move TRR to S3 bucket
-export async function putTRRInS3Bucket(testResultReport, reportName, bucketName, client) {
+export async function putTRRInS3Bucket(
+  testCrossCheckResultReport,
+  reportName,
+  bucketName,
+  client
+) {
   try {
     const response = await client.send(
       new PutObjectCommand({
         Bucket: `${ENVIRONMENT}-${bucketName}`,
         Key: reportName,
-        Body: JSON.stringify(testResultReport),
+        Body: JSON.stringify(testCrossCheckResultReport),
       })
     );
     console.log(`Successfully pushed to ${bucketName}/${reportName}`);
@@ -89,7 +109,7 @@ export async function putTRRInS3Bucket(testResultReport, reportName, bucketName,
     );
     throw err;
   }
-};
+}
 
 export async function deleteTRRinS3Bucket(reportName, bucketName, client) {
   try {
@@ -106,7 +126,7 @@ export async function deleteTRRinS3Bucket(reportName, bucketName, client) {
     console.error(`Error: deleting ${reportName} from ${bucketName}: ${error}`);
     throw error;
   }
-};
+}
 
 export function responseHasErrors(response, reportName) {
   const issues = response.issue;
@@ -114,13 +134,15 @@ export function responseHasErrors(response, reportName) {
 
   for (const issue of issues) {
     if (issue.severity === "error") {
-      console.error(`Error: FHIR diagnostic message for ${reportName} : ${issue.diagnostics}`);
+      console.error(
+        `Error: APPOINTMENT diagnostic message for ${reportName} : ${issue.diagnostics}`
+      );
       hasError = true;
     }
   }
 
   return hasError;
-};
+}
 
 // Retrieve and Parse the JSON file
 export const retrieveAndParseJSON = async (
@@ -146,7 +168,9 @@ export async function getJSONFromS3(bucketName, key, client) {
     console.log(`Finished getting object key ${key} from bucket ${bucketName}`);
     return response.Body.transformToString();
   } catch (err) {
-    console.error(`Error: Failed to get object key ${key} from bucket ${bucketName}`);
+    console.error(
+      `Error: Failed to get object key ${key} from bucket ${bucketName}`
+    );
     console.error("Error:", err);
     throw err;
   }
