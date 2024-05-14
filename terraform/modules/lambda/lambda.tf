@@ -13,7 +13,7 @@ resource "aws_cloudwatch_log_group" "log_group" {
 resource "aws_cloudwatch_log_metric_filter" "error_filter" {
   name           = "${var.environment}-${var.lambda_function_name}-error-filter"
   log_group_name = aws_cloudwatch_log_group.log_group.name
-  pattern        = "'Error: '"
+  pattern        = "Error"
   metric_transformation {
     namespace = "LogErrors"
     name      = "ErrorCount"
@@ -49,7 +49,7 @@ resource "aws_sns_topic_subscription" "email_subscription" {
 
 # Lambda config
 data "archive_file" "lambda_archive" {
-  type = "zip"
+  type        = "zip"
   source_dir  = "${path.cwd}/src/${var.lambda_function_name}"
   output_path = "${path.cwd}/src/${var.lambda_function_name}/${var.lambda_function_name}.zip"
 }
