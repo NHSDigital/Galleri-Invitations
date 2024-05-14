@@ -4,15 +4,10 @@ import {
   retrieveAndParseJSON,
   sendMessageToQueue,
   getJSONFromS3,
-  deleteObjectFromS3,
 } from "../../sendTestResultErrorAckQueueLambda";
 import { mockClient } from "aws-sdk-client-mock";
 import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
-import {
-  GetObjectCommand,
-  DeleteObjectCommand,
-  S3Client,
-} from "@aws-sdk/client-s3";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 jest.mock("@aws-sdk/client-s3", () => ({
   S3Client: jest.fn(() => ({
@@ -157,38 +152,6 @@ describe("All Tests", () => {
         error
       );
       expect(s3SendMock).toHaveBeenCalledWith(expect.any(GetObjectCommand));
-    });
-  });
-
-  describe("deleteObjectFromS3", () => {
-    // Clear mocks before each test
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    test("should return status code 204 when object is successfully deleted from S3", async () => {
-      const bucketName = "test-bucket";
-      const objectKey = "test-key";
-      const response = { $metadata: { httpStatusCode: 204 } };
-      const s3SendMock = jest.fn().mockResolvedValue(response);
-      const s3Client = { send: s3SendMock };
-
-      const result = await deleteObjectFromS3(bucketName, objectKey, s3Client);
-      expect(result).toBe(204);
-      expect(s3SendMock).toHaveBeenCalledWith(expect.any(DeleteObjectCommand));
-    });
-
-    test("should throw error when deleting object from S3 fails", async () => {
-      const bucketName = "test-bucket";
-      const objectKey = "test-key";
-      const error = new Error("Failed to delete object from S3");
-      const s3SendMock = jest.fn().mockRejectedValue(error);
-      const s3Client = { send: s3SendMock };
-
-      await expect(
-        deleteObjectFromS3(bucketName, objectKey, s3Client)
-      ).rejects.toThrow(error);
-      expect(s3SendMock).toHaveBeenCalledWith(expect.any(DeleteObjectCommand));
     });
   });
 

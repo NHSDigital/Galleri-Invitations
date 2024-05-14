@@ -1,10 +1,6 @@
 //IMPORTS
 import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
-import {
-  GetObjectCommand,
-  DeleteObjectCommand,
-  S3Client,
-} from "@aws-sdk/client-s3";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 //HANDLER
 export const handler = async (event) => {
@@ -39,7 +35,6 @@ export const handler = async (event) => {
       errorAckResponseObject
     );
     await sendMessageToQueue(errorAckResponseObject, QUEUE_URL, sqs, key);
-    await deleteObjectFromS3(bucket, key, s3);
     console.log(`Successfully sent the message to SQS Queue: ${QUEUE_NAME}`);
   } catch (error) {
     console.error(`Lambda process was not successful in this instance`);
@@ -97,28 +92,6 @@ export async function getJSONFromS3(bucketName, key, client) {
     return response.Body.transformToString();
   } catch (err) {
     console.error(`Error getting object "${key}" from bucket "${bucketName}"`);
-    console.error("Error: ", err);
-    throw err;
-  }
-}
-
-// Delete an object from an S3 bucket
-export async function deleteObjectFromS3(bucketName, objectKey, client) {
-  try {
-    const response = await client.send(
-      new DeleteObjectCommand({
-        Bucket: bucketName,
-        Key: objectKey,
-      })
-    );
-    console.log(
-      `Object "${objectKey}" deleted successfully from bucket "${bucketName}".`
-    );
-    return response.$metadata.httpStatusCode;
-  } catch (err) {
-    console.error(
-      `Error deleting object "${objectKey}" from bucket "${bucketName}"`
-    );
     console.error("Error: ", err);
     throw err;
   }
