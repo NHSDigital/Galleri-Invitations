@@ -254,7 +254,7 @@ export const transactionalWrite = async (
           TableName: `${ENVIRONMENT}-Episode`,
           ExpressionAttributeValues: {
             ":episodeEvent": { S: episodeEvent },
-            ":timeNow": { N: timeNow },
+            ":timeNow": { S: timeNow },
             ":eventDescription": { S: cancellationReason },
             ":status": { S: status },
             ":null": { S: "Null" },

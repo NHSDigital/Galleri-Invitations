@@ -60,7 +60,7 @@ module "galleri_invitations_screen" {
   NEXTAUTH_URL                                          = var.NEXTAUTH_URL
   CIS2_REDIRECT_URL                                     = var.CIS2_REDIRECT_URL
   GALLERI_ACTIVITY_CODE                                 = var.GALLERI_ACTIVITY_CODE
-  hostname                                              = var.invitations-hostname
+  hostname                                              = var.invitations_hostname
   dns_zone                                              = var.dns_zone
   region                                                = var.region
 }
@@ -131,7 +131,7 @@ module "eks" {
     # One access entry with a policy associated
     example = {
       kubernetes_groups = []
-      principal_arn     = "arn:aws:iam::136293001324:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_Admin_603cb786ef89bc37"
+      principal_arn     = "arn:aws:iam::${var.account_id}:role/aws-reserved/sso.amazonaws.com/eu-west-2/${var.sso_iam_role_arn}"
 
       policy_associations = {
         eksAdmin = {
@@ -1307,7 +1307,7 @@ module "authenticator_lambda" {
     CIS2_TOKEN_ENDPOINT_URL = "${var.CIS2_TOKEN_ENDPOINT_URL}",
     CIS2_PUBLIC_KEY_ID      = "${var.CIS2_PUBLIC_KEY_ID}",
     CIS2_KEY_NAME           = "${var.CIS2_KNAME}"
-    CIS2_REDIRECT_URL       = "https://${var.environment}.${var.invitations-hostname}/api/auth/callback/cis2"
+    CIS2_REDIRECT_URL       = "https://${var.environment}.${var.invitations_hostname}/api/auth/callback/cis2"
     GALLERI_ACTIVITY_CODE   = "${data.aws_secretsmanager_secret_version.galleri_activity_code.secret_string}"
   }
 }
@@ -1549,11 +1549,6 @@ module "send_single_notify_message_SQS_trigger" {
   lambda_arn       = module.send_single_notify_message_lambda.lambda_arn
 }
 
-data "aws_secretsmanager_secret_version" "nhs_notify_api_key" {
-  secret_id = "NHS_NOTIFY_API_KEY"
-}
-
-
 # Test Result Acknowledgement Queue
 module "test_result_ack_queue_sqs" {
   source                         = "./modules/sqs"
@@ -1680,6 +1675,39 @@ module "caas_feed_delete_records_lambda_cloudwatch" {
   retention_days       = 14
 }
 # trigger replaced by group trigger for bucket
+
+# Validate Test Result Report using FHIR Validation Service
+module "test_result_report_fhir_validation_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "testResultReportFhirValidationLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "test_result_report_fhir_validation_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                 = "${var.environment}"
+    TRR_SUCCESSFUL_BUCKET       = "inbound-nrds-galleritestresult-step1-success"
+    TRR_UNSUCCESSFUL_BUCKET     = "inbound-nrds-galleritestresult-step1-error"
+    FHIR_VALIDATION_SERVICE_URL = "FHIR_VALIDATION_SERVICE_URL"
+  }
+}
+
+module "test_result_report_fhir_validation_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.test_result_report_fhir_validation_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "test_result_report_fhir_validation_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.proccessed_nrds.bucket_id
+  bucket_arn    = module.proccessed_nrds.bucket_arn
+  lambda_arn    = module.test_result_report_fhir_validation_lambda.lambda_arn
+  filter_prefix = "record_"
+}
 
 # Dynamodb tables
 module "sdrs_table" {
