@@ -1549,10 +1549,6 @@ module "send_single_notify_message_SQS_trigger" {
   lambda_arn       = module.send_single_notify_message_lambda.lambda_arn
 }
 
-data "aws_secretsmanager_secret_version" "nhs_notify_api_key" {
-  secret_id = "NHS_NOTIFY_API_KEY"
-}
-
 # Delete Caas feed records
 module "caas_feed_delete_records_lambda" {
   source               = "./modules/lambda"
@@ -1575,6 +1571,39 @@ module "caas_feed_delete_records_lambda_cloudwatch" {
   retention_days       = 14
 }
 # trigger replaced by group trigger for bucket
+
+# Validate Test Result Report using FHIR Validation Service
+module "test_result_report_fhir_validation_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "testResultReportFhirValidationLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "test_result_report_fhir_validation_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                 = "${var.environment}"
+    TRR_SUCCESSFUL_BUCKET       = "inbound-nrds-galleritestresult-step1-success"
+    TRR_UNSUCCESSFUL_BUCKET     = "inbound-nrds-galleritestresult-step1-error"
+    FHIR_VALIDATION_SERVICE_URL = "FHIR_VALIDATION_SERVICE_URL"
+  }
+}
+
+module "test_result_report_fhir_validation_lambda_cloudwatch" {
+  source               = "./modules/cloudwatch"
+  environment          = var.environment
+  lambda_function_name = module.test_result_report_fhir_validation_lambda.lambda_function_name
+  retention_days       = 14
+}
+
+module "test_result_report_fhir_validation_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.proccessed_nrds.bucket_id
+  bucket_arn    = module.proccessed_nrds.bucket_arn
+  lambda_arn    = module.test_result_report_fhir_validation_lambda.lambda_arn
+  filter_prefix = "record_"
+}
 
 # Dynamodb tables
 module "sdrs_table" {
