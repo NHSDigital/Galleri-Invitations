@@ -22,22 +22,27 @@ export const handler = async (event) => {
 
   try {
     const jsonString = await readFromS3(bucket, key, s3);
+    let validationResult = {};
 
-    const validationResult = await validateRecord(
-      JSON.parse(jsonString),
-      client
-    );
-    console.log(`Finished validating object ${key} in bucket ${bucket}`);
-    console.log(
-      "----------------------------------------------------------------"
-    );
-
-    console.log(
-      `Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${bucket}`
-    );
+    try {
+        validationResult = await validateRecord(
+        JSON.parse(jsonString),
+        client
+        );
+      console.log(`Finished validating object ${key} in bucket ${bucket}`);
+      console.log(
+        "----------------------------------------------------------------"
+      );
+    } catch (error) {
+      console.error(`Error: Failed to validate result with error: ${error.message}`);
+      validationResult.success = false;
+    }
 
     // Valid Records Arrangement
     if (validationResult.success) {
+      console.log(
+        `Pushing valid record to ${bucket}/validRecords/${key}`
+      );
       // Deposit to S3 bucket
       await pushToS3(
         `${ENVIRONMENT}-processed-inbound-gtms-clinic-schedule-summary`,
@@ -46,18 +51,23 @@ export const handler = async (event) => {
         s3
       );
     } else {
+      console.log(
+        `Pushing invalid record to ${bucket}/invalidRecords/${key}`
+      );
       await pushToS3(
         `${ENVIRONMENT}-processed-inbound-gtms-clinic-schedule-summary`,
         `invalidRecords/${key}`,
         jsonString,
         s3
       );
-      console.error(
-        "Error: PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Capacity BELOW:\n" +
-          validationResult.errors
-      );
+      if(validationResult.errors) {
+        console.error(
+          "Error: PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Capacity BELOW:\n" +
+            validationResult.errors
+        );
+      }
     }
-    return `Finished validating object ${key} in bucket ${bucket}`;
+    console.log(`Finished validating object ${key} in bucket ${bucket}`);
   } catch (err) {
     const message = `Error: processing object ${key} in bucket ${bucket}: ${err}`;
     console.error(message);
