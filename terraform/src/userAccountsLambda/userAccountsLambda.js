@@ -1,4 +1,4 @@
-import { S3Client, GetObjectCommand, DataRedundancy } from "@aws-sdk/client-s3";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 import { Readable } from "stream";
 import csv from "csv-parser";
@@ -6,12 +6,6 @@ import csv from "csv-parser";
 const s3 = new S3Client();
 const dbClient = new DynamoDBClient({ convertEmptyValues: true });
 const ENVIRONMENT = process.env.ENVIRONMENT;
-
-const regexUuid = /^[0-9]{4} [0-9]{4} [0-9]{4}$/;
-const regexStatus = /^Inactive$|^Active$/;
-const regexRole = /^Invitation Planner$|^Referring Clinician$|^Invitation Planner \- Support$|^Referring Clinician \- Support$/;
-const regexName = /^[a-zA-Z][a-zA-Z 0-9\-]*$/;
-const regexEmail = /^[a-zA-Z][a-zA-Z@_0-9\.\-]+$/;
 
 export const handler = async (event) => {
   const bucket = event.Records[0].s3.bucket.name;
@@ -22,41 +16,13 @@ export const handler = async (event) => {
   try {
     const csvString = await readCsvFromS3(bucket, key, s3);
     const dataArray = await parseCsvToArray(csvString);
-    await validateData(dataArray);
     await saveArrayToTable(dataArray, ENVIRONMENT, dbClient);
     console.log(`Finished processing object ${key} in bucket ${bucket}`);
     return `Finished processing object ${key} in bucket ${bucket}`;
   } catch (err) {
-    const message = `Error: processing object ${key} in bucket ${bucket}: ${err}`;
+    const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
     console.error(message);
     throw new Error(message);
-  }
-};
-
-export const validateData = (dataArray) => {
-  for (let i = 0; i < dataArray.length; i++) {
-    const item = dataArray[i];
-    let errorMsg;
-    if (!regexUuid.test(item["UUID"])) {
-      errorMsg = `Invalid UUID ${item["UUID"]}`;
-    }
-    else if (!regexStatus.test(item["Status"])) {
-      errorMsg = `Invalid Status ${item["Status"]}`;
-    }
-    else if (!regexRole.test(item["Role"])) {
-      errorMsg = `Invalid Role ${item["Role"]}`;
-    }
-    else if (!regexName.test(item["Name"])) {
-      errorMsg = `Invalid Name for ${item["UUID"]}`;
-    }
-    else if (!regexEmail.test(item["Email Address"])) {
-      errorMsg = `Invalid Email for ${item["UUID"]}`;
-    }
-
-    if (errorMsg) {
-      // Fail whole file if any row has a validation error
-      throw new Error(errorMsg);
-    }
   }
 };
 
