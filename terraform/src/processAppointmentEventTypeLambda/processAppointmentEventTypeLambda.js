@@ -40,14 +40,6 @@ export const handler = async (event) => {
     "S",
     false
   );
-  const numAppointments = appointmentResponse.Items?.length;
-  if (!numAppointments) {
-    await rejectRecord(appointmentJson);
-    throw new Error("Invalid Appointment - no participant appointment found");
-  } else if (appointmentResponse.Items.sort()[numAppointments - 1].AppointmentID !== AppointmentID) {
-    await rejectRecord(appointmentJson);
-    throw new Error("Invalid Appointment - does not match latest participant appointment");
-  };
 
   const episodeResponse = await lookUp(
     dbClient,
@@ -64,6 +56,15 @@ export const handler = async (event) => {
     aborted: "Appointment Attended – No Sample Taken",
   };
   try {
+    const numAppointments = appointmentResponse.Items?.length;
+    if (!numAppointments) {
+      await rejectRecord(appointmentJson);
+      throw new Error("Invalid Appointment - no participant appointment found");
+    } else if (appointmentResponse.Items.sort()[numAppointments - 1].Appointment_Id.S !== AppointmentID) {
+      await rejectRecord(appointmentJson);
+      throw new Error("Invalid Appointment - does not match latest participant appointment");
+    }
+
     let response = false;
 
     switch (EventType) {
