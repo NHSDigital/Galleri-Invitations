@@ -514,6 +514,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added sendEnrichedMessageToNotifyQueueLambda to this policy as lambda role exceeded policy limit
 # Added sendSingleNotifyMessageLambda to this policy as lambda role exceeded policy limit
 # Added nrdsMeshMailboxLambda to this policy as lambda role exceeded policy limit
+# Added testResultReportFhirValidationLambda to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
   path        = "/"
@@ -582,6 +583,8 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:s3:::${var.environment}-galleri-processed-caas-data/*",
             "arn:aws:s3:::${var.environment}-proccessed-appointments/*",
             "arn:aws:s3:::${var.environment}-inbound-processed-nrds-data/*",
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step1-success/*",
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step1-error/*"
           ]
         },
         {
@@ -612,6 +615,9 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CAAS_MESH_CERT*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_INT_1*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_CLIENT_ID*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:SAND_MESH_MAILBOX_ID*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:SAND_MESH_MAILBOX_PASSWORD*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:FHIR_VALIDATION_SERVICE_URL*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:NHS_NOTIFY_API_KEY*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:COMMS_MANAGER_PRIVATE_KEY_TEST_1*"
           ]
