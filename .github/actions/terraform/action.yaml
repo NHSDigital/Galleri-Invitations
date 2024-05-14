@@ -149,7 +149,7 @@ runs:
         if [[ ${{ env.environment }} != prod ]]; then
           {
             aws eks update-kubeconfig --name ${{ env.environment }}-eks-cluster
-            if [ $? -ne 0 ]; then
+            if [ $? -eq 0 ]; then
               echo "continue"
             else
               echo "no EKS, skip setting variables"
