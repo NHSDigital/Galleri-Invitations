@@ -409,8 +409,33 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     name      = "SecurityGroups"
     value     = aws_security_group.screens.id
   }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:managedactions"
+    name      = "ManagedActionsEnabled"
+    value     = "true"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:managedactions"
+    name      = "ServiceRoleForManagedUpdates"
+    value     = "AWSServiceRoleForElasticBeanstalkManagedUpdates"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:managedactions"
+    name      = "PreferredStartTime"
+    value     = "Sun:21:00"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:managedactions:platformupdate"
+    name      = "UpdateLevel"
+    value     = "patch"
+  }
+
   tags = {
     ApplicationRole = "${var.application_role}"
-    Name            = "${var.environment} Elastic Beanstalk Elastic Beanstalk Environment"
+    Name            = "${var.environment} Elastic Beanstalk Environment"
   }
 }
