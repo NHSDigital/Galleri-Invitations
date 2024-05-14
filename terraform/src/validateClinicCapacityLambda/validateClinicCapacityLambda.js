@@ -29,17 +29,14 @@ export const handler = async (event) => {
         JSON.parse(jsonString),
         client
         );
+      } catch (error) {
+        console.error(`Error: Failed to validate record with error: ${error.message}`);
+        validationResult.success = false;
+      }
       console.log(`Finished validating object ${key} in bucket ${bucket}`);
-      console.log(
-        "----------------------------------------------------------------"
-      );
-    } catch (error) {
-      console.error(`Error: Failed to validate result with error: ${error.message}`);
-      validationResult.success = false;
-    }
 
-    // Valid Records Arrangement
-    if (validationResult.success) {
+      // Valid Records Arrangement
+      if (validationResult.success) {
       console.log(
         `Pushing valid record to ${bucket}/validRecords/${key}`
       );
@@ -51,6 +48,15 @@ export const handler = async (event) => {
         s3
       );
     } else {
+      if(validationResult.errors) {
+        console.error(
+          "Error: PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Capacity BELOW:\n" +
+            validationResult.errors
+        );
+      }
+      if(validationResult.message) {
+        console.error(`Error: ${validationResult.message}`);
+      }
       console.log(
         `Pushing invalid record to ${bucket}/invalidRecords/${key}`
       );
@@ -60,14 +66,7 @@ export const handler = async (event) => {
         jsonString,
         s3
       );
-      if(validationResult.errors) {
-        console.error(
-          "Error: PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Capacity BELOW:\n" +
-            validationResult.errors
-        );
-      }
     }
-    console.log(`Finished validating object ${key} in bucket ${bucket}`);
   } catch (err) {
     const message = `Error: processing object ${key} in bucket ${bucket}: ${err}`;
     console.error(message);
@@ -118,7 +117,6 @@ export async function validateRecord(record, client) {
 
   const numberOfClinics =
     record.ClinicScheduleSummary.ClinicScheduleSummary.length;
-  console.log("length:", numberOfClinics);
   let count = 0;
 
   while (count < numberOfClinics) {
