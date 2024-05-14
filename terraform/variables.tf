@@ -116,5 +116,5 @@ variable "alias_zone_id" {
 
 variable "route53_count" {
   description = "how many route53 to provision"
-  default     = null
+  default     = 1
 }
