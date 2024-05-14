@@ -2741,3 +2741,23 @@ resource "aws_ssm_parameter" "contact-escalation-tables" {
   value     = "Null"
   overwrite = true
 }
+
+module "fhir_cert" {
+  source        = "./modules/route_53"
+  count         = var.route53_count > 0 ? 1 : 0
+  environment   = var.environment
+  region        = var.region
+  dns_zone      = var.dns_zone
+  hostname      = var.invitations_hostname
+  alias_name    = var.alias_name
+  alias_zone_id = var.alias_zone_id
+}
+
+resource "null_resource" "deploy_manifests" {
+  # Trigger deployment after EKS is ready
+  depends_on = [module.eks]
+
+  provisioner "local-exec" {
+    command = "aws eks update-kubeconfig --name ${var.environment}-eks-cluster && kubectl apply -f ../scripts/test_data/k8s/mesh-sandbox.yaml && kubectl apply -f ../scripts/test_data/k8s/fhir-validation.yaml"
+  }
+}
