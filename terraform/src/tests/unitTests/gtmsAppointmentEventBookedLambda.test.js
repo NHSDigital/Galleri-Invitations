@@ -177,6 +177,70 @@ describe("transactionalWrite", () => {
     const eventType = "CANCELLED";
     const episodeEvent = "Appointment Cancelled by Participant - Withdrawn";
     const eventDescription = "example";
+    const timestamp = "2024-05-07T10:00:00.999999999Z";
+    const clinicId = "12346";
+    const appointmentDateTime = "2024-06-02T15:00:00.000Z";
+    const channel = "ONLINE";
+    const pdsNHSNumber = "9000098399";
+    const dateOfBirth = "1947-10-02";
+    const cancellationReason = "cancellationReason";
+    const bloodNotCollectedReason = "bloodNotCollectedReason";
+    const grailId = "12345";
+    const primaryNumber = "07777777777";
+    const secondaryNumber = "07888888888";
+    const email = "me@example.com";
+    const bloodCollectionDate = "2024-05-07T10:00:00.999999999Z";
+    const appointmentReplaces = "replaces";
+    const invitationNHSNumber = "9000098399";
+    const appointmentAccessibility = {
+      M: {
+        accessibleToilet: {
+          BOOL: true,
+        },
+        disabledParking: {
+          BOOL: true,
+        },
+        inductionLoop: {
+          BOOL: true,
+        },
+        signLanguage: {
+          BOOL: true,
+        },
+        stepFreeAccess: {
+          BOOL: true,
+        },
+        wheelchairAccess: {
+          BOOL: true,
+        },
+      },
+    };
+    const communicationsAccessibility = {
+      M: {
+        signLanguage: {
+          BOOL: true,
+        },
+        braille: {
+          BOOL: false,
+        },
+        interpreter: {
+          BOOL: false,
+        },
+        language: {
+          S: "ARABIC",
+        },
+      },
+    };
+
+    const notificationPreferences = {
+      M: {
+        canEmail: {
+          BOOL: true,
+        },
+        canSMS: {
+          BOOL: false,
+        },
+      },
+    };
 
     const result = await transactionalWrite(
       mockDynamoDbClient,
@@ -185,7 +249,25 @@ describe("transactionalWrite", () => {
       appointmentId,
       eventType,
       episodeEvent,
-      eventDescription
+      eventDescription,
+      timestamp,
+      clinicId,
+      appointmentDateTime,
+      channel,
+      invitationNHSNumber,
+      pdsNHSNumber,
+      dateOfBirth,
+      cancellationReason, //reason its cancelled coming from payload
+      grailId,
+      bloodNotCollectedReason,
+      primaryNumber,
+      secondaryNumber,
+      email,
+      bloodCollectionDate,
+      appointmentReplaces,
+      appointmentAccessibility,
+      communicationsAccessibility,
+      notificationPreferences
     );
 
     expect(result).toEqual(true);
@@ -205,7 +287,70 @@ describe("transactionalWrite", () => {
     const eventType = "CANCELLED";
     const episodeEvent = "Appointment Cancelled by Participant - Withdrawn";
     const eventDescription = "example";
+    const timestamp = "2024-05-07T10:00:00.999999999Z";
+    const clinicId = "12346";
+    const appointmentDateTime = "2024-06-02T15:00:00.000Z";
+    const channel = "ONLINE";
+    const pdsNHSNumber = "9000098399";
+    const dateOfBirth = "1947-10-02";
+    const cancellationReason = "cancellationReason";
+    const bloodNotCollectedReason = "bloodNotCollectedReason";
+    const grailId = "12345";
+    const primaryNumber = "07777777777";
+    const secondaryNumber = "07888888888";
+    const email = "me@example.com";
+    const bloodCollectionDate = "2024-05-07T10:00:00.999999999Z";
+    const appointmentReplaces = "replaces";
+    const invitationNHSNumber = "9000098399";
+    const appointmentAccessibility = {
+      M: {
+        accessibleToilet: {
+          BOOL: true,
+        },
+        disabledParking: {
+          BOOL: true,
+        },
+        inductionLoop: {
+          BOOL: true,
+        },
+        signLanguage: {
+          BOOL: true,
+        },
+        stepFreeAccess: {
+          BOOL: true,
+        },
+        wheelchairAccess: {
+          BOOL: true,
+        },
+      },
+    };
+    const communicationsAccessibility = {
+      M: {
+        signLanguage: {
+          BOOL: true,
+        },
+        braille: {
+          BOOL: false,
+        },
+        interpreter: {
+          BOOL: false,
+        },
+        language: {
+          S: "ARABIC",
+        },
+      },
+    };
 
+    const notificationPreferences = {
+      M: {
+        canEmail: {
+          BOOL: true,
+        },
+        canSMS: {
+          BOOL: false,
+        },
+      },
+    };
     const result = await transactionalWrite(
       mockDynamoDbClient,
       participantId,
@@ -213,7 +358,25 @@ describe("transactionalWrite", () => {
       appointmentId,
       eventType,
       episodeEvent,
-      eventDescription
+      eventDescription,
+      timestamp,
+      clinicId,
+      appointmentDateTime,
+      channel,
+      invitationNHSNumber,
+      pdsNHSNumber,
+      dateOfBirth,
+      cancellationReason, //reason its cancelled coming from payload
+      grailId,
+      bloodNotCollectedReason,
+      primaryNumber,
+      secondaryNumber,
+      email,
+      bloodCollectionDate,
+      appointmentReplaces,
+      appointmentAccessibility,
+      communicationsAccessibility,
+      notificationPreferences
     );
 
     expect(result).toEqual(false);
