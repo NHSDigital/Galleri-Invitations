@@ -28,6 +28,65 @@ export const handler = async (event) => {
 
   const csvString = await readCsvFromS3(bucket, key, s3);
   const js = JSON.parse(csvString); //convert string retrieved from S3 to object
+
+  console.log(js);
+
+  //TODO: Need to save to GalleriBloodTestResult
+  //patient.identifier.value
+  //ServiceRequest.identifier.value
+  //Observation.component.valueCodeableConcept.coding.code
+  //Observation.component.valueCodeableConcept.coding.display
+  //specimen.collection.collectionDateTime
+  //id
+  //meta.lastUpdated
+  //identifier.value
+
+  //Grail_FHIR_Result_Id
+  console.log(testPayload.id);
+  //Meta_Last_Updated
+  console.log(testPayload.meta.lastUpdated);
+  //Identifier_Value
+  console.log(testPayload.identifier.value);
+  for (let objs in testPayload.entry) {
+    // console.log(objs);
+    // console.log(testPayload.entry[objs]);
+    //Grail_Id
+    // if (testPayload.entry[objs].resource.resourceType === "ServiceRequest") {
+    //   console.log(testPayload.entry[objs].resource.identifier[0].value);
+    // }
+    //CSD_Result_SNOWMED_Code and CSD_Result_SNOWMED_Display
+    // if (
+    //   testPayload?.entry[objs]?.resource?.code?.coding[0].code ===
+    //   "1854971000000106"
+    // ) {
+    //   console.log(
+    //     testPayload?.entry[objs]?.resource.valueCodeableConcept.coding[0].code
+    //   );
+    //   console.log(
+    //     testPayload?.entry[objs]?.resource.valueCodeableConcept.coding[0].display
+    //   );
+    // }
+    //Blood_Draw_Date
+    // if (testPayload.entry[objs].resource.resourceType === "Specimen") {
+    //   console.log(testPayload.entry[objs].resource.collection.collectedDateTime);
+    // }
+    //Cso_Result_Snowmed_Code_Primary and Cso_Result_Snowmed_Display_Primary (will be a list of multiple)
+    // if (
+    //   testPayload?.entry[objs]?.resource?.code?.coding[0].code ===
+    //   "1873921000000106"
+    // ) {
+    //   for (let entry of testPayload?.entry[objs]?.resource.component)
+    //     console.log(entry.valueCodeableConcept.coding[0]); // need to save these separately as code Arr and display Arr
+    // }
+    //Cso_Result_Snowmed_Code_Secondary and Cso_Result_Snowmed_Display_Secondary (will be a list of multiple)
+    // if (
+    //   testPayload?.entry[objs]?.resource?.code?.coding[0].code ===
+    //   "1873931000000108"
+    // ) {
+    //   for (let entry of testPayload?.entry[objs]?.resource.component)
+    //     console.log(entry.valueCodeableConcept.coding[0]); // need to save these separately as code Arr and display Arr
+    // }
+  }
 };
 
 //FUNCTIONS
