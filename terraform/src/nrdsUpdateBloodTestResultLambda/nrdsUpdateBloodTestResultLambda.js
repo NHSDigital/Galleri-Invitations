@@ -50,6 +50,10 @@ export const handler = async (event) => {
   let CSD_Result_SNOWMED_Code = "";
   let CSD_Result_SNOWMED_Display = "";
   let Blood_Draw_Date = "";
+  let Cso_Result_Snowmed_Code_Primary = [];
+  let Cso_Result_Snowmed_Display_Primary = [];
+  let Cso_Result_Snowmed_Code_Secondary = [];
+  let Cso_Result_Snowmed_Display_Secondary = [];
 
   for (let objs in js.entry) {
     //Grail_Id
@@ -75,22 +79,51 @@ export const handler = async (event) => {
       console.log(Blood_Draw_Date);
     }
     // Cso_Result_Snowmed_Code_Primary and Cso_Result_Snowmed_Display_Primary (will be a list of multiple)
-    // if (
-    //   js?.entry[objs]?.resource?.code?.coding[0].code ===
-    //   "1873921000000106"
-    // ) {
-    //   for (let entry of js?.entry[objs]?.resource.component)
-    //     console.log(entry.valueCodeableConcept.coding[0]); // need to save these separately as code Arr and display Arr
-    // }
+    if (
+      js?.entry[objs]?.resource?.code?.coding[0].code === "1873921000000106"
+    ) {
+      for (let entry of js?.entry[objs]?.resource.component)
+        for (let i = 0; i < entry.valueCodeableConcept.coding.length; i++) {
+          Cso_Result_Snowmed_Code_Primary.push(
+            entry.valueCodeableConcept.coding[i].code
+          );
+          console.log(Cso_Result_Snowmed_Code_Primary);
+          Cso_Result_Snowmed_Display_Primary.push(
+            entry.valueCodeableConcept.coding[i].display
+          );
+          console.log(Cso_Result_Snowmed_Display_Primary); //need to save these separately as code Arr and display Arr
+        }
+    }
     // // Cso_Result_Snowmed_Code_Secondary and Cso_Result_Snowmed_Display_Secondary (will be a list of multiple)
-    // if (
-    //   js?.entry[objs]?.resource?.code?.coding[0].code ===
-    //   "1873931000000108"
-    // ) {
-    //   for (let entry of js?.entry[objs]?.resource.component)
-    //     console.log(entry.valueCodeableConcept.coding[0]); // need to save these separately as code Arr and display Arr
-    // }
+    if (
+      js?.entry[objs]?.resource?.code?.coding[0].code === "1873931000000108"
+    ) {
+      for (let entry of js?.entry[objs]?.resource.component)
+        for (let i = 0; i < entry.valueCodeableConcept.coding.length; i++) {
+          Cso_Result_Snowmed_Code_Secondary.push(
+            entry.valueCodeableConcept.coding[i].code
+          );
+          console.log(Cso_Result_Snowmed_Code_Secondary);
+          Cso_Result_Snowmed_Display_Secondary.push(
+            entry.valueCodeableConcept.coding[i].display
+          );
+          console.log(Cso_Result_Snowmed_Display_Secondary); //need to save these separately as code Arr and display Arr
+        }
+    }
   }
+
+  console.log("break point");
+  console.log(Grail_FHIR_Result_Id);
+  console.log(Meta_Last_Updated);
+  console.log(Identifier_Value);
+  console.log(Grail_Id);
+  console.log(CSD_Result_SNOWMED_Code);
+  console.log(CSD_Result_SNOWMED_Display);
+  console.log(Blood_Draw_Date);
+  console.log(Cso_Result_Snowmed_Code_Primary);
+  console.log(Cso_Result_Snowmed_Display_Primary);
+  console.log(Cso_Result_Snowmed_Code_Secondary);
+  console.log(Cso_Result_Snowmed_Display_Secondary);
 };
 
 //FUNCTIONS
