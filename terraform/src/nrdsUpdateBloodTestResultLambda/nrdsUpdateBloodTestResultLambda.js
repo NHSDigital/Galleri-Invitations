@@ -40,12 +40,10 @@ export const handler = async (event) => {
   //id
   //meta.lastUpdated
   //identifier.value
+  let episode_event = "";
   let Grail_FHIR_Result_Id = js?.id;
-  console.log(Grail_FHIR_Result_Id);
   let Meta_Last_Updated = js?.meta?.lastUpdated;
-  console.log(Meta_Last_Updated);
   let Identifier_Value = js?.identifier.value;
-  console.log(Identifier_Value);
   let Grail_Id = "";
   let CSD_Result_SNOWMED_Code = "";
   let CSD_Result_SNOWMED_Display = "";
@@ -54,12 +52,12 @@ export const handler = async (event) => {
   let Cso_Result_Snowmed_Display_Primary = [];
   let Cso_Result_Snowmed_Code_Secondary = [];
   let Cso_Result_Snowmed_Display_Secondary = [];
+  let Participant_Id = "";
 
   for (let objs in js.entry) {
     //Grail_Id
     if (js.entry[objs].resource.resourceType === "ServiceRequest") {
       Grail_Id = js?.entry[objs]?.resource?.identifier[0]?.value;
-      console.log(Grail_Id);
     }
     // CSD_Result_SNOWMED_Code and CSD_Result_SNOWMED_Display
     if (
@@ -67,16 +65,13 @@ export const handler = async (event) => {
     ) {
       CSD_Result_SNOWMED_Code =
         js?.entry[objs]?.resource?.valueCodeableConcept?.coding[0]?.code;
-      console.log(CSD_Result_SNOWMED_Code);
       CSD_Result_SNOWMED_Display =
         js?.entry[objs]?.resource?.valueCodeableConcept?.coding[0]?.display;
-      console.log(CSD_Result_SNOWMED_Display);
     }
     // Blood_Draw_Date
     if (js.entry[objs].resource.resourceType === "Specimen") {
       Blood_Draw_Date =
         js?.entry[objs]?.resource?.collection?.collectedDateTime;
-      console.log(Blood_Draw_Date);
     }
     // Cso_Result_Snowmed_Code_Primary and Cso_Result_Snowmed_Display_Primary (will be a list of multiple)
     if (
@@ -87,14 +82,12 @@ export const handler = async (event) => {
           Cso_Result_Snowmed_Code_Primary.push(
             entry.valueCodeableConcept.coding[i].code
           );
-          console.log(Cso_Result_Snowmed_Code_Primary);
           Cso_Result_Snowmed_Display_Primary.push(
             entry.valueCodeableConcept.coding[i].display
           );
-          console.log(Cso_Result_Snowmed_Display_Primary); //need to save these separately as code Arr and display Arr
         }
     }
-    // // Cso_Result_Snowmed_Code_Secondary and Cso_Result_Snowmed_Display_Secondary (will be a list of multiple)
+    // Cso_Result_Snowmed_Code_Secondary and Cso_Result_Snowmed_Display_Secondary (will be a list of multiple)
     if (
       js?.entry[objs]?.resource?.code?.coding[0].code === "1873931000000108"
     ) {
@@ -103,12 +96,14 @@ export const handler = async (event) => {
           Cso_Result_Snowmed_Code_Secondary.push(
             entry.valueCodeableConcept.coding[i].code
           );
-          console.log(Cso_Result_Snowmed_Code_Secondary);
           Cso_Result_Snowmed_Display_Secondary.push(
             entry.valueCodeableConcept.coding[i].display
           );
-          console.log(Cso_Result_Snowmed_Display_Secondary); //need to save these separately as code Arr and display Arr
         }
+    }
+    // Participant_Id
+    if (js.entry[objs].resource.resourceType === "Patient") {
+      Participant_Id = js?.entry[objs]?.resource?.identifier[0]?.value;
     }
   }
 
@@ -124,6 +119,24 @@ export const handler = async (event) => {
   console.log(Cso_Result_Snowmed_Display_Primary);
   console.log(Cso_Result_Snowmed_Code_Secondary);
   console.log(Cso_Result_Snowmed_Display_Secondary);
+  console.log(Participant_Id);
+
+  if (js?.id.match(/\b(CancerMarkersDetected)/g)) {
+    episode_event = "Result - CSD";
+    console.log(episode_event);
+  } else if (js?.id.match(/\b(CancerMarkersNotDetected)/g)) {
+    episode_event = "Result - No CSD";
+    console.log(episode_event);
+  } else if (js?.id.match(/\b(AmendedTest)/g)) {
+    episode_event = "Result - Amended";
+    console.log(episode_event);
+  } else if (js?.id.match(/\b(CorrectedTest)/g)) {
+    episode_event = "Result - Correction";
+    console.log(episode_event);
+  } else if (js?.id.match(/\b(CancelledTest)/g)) {
+    episode_event = "Result - Cancelled Test";
+    console.log(episode_event);
+  }
 };
 
 //FUNCTIONS
