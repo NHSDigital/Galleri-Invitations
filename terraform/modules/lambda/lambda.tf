@@ -34,8 +34,8 @@ resource "aws_cloudwatch_metric_alarm" "error_alarm" {
   statistic                 = "Sum"
   threshold                 = 1
   actions_enabled           = true
-  alarm_actions             = [aws_sns_topic.alarm_topic.arn]
-  ok_actions                = [aws_sns_topic.alarm_topic.arn]
+  alarm_actions             = [var.sns_topic_arn]
+  ok_actions                = [var.sns_topic_arn]
   insufficient_data_actions = []
 }
 
