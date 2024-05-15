@@ -43,11 +43,11 @@ resource "aws_cloudwatch_metric_alarm" "error_alarm" {
 #   name = "${var.environment}-${var.lambda_function_name}-alarm-topic"
 # }
 
-# resource "aws_sns_topic_subscription" "subscription" {
-#   topic_arn = var.sns_topic_arn
-#   protocol  = "lambda"
-#   endpoint  = var.sns_lambda_arn != null ? var.sns_lambda_arn : aws_lambda_function.lambda.arn
-# }
+resource "aws_sns_topic_subscription" "subscription" {
+  topic_arn = var.sns_topic_arn
+  protocol  = "lambda"
+  endpoint  = var.sns_lambda_arn != null ? var.sns_lambda_arn : aws_lambda_function.lambda.arn
+}
 
 # Lambda config
 data "archive_file" "lambda_archive" {

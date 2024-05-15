@@ -870,13 +870,13 @@ module "appointments_event_cancelled_lambda" {
   sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
-module "appointments_event_cancelled_lambda_trigger" {
-  source        = "./modules/lambda_trigger"
-  bucket_id     = module.proccessed_appointments.bucket_id
-  bucket_arn    = module.proccessed_appointments.bucket_arn
-  lambda_arn    = module.appointments_event_cancelled_lambda.lambda_arn
-  filter_prefix = "validRecords/valid_records-"
-}
+# module "appointments_event_cancelled_lambda_trigger" {
+#   source        = "./modules/lambda_trigger"
+#   bucket_id     = module.proccessed_appointments.bucket_id
+#   bucket_arn    = module.proccessed_appointments.bucket_arn
+#   lambda_arn    = module.appointments_event_cancelled_lambda.lambda_arn
+#   filter_prefix = "validRecords/valid_records-"
+# }
 
 # User Accounts Lambda
 module "user_accounts_lambda" {
