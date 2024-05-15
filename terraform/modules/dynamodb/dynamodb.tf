@@ -47,19 +47,21 @@ resource "aws_dynamodb_table" "dynamodb_table" {
 }
 
 resource "aws_backup_vault" "dynamodb_vault" {
-  name = "${var.environment}-${var.table_name}"
+  count = var.environment == "prod" ? 1 : 0
+  name = "${var.environment[count.index]}-${var.table_name}"
   tags = {
     ApplicationRole = "${var.application_role}"
-    Name            = "${var.environment} DynamoDB Vault"
+    Name            = "${var.environment.count.index} DynamoDB Vault"
   }
 }
 
 resource "aws_backup_plan" "dynamodb_backup_plan" {
+  count = var.environment == "prod" ? 1 : 0
   name = "${var.environment}-${var.table_name}"
 
   rule {
     rule_name         = "daily-backup"
-    target_vault_name = aws_backup_vault.dynamodb_vault.name
+    target_vault_name = aws_backup_vault.dynamodb_vault[*].name
     schedule          = var.schedule
     start_window      = 120
     completion_window = 360
@@ -75,9 +77,10 @@ resource "aws_backup_plan" "dynamodb_backup_plan" {
 }
 
 resource "aws_backup_selection" "dynamodb_backup_selection" {
+  count = var.environment == "prod" ? 1 : 0
   name         = "${var.environment}-${var.table_name}"
   iam_role_arn = aws_iam_role.backup_role.arn
-  plan_id      = aws_backup_plan.dynamodb_backup_plan.id
+  plan_id      = aws_backup_plan.dynamodb_backup_plan[*].id
 
   resources = [aws_dynamodb_table.dynamodb_table.arn]
 }
