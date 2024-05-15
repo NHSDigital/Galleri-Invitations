@@ -184,7 +184,7 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   application         = aws_elastic_beanstalk_application.screens.name
   solution_stack_name = var.solution_stack_name
   version_label       = aws_elastic_beanstalk_application_version.screens.name
-  cname_prefix        = "${var.environment}-${var.dns_zone}-gps-cancer-detection-blood-test"
+  cname_prefix        = "${var.environment}-${var.dns_zone}-gps-multi-cancer-blood-test"
 
   depends_on = [aws_acm_certificate_validation.example]
 
@@ -409,8 +409,33 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     name      = "SecurityGroups"
     value     = aws_security_group.screens.id
   }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:managedactions"
+    name      = "ManagedActionsEnabled"
+    value     = "true"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:managedactions"
+    name      = "ServiceRoleForManagedUpdates"
+    value     = "AWSServiceRoleForElasticBeanstalkManagedUpdates"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:managedactions"
+    name      = "PreferredStartTime"
+    value     = "Sun:21:00"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:managedactions:platformupdate"
+    name      = "UpdateLevel"
+    value     = "patch"
+  }
+
   tags = {
     ApplicationRole = "${var.application_role}"
-    Name            = "${var.environment} Elastic Beanstalk Elastic Beanstalk Environment"
+    Name            = "${var.environment} Elastic Beanstalk Environment"
   }
 }
