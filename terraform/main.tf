@@ -932,13 +932,13 @@ module "appointments_event_cancelled_lambda_cloudwatch" {
   retention_days       = 14
 }
 
-module "appointments_event_cancelled_lambda_trigger" {
-  source        = "./modules/lambda_trigger"
-  bucket_id     = module.proccessed_appointments.bucket_id
-  bucket_arn    = module.proccessed_appointments.bucket_arn
-  lambda_arn    = module.appointments_event_cancelled_lambda.lambda_arn
-  filter_prefix = "validRecords/valid_records-"
-}
+# module "appointments_event_cancelled_lambda_trigger" {
+#   source        = "./modules/lambda_trigger"
+#   bucket_id     = module.proccessed_appointments.bucket_id
+#   bucket_arn    = module.proccessed_appointments.bucket_arn
+#   lambda_arn    = module.appointments_event_cancelled_lambda.lambda_arn
+#   filter_prefix = "validRecords/valid_records-"
+# }
 
 # User Accounts Lambda
 module "user_accounts_lambda" {
@@ -1947,7 +1947,7 @@ module "caas_data_triggers" {
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records_delete-",
       filter_suffix = ""
-    }
+    },
   }
 }
 
