@@ -54,7 +54,7 @@ export const processIncomingRecords = async (uploadedRecordsArr) => {
         } else {
           console.warn("RECORD HAS NOT BEEN MODIFIED");
           return Promise.reject(
-            `Record ${oldImage.Participant_Id.S} has not been modified`
+            `Record has not been modified`
           );
         }
       })
@@ -64,6 +64,7 @@ export const processIncomingRecords = async (uploadedRecordsArr) => {
     return resultsRecordsUpload;
   } catch (error) {
     console.error(`Error: Error in processIncomingRecords`);
+    console.error(`Error: ${error}`);
     throw error;
   }
 };
@@ -93,12 +94,14 @@ export const sendToTopic = async (formattedOutput, sns) => {
   console.log("Entered sendToTopic");
   try {
     const command = new PublishCommand(formattedOutput);
+    console.log("------1-------", JSON.stringify(command));
     const response = await sns.send(command);
-    console.log("Exiting sendToTopic");
+    console.log("Exiting sendToTopic", JSON.stringify(response));
 
     return response;
   } catch (error) {
     console.error(`Error: Failed to send message to SNS Topic: ${topicName}`);
+    console.error(`Error: ${error}`);
     throw error;
   }
 };
