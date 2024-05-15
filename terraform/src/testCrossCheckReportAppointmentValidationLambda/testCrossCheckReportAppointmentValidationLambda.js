@@ -16,7 +16,6 @@ const smClient = new SecretsManagerClient({ region: "eu-west-2" });
 const CR_TRR_SUCCESSFUL_BUCKET = process.env.CR_TRR_SUCCESSFUL_BUCKET;
 const CR_TRR_UNSUCCESSFUL_BUCKET = process.env.CR_TRR_UNSUCCESSFUL_BUCKET;
 const ENVIRONMENT = process.env.ENVIRONMENT;
-let validationServiceUrl;
 
 //HANDLER
 export const handler = async (event, context) => {
@@ -27,10 +26,6 @@ export const handler = async (event, context) => {
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
   try {
-    validationServiceUrl = await getSecret(
-      process.env.APPOINTMENT_VALIDATION_SERVICE_URL,
-      smClient
-    );
     const testCrossCheckResultReport = await retrieveAndParseJSON(
       getJSONFromS3,
       bucket,
@@ -51,11 +46,8 @@ export async function processTRR(
   originalBucket,
   s3
 ) {
-  const validTRR = await validateTRR(
-    testCrossCheckResultReport,
-    reportName,
-    validationServiceUrl
-  );
+  console.log(`call validateTRR ${testCrossCheckResultReport}`);
+  const validTRR = await validateTRR(testCrossCheckResultReport, reportName);
   if (validTRR) {
     await putTRRInS3Bucket(
       testCrossCheckResultReport,
@@ -75,14 +67,9 @@ export async function processTRR(
 }
 
 // Validate TRR
-export async function validateTRR(
-  testCrossCheckResultReport,
-  reportName,
-  validationServiceUrl
-) {
+export async function validateTRR(testCrossCheckResultReport, reportName) {
   console.log(`testCrossCheckResultReport ${testCrossCheckResultReport}`);
-  console.log(`parameter ${reportName}`);
-  console.log(`validationServiceUrl ${validationServiceUrl}`);
+  console.log(`reportName ${reportName}`);
   return true;
 }
 

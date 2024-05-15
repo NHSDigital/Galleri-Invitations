@@ -1620,7 +1620,6 @@ module "test_cross_check_report_appointment_validation_lambda" {
     ENVIRONMENT                 = "${var.environment}"
     CR_TRR_SUCCESSFUL_BUCKET       = "inbound-nrds-galleritestresult-step3-success"
     CR_TRR_UNSUCCESSFUL_BUCKET     = "inbound-nrds-galleritestresult-step3-error"
-    APPOINTMENT_VALIDATION_SERVICE_URL = "APPOINTMENT_VALIDATION_SERVICE_URL"
   }
 }
 
@@ -1633,11 +1632,12 @@ module "test_cross_check_report_appointment_validation_lambda_cloudwatch" {
 
 module "test_cross_check_report_appointment_validation_lambda_trigger" {
   source        = "./modules/lambda_trigger"
-  bucket_id     = module.proccessed_nrds.bucket_id
-  bucket_arn    = module.proccessed_nrds.bucket_arn
+  bucket_arn    = module.inbound_nrds_galleritestresult_step2_success.bucket_arn
+  bucket_id     = module.inbound_nrds_galleritestresult_step2_success.bucket_id
   lambda_arn    = module.test_cross_check_report_appointment_validation_lambda.lambda_arn
   filter_prefix = "record_"
 }
+
 
 # Dynamodb tables
 module "sdrs_table" {
