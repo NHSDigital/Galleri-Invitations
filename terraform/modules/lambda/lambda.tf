@@ -39,12 +39,12 @@ resource "aws_cloudwatch_metric_alarm" "error_alarm" {
   insufficient_data_actions = []
 }
 
-resource "aws_sns_topic" "alarm_topic" {
-  name = "${var.environment}-${var.lambda_function_name}-alarm-topic"
-}
+# resource "aws_sns_topic" "alarm_topic" {
+#   name = "${var.environment}-${var.lambda_function_name}-alarm-topic"
+# }
 
 resource "aws_sns_topic_subscription" "email_subscription" {
-  topic_arn = aws_sns_topic.alarm_topic.arn
+  topic_arn = var.sns_topic_arn
   protocol  = "lambda"
   endpoint  = var.sns_lambda_arn != null ? var.sns_lambda_arn : aws_lambda_function.lambda.arn
 }

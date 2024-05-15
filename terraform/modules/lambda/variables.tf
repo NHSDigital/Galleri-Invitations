@@ -41,3 +41,8 @@ variable "application_role" {
   description = "Used for tagging resource according to Cloud guidelines"
   default     = "App"
 }
+
+variable "sns_topic_arn" {
+  description = "value"
+  type        = string
+}

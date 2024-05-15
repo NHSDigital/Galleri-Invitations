@@ -15,9 +15,11 @@ resource "aws_cloudwatch_log_metric_filter" "error_filter" {
   log_group_name = aws_cloudwatch_log_group.log_group.name
   pattern        = "Error"
   metric_transformation {
-    namespace = "LogErrors"
-    name      = "ErrorCount"
-    value     = "1"
+    namespace     = "LogErrors"
+    name          = "ErrorCount"
+    value         = "1"
+    unit          = "Count"
+    default_value = "0"
   }
 }
 
@@ -38,7 +40,7 @@ resource "aws_cloudwatch_metric_alarm" "error_alarm" {
 }
 
 resource "aws_sns_topic" "alarm_topic" {
-  name = "${var.environment}-${var.lambda_function_name}"
+  name = "${var.environment}-${var.sns_topic}"
 }
 
 resource "aws_sns_topic_subscription" "email_subscription" {

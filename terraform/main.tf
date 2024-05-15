@@ -334,6 +334,7 @@ module "data_filter_gridall_imd_lambda" {
     ENVIRONMENT     = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 # LSOA loader
@@ -352,6 +353,7 @@ module "lsoa_loader_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "sns_alert_lambda" {
@@ -383,6 +385,7 @@ module "clinic_information_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "clinic_information_api_gateway" {
@@ -414,6 +417,7 @@ module "clinic_icb_list_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "clinic_icb_list_api_gateway" {
@@ -444,6 +448,7 @@ module "participating_icb_list_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "participating_icb_list_api_gateway" {
@@ -472,6 +477,7 @@ module "clinic_summary_list_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "clinic_summary_list_api_gateway" {
@@ -502,6 +508,7 @@ module "invitation_parameters_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "invitation_parameters_api_gateway" {
@@ -530,6 +537,7 @@ module "invitation_parameters_put_forecast_uptake_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "invitation_parameters_put_forecast_uptake_api_gateway" {
@@ -560,6 +568,7 @@ module "invitation_parameters_put_quintiles_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "invitation_parameters_put_quintiles_api_gateway" {
@@ -588,6 +597,7 @@ module "target_fill_to_percentage_put_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "target_fill_to_percentage_put_api_gateway" {
@@ -621,6 +631,7 @@ module "target_fill_to_percentage_get_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "target_fill_to_percentage_get_api_gateway" {
@@ -646,6 +657,7 @@ module "lsoa_in_range_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "lsoa_in_range_api_gateway" {
@@ -675,6 +687,7 @@ module "participants_in_lsoa_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 # Calculate number of participatnts to invite
@@ -690,6 +703,7 @@ module "calculate_number_to_invite_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "calculate_number_to_invite_api_gateway" {
@@ -723,6 +737,7 @@ module "generate_invites_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "generate_invites_api_gateway" {
@@ -757,6 +772,7 @@ module "gp_practices_loader_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "gp_practices_loader_lambda_trigger" {
@@ -780,6 +796,7 @@ module "create_episode_record_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "create_episode_record_dynamodb_stream" {
@@ -807,6 +824,7 @@ module "add_episode_history_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "add_episode_history_dynamodb_stream" {
@@ -833,6 +851,7 @@ module "gtms_appointment_event_booked_lambda" {
     DATEPARAM   = "5"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "appointments_event_cancelled_lambda" {
@@ -848,6 +867,7 @@ module "appointments_event_cancelled_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "appointments_event_cancelled_lambda_trigger" {
@@ -872,6 +892,7 @@ module "user_accounts_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "user_accounts_lambda_trigger" {
@@ -894,6 +915,7 @@ module "gtms_status_update_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "gtms_status_update_lambda_trigger" {
@@ -917,6 +939,7 @@ module "validate_gtms_withdrawal_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "validate_gtms_withdrawal_lambda_trigger" {
@@ -949,6 +972,7 @@ module "poll_mesh_mailbox_lambda" {
     EXIT_TIME                    = "12",
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 # GTMS Validate Appointment Lambda
@@ -965,6 +989,7 @@ module "validate_gtms_appointment_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "validate_gtms_appointment_lambda_trigger" {
@@ -988,6 +1013,7 @@ module "validate_appointment_common_data_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "validate_appointment_common_data_lambda_trigger" {
@@ -1012,6 +1038,7 @@ module "create_invitation_batch_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "create_invitation_batch_dynamodb_stream" {
@@ -1048,6 +1075,7 @@ module "gtms_mesh_mailbox_lambda" {
     WITHDRAW_WORKFLOW          = "GTMS_WITHDRAW",
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 # NRDS MESH lambda
@@ -1068,6 +1096,7 @@ module "nrds_mesh_mailbox_lambda" {
     K8_URL                         = "${var.K8_URL}",
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 # GTMS Validate clinic Lambda
@@ -1084,6 +1113,7 @@ module "validate_clinic_data_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "validate_clinic_data_lambda_trigger" {
@@ -1108,6 +1138,7 @@ module "gtms_upload_clinic_data_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "gtms_upload_clinic_data_lambda_trigger" {
@@ -1133,6 +1164,7 @@ module "gps_jwks_lambda" {
     PUBLIC_KEYS_BUCKET = "${module.gps_public_keys_bucket.bucket_id}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "gps_jwks_api_gateway" {
@@ -1166,6 +1198,7 @@ module "authenticator_lambda" {
     GALLERI_ACTIVITY_CODE   = "${data.aws_secretsmanager_secret_version.galleri_activity_code.secret_string}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 # Retrieve Galleri activity code
@@ -1199,6 +1232,7 @@ module "validate_clinic_capacity_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "validate_clinic_capacity_lambda_trigger" {
@@ -1224,6 +1258,7 @@ module "gtms_upload_clinic_capacity_data_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "gtms_upload_clinic_capacity_data_trigger" {
@@ -1256,6 +1291,7 @@ module "send_GTMS_invitation_batch_lambda" {
     GTMS_MESH_RECEIVER_MAILBOX_ID = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_receiver_mailbox_id.secret_string)["GTMS_MESH_RECEIVER_MAILBOX_ID"],
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "send_GTMS_invitation_batch_lambda_trigger" {
@@ -1280,6 +1316,7 @@ module "send_invitation_batch_to_raw_message_queue_lambda" {
     SQS_QUEUE_URL = module.notify_raw_message_queue_sqs.sqs_queue_url
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "send_invitation_batch_to_raw_message_queue_lambda_trigger" {
@@ -1315,6 +1352,7 @@ module "send_enriched_message_to_notify_queue_lambda" {
     ENRICHED_MESSAGE_QUEUE_URL = module.notify_enriched_message_queue_sqs.sqs_queue_url
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "send_enriched_message_to_notify_queue_SQS_trigger" {
@@ -1355,6 +1393,7 @@ module "send_single_notify_message_lambda" {
     ENRICHED_MESSAGE_QUEUE_URL = module.notify_enriched_message_queue_sqs.sqs_queue_url
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "send_single_notify_message_SQS_trigger" {
@@ -1377,6 +1416,7 @@ module "caas_feed_delete_records_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 # trigger replaced by group trigger for bucket
 
@@ -1397,6 +1437,7 @@ module "test_result_report_fhir_validation_lambda" {
     FHIR_VALIDATION_SERVICE_URL = "FHIR_VALIDATION_SERVICE_URL"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "test_result_report_fhir_validation_lambda_trigger" {
@@ -1576,6 +1617,7 @@ module "validate_caas_feed_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "validate_caas_feed_lambda_trigger" {
@@ -1599,6 +1641,7 @@ module "caas_feed_add_records_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "caas_data_triggers" {
@@ -1643,6 +1686,7 @@ module "caas_feed_update_records_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 # Dynamodb tables
@@ -1674,6 +1718,7 @@ module "process_appointment_event_type_lambda" {
     ENVIRONMENT = "${var.environment}"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "event_type_triggers" {

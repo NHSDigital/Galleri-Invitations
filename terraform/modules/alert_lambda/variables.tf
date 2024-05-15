@@ -41,3 +41,9 @@ variable "application_role" {
   description = "Used for tagging resource according to Cloud guidelines"
   default     = "App"
 }
+
+variable "sns_topic" {
+  default     = "alarm_topic"
+  description = "The sns topic that all alarms will post to"
+  type        = string
+}
