@@ -340,6 +340,8 @@ export async function updateAppointmentTable(
   const response = await client.send(command);
   if (response.$metadata.httpStatusCode != 200) {
     console.log(`record update failed for person ${partitionKeyValue}`);
+  } else {
+    console.log(`Updated Appointment successfully`);
   }
   return response.$metadata.httpStatusCode;
 }
