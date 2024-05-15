@@ -1015,6 +1015,16 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
 #             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-EpisodeHistory"
 #           ]
 #         },
+#        {
+#          "Sid" : "AllowGalleriBloodTestResultDynamodbAccess",
+#          "Effect" : "Allow",
+#          "Action" : [
+#            "dynamodb:*"
+#          ],
+#          "Resource" : [
+#            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GalleriBloodTestResult"
+#          ]
+#        }
 #       ],
 #       "Version" : "2012-10-17"
 #   })

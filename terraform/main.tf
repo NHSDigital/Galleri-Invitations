@@ -2463,7 +2463,7 @@ module "galleri_blood_test_result_table" {
     }
   ]
   tags = {
-    Name        = "Dynamodb Table Galleri Blood Test Result"
+    Name = "Dynamodb Table Galleri Blood Test Result"
   }
 }
 
