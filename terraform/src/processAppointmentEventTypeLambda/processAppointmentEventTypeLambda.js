@@ -78,7 +78,10 @@ export const handler = async (event) => {
             AppointmentID,
             EventType,
             Timestamp,
-            episodeEvent.complete
+            episodeEvent.complete,
+            "NULL",
+            GrailID,
+            BloodCollectionDate
           );
         } else {
           await rejectRecord(appointmentJson);
@@ -232,7 +235,9 @@ export const transactionalWrite = async (
   eventType,
   appointmentTimestamp,
   episodeEvent,
-  eventDescription = "Null"
+  eventDescription = "Null",
+  grailId = "null",
+  bloodCollectionDate = "null"
 ) => {
   const timeNow = new Date(Date.now()).toISOString();
   const params = {
