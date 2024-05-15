@@ -107,6 +107,15 @@ export const handler = async (event) => {
     }
   }
 
+  //TODO: check out of order message
+  //use Meta_Last_Updated and Identifier_Value,
+  //need to lookup GalleriBloodTestResult, if no entry insert
+  //if record exists and lookup.Items[0] exists, check Meta_Last_Updated > ddb Meta_Last_Updated (Accept)
+  //^ save js obj (payload) to step 4 output success bucket and save to ddb. Transactional Write to
+  //GalleriBloodTestResult and Episode
+  //Also save decoded pdf to S3
+
+  //if < ddb, reject record - step4 output error bucket
   const episodeResponse = await lookUp(
     dbClient,
     Participant_Id,
