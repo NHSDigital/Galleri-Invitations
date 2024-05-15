@@ -107,6 +107,17 @@ export const handler = async (event) => {
     }
   }
 
+  const episodeResponse = await lookUp(
+    dbClient,
+    Participant_Id,
+    "Episode",
+    "Participant_Id",
+    "S",
+    true
+  );
+  const episodeItemStatus = episodeResponse?.Items[0]?.Episode_Status?.S;
+  console.log(episodeItemStatus);
+
   console.log("break point");
   console.log(Grail_FHIR_Result_Id);
   console.log(Meta_Last_Updated);
@@ -124,18 +135,40 @@ export const handler = async (event) => {
   if (js?.id.match(/\b(CancerMarkersDetected)/g)) {
     episode_event = "Result - CSD";
     console.log(episode_event);
+    if (episodeItemStatus === "Open") {
+      //THEN update episode_event  to 'Result - CSD'
+    } else {
+      // THEN update episode_event  to 'Result - CSD' AND set Episode_Status to 'Open'
+    }
   } else if (js?.id.match(/\b(CancerMarkersNotDetected)/g)) {
     episode_event = "Result - No CSD";
     console.log(episode_event);
+    if (episodeItemStatus === "Open") {
+      // THEN update episode_event to  ‘Result - No CSD’
+      // AND close the episode
+    }
   } else if (js?.id.match(/\b(AmendedTest)/g)) {
     episode_event = "Result - Amended";
     console.log(episode_event);
+    if (episodeItemStatus === "Open") {
+      // THEN update episode_event  to 'Result - Amended'
+    }
   } else if (js?.id.match(/\b(CorrectedTest)/g)) {
     episode_event = "Result - Correction";
     console.log(episode_event);
+    if (episodeItemStatus === "Open") {
+      // THEN update episode_event to 'Result - Correction'
+    } else {
+      // THEN open the episode AND update episode_event to 'Result - Correction'
+    }
   } else if (js?.id.match(/\b(CancelledTest)/g)) {
     episode_event = "Result - Cancelled Test";
     console.log(episode_event);
+    if (episodeItemStatus === "Open") {
+      // THEN update episode_event to 'Result - Cancelled Test'
+    } else {
+      // THEN open the episode AND update episode_event to 'Result - Cancelled Test'
+    }
   }
 };
 
