@@ -40,50 +40,54 @@ export const handler = async (event) => {
   //id
   //meta.lastUpdated
   //identifier.value
+  let Grail_FHIR_Result_Id = js?.id;
+  console.log(Grail_FHIR_Result_Id);
+  let Meta_Last_Updated = js?.meta?.lastUpdated;
+  console.log(Meta_Last_Updated);
+  let Identifier_Value = js?.identifier.value;
+  console.log(Identifier_Value);
+  let Grail_Id = "";
+  let CSD_Result_SNOWMED_Code = "";
+  let CSD_Result_SNOWMED_Display = "";
+  let Blood_Draw_Date = "";
 
-  //Grail_FHIR_Result_Id
-  console.log(testPayload.id);
-  //Meta_Last_Updated
-  console.log(testPayload.meta.lastUpdated);
-  //Identifier_Value
-  console.log(testPayload.identifier.value);
-  for (let objs in testPayload.entry) {
-    // console.log(objs);
-    // console.log(testPayload.entry[objs]);
+  for (let objs in js.entry) {
     //Grail_Id
-    // if (testPayload.entry[objs].resource.resourceType === "ServiceRequest") {
-    //   console.log(testPayload.entry[objs].resource.identifier[0].value);
-    // }
-    //CSD_Result_SNOWMED_Code and CSD_Result_SNOWMED_Display
+    if (js.entry[objs].resource.resourceType === "ServiceRequest") {
+      Grail_Id = js?.entry[objs]?.resource?.identifier[0]?.value;
+      console.log(Grail_Id);
+    }
+    // CSD_Result_SNOWMED_Code and CSD_Result_SNOWMED_Display
+    if (
+      js?.entry[objs]?.resource?.code?.coding[0].code === "1854971000000106"
+    ) {
+      CSD_Result_SNOWMED_Code =
+        js?.entry[objs]?.resource?.valueCodeableConcept?.coding[0]?.code;
+      console.log(CSD_Result_SNOWMED_Code);
+      CSD_Result_SNOWMED_Display =
+        js?.entry[objs]?.resource?.valueCodeableConcept?.coding[0]?.display;
+      console.log(CSD_Result_SNOWMED_Display);
+    }
+    // Blood_Draw_Date
+    if (js.entry[objs].resource.resourceType === "Specimen") {
+      Blood_Draw_Date =
+        js?.entry[objs]?.resource?.collection?.collectedDateTime;
+      console.log(Blood_Draw_Date);
+    }
+    // Cso_Result_Snowmed_Code_Primary and Cso_Result_Snowmed_Display_Primary (will be a list of multiple)
     // if (
-    //   testPayload?.entry[objs]?.resource?.code?.coding[0].code ===
-    //   "1854971000000106"
-    // ) {
-    //   console.log(
-    //     testPayload?.entry[objs]?.resource.valueCodeableConcept.coding[0].code
-    //   );
-    //   console.log(
-    //     testPayload?.entry[objs]?.resource.valueCodeableConcept.coding[0].display
-    //   );
-    // }
-    //Blood_Draw_Date
-    // if (testPayload.entry[objs].resource.resourceType === "Specimen") {
-    //   console.log(testPayload.entry[objs].resource.collection.collectedDateTime);
-    // }
-    //Cso_Result_Snowmed_Code_Primary and Cso_Result_Snowmed_Display_Primary (will be a list of multiple)
-    // if (
-    //   testPayload?.entry[objs]?.resource?.code?.coding[0].code ===
+    //   js?.entry[objs]?.resource?.code?.coding[0].code ===
     //   "1873921000000106"
     // ) {
-    //   for (let entry of testPayload?.entry[objs]?.resource.component)
+    //   for (let entry of js?.entry[objs]?.resource.component)
     //     console.log(entry.valueCodeableConcept.coding[0]); // need to save these separately as code Arr and display Arr
     // }
-    //Cso_Result_Snowmed_Code_Secondary and Cso_Result_Snowmed_Display_Secondary (will be a list of multiple)
+    // // Cso_Result_Snowmed_Code_Secondary and Cso_Result_Snowmed_Display_Secondary (will be a list of multiple)
     // if (
-    //   testPayload?.entry[objs]?.resource?.code?.coding[0].code ===
+    //   js?.entry[objs]?.resource?.code?.coding[0].code ===
     //   "1873931000000108"
     // ) {
-    //   for (let entry of testPayload?.entry[objs]?.resource.component)
+    //   for (let entry of js?.entry[objs]?.resource.component)
     //     console.log(entry.valueCodeableConcept.coding[0]); // need to save these separately as code Arr and display Arr
     // }
   }
