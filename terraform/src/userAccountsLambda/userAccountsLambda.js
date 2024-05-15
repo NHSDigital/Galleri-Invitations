@@ -1,5 +1,5 @@
-import { S3Client, GetObjectCommand, QueryCommand } from "@aws-sdk/client-s3";
-import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { DynamoDBClient, UpdateItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { Readable } from "stream";
 import csv from "csv-parser";
 
@@ -42,10 +42,10 @@ export const validateData = (dataArray) => {
       errorMsg = `Invalid UUID ${item["UUID"]}`;
     }
     else if (!regexStatus.test(item["Status"])) {
-      errorMsg = `Invalid Status ${item["Status"]}`;
+      errorMsg = `Invalid Status for ${item["UUID"]}}`;
     }
     else if (!regexRole.test(item["Role"])) {
-      errorMsg = `Invalid Role ${item["Role"]}`;
+      errorMsg = `Invalid Role for ${item["UUID"]}}`;
     }
     else if (!regexName.test(item["Name"])) {
       errorMsg = `Invalid Name for ${item["UUID"]}`;
@@ -83,6 +83,13 @@ export const saveArrayToTable = async (dataArray, environment, client) => {
             S: uuid,
           },
         },
+        ExpressionAttributeNames: {
+          "#NAME": "Name",
+          "#EMAIL": "Email",
+          "#STATUS": "Status",
+          "#ROLE": "Role",
+          "#UPDATED": "Last_Updated_DateTime",
+        },
         ExpressionAttributeValues: {
           ":name": {
             S: item["Name"],
@@ -99,17 +106,16 @@ export const saveArrayToTable = async (dataArray, environment, client) => {
           ":updated": {
             S: dateTime,
           },
-          ":created": {
-            S: dateTime,
-          },
         },
         TableName: `${environment}-UserAccounts`,
         UpdateExpression:
-          "set Name = :name, Email = :email, Status = :status, Role = :role, Last_Updated_DateTime = :updated",
+          "set #NAME = :name, #EMAIL = :email, #STATUS = :status, #ROLE = :role, #UPDATED = :updated",
       };
       if (!existingAccount) {
         console.log("Adding new user account: ", uuid);
-        params.UpdateExpression = `${params.UpdateExpression} , Creation_DateTime = :created`;
+        params.ExpressionAttributeNames["#CREATED"] = "Creation_DateTime";
+        params.ExpressionAttributeValues[":created"] = { S: dateTime };
+        params.UpdateExpression = `${params.UpdateExpression} , #CREATED = :created`;
       } else {
         console.log("Updating user account: ", uuid);
       }
