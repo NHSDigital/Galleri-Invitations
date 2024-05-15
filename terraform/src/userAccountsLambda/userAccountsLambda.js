@@ -22,7 +22,7 @@ export const handler = async (event) => {
   try {
     const csvString = await readCsvFromS3(bucket, key, s3);
     const dataArray = await parseCsvToArray(csvString);
-    await validateData(dataArray);
+    validateData(dataArray);
     await saveArrayToTable(dataArray, ENVIRONMENT, dbClient);
     console.log(`Finished processing object ${key} in bucket ${bucket}`);
     return `Finished processing object ${key} in bucket ${bucket}`;
@@ -34,6 +34,7 @@ export const handler = async (event) => {
 };
 
 export const validateData = (dataArray) => {
+  console.log(`Validating data`);
   for (let i = 0; i < dataArray.length; i++) {
     const item = dataArray[i];
     let errorMsg;
@@ -70,7 +71,7 @@ export const saveArrayToTable = async (dataArray, environment, client) => {
         client,
         uuid,
         "UserAccounts",
-        "UUID",
+        "User_UUID",
         "S",
         false
       );
@@ -78,7 +79,7 @@ export const saveArrayToTable = async (dataArray, environment, client) => {
 
       const params = {
         Key: {
-          UUID: {
+          User_UUID: {
             S: uuid,
           },
         },
