@@ -2503,7 +2503,7 @@ resource "aws_ssm_parameter" "withdrawn-notify" {
 resource "aws_ssm_parameter" "withdrawn-routing-id" {
   name      = "withdrawn-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "687f4bb8-7fb4-4814-96c1-1ee23299b6d1"
   overwrite = true
 }
 
@@ -2545,7 +2545,7 @@ resource "aws_ssm_parameter" "appointment-booked-text-notify" {
 resource "aws_ssm_parameter" "appointment-booked-text-routing-id" {
   name      = "appointment-booked-text-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "37fb0375-5acc-454b-ac61-ad2d064a9c8a"
   overwrite = true
 }
 
@@ -2566,7 +2566,7 @@ resource "aws_ssm_parameter" "appointment-rebooked-letter-notify" {
 resource "aws_ssm_parameter" "appointment-rebooked-letter-routing-id" {
   name      = "appointment-rebooked-letter-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "5a966acc-69c8-4596-8071-60ba3fa6696f"
   overwrite = true
 }
 
@@ -2587,7 +2587,7 @@ resource "aws_ssm_parameter" "appointment-rebooked-text-notify" {
 resource "aws_ssm_parameter" "appointment-rebooked-text-routing-id" {
   name      = "appointment-rebooked-text-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "37fb0375-5acc-454b-ac61-ad2d064a9c8a"
   overwrite = true
 }
 
@@ -2713,7 +2713,7 @@ resource "aws_ssm_parameter" "result-no-csd-notify" {
 resource "aws_ssm_parameter" "result-no-csd-routing-id" {
   name      = "result-no-csd-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "3f2a604a-b6ac-40bd-bc56-68f7d3618422"
   overwrite = true
 }
 
@@ -2755,7 +2755,7 @@ resource "aws_ssm_parameter" "referred-notify" {
 resource "aws_ssm_parameter" "referred-routing-id" {
   name      = "referred-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "03ac0e78-be6b-4dd8-9339-56e6a6bbc793"
   overwrite = true
 }
 
@@ -2835,7 +2835,7 @@ resource "aws_ssm_parameter" "contact-escalation-notify" {
 resource "aws_ssm_parameter" "contact-escalation-routing-id" {
   name      = "contact-escalation-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "b99e52d3-2c20-4750-98ff-6b1c6c3bacb9"
   overwrite = true
 }
 
