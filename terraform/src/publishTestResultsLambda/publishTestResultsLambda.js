@@ -1,4 +1,5 @@
 import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
+import isEqual from "lodash.isequal";
 
 const sns = new SNSClient({ region: "eu-west-2" });
 const ENVIRONMENT = process.env.ENVIRONMENT;
@@ -26,23 +27,35 @@ export const processIncomingRecords = async (uploadedRecordsArr) => {
   try {
     const resultsRecordsUpload = await Promise.allSettled(
       uploadedRecordsArr.map(async (record) => {
-        console.log("*********Participant_Id***: ", record.Participant_Id);
+        console.log("Entered resultsRecordsUpload");
 
-        // generate payload
-        const formattedOutput = formatTestResultRecord(record);
-        // upload payload
-        const uploadRecord = await sendToTopic(
-          formattedOutput,
-          sns
-        );
-        if (uploadRecord.$metadata.httpStatusCode == 200) {
-          return Promise.resolve(
-            `Successfully published participant ${record.Participant_Id.S} info to ${topicName} topic`
+        const oldImage = record.dynamodb?.OldImage;
+        const newImage = record.dynamodb.NewImage;
+        console.log("*********Participant_Id***: ", newImage.Participant_Id);
+
+        if (!isEqual(oldImage, newImage)) {
+
+          // generate payload
+          const formattedOutput = formatTestResultRecord(newImage);
+          // upload payload
+          const uploadRecord = await sendToTopic(
+            formattedOutput,
+            sns
           );
+          if (uploadRecord.$metadata.httpStatusCode == 200) {
+            return Promise.resolve(
+              `Successfully published participant ${newImage.Participant_Id.S} info to ${topicName} topic`
+            );
+          } else {
+            const msg = `Error: An error occured trying to publish participant ${newImage.Participant_Id.S} info to ${topicName} topic`;
+            console.error(msg);
+            return Promise.reject(msg);
+          }
         } else {
-          const msg = `Error: An error occured trying to publish participant ${record.Participant_Id.S} info to ${topicName} topic`;
-          console.error(msg);
-          return Promise.reject(msg);
+          console.warn("RECORD HAS NOT BEEN MODIFIED");
+          return Promise.reject(
+            `Record ${oldImage.Participant_Id.S} has not been modified`
+          );
         }
       })
     );
