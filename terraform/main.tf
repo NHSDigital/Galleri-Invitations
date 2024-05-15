@@ -2440,12 +2440,18 @@ module "appointment_table" {
 
 module "galleri_blood_test_result_table" {
   source                   = "./modules/dynamodb"
+  billing_mode             = "PROVISIONED"
   stream_enabled           = true
   stream_view_type         = "NEW_AND_OLD_IMAGES"
   table_name               = "GalleriBloodTestResult"
   hash_key                 = "Participant_Id"
   range_key                = "Grail_Id"
+  read_capacity            = 10
+  write_capacity           = 10
+  secondary_write_capacity = 10
+  secondary_read_capacity  = 10
   environment              = var.environment
+  projection_type          = "ALL"
   attributes = [
     {
       name = "Participant_Id"
@@ -2458,7 +2464,6 @@ module "galleri_blood_test_result_table" {
   ]
   tags = {
     Name        = "Dynamodb Table Galleri Blood Test Result"
-    Environment = var.environment
   }
 }
 
