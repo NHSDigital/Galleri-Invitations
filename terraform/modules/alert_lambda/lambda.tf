@@ -29,7 +29,7 @@ resource "aws_cloudwatch_metric_alarm" "error_alarm" {
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = 10
   metric_name               = "ErrorCount-${var.lambda_function_name}"
-  namespace                 = "AWS/Lambda"
+  namespace                 = "LogErrors"
   period                    = 30
   statistic                 = "Sum"
   threshold                 = 1
