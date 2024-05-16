@@ -16,7 +16,7 @@ resource "aws_cloudwatch_log_metric_filter" "error_filter" {
   pattern        = "Error"
   metric_transformation {
     namespace     = "LogErrors"
-    name          = "ErrorCount"
+    name          = "ErrorCount-${var.lambda_function_name}"
     value         = "1"
     unit          = "Count"
     default_value = "0"
@@ -28,7 +28,7 @@ resource "aws_cloudwatch_metric_alarm" "error_alarm" {
   alarm_description         = "${var.environment}-${var.lambda_function_name} has encountered an error"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = 1
-  metric_name               = "ErrorCount"
+  metric_name               = "ErrorCount-${var.lambda_function_name}"
   namespace                 = "LogErrors"
   period                    = 60
   statistic                 = "Sum"
@@ -39,14 +39,10 @@ resource "aws_cloudwatch_metric_alarm" "error_alarm" {
   insufficient_data_actions = []
 }
 
-# resource "aws_sns_topic" "alarm_topic" {
-#   name = "${var.environment}-${var.lambda_function_name}-alarm-topic"
-# }
-
 resource "aws_sns_topic_subscription" "subscription" {
   topic_arn = var.sns_topic_arn
   protocol  = "lambda"
-  endpoint  = var.sns_lambda_arn != null ? var.sns_lambda_arn : aws_lambda_function.lambda.arn
+  endpoint  = var.sns_lambda_arn
 }
 
 # Lambda config
