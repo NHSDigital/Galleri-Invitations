@@ -5,12 +5,10 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
-import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 import axios from "axios";
 
 //VARIABLES
 const s3 = new S3Client();
-const smClient = new SecretsManagerClient({ region: "eu-west-2" });
 const CR_TRR_SUCCESSFUL_BUCKET = process.env.CR_TRR_SUCCESSFUL_BUCKET;
 const CR_TRR_UNSUCCESSFUL_BUCKET = process.env.CR_TRR_UNSUCCESSFUL_BUCKET;
 const ENVIRONMENT = process.env.ENVIRONMENT;
@@ -31,7 +29,31 @@ export const handler = async (event, context) => {
       key,
       s3
     );
-    await processTRR(testCrossCheckResultReport, key, bucket, s3);
+    //bring back most recent appointment, with timestamp
+    const appointmentParticipant = await lookUp(
+      dbClient,
+      testCrossCheckResultReport.Appointment?.ParticipantID,
+      "Appointments",
+      "Participant_Id",
+      "S",
+      false
+    ); //Check participant has any appointments
+    const apptArr = appointmentParticipant?.Items;
+    const sortedApptParticipants = apptArr?.sort(function (x, y) {
+      return new Date(x?.["Timestamp"]?.["S"]) <
+        new Date(y?.["Timestamp"]?.["S"])
+        ? 1
+        : -1;
+    });
+    const appointmentParticipantItems = sortedApptParticipants[0];
+
+    await processTRR(
+      testCrossCheckResultReport,
+      appointmentParticipantItems,
+      key,
+      bucket,
+      s3
+    );
   } catch (error) {
     console.error("Error: Issue occurred whilst processing JSON file from S3");
     console.error("Error:", error);
@@ -41,11 +63,15 @@ export const handler = async (event, context) => {
 //FUNCTIONS
 export async function processTRR(
   testCrossCheckResultReport,
+  appointmentParticipantItems,
   reportName,
   originalBucket,
   s3
 ) {
-  const validTRR = await validateTRR(testCrossCheckResultReport);
+  const validTRR = await validateTRR(
+    testCrossCheckResultReport,
+    appointmentParticipantItems
+  );
   if (validTRR) {
     await putTRRInS3Bucket(
       testCrossCheckResultReport,
@@ -65,7 +91,10 @@ export async function processTRR(
 }
 
 // Validate TRR
-export async function validateTRR(testCrossCheckResultReport) {
+export async function validateTRR(
+  testCrossCheckResultReport,
+  appointmentParticipantItems
+) {
   const {
     Appointment: {
       ParticipantID: payloadParticipantId,
@@ -73,24 +102,6 @@ export async function validateTRR(testCrossCheckResultReport) {
       BloodCollectionDate: payloadBloodCollectionDate,
     },
   } = testCrossCheckResultReport;
-
-  //bring back most recent appointment, with timestamp
-
-  const appointmentParticipant = await lookUp(
-    dbClient,
-    payloadParticipantId,
-    "Appointments",
-    "Participant_Id",
-    "S",
-    false
-  ); //Check participant has any appointments
-  const apptArr = appointmentParticipant?.Items;
-  const sortedApptParticipants = apptArr?.sort(function (x, y) {
-    return new Date(x?.["Timestamp"]?.["S"]) < new Date(y?.["Timestamp"]?.["S"])
-      ? 1
-      : -1;
-  });
-  const appointmentParticipantItems = sortedApptParticipants[0];
 
   if (
     appointmentParticipantItems?.Participant_Id.S === payloadParticipantId &&
