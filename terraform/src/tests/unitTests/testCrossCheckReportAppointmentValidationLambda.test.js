@@ -13,24 +13,12 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 jest.mock("axios");
 import axios from "axios";
 
-const appointmentParticipantItems = {
+let appointmentParticipantItems = {
   blood_collection_date: {
     S: "22024-05-23T19:19:12.939Z",
   },
   grail_id: {
     S: "9000098399",
-  },
-  Participant_Id: {
-    S: "NHS-FD10-SH57",
-  },
-};
-
-const appointmentParticipantItemsError = {
-  blood_collection_date: {
-    S: "22024-05-23T19:19:12.939Z",
-  },
-  grail_id: {
-    S: "9000098398",
   },
   Participant_Id: {
     S: "NHS-FD10-SH57",
@@ -65,6 +53,94 @@ const testCrossCheckResultReport = {
   },
 };
 
+const errorIssues = {
+  issue: [
+    {
+      severity: "error",
+      diagnostics: "error1",
+    },
+    {
+      severity: "info",
+      diagnostics: "info1",
+    },
+    {
+      severity: "error",
+      diagnostics: "error2",
+    },
+    {
+      severity: "info",
+      diagnostics: "info2",
+    },
+  ],
+};
+
+const noErrorIssues = {
+  issue: [
+    {
+      severity: "info",
+      diagnostics: "info1",
+    },
+    {
+      severity: "info",
+      diagnostics: "info2",
+    },
+  ],
+};
+
+describe("processTRR", () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("should process valid TRR", async () => {
+    const logSpy = jest.spyOn(global.console, "log");
+    const mockS3Client = mockClient(new S3Client({}));
+    mockS3Client.resolves({
+      $metadata: { httpStatusCode: 200 },
+    });
+    axios.mockResolvedValueOnce({
+      status: 200,
+      data: noErrorIssues,
+    });
+
+    await processTRR(noErrorIssues, "report1", "bucket1", mockS3Client, true);
+
+    expect(logSpy).toHaveBeenCalledWith(
+      "Successfully pushed to undefined/report1"
+    );
+    expect(logSpy).toHaveBeenCalledWith(
+      "Successfully deleted report1 from bucket1"
+    );
+    expect(logSpy).toHaveBeenCalledTimes(2);
+  });
+
+  test("should process invalid TRR", async () => {
+    const errorSpy = jest.spyOn(global.console, "error");
+    const logSpy = jest.spyOn(global.console, "log");
+    const mockS3Client = mockClient(new S3Client({}));
+    mockS3Client.resolves({
+      $metadata: { httpStatusCode: 200 },
+    });
+    axios.mockRejectedValueOnce({
+      response: {
+        status: 400,
+        statusText: "Bad Request",
+        data: "Invalid request",
+      },
+    });
+
+    await processTRR(errorIssues, "report1", "bucket1", mockS3Client, false);
+
+    expect(logSpy).toHaveBeenCalledWith(
+      "Successfully pushed to undefined/report1"
+    );
+    expect(logSpy).toHaveBeenCalledWith(
+      "Successfully deleted report1 from bucket1"
+    );
+    expect(logSpy).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe("validateTRR", () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -96,9 +172,21 @@ describe("validateTRR", () => {
       data: false,
     });
 
+    appointmentParticipantItems = {
+      blood_collection_date: {
+        S: "22024-05-23T19:19:12.939Z",
+      },
+      grail_id: {
+        S: "9000098399",
+      },
+      Participant_Id: {
+        S: "NHS-FD10-SH58",
+      },
+    };
+
     const result = await validateTRR(
       testCrossCheckResultReport,
-      appointmentParticipantItemsError
+      appointmentParticipantItems
     );
 
     expect(result).toBe(false);

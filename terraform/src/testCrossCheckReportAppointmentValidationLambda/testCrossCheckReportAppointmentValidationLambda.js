@@ -46,13 +46,11 @@ export const handler = async (event, context) => {
         : -1;
     });
     const appointmentParticipantItems = sortedApptParticipants[0];
-    await processTRR(
+    const validTRR = await validateTRR(
       testCrossCheckResultReport,
-      appointmentParticipantItems,
-      key,
-      bucket,
-      s3
+      appointmentParticipantItems
     );
+    await processTRR(testCrossCheckResultReport, key, bucket, s3, validTRR);
   } catch (error) {
     console.error("Error: Issue occurred whilst processing JSON file from S3");
     console.error("Error:", error);
@@ -62,15 +60,11 @@ export const handler = async (event, context) => {
 //FUNCTIONS
 export async function processTRR(
   testCrossCheckResultReport,
-  appointmentParticipantItems,
   reportName,
   originalBucket,
-  s3
+  s3,
+  validTRR
 ) {
-  const validTRR = await validateTRR(
-    testCrossCheckResultReport,
-    appointmentParticipantItems
-  );
   if (validTRR) {
     await putTRRInS3Bucket(
       testCrossCheckResultReport,
