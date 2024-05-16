@@ -155,6 +155,8 @@ export const handler = async (event) => {
   );
   const BloodTestItems = BloodTestResponse?.Items[0]?.Identifier_Value?.S;
   console.log(BloodTestItems);
+  const BloodTestMetaUpdateItems =
+    BloodTestResponse?.Items[0]?.Meta_Last_Updated?.S;
 
   console.log("break point");
   // console.log(Grail_FHIR_Result_Id);
@@ -185,11 +187,31 @@ export const handler = async (event) => {
         episodeBatchId,
         fhirPayload
       );
+      //if success, also decode pdf and push to s3
     } else if (BloodTestItems) {
       console.log("check timestamp from db and identifier value");
+      if (
+        fhirPayload.Identifier_Value === BloodTestItems && //match identifier from ddb to payload
+        fhirPayload.Meta_Last_Updated > BloodTestMetaUpdateItems //check last updated from payload is more recent
+      ) {
+        console.log("update record");
+        await checkResult(
+          js,
+          episodeItemStatus,
+          dbClient,
+          episodeParticipantId,
+          episodeBatchId,
+          fhirPayload
+        );
+      } else {
+        console.log("reject record");
+        //TODO: push failed json file to s3
+      }
+      //existing record
     }
   } else {
     console.log("no matched participant, reject");
+    //TODO: push failed json file to s3
   }
 };
 
