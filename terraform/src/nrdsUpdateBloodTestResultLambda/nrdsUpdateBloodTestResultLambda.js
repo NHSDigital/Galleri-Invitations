@@ -62,6 +62,7 @@ export const handler = async (event) => {
     Cso_Result_Snowmed_Code_Secondary: [],
     Cso_Result_Snowmed_Display_Secondary: [],
     Participant_Id: "",
+    episodeStatus: "",
   };
 
   for (let objs in js.entry) {
@@ -89,12 +90,12 @@ export const handler = async (event) => {
     ) {
       for (let entry of js?.entry[objs]?.resource.component)
         for (let i = 0; i < entry.valueCodeableConcept.coding.length; i++) {
-          fhirPayload.Cso_Result_Snowmed_Code_Primary.push(
-            entry.valueCodeableConcept.coding[i].code
-          );
-          fhirPayload.Cso_Result_Snowmed_Display_Primary.push(
-            entry.valueCodeableConcept.coding[i].display
-          );
+          fhirPayload.Cso_Result_Snowmed_Code_Primary.push({
+            S: entry.valueCodeableConcept.coding[i].code,
+          });
+          fhirPayload.Cso_Result_Snowmed_Display_Primary.push({
+            S: entry.valueCodeableConcept.coding[i].display,
+          });
         }
     }
     // Cso_Result_Snowmed_Code_Secondary and Cso_Result_Snowmed_Display_Secondary (will be a list of multiple)
@@ -103,12 +104,12 @@ export const handler = async (event) => {
     ) {
       for (let entry of js?.entry[objs]?.resource.component)
         for (let i = 0; i < entry.valueCodeableConcept.coding.length; i++) {
-          fhirPayload.Cso_Result_Snowmed_Code_Secondary.push(
-            entry.valueCodeableConcept.coding[i].code
-          );
-          fhirPayload.Cso_Result_Snowmed_Display_Secondary.push(
-            entry.valueCodeableConcept.coding[i].display
-          );
+          fhirPayload.Cso_Result_Snowmed_Code_Secondary.push({
+            S: entry.valueCodeableConcept.coding[i].code,
+          });
+          fhirPayload.Cso_Result_Snowmed_Display_Secondary.push({
+            S: entry.valueCodeableConcept.coding[i].display,
+          });
         }
     }
     // Participant_Id
@@ -139,6 +140,8 @@ export const handler = async (event) => {
   );
   const episodeItemStatus = episodeResponse?.Items[0]?.Episode_Status?.S;
   console.log(episodeItemStatus);
+  const episodeBatchId = episodeResponse?.Items[0]?.Batch_Id?.S;
+  const episodeParticipantId = episodeResponse?.Items[0]?.Participant_Id?.S;
 
   const BloodTestResponse = await lookUp(
     dbClient,
@@ -167,52 +170,22 @@ export const handler = async (event) => {
 
   //matches participant
   if (episodeItemStatus) {
+    fhirPayload.episodeStatus = BloodTestResponse?.Items[0]?.Episode_Status?.S;
     if (!BloodTestItems) {
       console.log("insert new record");
+      await checkResult(
+        js,
+        episodeItemStatus,
+        dbClient,
+        episodeParticipantId,
+        episodeBatchId,
+        fhirPayload
+      );
     } else if (BloodTestItems) {
       console.log("check timestamp from db and identifier value");
     }
   } else {
     console.log("no matched participant, reject");
-  }
-
-  if (js?.id.match(/\b(CancerMarkersDetected)/g)) {
-    fhirPayload.episode_event = "Result - CSD";
-    console.log(fhirPayload.episode_event);
-    if (episodeItemStatus === "Open") {
-      //THEN update episode_event  to 'Result - CSD'
-    } else {
-      // THEN update episode_event  to 'Result - CSD' AND set Episode_Status to 'Open'
-    }
-  } else if (js?.id.match(/\b(CancerMarkersNotDetected)/g)) {
-    fhirPayload.episode_event = "Result - No CSD";
-    console.log(fhirPayload.episode_event);
-    if (episodeItemStatus === "Open") {
-      // THEN update episode_event to  ‘Result - No CSD’
-      // AND close the episode
-    }
-  } else if (js?.id.match(/\b(AmendedTest)/g)) {
-    fhirPayload.episode_event = "Result - Amended";
-    console.log(fhirPayload.episode_event);
-    if (episodeItemStatus === "Open") {
-      // THEN update episode_event  to 'Result - Amended'
-    }
-  } else if (js?.id.match(/\b(CorrectedTest)/g)) {
-    fhirPayload.episode_event = "Result - Correction";
-    console.log(fhirPayload.episode_event);
-    if (episodeItemStatus === "Open") {
-      // THEN update episode_event to 'Result - Correction'
-    } else {
-      // THEN open the episode AND update episode_event to 'Result - Correction'
-    }
-  } else if (js?.id.match(/\b(CancelledTest)/g)) {
-    fhirPayload.episode_event = "Result - Cancelled Test";
-    console.log(fhirPayload.episode_event);
-    if (episodeItemStatus === "Open") {
-      // THEN update episode_event to 'Result - Cancelled Test'
-    } else {
-      // THEN open the episode AND update episode_event to 'Result - Cancelled Test'
-    }
   }
 };
 
@@ -318,11 +291,7 @@ export const transactionalWrite = async (
   client,
   participantId,
   batchId,
-  Grail_Id,
-  fhirPayload,
-  eventType,
-  episodeEvent,
-  episodeStatus
+  fhirPayload
 ) => {
   const timeNow = new Date(Date.now()).toISOString();
   const params = {
@@ -336,9 +305,9 @@ export const transactionalWrite = async (
           UpdateExpression: `SET Episode_Event = :episodeEvent, Episode_Event_Updated = :timeNow, Episode_Status = :episodeStatus, Episode_Status_Updated = :timeNow,`,
           TableName: `${ENVIRONMENT}-Episode`,
           ExpressionAttributeValues: {
-            ":episodeEvent": { S: episodeEvent },
+            ":episodeEvent": { S: fhirPayload.episode_event },
             ":timeNow": { S: timeNow },
-            ":episodeStatus": { S: episodeStatus },
+            ":episodeStatus": { S: fhirPayload.episodeStatus },
           },
         },
       },
@@ -346,7 +315,7 @@ export const transactionalWrite = async (
         Update: {
           Key: {
             Participant_Id: { S: participantId },
-            Grail_Id: { S: Grail_Id },
+            Grail_Id: { S: fhirPayload.Grail_Id },
           },
           UpdateExpression: `SET event_type = :eventType, Time_stamp = :appointmentTimestamp`,
           TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
@@ -362,16 +331,16 @@ export const transactionalWrite = async (
             },
             ":Blood_Draw_Date": { S: fhirPayload.Blood_Draw_Date },
             ":Cso_Result_Snowmed_Code_Primary": {
-              S: fhirPayload.Cso_Result_Snowmed_Code_Primary,
+              M: fhirPayload.Cso_Result_Snowmed_Code_Primary,
             },
             ":Cso_Result_Snowmed_Display_Primary": {
-              S: fhirPayload.Cso_Result_Snowmed_Display_Primary,
+              M: fhirPayload.Cso_Result_Snowmed_Display_Primary,
             },
             ":Cso_Result_Snowmed_Code_Secondary": {
-              S: fhirPayload.Cso_Result_Snowmed_Code_Secondary,
+              M: fhirPayload.Cso_Result_Snowmed_Code_Secondary,
             },
             ":Cso_Result_Snowmed_Display_Secondary": {
-              S: fhirPayload.Cso_Result_Snowmed_Display_Secondary,
+              M: fhirPayload.Cso_Result_Snowmed_Display_Secondary,
             },
             ":Participant_Id": { S: fhirPayload.Participant_Id },
           },
@@ -381,6 +350,7 @@ export const transactionalWrite = async (
   };
 
   try {
+    console.log(params);
     const command = new TransactWriteItemsCommand(params);
     const response = await client.send(command);
     if (response.$metadata.httpStatusCode !== 200) {
@@ -407,3 +377,57 @@ export const logger = winston.createLogger({
   format: combine(timestamp({ format: "YYYY-MM-DD hh:mm:ss.SSS A" }), myFormat),
   transports: [new winston.transports.Console()],
 });
+
+export const checkResult = async (
+  payload,
+  episodeItemStatus,
+  dbClient,
+  episodeParticipantId,
+  episodeBatchId,
+  fhirPayload
+) => {
+  if (payload?.id.match(/\b(CancerMarkersDetected)/g)) {
+    fhirPayload.episode_event = "Result - CSD";
+    console.log(fhirPayload.episode_event);
+    if (episodeItemStatus === "Open") {
+      await transactionalWrite(
+        dbClient,
+        episodeParticipantId,
+        episodeBatchId,
+        fhirPayload
+      );
+      //THEN update episode_event  to 'Result - CSD'
+    } else {
+      // THEN update episode_event  to 'Result - CSD' AND set Episode_Status to 'Open'
+    }
+  } else if (payload?.id.match(/\b(CancerMarkersNotDetected)/g)) {
+    fhirPayload.episode_event = "Result - No CSD";
+    console.log(fhirPayload.episode_event);
+    if (episodeItemStatus === "Open") {
+      // THEN update episode_event to  ‘Result - No CSD’
+      // AND close the episode
+    }
+  } else if (payload?.id.match(/\b(AmendedTest)/g)) {
+    fhirPayload.episode_event = "Result - Amended";
+    console.log(fhirPayload.episode_event);
+    if (episodeItemStatus === "Open") {
+      // THEN update episode_event  to 'Result - Amended'
+    }
+  } else if (payload?.id.match(/\b(CorrectedTest)/g)) {
+    fhirPayload.episode_event = "Result - Correction";
+    console.log(fhirPayload.episode_event);
+    if (episodeItemStatus === "Open") {
+      // THEN update episode_event to 'Result - Correction'
+    } else {
+      // THEN open the episode AND update episode_event to 'Result - Correction'
+    }
+  } else if (payload?.id.match(/\b(CancelledTest)/g)) {
+    fhirPayload.episode_event = "Result - Cancelled Test";
+    console.log(fhirPayload.episode_event);
+    if (episodeItemStatus === "Open") {
+      // THEN update episode_event to 'Result - Cancelled Test'
+    } else {
+      // THEN open the episode AND update episode_event to 'Result - Cancelled Test'
+    }
+  }
+};
