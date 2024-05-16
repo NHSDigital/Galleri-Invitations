@@ -45,7 +45,7 @@ export async function processTRR(
   originalBucket,
   s3
 ) {
-  const validTRR = await validateTRR(testCrossCheckResultReport, reportName);
+  const validTRR = await validateTRR(testCrossCheckResultReport);
   if (validTRR) {
     await putTRRInS3Bucket(
       testCrossCheckResultReport,
@@ -65,17 +65,14 @@ export async function processTRR(
 }
 
 // Validate TRR
-export async function validateTRR(js, reportName) {
+export async function validateTRR(testCrossCheckResultReport) {
   const {
     Appointment: {
       ParticipantID: payloadParticipantId,
-      AppointmentID: payloadAppointmentId,
-      AppointmentDateTime: appointmentDateTime,
-      Timestamp: payloadTimestamp,
       GrailID: payloadGrailId,
       BloodCollectionDate: payloadBloodCollectionDate,
     },
-  } = js;
+  } = testCrossCheckResultReport;
 
   //bring back most recent appointment, with timestamp
 
