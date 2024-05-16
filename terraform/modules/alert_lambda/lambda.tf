@@ -16,7 +16,7 @@ resource "aws_cloudwatch_log_metric_filter" "error_filter" {
   pattern        = "Error"
   metric_transformation {
     namespace     = "LogErrors"
-    name          = "ErrorCount-${var.lambda_function_name}"
+    name          = "ErrorCount"
     value         = "1"
     unit          = "Count"
     default_value = "0"
@@ -28,7 +28,7 @@ resource "aws_cloudwatch_metric_alarm" "error_alarm" {
   alarm_description         = "${var.environment}-${var.lambda_function_name} has encountered an error"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = 1
-  metric_name               = "ErrorCount-${var.lambda_function_name}"
+  metric_name               = "ErrorCount"
   namespace                 = "AWS/Lambda"
   period                    = 300
   statistic                 = "Sum"
