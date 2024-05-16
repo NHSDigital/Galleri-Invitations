@@ -88,7 +88,7 @@ export const handler = async (event) => {
       js?.entry[objs]?.resource?.code?.coding[0]?.code === "1873921000000106" &&
       js?.entry[objs]?.resource?.component
     ) {
-      for (let entry of js?.entry[objs]?.resource?.component)
+      for (let entry of js.entry[objs].resource.component)
         for (let i = 0; i < entry?.valueCodeableConcept?.coding?.length; i++) {
           fhirPayload.Cso_Result_Snowmed_Code_Primary.push(
             entry?.valueCodeableConcept?.coding[i]?.code
@@ -101,9 +101,9 @@ export const handler = async (event) => {
     // Cso_Result_Snowmed_Code_Secondary and Cso_Result_Snowmed_Display_Secondary (will be a list of multiple)
     if (
       js?.entry[objs]?.resource?.code?.coding[0].code === "1873931000000108" &&
-      js?.entry[objs]?.resource.component
+      js?.entry[objs]?.resource?.component
     ) {
-      for (let entry of js?.entry[objs]?.resource.component)
+      for (let entry of js.entry[objs].resource.component)
         for (let i = 0; i < entry.valueCodeableConcept.coding.length; i++) {
           fhirPayload.Cso_Result_Snowmed_Code_Secondary.push(
             entry?.valueCodeableConcept?.coding[i]?.code
