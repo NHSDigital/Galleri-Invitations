@@ -1,13 +1,112 @@
 import { mockClient } from "aws-sdk-client-mock";
 import {
+  processTRR,
+  validateTRR,
   getJSONFromS3,
   retrieveAndParseJSON,
   putTRRInS3Bucket,
   deleteTRRinS3Bucket,
+  lookUp,
 } from "../../testCrossCheckReportAppointmentValidationLambda/testCrossCheckReportAppointmentValidationLambda";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 jest.mock("axios");
 import axios from "axios";
+
+const appointmentParticipantItems = {
+  blood_collection_date: {
+    S: "22024-05-23T19:19:12.939Z",
+  },
+  grail_id: {
+    S: "9000098399",
+  },
+  Participant_Id: {
+    S: "NHS-FD10-SH57",
+  },
+};
+
+const appointmentParticipantItemsError = {
+  blood_collection_date: {
+    S: "22024-05-23T19:19:12.939Z",
+  },
+  grail_id: {
+    S: "9000098398",
+  },
+  Participant_Id: {
+    S: "NHS-FD10-SH57",
+  },
+};
+
+const testCrossCheckResultReport = {
+  Appointment: {
+    ParticipantID: "NHS-FD10-SH57",
+    AppointmentID: "190f5740-ed7e-4071-a581-60a2d488800b",
+    ClinicID: "QO49R767",
+    AppointmentDateTime: "2024-06-02T15:00:00Z",
+    Channel: "ONLINE",
+    EventType: "BOOKED",
+    GrailID: "9000098399",
+    AppointmentAccessibility: {
+      accessibleToilet: false,
+      disabledParking: false,
+      inductionLoop: false,
+      signLanguage: false,
+      stepFreeAccess: false,
+      wheelchairAccess: false,
+    },
+    CommunicationsAccessibility: {
+      signLanguage: false,
+      braille: false,
+      interpreter: false,
+    },
+    NotificationPreferences: { canEmail: false, canSMS: true },
+    Timestamp: "2024-05-07T10:00:00.999999999Z",
+    BloodCollectionDate: "22024-05-23T19:19:12.939Z",
+  },
+};
+
+describe("validateTRR", () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("Should expect success response", async () => {
+    const logSpy = jest.spyOn(global.console, "log");
+    axios.mockResolvedValueOnce({
+      status: 200,
+      data: true,
+    });
+
+    const result = await validateTRR(
+      testCrossCheckResultReport,
+      appointmentParticipantItems
+    );
+
+    expect(result).toBeTruthy();
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledWith(
+      "Move TRR to the 'Step 3 validated successfully bucket"
+    );
+  });
+
+  test("Should expect unsuccessful validation", async () => {
+    const logSpy = jest.spyOn(global.console, "log");
+    axios.mockResolvedValueOnce({
+      status: 200,
+      data: false,
+    });
+
+    const result = await validateTRR(
+      testCrossCheckResultReport,
+      appointmentParticipantItemsError
+    );
+
+    expect(result).toBe(false);
+    expect(logSpy).toHaveBeenCalledWith(
+      "Move TRR to the 'Step 3 validated unsuccessful bucket"
+    );
+  });
+});
 
 describe("deleteTRRinS3Bucket", () => {
   afterEach(() => {
@@ -192,5 +291,57 @@ describe("getJSONFromS3", () => {
       error
     );
     expect(s3SendMock).toHaveBeenCalledWith(expect.any(GetObjectCommand));
+  });
+});
+
+describe("lookUp", () => {
+  const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
+
+  test("should return successful response if item does not exist from query", async () => {
+    mockDynamoDbClient.resolves({
+      $metadata: {
+        httpStatusCode: 200,
+      },
+      Items: ["I exist"],
+    });
+
+    const id = "ID-A";
+    const table = "table-A";
+    const attribute = "attribute-A";
+    const attributeType = "Type-A";
+
+    const result = await lookUp(
+      mockDynamoDbClient,
+      id,
+      table,
+      attribute,
+      attributeType
+    );
+
+    expect(result.Items).toEqual(["I exist"]);
+  });
+
+  test("should return unsuccessful response if item does exist from query", async () => {
+    mockDynamoDbClient.resolves({
+      $metadata: {
+        httpStatusCode: 200,
+      },
+      Items: [],
+    });
+
+    const id = "ID-A";
+    const table = "table-A";
+    const attribute = "attribute-A";
+    const attributeType = "Type-A";
+
+    const result = await lookUp(
+      mockDynamoDbClient,
+      id,
+      table,
+      attribute,
+      attributeType
+    );
+
+    expect(result.Items).toEqual([]);
   });
 });

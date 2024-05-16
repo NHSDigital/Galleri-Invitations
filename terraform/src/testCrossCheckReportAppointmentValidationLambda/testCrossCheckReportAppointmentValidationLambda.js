@@ -46,7 +46,6 @@ export const handler = async (event, context) => {
         : -1;
     });
     const appointmentParticipantItems = sortedApptParticipants[0];
-
     await processTRR(
       testCrossCheckResultReport,
       appointmentParticipantItems,
@@ -109,10 +108,10 @@ export async function validateTRR(
     appointmentParticipantItems?.blood_collection_date.S ===
       payloadBloodCollectionDate
   ) {
-    console.log(`move TRR to the 'Step 3 validated successfully bucket'`);
+    console.log(`Move TRR to the 'Step 3 validated successfully bucket`);
     return true;
   } else {
-    console.log(`move TRR to the 'Step 3 validated unsuccessful bucket`);
+    console.log(`Move TRR to the 'Step 3 validated unsuccessful bucket`);
     return false;
   }
 }
