@@ -79,6 +79,12 @@ variable "tags" {
 
 variable "environment" {}
 
+variable "envs_to_backup" {
+  description = "A list of environments to select for backing up dynamodb tables"
+  type        = list(string)
+  default     = [ "prod" ]
+}
+
 variable "stream_enabled" {
   default = false
 }
