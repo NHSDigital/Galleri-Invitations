@@ -90,12 +90,12 @@ export const handler = async (event) => {
     ) {
       for (let entry of js?.entry[objs]?.resource.component)
         for (let i = 0; i < entry.valueCodeableConcept.coding.length; i++) {
-          fhirPayload.Cso_Result_Snowmed_Code_Primary.push({
-            S: entry.valueCodeableConcept.coding[i].code,
-          });
-          fhirPayload.Cso_Result_Snowmed_Display_Primary.push({
-            S: entry.valueCodeableConcept.coding[i].display,
-          });
+          fhirPayload.Cso_Result_Snowmed_Code_Primary.push(
+            entry.valueCodeableConcept.coding[i].code
+          );
+          fhirPayload.Cso_Result_Snowmed_Display_Primary.push(
+            entry.valueCodeableConcept.coding[i].display
+          );
         }
     }
     // Cso_Result_Snowmed_Code_Secondary and Cso_Result_Snowmed_Display_Secondary (will be a list of multiple)
@@ -104,12 +104,12 @@ export const handler = async (event) => {
     ) {
       for (let entry of js?.entry[objs]?.resource.component)
         for (let i = 0; i < entry.valueCodeableConcept.coding.length; i++) {
-          fhirPayload.Cso_Result_Snowmed_Code_Secondary.push({
-            S: entry.valueCodeableConcept.coding[i].code,
-          });
-          fhirPayload.Cso_Result_Snowmed_Display_Secondary.push({
-            S: entry.valueCodeableConcept.coding[i].display,
-          });
+          fhirPayload.Cso_Result_Snowmed_Code_Secondary.push(
+            entry.valueCodeableConcept.coding[i].code
+          );
+          fhirPayload.Cso_Result_Snowmed_Display_Secondary.push(
+            entry.valueCodeableConcept.coding[i].display
+          );
         }
     }
     // Participant_Id
@@ -138,6 +138,8 @@ export const handler = async (event) => {
     "S",
     true
   );
+  console.log(JSON.stringify(episodeResponse?.Items[0]));
+  console.log("episodeResponse");
   const episodeItemStatus = episodeResponse?.Items[0]?.Episode_Status?.S;
   console.log(episodeItemStatus);
   const episodeBatchId = episodeResponse?.Items[0]?.Batch_Id?.S;
@@ -170,7 +172,9 @@ export const handler = async (event) => {
 
   //matches participant
   if (episodeItemStatus) {
-    fhirPayload.episodeStatus = BloodTestResponse?.Items[0]?.Episode_Status?.S;
+    fhirPayload.episodeStatus = episodeItemStatus;
+    console.log("here");
+    console.log(fhirPayload.episodeStatus);
     if (!BloodTestItems) {
       console.log("insert new record");
       await checkResult(
@@ -293,7 +297,10 @@ export const transactionalWrite = async (
   batchId,
   fhirPayload
 ) => {
+  console.log(fhirPayload.episode_event);
+  console.log(fhirPayload.episodeStatus);
   const timeNow = new Date(Date.now()).toISOString();
+  console.log(timeNow);
   const params = {
     TransactItems: [
       {
@@ -302,7 +309,7 @@ export const transactionalWrite = async (
             Batch_Id: { S: batchId },
             Participant_Id: { S: participantId },
           },
-          UpdateExpression: `SET Episode_Event = :episodeEvent, Episode_Event_Updated = :timeNow, Episode_Status = :episodeStatus, Episode_Status_Updated = :timeNow,`,
+          UpdateExpression: `SET Episode_Event = :episodeEvent, Episode_Event_Updated = :timeNow, Episode_Status = :episodeStatus, Episode_Status_Updated = :timeNow`,
           TableName: `${ENVIRONMENT}-Episode`,
           ExpressionAttributeValues: {
             ":episodeEvent": { S: fhirPayload.episode_event },
@@ -317,32 +324,31 @@ export const transactionalWrite = async (
             Participant_Id: { S: participantId },
             Grail_Id: { S: fhirPayload.Grail_Id },
           },
-          UpdateExpression: `SET event_type = :eventType, Time_stamp = :appointmentTimestamp`,
+          UpdateExpression: `SET Grail_FHIR_Result_Id = :GrailFHIRResult, Meta_Last_Updated = :MetaLU, Identifier_Value = :IV, CSD_Result_SNOWMED_Code = :CSDSNOWMEDCode, CSD_Result_SNOWMED_Display = :CSDSNOWMEDDisplay, Blood_Draw_Date = :Blood_Draw_Date, Cso_Result_Snowmed_Code_Primary= :SCode_Primary, Cso_Result_Snowmed_Display_Primary = :SDisplay_Primary, Cso_Result_Snowmed_Code_Secondary = :SCode_Secondary, Cso_Result_Snowmed_Display_Secondary = :SDisplay_Secondary`,
           TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
           ExpressionAttributeValues: {
-            ":Grail_FHIR_Result_Id": { S: fhirPayload.Grail_FHIR_Result_Id },
-            ":Meta_Last_Updated": { S: fhirPayload.Meta_Last_Updated },
-            ":Identifier_Value": { S: fhirPayload.Identifier_Value },
-            ":CSD_Result_SNOWMED_Code": {
+            ":GrailFHIRResult": { S: fhirPayload.Grail_FHIR_Result_Id },
+            ":MetaLU": { S: fhirPayload.Meta_Last_Updated },
+            ":IV": { S: fhirPayload.Identifier_Value },
+            ":CSDSNOWMEDCode": {
               S: fhirPayload.CSD_Result_SNOWMED_Code,
             },
-            ":CSD_Result_SNOWMED_Display": {
+            ":CSDSNOWMEDDisplay": {
               S: fhirPayload.CSD_Result_SNOWMED_Display,
             },
             ":Blood_Draw_Date": { S: fhirPayload.Blood_Draw_Date },
-            ":Cso_Result_Snowmed_Code_Primary": {
-              M: fhirPayload.Cso_Result_Snowmed_Code_Primary,
+            ":SCode_Primary": {
+              SS: fhirPayload.Cso_Result_Snowmed_Code_Primary,
             },
-            ":Cso_Result_Snowmed_Display_Primary": {
-              M: fhirPayload.Cso_Result_Snowmed_Display_Primary,
+            ":SDisplay_Primary": {
+              SS: fhirPayload.Cso_Result_Snowmed_Display_Primary,
             },
-            ":Cso_Result_Snowmed_Code_Secondary": {
-              M: fhirPayload.Cso_Result_Snowmed_Code_Secondary,
+            ":SCode_Secondary": {
+              SS: fhirPayload.Cso_Result_Snowmed_Code_Secondary,
             },
-            ":Cso_Result_Snowmed_Display_Secondary": {
-              M: fhirPayload.Cso_Result_Snowmed_Display_Secondary,
+            ":SDisplay_Secondary": {
+              SS: fhirPayload.Cso_Result_Snowmed_Display_Secondary,
             },
-            ":Participant_Id": { S: fhirPayload.Participant_Id },
           },
         },
       },
@@ -350,7 +356,7 @@ export const transactionalWrite = async (
   };
 
   try {
-    console.log(params);
+    console.log(JSON.stringify(params));
     const command = new TransactWriteItemsCommand(params);
     const response = await client.send(command);
     if (response.$metadata.httpStatusCode !== 200) {
