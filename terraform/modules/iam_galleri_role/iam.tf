@@ -645,7 +645,8 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-EpisodeHistory",
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Episode",
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-EpisodeHistory/*/*",
-            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-NotifySendMessageStatus"
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-NotifySendMessageStatus",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GalleriBloodTestResult",
           ]
         },
         {
@@ -683,7 +684,9 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step3-error/*", ### step 3 fhir validation error bucket
             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step4-error/*", ### step 4 fhir validation error bucket
             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step1-success/*",
-            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step1-error/*"
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step1-error/*",
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step3-success/*",
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step4-success/*"
           ]
         },
         {

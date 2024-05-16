@@ -1,5 +1,9 @@
 //IMPORTS
-import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBClient,
+  QueryCommand,
+  TransactWriteItemsCommand,
+} from "@aws-sdk/client-dynamodb";
 import {
   S3Client,
   GetObjectCommand,
@@ -29,48 +33,54 @@ export const handler = async (event) => {
   const csvString = await readCsvFromS3(bucket, key, s3);
   const js = JSON.parse(csvString); //convert string retrieved from S3 to object
 
-  console.log(js);
+  // console.log(js);
 
-  //TODO: Need to save to GalleriBloodTestResult
-  //patient.identifier.value
-  //ServiceRequest.identifier.value
-  //Observation.component.valueCodeableConcept.coding.code
-  //Observation.component.valueCodeableConcept.coding.display
-  //specimen.collection.collectionDateTime
-  //id
-  //meta.lastUpdated
-  //identifier.value
-  let episode_event = "";
-  let Grail_FHIR_Result_Id = js?.id;
-  let Meta_Last_Updated = js?.meta?.lastUpdated;
-  let Identifier_Value = js?.identifier.value;
-  let Grail_Id = "";
-  let CSD_Result_SNOWMED_Code = "";
-  let CSD_Result_SNOWMED_Display = "";
-  let Blood_Draw_Date = "";
-  let Cso_Result_Snowmed_Code_Primary = [];
-  let Cso_Result_Snowmed_Display_Primary = [];
-  let Cso_Result_Snowmed_Code_Secondary = [];
-  let Cso_Result_Snowmed_Display_Secondary = [];
-  let Participant_Id = "";
+  // let episode_event = "";
+  // let Grail_FHIR_Result_Id = js?.id;
+  // let Meta_Last_Updated = js?.meta?.lastUpdated;
+  // let Identifier_Value = js?.identifier.value;
+  // let Grail_Id = "";
+  // let CSD_Result_SNOWMED_Code = "";
+  // let CSD_Result_SNOWMED_Display = "";
+  // let Blood_Draw_Date = "";
+  // let Cso_Result_Snowmed_Code_Primary = [];
+  // let Cso_Result_Snowmed_Display_Primary = [];
+  // let Cso_Result_Snowmed_Code_Secondary = [];
+  // let Cso_Result_Snowmed_Display_Secondary = [];
+  // let Participant_Id = "";
+  let fhirPayload = {
+    episode_event: "",
+    Grail_FHIR_Result_Id: js?.id,
+    Meta_Last_Updated: js?.meta?.lastUpdated,
+    Identifier_Value: js?.identifier.value,
+    Grail_Id: "",
+    CSD_Result_SNOWMED_Code: "",
+    CSD_Result_SNOWMED_Display: "",
+    Blood_Draw_Date: "",
+    Cso_Result_Snowmed_Code_Primary: [],
+    Cso_Result_Snowmed_Display_Primary: [],
+    Cso_Result_Snowmed_Code_Secondary: [],
+    Cso_Result_Snowmed_Display_Secondary: [],
+    Participant_Id: "",
+  };
 
   for (let objs in js.entry) {
     //Grail_Id
     if (js.entry[objs].resource.resourceType === "ServiceRequest") {
-      Grail_Id = js?.entry[objs]?.resource?.identifier[0]?.value;
+      fhirPayload.Grail_Id = js?.entry[objs]?.resource?.identifier[0]?.value;
     }
     // CSD_Result_SNOWMED_Code and CSD_Result_SNOWMED_Display
     if (
       js?.entry[objs]?.resource?.code?.coding[0].code === "1854971000000106"
     ) {
-      CSD_Result_SNOWMED_Code =
+      fhirPayload.CSD_Result_SNOWMED_Code =
         js?.entry[objs]?.resource?.valueCodeableConcept?.coding[0]?.code;
-      CSD_Result_SNOWMED_Display =
+      fhirPayload.CSD_Result_SNOWMED_Display =
         js?.entry[objs]?.resource?.valueCodeableConcept?.coding[0]?.display;
     }
     // Blood_Draw_Date
     if (js.entry[objs].resource.resourceType === "Specimen") {
-      Blood_Draw_Date =
+      fhirPayload.Blood_Draw_Date =
         js?.entry[objs]?.resource?.collection?.collectedDateTime;
     }
     // Cso_Result_Snowmed_Code_Primary and Cso_Result_Snowmed_Display_Primary (will be a list of multiple)
@@ -79,10 +89,10 @@ export const handler = async (event) => {
     ) {
       for (let entry of js?.entry[objs]?.resource.component)
         for (let i = 0; i < entry.valueCodeableConcept.coding.length; i++) {
-          Cso_Result_Snowmed_Code_Primary.push(
+          fhirPayload.Cso_Result_Snowmed_Code_Primary.push(
             entry.valueCodeableConcept.coding[i].code
           );
-          Cso_Result_Snowmed_Display_Primary.push(
+          fhirPayload.Cso_Result_Snowmed_Display_Primary.push(
             entry.valueCodeableConcept.coding[i].display
           );
         }
@@ -93,19 +103,22 @@ export const handler = async (event) => {
     ) {
       for (let entry of js?.entry[objs]?.resource.component)
         for (let i = 0; i < entry.valueCodeableConcept.coding.length; i++) {
-          Cso_Result_Snowmed_Code_Secondary.push(
+          fhirPayload.Cso_Result_Snowmed_Code_Secondary.push(
             entry.valueCodeableConcept.coding[i].code
           );
-          Cso_Result_Snowmed_Display_Secondary.push(
+          fhirPayload.Cso_Result_Snowmed_Display_Secondary.push(
             entry.valueCodeableConcept.coding[i].display
           );
         }
     }
     // Participant_Id
     if (js.entry[objs].resource.resourceType === "Patient") {
-      Participant_Id = js?.entry[objs]?.resource?.identifier[0]?.value;
+      fhirPayload.Participant_Id =
+        js?.entry[objs]?.resource?.identifier[0]?.value;
     }
   }
+
+  console.log(JSON.stringify(fhirPayload));
 
   //TODO: check out of order message
   //use Meta_Last_Updated and Identifier_Value,
@@ -118,7 +131,7 @@ export const handler = async (event) => {
   //if < ddb, reject record - step4 output error bucket
   const episodeResponse = await lookUp(
     dbClient,
-    Participant_Id,
+    fhirPayload.Participant_Id,
     "Episode",
     "Participant_Id",
     "S",
@@ -127,52 +140,74 @@ export const handler = async (event) => {
   const episodeItemStatus = episodeResponse?.Items[0]?.Episode_Status?.S;
   console.log(episodeItemStatus);
 
+  const BloodTestResponse = await lookUp(
+    dbClient,
+    fhirPayload.Participant_Id,
+    "GalleriBloodTestResult",
+    "Participant_Id",
+    "S",
+    false
+  );
+  const BloodTestItems = BloodTestResponse?.Items[0]?.Identifier_Value?.S;
+  console.log(BloodTestItems);
+
   console.log("break point");
-  console.log(Grail_FHIR_Result_Id);
-  console.log(Meta_Last_Updated);
-  console.log(Identifier_Value);
-  console.log(Grail_Id);
-  console.log(CSD_Result_SNOWMED_Code);
-  console.log(CSD_Result_SNOWMED_Display);
-  console.log(Blood_Draw_Date);
-  console.log(Cso_Result_Snowmed_Code_Primary);
-  console.log(Cso_Result_Snowmed_Display_Primary);
-  console.log(Cso_Result_Snowmed_Code_Secondary);
-  console.log(Cso_Result_Snowmed_Display_Secondary);
-  console.log(Participant_Id);
+  // console.log(Grail_FHIR_Result_Id);
+  // console.log(Meta_Last_Updated);
+  // console.log(Identifier_Value);
+  // console.log(Grail_Id);
+  // console.log(CSD_Result_SNOWMED_Code);
+  // console.log(CSD_Result_SNOWMED_Display);
+  // console.log(Blood_Draw_Date);
+  // console.log(Cso_Result_Snowmed_Code_Primary);
+  // console.log(Cso_Result_Snowmed_Display_Primary);
+  // console.log(Cso_Result_Snowmed_Code_Secondary);
+  // console.log(Cso_Result_Snowmed_Display_Secondary);
+  // console.log(Participant_Id);
+
+  //matches participant
+  if (episodeItemStatus) {
+    if (!BloodTestItems) {
+      console.log("insert new record");
+    } else if (BloodTestItems) {
+      console.log("check timestamp from db and identifier value");
+    }
+  } else {
+    console.log("no matched participant, reject");
+  }
 
   if (js?.id.match(/\b(CancerMarkersDetected)/g)) {
-    episode_event = "Result - CSD";
-    console.log(episode_event);
+    fhirPayload.episode_event = "Result - CSD";
+    console.log(fhirPayload.episode_event);
     if (episodeItemStatus === "Open") {
       //THEN update episode_event  to 'Result - CSD'
     } else {
       // THEN update episode_event  to 'Result - CSD' AND set Episode_Status to 'Open'
     }
   } else if (js?.id.match(/\b(CancerMarkersNotDetected)/g)) {
-    episode_event = "Result - No CSD";
-    console.log(episode_event);
+    fhirPayload.episode_event = "Result - No CSD";
+    console.log(fhirPayload.episode_event);
     if (episodeItemStatus === "Open") {
       // THEN update episode_event to  ‘Result - No CSD’
       // AND close the episode
     }
   } else if (js?.id.match(/\b(AmendedTest)/g)) {
-    episode_event = "Result - Amended";
-    console.log(episode_event);
+    fhirPayload.episode_event = "Result - Amended";
+    console.log(fhirPayload.episode_event);
     if (episodeItemStatus === "Open") {
       // THEN update episode_event  to 'Result - Amended'
     }
   } else if (js?.id.match(/\b(CorrectedTest)/g)) {
-    episode_event = "Result - Correction";
-    console.log(episode_event);
+    fhirPayload.episode_event = "Result - Correction";
+    console.log(fhirPayload.episode_event);
     if (episodeItemStatus === "Open") {
       // THEN update episode_event to 'Result - Correction'
     } else {
       // THEN open the episode AND update episode_event to 'Result - Correction'
     }
   } else if (js?.id.match(/\b(CancelledTest)/g)) {
-    episode_event = "Result - Cancelled Test";
-    console.log(episode_event);
+    fhirPayload.episode_event = "Result - Cancelled Test";
+    console.log(fhirPayload.episode_event);
     if (episodeItemStatus === "Open") {
       // THEN update episode_event to 'Result - Cancelled Test'
     } else {
@@ -274,6 +309,92 @@ export const lookUp = async (dbClient, ...params) => {
   }
 
   return response;
+};
+
+//need participant_Id and Grail_Id for composite key GalleriBloodTestResult
+//need batch_Id and Participant_Id for composite key Episode
+//Need to also update Episode_Status_Updated
+export const transactionalWrite = async (
+  client,
+  participantId,
+  batchId,
+  Grail_Id,
+  fhirPayload,
+  eventType,
+  episodeEvent,
+  episodeStatus
+) => {
+  const timeNow = new Date(Date.now()).toISOString();
+  const params = {
+    TransactItems: [
+      {
+        Update: {
+          Key: {
+            Batch_Id: { S: batchId },
+            Participant_Id: { S: participantId },
+          },
+          UpdateExpression: `SET Episode_Event = :episodeEvent, Episode_Event_Updated = :timeNow, Episode_Status = :episodeStatus, Episode_Status_Updated = :timeNow,`,
+          TableName: `${ENVIRONMENT}-Episode`,
+          ExpressionAttributeValues: {
+            ":episodeEvent": { S: episodeEvent },
+            ":timeNow": { S: timeNow },
+            ":episodeStatus": { S: episodeStatus },
+          },
+        },
+      },
+      {
+        Update: {
+          Key: {
+            Participant_Id: { S: participantId },
+            Grail_Id: { S: Grail_Id },
+          },
+          UpdateExpression: `SET event_type = :eventType, Time_stamp = :appointmentTimestamp`,
+          TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
+          ExpressionAttributeValues: {
+            ":Grail_FHIR_Result_Id": { S: fhirPayload.Grail_FHIR_Result_Id },
+            ":Meta_Last_Updated": { S: fhirPayload.Meta_Last_Updated },
+            ":Identifier_Value": { S: fhirPayload.Identifier_Value },
+            ":CSD_Result_SNOWMED_Code": {
+              S: fhirPayload.CSD_Result_SNOWMED_Code,
+            },
+            ":CSD_Result_SNOWMED_Display": {
+              S: fhirPayload.CSD_Result_SNOWMED_Display,
+            },
+            ":Blood_Draw_Date": { S: fhirPayload.Blood_Draw_Date },
+            ":Cso_Result_Snowmed_Code_Primary": {
+              S: fhirPayload.Cso_Result_Snowmed_Code_Primary,
+            },
+            ":Cso_Result_Snowmed_Display_Primary": {
+              S: fhirPayload.Cso_Result_Snowmed_Display_Primary,
+            },
+            ":Cso_Result_Snowmed_Code_Secondary": {
+              S: fhirPayload.Cso_Result_Snowmed_Code_Secondary,
+            },
+            ":Cso_Result_Snowmed_Display_Secondary": {
+              S: fhirPayload.Cso_Result_Snowmed_Display_Secondary,
+            },
+            ":Participant_Id": { S: fhirPayload.Participant_Id },
+          },
+        },
+      },
+    ],
+  };
+
+  try {
+    const command = new TransactWriteItemsCommand(params);
+    const response = await client.send(command);
+    if (response.$metadata.httpStatusCode !== 200) {
+      console.error(
+        `Error occurred while trying to update db with item: ${participantId}`
+      );
+      return false;
+    } else {
+      console.log(`Successfully updated db with item: ${participantId}`);
+      return true;
+    }
+  } catch (error) {
+    console.error("Transactional write failed:", error);
+  }
 };
 
 /**
