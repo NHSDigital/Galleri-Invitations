@@ -184,8 +184,7 @@ export const handler = async (event) => {
         dbClient,
         episodeParticipantId,
         episodeBatchId,
-        fhirPayload,
-        episodeItemStatus
+        fhirPayload
       );
       //if success, also decode pdf and push to s3
     } else if (BloodTestItems) {
@@ -201,8 +200,7 @@ export const handler = async (event) => {
           dbClient,
           episodeParticipantId,
           episodeBatchId,
-          fhirPayload,
-          episodeItemStatus
+          fhirPayload
         );
       } else {
         console.log("reject record");
