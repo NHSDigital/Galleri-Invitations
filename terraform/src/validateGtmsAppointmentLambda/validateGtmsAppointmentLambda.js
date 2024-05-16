@@ -13,6 +13,7 @@ export const handler = async (event) => {
   const record = event.Records[0];
   const bucket = record.s3.bucket.name;
   const key = decodeURIComponent(record.s3.object.key.replace(/\+/g, " "));
+  const dateTime = new Date(Date.now()).toISOString();
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
   try {
@@ -32,20 +33,20 @@ export const handler = async (event) => {
     if (validateResult.valid) {
       await pushS3(
         `${ENVIRONMENT}-inbound-gtms-appointment-validated`,
-        `validRecords/valid_records_add-${Date.now()}.csv`,
+        `validRecords/valid_records_add-${dateTime}.json`,
         jsonString,
         s3
       );
     } else {
       console.warn(
         "PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Data BELOW:\n" +
-        validateResult.errors,
+          validateResult.errors,
         null,
         2
       );
       await pushS3(
         `${ENVIRONMENT}-inbound-gtms-appointment-validated`,
-        `invalidRecords/invalid_records_add-${Date.now()}.csv`,
+        `invalidRecords/invalid_records_add-${dateTime}.json`,
         jsonString,
         s3
       );

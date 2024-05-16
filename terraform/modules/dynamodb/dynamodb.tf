@@ -38,5 +38,94 @@ resource "aws_dynamodb_table" "dynamodb_table" {
     enabled = var.server_side_encryption
   }
 
-  tags = var.tags
+  tags = merge(
+    var.tags,
+    {
+      ApplicationRole = "${var.application_role}"
+    }
+  )
+}
+
+resource "aws_backup_vault" "dynamodb_vault" {
+  count = contains(var.envs_to_backup, var.environment) ? 1 : 0
+  name  = "${var.environment}-${var.table_name}"
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} DynamoDB Vault"
+  }
+}
+
+resource "aws_backup_plan" "dynamodb_backup_plan" {
+  count = contains(var.envs_to_backup, var.environment) ? 1 : 0
+  name  = "${var.environment}-${var.table_name}"
+
+  rule {
+    rule_name         = "daily-backup"
+    target_vault_name = aws_backup_vault.dynamodb_vault[0].name
+    schedule          = var.schedule
+    start_window      = 120
+    completion_window = 360
+
+    lifecycle {
+      delete_after = 35
+    }
+  }
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} DynamoDB Backup Plan"
+  }
+}
+
+resource "aws_backup_selection" "dynamodb_backup_selection" {
+  count        = contains(var.envs_to_backup, var.environment) ? 1 : 0
+  name         = "${var.environment}-${var.table_name}"
+  iam_role_arn = aws_iam_role.backup_role.arn
+  plan_id      = aws_backup_plan.dynamodb_backup_plan[0].id
+
+  resources = [aws_dynamodb_table.dynamodb_table.arn]
+}
+
+resource "aws_iam_role" "backup_role" {
+  name = "${var.environment}-${var.table_name}-AWSBackupRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Principal = {
+          Service = "backup.amazonaws.com"
+        },
+        Effect = "Allow",
+      },
+    ]
+  })
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} DynamoDB IAM Backup Role"
+  }
+}
+
+resource "aws_iam_role_policy" "backup_policy" {
+  role = aws_iam_role.backup_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "dynamodb:DescribeBackup",
+          "dynamodb:CreateBackup",
+          "dynamodb:DeleteBackup",
+          "dynamodb:ListBackups",
+          "dynamodb:RestoreTableToPointInTime",
+          "dynamodb:ListTables",
+          "dynamodb:ListTagsOfResource",
+          "dynamodb:StartAwsBackupJob"
+        ],
+        Effect   = "Allow",
+        Resource = "*"
+      },
+    ]
+  })
 }

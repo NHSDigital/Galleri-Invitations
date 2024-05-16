@@ -2,6 +2,11 @@ variable "environment" {
   description = "Which environment to deploy into: dev, test, uat, performance or prod"
 }
 
+variable "application_role" {
+  description = "Used for tagging resource according to Cloud guidelines"
+  default     = "Web"
+}
+
 variable "name" {
   description = "Name of the elastic beanstalk deployment"
 }
@@ -12,7 +17,7 @@ variable "description" {
 
 variable "solution_stack_name" {
   description = "The stak that elastic beanstalk will be running on"
-  default     = "64bit Amazon Linux 2 v5.8.7 running Node.js 18"
+  default     = "64bit Amazon Linux 2023 v6.1.3 running Node.js 20"
 }
 
 variable "namespace" {
@@ -27,6 +32,11 @@ variable "settings_name" {
 variable "instance_type" {
   description = "can be either SingleInstance or LoadBalanced"
   default     = "SingleInstance"
+}
+
+variable "instance_size" {
+  type    = string
+  default = "t3.medium"
 }
 
 variable "frontend_repo_location" {
@@ -93,11 +103,7 @@ variable "NEXT_PUBLIC_GENERATE_INVITES" {
 
 }
 
-variable "NEXT_PUBLIC_GET_USER_ROLE" {
-
-}
-
-variable "NEXT_PUBLIC_CIS2_SIGNED_JWT" {
+variable "NEXT_PUBLIC_AUTHENTICATOR" {
 
 }
 
@@ -122,10 +128,10 @@ variable "NEXTAUTH_SECRET" {
 variable "NEXTAUTH_URL" {
 }
 
-variable "GALLERI_ACTIVITY_CODE" {
+variable "CIS2_REDIRECT_URL" {
 }
 
-variable "GALLERI_ACTIVITY_NAME" {
+variable "GALLERI_ACTIVITY_CODE" {
 }
 
 variable "hostname" {

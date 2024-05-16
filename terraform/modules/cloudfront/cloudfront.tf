@@ -2,7 +2,15 @@ resource "aws_s3_bucket" "bucket" {
   bucket = "${var.environment}-${var.name}"
 
   tags = {
-    Name = "${var.environment}-${var.name}"
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment}-${var.name}"
+  }
+}
+
+resource "aws_s3_bucket_versioning" "bucket_versioning" {
+  bucket = aws_s3_bucket.bucket.id
+  versioning_configuration {
+    status = "Enabled"
   }
 }
 
@@ -128,7 +136,8 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
   }
 
   tags = {
-    Environment = var.environment
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Cloudfront Distribution"
   }
 
   viewer_certificate {

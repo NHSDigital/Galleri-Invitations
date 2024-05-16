@@ -66,6 +66,11 @@ variable "server_side_encryption" {
   default = true
 }
 
+variable "application_role" {
+  description = "Used for tagging resource according to Cloud guidelines"
+  default     = "DB"
+}
+
 variable "tags" {
   description = "A map of tags for the db"
   type        = map(string)
@@ -74,10 +79,22 @@ variable "tags" {
 
 variable "environment" {}
 
+variable "envs_to_backup" {
+  description = "A list of environments to select for backing up dynamodb tables"
+  type        = list(string)
+  default     = ["prod"]
+}
+
 variable "stream_enabled" {
   default = false
 }
 
 variable "stream_view_type" {
   default = ""
+}
+
+variable "schedule" {
+  type        = string
+  default     = "cron(0 0 * * ? *)"
+  description = "the time that the database will be backed up, defaults to midnight"
 }

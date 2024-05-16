@@ -14,6 +14,14 @@ data "aws_route53_zone" "example" {
   private_zone = false
 }
 
+data "aws_secretsmanager_secret_version" "galleri_activity_code" {
+  secret_id = "GALLERI_ACTIVITY_CODE"
+}
+
+data "aws_secretsmanager_secret_version" "cis2_client_id" {
+  secret_id = "CIS2_CLIENT_ID"
+}
+
 # Setup DNS records, this is a bit of a roundabot process but the way it works is the first three blocks are just to validate
 # ownership of the domain, it does this by creating a hostname with a unique prefix and then checks it to verify
 # everything is correct.
@@ -21,7 +29,10 @@ data "aws_route53_zone" "example" {
 resource "aws_acm_certificate" "example" {
   domain_name       = "${var.environment}.${var.hostname}"
   validation_method = "DNS"
-
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} ACM Certificate"
+  }
   lifecycle {
     create_before_destroy = true
   }
@@ -55,7 +66,7 @@ resource "aws_route53_record" "actual_record" {
   name    = "${var.environment}.${var.hostname}"
   type    = "CNAME"
   ttl     = "300"
-  records = ["${var.environment}-${var.dns_zone}-gps-cancer-detection-blood-test.${var.region}.elasticbeanstalk.com"]
+  records = ["${var.environment}-${var.dns_zone}-gps-multi-cancer-blood-test.${var.region}.elasticbeanstalk.com"]
 }
 
 # IAM Role for Elastic Beanstalk environment's EC2 instances
@@ -74,6 +85,10 @@ resource "aws_iam_role" "screens" {
       },
     ],
   })
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Elastic Beanstalk EC2 IAM Role"
+  }
 }
 
 # Attach the default policy for Elastic Beanstalk Web Tier to the IAM role
@@ -86,11 +101,19 @@ resource "aws_iam_role_policy_attachment" "screens" {
 resource "aws_iam_instance_profile" "screens" {
   name = "${var.environment}-${var.name}-instance_profile"
   role = aws_iam_role.screens.name
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Elastic Beanstalk EC2 IAM Instance Profile"
+  }
 }
 
 # S3 Bucket for storing application versions
 resource "aws_s3_bucket" "screens" {
   bucket = "${var.environment}-${var.name}-frontend"
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Application Versions Bucket"
+  }
 }
 
 # S3 Object for the application version
@@ -98,12 +121,28 @@ resource "aws_s3_object" "screens" {
   bucket = aws_s3_bucket.screens.id
   key    = "${var.name}-${local.source_hash}.zip"
   source = data.archive_file.screens.output_path
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Application Versions Object"
+  }
+}
+
+# S3 Versioning for bucket
+resource "aws_s3_bucket_versioning" "bucket_versioning" {
+  bucket = aws_s3_bucket.screens.id
+  versioning_configuration {
+    status = "Enabled"
+  }
 }
 
 # Elastic Beanstalk Application
 resource "aws_elastic_beanstalk_application" "screens" {
   name        = "${var.environment}-${var.name}"
   description = var.description
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Elastic Beanstalk Application"
+  }
 }
 
 # Elastic Beanstalk Application Version
@@ -113,6 +152,10 @@ resource "aws_elastic_beanstalk_application_version" "screens" {
   bucket      = aws_s3_bucket.screens.bucket
   key         = aws_s3_object.screens.key
   depends_on  = [aws_acm_certificate_validation.example]
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Elastic Beanstalk Application Version"
+  }
 }
 
 # Security Group for the Elastic Beanstalk environment
@@ -120,6 +163,10 @@ resource "aws_security_group" "screens" {
   name        = "${var.environment}-${var.name}"
   description = "Security group for Elastic Beanstalk environment"
   vpc_id      = var.vpc_id
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Elastic Beanstalk SG"
+  }
 }
 
 resource "aws_security_group_rule" "https" {
@@ -135,11 +182,17 @@ resource "aws_security_group_rule" "https" {
 resource "aws_elastic_beanstalk_environment" "screens" {
   name                = "${var.environment}-${var.name}-frontend"
   application         = aws_elastic_beanstalk_application.screens.name
-  solution_stack_name = "64bit Amazon Linux 2 v5.8.11 running Node.js 18"
+  solution_stack_name = var.solution_stack_name
   version_label       = aws_elastic_beanstalk_application_version.screens.name
-  cname_prefix        = "${var.environment}-${var.dns_zone}-gps-cancer-detection-blood-test"
+  cname_prefix        = "${var.environment}-${var.dns_zone}-gps-multi-cancer-blood-test"
 
   depends_on = [aws_acm_certificate_validation.example]
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name      = "InstanceType"
+    value     = var.instance_size
+  }
 
   setting {
     namespace = "aws:elb:listener:443"
@@ -269,14 +322,8 @@ resource "aws_elastic_beanstalk_environment" "screens" {
 
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
-    name      = "NEXT_PUBLIC_GET_USER_ROLE"
-    value     = var.NEXT_PUBLIC_GET_USER_ROLE
-  }
-
-  setting {
-    namespace = "aws:elasticbeanstalk:application:environment"
-    name      = "NEXT_PUBLIC_CIS2_SIGNED_JWT"
-    value     = var.NEXT_PUBLIC_CIS2_SIGNED_JWT
+    name      = "NEXT_PUBLIC_AUTHENTICATOR"
+    value     = var.NEXT_PUBLIC_AUTHENTICATOR
   }
 
   setting {
@@ -323,7 +370,7 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "CIS2_ID"
-    value     = "328183617639.apps.supplier"
+    value     = data.aws_secretsmanager_secret_version.cis2_client_id.secret_string
   }
 
   setting {
@@ -346,19 +393,49 @@ resource "aws_elastic_beanstalk_environment" "screens" {
 
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
-    name      = "GALLERI_ACTIVITY_CODE"
-    value     = "B1824"
+    name      = "CIS2_REDIRECT_URL"
+    value     = "https://${var.environment}.${var.hostname}/api/auth/callback/cis2"
   }
 
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
-    name      = "GALLERI_ACTIVITY_NAME"
-    value     = "Galleri Blood Test"
+    name      = "GALLERI_ACTIVITY_CODE"
+    value     = data.aws_secretsmanager_secret_version.galleri_activity_code.secret_string
   }
+
 
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "SecurityGroups"
     value     = aws_security_group.screens.id
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:managedactions"
+    name      = "ManagedActionsEnabled"
+    value     = "true"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:managedactions"
+    name      = "ServiceRoleForManagedUpdates"
+    value     = "AWSServiceRoleForElasticBeanstalkManagedUpdates"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:managedactions"
+    name      = "PreferredStartTime"
+    value     = "Sun:21:00"
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:managedactions:platformupdate"
+    name      = "UpdateLevel"
+    value     = "patch"
+  }
+
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} Elastic Beanstalk Environment"
   }
 }

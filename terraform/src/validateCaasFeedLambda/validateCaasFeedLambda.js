@@ -140,7 +140,9 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
     console.log("Succeeded");
     return response;
   } catch (err) {
-    console.error(`Error: Failed to push to ${bucketName}/${key}. Error Message: ${err}`);
+    console.error(
+      `Error: Failed to push to ${bucketName}/${key}. Error Message: ${err}`
+    );
     throw err;
   }
 };
@@ -191,7 +193,7 @@ export const convertArrayOfObjectsToCSV = (data) => {
         ? `"${item[header]}"`
         : item[header];
       // blanks are removed and column needs to be quoted if it contains other whitespace,`,` or `"`.
-      if (escapedValue.replace(/ /g, '').match(/[\s,"]/)) {
+      if (escapedValue.replace(/ /g, "").match(/[\s,"]/)) {
         return '"' + escapedValue.replace(/"/g, '""') + '"';
       }
       return escapedValue;
@@ -262,16 +264,18 @@ export function validateRecord(record) {
   }
 
   // AC6 - Both the Primary Care Provider and the Reason for Removal fields contain values (other than null) OR Both the Primary Care Provider and the Reason for Removal fields contain null values
-  if (
-    (record.primary_care_provider !== "null" &&
-      record.reason_for_removal !== "null") ||
-    (record.primary_care_provider === "null" &&
-      record.reason_for_removal === "null")
-  ) {
-    validationResults.success = false;
-    validationResults.message =
-      "Technical error - GP Practice code and Reason for Removal fields contain incompatible values";
-    return validationResults;
+  if (record.action != "DEL") {
+    if (
+      (record.primary_care_provider !== "null" &&
+        record.reason_for_removal !== "null") ||
+      (record.primary_care_provider === "null" &&
+        record.reason_for_removal === "null")
+    ) {
+      validationResults.success = false;
+      validationResults.message =
+        "Technical error - GP Practice code and Reason for Removal fields contain incompatible values";
+      return validationResults;
+    }
   }
 
   if (

@@ -6,6 +6,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   metadata:
     runs-on: ubuntu-latest
@@ -48,12 +52,43 @@ jobs:
     needs: [metadata]
     if: github.event.pull_request.merged == true
     timeout-minutes: 3
+    env:
+      release_tag: ""
+      version_bump: "PATCH"
     steps:
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+      - name: "Bump patch version"
+        id: "bump-path-version"
+        uses: ./.github/actions/versioning
+        with:
+          release_tag: ${{ env.release_tag }}
+          version_bump: ${{ env.version_bump }}
+      - name: "Checkout wiki"
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}.wiki
+      - if: ${{ env.release_tag == '' }}
+        run: |
+          echo "Error: The current release tag has not been found"
+          exit 1
+      - name: Create Release Notes
+        run: |
+          echo "Using following tag to create markdown file: ${{ env.release_tag }}"
+          echo "${{ github.event.pull_request.body }}" >> "v${{ env.release_tag }}.md"
+          echo "- [v${{ env.release_tag }}](https://github.com/NHSDigital/Galleri-Invitations/wiki/v${{ env.release_tag }})" >> Home.md
+      - name: Push to wiki
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          git add .
+          git commit -m "docs: Added ${{ env.release_tag }} release file to wiki"
+          git push
       - name: "Checkout code"
         uses: actions/checkout@v4
       - name: "create tagged versions of lambdas"
         run: |
-          echo "TODO: create release versions of lambdas"
+          echo "TODO first: create release versions of lambdas"
       - name: "create tagged versions of frontend"
         run: |
           echo "TODO: create release versions of lambdas"

@@ -21,6 +21,10 @@ resource "aws_lambda_function" "lambda" {
   environment {
     variables = var.environment_vars
   }
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} ${var.lambda_function_name} Lambda App"
+  }
 }
 
 resource "aws_s3_object" "lambda_s3_object" {
@@ -30,4 +34,9 @@ resource "aws_s3_object" "lambda_s3_object" {
   source = data.archive_file.lambda_archive.output_path
 
   etag = filemd5(data.archive_file.lambda_archive.output_path)
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} ${var.lambda_function_name} Lambda S3 Object"
+  }
 }
+

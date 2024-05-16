@@ -1,6 +1,10 @@
 resource "aws_s3_bucket" "bucket" {
   bucket        = "${var.environment}-${var.bucket_name}"
   force_destroy = true
+  tags = {
+    ApplicationRole = "${var.application_role}"
+    Name            = "${var.environment} ${var.bucket_name} Bucket"
+  }
 }
 
 resource "aws_s3_bucket_public_access_block" "block_public_access" {
@@ -35,5 +39,12 @@ data "aws_iam_policy_document" "allow_access_to_lambda" {
     resources = [
       "arn:aws:s3:::${var.environment}-${var.bucket_name}/*"
     ]
+  }
+}
+
+resource "aws_s3_bucket_versioning" "bucket_versioning" {
+  bucket = "${var.environment}-${var.bucket_name}"
+  versioning_configuration {
+    status = "Enabled"
   }
 }
