@@ -145,17 +145,37 @@ runs:
         npm install --prefix src/sendEnrichedMessageToNotifyQueueLambda
         npm install --prefix src/sendSingleNotifyMessageLambda
         npm install --prefix src/nrdsMeshMailboxLambda
-        npm install --prefix src/testResultReportFhirValidationLambdayes
+        npm install --prefix src/sendTestResultErrorAckQueueLambda
+        npm install --prefix src/sendTestResultOkAckQueueLambda
+        npm install --prefix src/testResultReportFhirValidationLambda
+
 
         if [[ ${{ env.environment }} != prod ]]; then
           {
             aws eks update-kubeconfig --name ${{ env.environment }}-eks-cluster
+            if [[ $? -eq 0 ]]; then
+              {
+                echo "continue"
+              } || {
+                echo "no EKS, skip setting variables"
+                terraform ${{ env.tf-action }} -no-color -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars -var="route53_count=0"
+                exit 1
+              }
+            fi
+            kubectl apply -f ../scripts/test_data/k8s/mesh-sandbox.yaml
+            kubectl apply -f ../scripts/test_data/k8s/fhir-validation.yaml
             URL=$(kubectl get service mesh-sandbox-service | grep mesh-sandbox-service | awk '{print $4}')
             export TF_VAR_K8_URL="https://$URL"
+            export TF_VAR_ALIAS_NAME=$(kubectl get service fhir-validator | grep fhir-validator | awk '{print $4}')
+            export cut_alias_name=$(kubectl get service fhir-validator | grep fhir-validator | awk '{print $4}' | cut -d '-' -f 1)
+            export TF_VAR_ALIAS_ZONE_ID=$(aws elb describe-load-balancers --load-balancer-names $cut_alias_name | jq '.LoadBalancerDescriptions[0].CanonicalHostedZoneNameID' | tr -d '"')
+
             echo "K8 URL is: $TF_VAR_K8_URL"
+            echo "ALIAS NAME is: $TF_VAR_ALIAS_NAME"
+            echo "ALIAS ZONE ID is: $TF_VAR_ALIAS_ZONE_ID"
           } || {
             echo "No EKS deployment yet."
           }
         fi
 
-        terraform ${{ env.tf-action }} -no-color -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars -var="K8_URL=$TF_VAR_K8_URL"
+        terraform ${{ env.tf-action }} -no-color -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars -var="K8_URL=$TF_VAR_K8_URL" -var="alias_name=$TF_VAR_ALIAS_NAME" -var="alias_zone_id=$TF_VAR_ALIAS_ZONE_ID" -var="route53_count=1"
