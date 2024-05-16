@@ -11,7 +11,7 @@ resource "aws_cloudwatch_log_group" "log_group" {
 }
 
 resource "aws_cloudwatch_log_metric_filter" "error_filter" {
-  name           = "${var.environment}-${var.lambda_function_name}-error-filter"
+  name           = "${var.environment}-${var.lambda_function_name}"
   log_group_name = aws_cloudwatch_log_group.log_group.name
   pattern        = "Error"
   metric_transformation {
@@ -24,13 +24,13 @@ resource "aws_cloudwatch_log_metric_filter" "error_filter" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "error_alarm" {
-  alarm_name                = "${var.environment}-${var.lambda_function_name}-error-alarm"
+  alarm_name                = "${var.environment}-${var.lambda_function_name}"
   alarm_description         = "${var.environment}-${var.lambda_function_name} has encountered an error"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
-  evaluation_periods        = 1
+  evaluation_periods        = 10
   metric_name               = "ErrorCount-${var.lambda_function_name}"
   namespace                 = "LogErrors"
-  period                    = 60
+  period                    = 30
   statistic                 = "Sum"
   threshold                 = 1
   actions_enabled           = true
