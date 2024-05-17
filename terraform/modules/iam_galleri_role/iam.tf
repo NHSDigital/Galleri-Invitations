@@ -685,7 +685,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step4-error/*", ### step 4 fhir validation error bucket
             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step1-success/*",
             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step3-success/*",
-            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step2-success/*"    
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step2-success/*"
           ]
         },
         {
