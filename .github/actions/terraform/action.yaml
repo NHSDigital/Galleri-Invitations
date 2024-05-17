@@ -141,6 +141,7 @@ runs:
         npm install --prefix src/publishTestResultsLambda
         npm install --prefix src/validateGtmsWithdrawalLambda
         npm install --prefix src/authenticatorLambda
+        npm install --prefix src/processEventNotificationLambda
         npm install --prefix src/gtmsAppointmentEventBookedLambda
         npm install --prefix src/sendInvitationBatchToRawMessageQueueLambda
         npm install --prefix src/sendEnrichedMessageToNotifyQueueLambda
