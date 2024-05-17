@@ -1217,42 +1217,42 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
 # }
 
 # Policy required by publishTestResultsLambda
-# resource "aws_iam_policy" "iam_policy_for_publish_test_results_lambda" {
-#   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_publish_test_results_lambda_role"
-#   path        = "/"
-#   description = "AWS IAM Policy for managing aws lambda publishTestResultsLambda"
-#   policy = jsonencode(
-#     {
-#       "Statement" : [
-#         {
-#           "Action" : [
-#             "logs:CreateLogGroup",
-#             "logs:CreateLogStream",
-#             "logs:PutLogEvents"
-#           ],
-#           "Effect" : "Allow",
-#           "Resource" : "arn:aws:logs:*:*:*"
-#         },
-#         {
-#           "Sid" : "AllowGalleriBloodTestResultDynamodbAccess",
-#           "Effect" : "Allow",
-#           "Action" : [
-#             "dynamodb:*"
-#           ],
-#           "Resource" : [
-#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GalleriBloodTestResult"
-#           ]
-#         },
-#         {
-#           "Sid" : "AllowPublishToMyTopic",
-#           "Effect" : "Allow",
-#           "Action" : "sns:Publish",
-#           "Resource" : "arn:aws:sns:eu-west-2:136293001324:topic-name/${var.environment}-testResultTopic"
-#         }
-#       ],
-#       "Version" : "2012-10-17"
-#   })
-# }
+ resource "aws_iam_policy" "iam_policy_for_publish_test_results_lambda" {
+   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_publish_test_results_lambda_role"
+   path        = "/"
+   description = "AWS IAM Policy for managing aws lambda publishTestResultsLambda"
+   policy = jsonencode(
+     {
+       "Statement" : [
+         {
+           "Action" : [
+             "logs:CreateLogGroup",
+             "logs:CreateLogStream",
+             "logs:PutLogEvents"
+           ],
+           "Effect" : "Allow",
+           "Resource" : "arn:aws:logs:*:*:*"
+         },
+         {
+           "Sid" : "AllowGalleriBloodTestResultDynamodbAccess",
+           "Effect" : "Allow",
+           "Action" : [
+             "dynamodb:*"
+           ],
+           "Resource" : [
+             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GalleriBloodTestResult"
+           ]
+         },
+         {
+           "Sid" : "AllowPublishToMyTopic",
+           "Effect" : "Allow",
+           "Action" : "sns:Publish",
+           "Resource" : "arn:aws:sns:eu-west-2:136293001324:topic-name/${var.environment}-testResultTopic"
+         }
+       ],
+       "Version" : "2012-10-17"
+   })
+ }
 
 # resource "aws_iam_policy" "iam_policy_for_validate_appointment_common_data_lambda" {
 #   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_validate_appointment_common_data_lambda_role"

@@ -47,7 +47,7 @@ describe("formatTestResultRecord", () => {
         }
       },
       MessageStructure: 'json',
-      TopicName: `undefined-testResultTopic`
+      TopicArn: "arn:aws:sns:eu-west-2:136293001324:topic-name/undefined-testResultTopic"
     };
 
     const mockRecord = {

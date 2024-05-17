@@ -84,7 +84,7 @@ export const formatTestResultRecord = (record) => {
       }
     },
     MessageStructure: 'json',
-    TopicName: `${ENVIRONMENT}-${topicName}`
+    TopicArn: `arn:aws:sns:eu-west-2:136293001324:topic-name/${ENVIRONMENT}-${topicName}`
   };
   console.log("Exiting formatTestResultRecord");
   return params;
