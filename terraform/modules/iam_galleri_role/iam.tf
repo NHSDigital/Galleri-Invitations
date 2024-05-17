@@ -1244,10 +1244,10 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
 #           ]
 #         },
 #         {
-#           "Sid" : "AllowSNSAccess",
+#           "Sid" : "AllowPublishToMyTopic",
 #           "Effect" : "Allow",
 #           "Action" : "sns:Publish",
-#           "Resource" : "arn:aws:sns:eu-west-2:${var.account_id}:topic-name/${var.environment}-testResultTopic"
+#           "Resource" : "arn:aws:sns:eu-west-2:136293001324:topic-name/${var.environment}-testResultTopic"
 #         }
 #       ],
 #       "Version" : "2012-10-17"
