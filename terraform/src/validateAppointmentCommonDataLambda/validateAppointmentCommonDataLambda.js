@@ -29,7 +29,7 @@ export const handler = async (event) => {
     const { Appointment } = appointmentJson;
     //Check if ParticipantID and Episode exist in respective Dynamo tables
     if (Appointment.ParticipantID && Appointment.ParticipantID?.trim() !== "") {
-      const validateParticipantIdResponse = await lookUp(
+      validateParticipantIdResponse = await lookUp(
         dbClient,
         Appointment.ParticipantID,
         "Population",
@@ -71,9 +71,9 @@ export const handler = async (event) => {
       if (
         validateParticipantIdResponse &&
         Appointment.InvitationNHSNumber !==
-          validateParticipantIdResponse.Items[0].nhs_number.S &&
+          validateParticipantIdResponse.Items[0].nhs_number.N &&
         Appointment.PDSNHSNumber !==
-          validateParticipantIdResponse.Items[0].nhs_number.S
+          validateParticipantIdResponse.Items[0].nhs_number.N
       ) {
         await rejectRecord(
           appointmentJson,
