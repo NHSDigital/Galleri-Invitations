@@ -522,6 +522,8 @@ export const formatDynamoDbRecord = async (record) => {
         Invited: { S: "false" },
         identified_to_be_invited: { BOOL: false },
         action: { S: record.action },
+        Batch_Id: { S: "null" },
+        created_by: { S: "null" },
       },
     },
   };
