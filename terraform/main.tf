@@ -1721,9 +1721,9 @@ module "test_cross_check_report_appointment_validation_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "test_cross_check_report_appointment_validation_lambda.zip"
   environment_vars = {
-    ENVIRONMENT                 = "${var.environment}"
-    CR_TRR_SUCCESSFUL_BUCKET       = "inbound-nrds-galleritestresult-step3-success"
-    CR_TRR_UNSUCCESSFUL_BUCKET     = "inbound-nrds-galleritestresult-step3-error"
+    ENVIRONMENT                = "${var.environment}"
+    CR_TRR_SUCCESSFUL_BUCKET   = "inbound-nrds-galleritestresult-step3-success"
+    CR_TRR_UNSUCCESSFUL_BUCKET = "inbound-nrds-galleritestresult-step3-error"
   }
 }
 
