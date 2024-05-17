@@ -28,7 +28,19 @@ export const handler = async (event) => {
     GrailID,
     BloodNotCollectedReason,
     EventType,
+    Timestamp,
   } = Appointment;
+
+  // Appointment must match latest participant appointment
+  const appointmentResponse = await lookUp(
+    dbClient,
+    ParticipantID,
+    "Appointments",
+    "Participant_Id",
+    "S",
+    false
+  );
+
   const episodeResponse = await lookUp(
     dbClient,
     ParticipantID,
@@ -41,9 +53,18 @@ export const handler = async (event) => {
   const episodeEvent = {
     complete: "Appointment Attended - Sample Taken",
     no_show: "Did Not Attend Appointment",
-    aborted: "Invalid Appointment: Blood not collected reason not supplied",
+    aborted: "Appointment Attended – No Sample Taken",
   };
   try {
+    const numAppointments = appointmentResponse.Items?.length;
+    if (!numAppointments) {
+      await rejectRecord(appointmentJson);
+      throw new Error("Invalid Appointment - no participant appointment found");
+    } else if (appointmentResponse.Items.sort()[numAppointments - 1].Appointment_Id.S !== AppointmentID) {
+      await rejectRecord(appointmentJson);
+      throw new Error("Invalid Appointment - does not match latest participant appointment");
+    }
+
     let response = false;
 
     switch (EventType) {
@@ -56,12 +77,16 @@ export const handler = async (event) => {
             episodeItems.Batch_Id.S,
             AppointmentID,
             EventType,
-            episodeEvent.complete
+            Timestamp,
+            episodeEvent.complete,
+            "NULL",
+            GrailID,
+            BloodCollectionDate
           );
         } else {
           await rejectRecord(appointmentJson);
-          console.log(
-            "Invalid Appointment: Blood collection date and Grail ID not both supplied"
+          console.error(
+            "Error: Invalid Appointment - Blood collection date and Grail ID not both supplied for complete"
           );
         }
         break;
@@ -74,6 +99,7 @@ export const handler = async (event) => {
           episodeItems.Batch_Id.S,
           AppointmentID,
           EventType,
+          Timestamp,
           episodeEvent.no_show
         );
         break;
@@ -87,13 +113,14 @@ export const handler = async (event) => {
             episodeItems.Batch_Id.S,
             AppointmentID,
             EventType,
+            Timestamp,
             episodeEvent.aborted,
             BloodNotCollectedReason
           );
         } else {
           await rejectRecord(appointmentJson);
-          console.log(
-            "Invalid Appointment: Blood not collected reason not supplied"
+          console.error(
+            "Error: Invalid Appointment - Blood not collected reason not supplied for aborted"
           );
         }
         break;
@@ -101,16 +128,16 @@ export const handler = async (event) => {
       default:
         await rejectRecord(appointmentJson);
         console.error(
-          `This was a ${EventType}, which is not an expected Event Type`
+          `Error: This was a ${EventType}, which is not an expected Event Type`
         );
         break;
     }
     if (!response) {
       await rejectRecord(appointmentJson);
-      console.log("Could not Update Episode and Appointment Table");
+      console.error("Error: Could not Update Episode and Appointment Table");
     }
   } catch (error) {
-    const message = `Error processing object ${key} in bucket ${bucket}: ${error}`;
+    const message = `Error: processing object ${key} in bucket ${bucket}: ${error}`;
     console.error(message);
     throw new Error(message);
   }
@@ -206,8 +233,11 @@ export const transactionalWrite = async (
   batchId,
   appointmentId,
   eventType,
+  appointmentTimestamp,
   episodeEvent,
-  eventDescription = "Null"
+  eventDescription = "Null",
+  grailId = "null",
+  bloodCollectionDate = "null"
 ) => {
   const timeNow = new Date(Date.now()).toISOString();
   const params = {
@@ -222,7 +252,7 @@ export const transactionalWrite = async (
           TableName: `${ENVIRONMENT}-Episode`,
           ExpressionAttributeValues: {
             ":episodeEvent": { S: episodeEvent },
-            ":timeNow": { N: timeNow },
+            ":timeNow": { S: timeNow },
             ":eventDescription": { S: eventDescription },
             ":open": { S: "Open" },
             ":null": { S: "Null" },
@@ -236,10 +266,13 @@ export const transactionalWrite = async (
             Participant_Id: { S: participantId },
             Appointment_Id: { S: appointmentId },
           },
-          UpdateExpression: `SET event_type = :eventType`,
+          UpdateExpression: `SET event_type = :eventType, Time_stamp = :appointmentTimestamp, grail_id = :grailId, blood_collection_date = :bloodCollectionDate`,
           TableName: `${ENVIRONMENT}-Appointments`,
           ExpressionAttributeValues: {
             ":eventType": { S: eventType },
+            ":appointmentTimestamp": { S: appointmentTimestamp },
+            ":grailId": { S: grailId },
+            ":bloodCollectionDate": { S: bloodCollectionDate},
           },
         },
       },
@@ -251,6 +284,6 @@ export const transactionalWrite = async (
     const response = await client.send(command);
     return true;
   } catch (error) {
-    console.error("Transactional write failed:", error);
+    console.error("Error: Transactional write failed:", error);
   }
 };

@@ -248,7 +248,7 @@
         },
         "AppointmentID": {
           "type": "string",
-          "pattern": "^.{0,255}$"
+          "pattern": "^.{1,255}$"
         },
         "ClinicID": {
           "type": "string",
@@ -274,7 +274,6 @@
             "string",
             "null"
           ],
-          "pattern": "^0?[1235789]\\d{8,9}$",
           "nullable": true,
           "description": "Resend as BOOKED if this is updated separate from booking flow. If participant choose they don't have a phone number this field will be blank"
         },
@@ -283,7 +282,6 @@
             "string",
             "null"
           ],
-          "pattern": "^0?[1235789]\\d{8,9}$",
           "nullable": true,
           "description": "Resend as BOOKED if this is updated separate from booking flow. If participant choose they don't have a phone number this field will be blank"
         },
@@ -292,7 +290,6 @@
             "string",
             "null"
           ],
-          "format": "email",
           "nullable": true,
           "description": "Resend as BOOKED if this is updated separate from booking flow"
         },

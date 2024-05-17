@@ -73,7 +73,7 @@ describe("pushCsvToS3", () => {
     const result = await pushCsvToS3(
       "galleri-ons-data",
       "test.txt",
-      "dfsdfd",
+      "dfsdfsd",
       mockS3Client
     );
 
@@ -532,6 +532,8 @@ describe("formatDynamoDbRecord", () => {
           Invited: { S: "false" },
           identified_to_be_invited: { BOOL: false },
           action: { S: "ADD" },
+          created_by: { S: "null" },
+          Batch_Id: { S: "null" },
         },
       },
     };
