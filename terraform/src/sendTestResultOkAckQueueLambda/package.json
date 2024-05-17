@@ -1,0 +1,8 @@
+{
+  "name": "sendTestResultOkAckQueueLambda",
+  "version": "1.0.0",
+  "description": "",
+  "main": "sendTestResultOkAckQueueLambda.js",
+  "type": "module",
+  "dependencies": {}
+}

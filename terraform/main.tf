@@ -1024,6 +1024,36 @@ module "validate_appointment_common_data_lambda_trigger" {
   filter_prefix = "validRecords/valid_records_add-"
 }
 
+# ProcessEventNotification
+module "process_event_notification_dynamodb_stream" {
+  source                             = "./modules/dynamodb_stream"
+  enabled                            = true
+  event_source_arn                   = module.episode_history_table.dynamodb_stream_arn
+  function_name                      = module.process_event_notification_lambda.lambda_function_name
+  starting_position                  = "LATEST"
+  batch_size                         = 200
+  maximum_batching_window_in_seconds = 300
+  filter                             = { dynamodb : { NewImage : { Episode_Event : { S : [{ "anything-but" : ["Invited"] }] } } } }
+}
+
+# ProcessEventNotification lambda
+module "process_event_notification_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "processEventNotificationLambda"
+  lambda_timeout       = 900
+  memory_size          = 1024
+  lambda_s3_object_key = "process_event_notification_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT   = "${var.environment}"
+    SQS_QUEUE_URL = module.notify_raw_message_queue_sqs.sqs_queue_url
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+
 # Create GTMS Invitation Batch
 module "create_invitation_batch_lambda" {
   source               = "./modules/lambda"
@@ -1402,6 +1432,100 @@ module "send_single_notify_message_SQS_trigger" {
   lambda_arn       = module.send_single_notify_message_lambda.lambda_arn
 }
 
+# Test Result Acknowledgement Queue
+module "test_result_ack_queue_sqs" {
+  source                         = "./modules/sqs"
+  environment                    = var.environment
+  name                           = "testResultAckQueue.fifo"
+  is_fifo_queue                  = true
+  is_content_based_deduplication = true
+  visibility_timeout_seconds     = 100
+}
+
+# Send Test Result Error Acknowledgement Queue Lambda
+module "send_test_result_error_ack_queue_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "sendTestResultErrorAckQueueLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "send_test_result_error_ack_queue_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT               = "${var.environment}"
+    TEST_RESULT_ACK_QUEUE_URL = module.test_result_ack_queue_sqs.sqs_queue_url
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+
+# Lambda triggers for Step 1-4 fhir validation error buckets
+module "fhir_validation_step1_error_bucket_lambda_trigger" {
+  source       = "./modules/lambda_trigger"
+  statement_id = "${var.environment}-AllowExecution-Step-1"
+  bucket_id    = module.inbound_nrds_galleritestresult_step1_error.bucket_id
+  bucket_arn   = module.inbound_nrds_galleritestresult_step1_error.bucket_arn
+  lambda_arn   = module.send_test_result_error_ack_queue_lambda.lambda_arn
+}
+
+module "fhir_validation_step2_error_bucket_lambda_trigger" {
+  source       = "./modules/lambda_trigger"
+  statement_id = "${var.environment}-AllowExecution-Step-2"
+  bucket_id    = module.inbound_nrds_galleritestresult_step2_error.bucket_id
+  bucket_arn   = module.inbound_nrds_galleritestresult_step2_error.bucket_arn
+  lambda_arn   = module.send_test_result_error_ack_queue_lambda.lambda_arn
+}
+
+module "fhir_validation_step3_error_bucket_lambda_trigger" {
+  source       = "./modules/lambda_trigger"
+  statement_id = "${var.environment}-AllowExecution-Step-3"
+  bucket_id    = module.inbound_nrds_galleritestresult_step3_error.bucket_id
+  bucket_arn   = module.inbound_nrds_galleritestresult_step3_error.bucket_arn
+  lambda_arn   = module.send_test_result_error_ack_queue_lambda.lambda_arn
+}
+
+module "fhir_validation_step4_error_bucket_lambda_trigger" {
+  source       = "./modules/lambda_trigger"
+  statement_id = "${var.environment}-AllowExecution-Step-4"
+  bucket_id    = module.inbound_nrds_galleritestresult_step4_error.bucket_id
+  bucket_arn   = module.inbound_nrds_galleritestresult_step4_error.bucket_arn
+  lambda_arn   = module.send_test_result_error_ack_queue_lambda.lambda_arn
+}
+
+# SNS Topic to publish and read test result ok Acknowledgement response
+module "test_result_topic" {
+  source      = "./modules/sns_topic"
+  environment = var.environment
+  name        = "testResultTopic"
+}
+
+# Send Test Result Ok Acknowledgement Lambda
+module "send_test_result_ok_ack_queue_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "sendTestResultOkAckQueueLambda"
+  lambda_timeout       = 370
+  memory_size          = 1024
+  lambda_s3_object_key = "send_test_result_ok_ack_queue_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT               = "${var.environment}"
+    TEST_RESULT_ACK_QUEUE_URL = module.test_result_ack_queue_sqs.sqs_queue_url
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+
+# Lambda subscription/trigger for Test result SNS Topic
+module "send_test_result_ok_ack_queue_lambda_sns_topic_subscription" {
+  source                = "./modules/lambda_sns_trigger"
+  sns_topic_arn         = module.test_result_topic.sns_topic_arn
+  subscription_endpoint = module.send_test_result_ok_ack_queue_lambda.lambda_arn
+  lambda_name           = module.send_test_result_ok_ack_queue_lambda.lambda_function_name
+}
+
 # Delete Caas feed records
 module "caas_feed_delete_records_lambda" {
   source               = "./modules/lambda"
@@ -1669,7 +1793,7 @@ module "caas_data_triggers" {
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records_delete-",
       filter_suffix = ""
-    }
+    },
   }
 }
 
@@ -2555,4 +2679,24 @@ resource "aws_ssm_parameter" "contact-escalation-tables" {
   type      = "StringList"
   value     = "Null"
   overwrite = true
+}
+
+module "fhir_cert" {
+  source        = "./modules/route_53"
+  count         = var.route53_count > 0 ? 1 : 0
+  environment   = var.environment
+  region        = var.region
+  dns_zone      = var.dns_zone
+  hostname      = var.invitations_hostname
+  alias_name    = var.alias_name
+  alias_zone_id = var.alias_zone_id
+}
+
+resource "null_resource" "deploy_manifests" {
+  # Trigger deployment after EKS is ready
+  depends_on = [module.eks]
+
+  provisioner "local-exec" {
+    command = "aws eks update-kubeconfig --name ${var.environment}-eks-cluster && kubectl apply -f ../scripts/test_data/k8s/mesh-sandbox.yaml && kubectl apply -f ../scripts/test_data/k8s/fhir-validation.yaml"
+  }
 }
