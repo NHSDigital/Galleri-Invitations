@@ -13,18 +13,6 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 jest.mock("axios");
 import axios from "axios";
 
-let appointmentParticipantItems = {
-  blood_collection_date: {
-    S: "22024-05-23T19:19:12.939Z",
-  },
-  grail_id: {
-    S: "9000098399",
-  },
-  Participant_Id: {
-    S: "NHS-FD10-SH57",
-  },
-};
-
 const testCrossCheckResultReport = {
   Appointment: {
     ParticipantID: "NHS-FD10-SH57",
@@ -153,6 +141,18 @@ describe("validateTRR", () => {
       data: true,
     });
 
+    const appointmentParticipantItems = {
+      blood_collection_date: {
+        S: "22024-05-23T19:19:12.939Z",
+      },
+      grail_id: {
+        S: "9000098399",
+      },
+      Participant_Id: {
+        S: "NHS-FD10-SH57",
+      },
+    };
+
     const result = await validateTRR(
       testCrossCheckResultReport,
       appointmentParticipantItems
@@ -172,7 +172,7 @@ describe("validateTRR", () => {
       data: false,
     });
 
-    appointmentParticipantItems = {
+    const appointmentParticipantItems = {
       blood_collection_date: {
         S: "22024-05-23T19:19:12.939Z",
       },

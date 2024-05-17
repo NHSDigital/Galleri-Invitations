@@ -29,43 +29,52 @@ export const handler = async (event, context) => {
       key,
       s3
     );
+
     //bring back most recent appointment, with timestamp
-    const appointmentParticipant = await lookUp(
-      dbClient,
-      testCrossCheckResultReport.Appointment?.ParticipantID,
-      "Appointments",
-      "Participant_Id",
-      "S",
-      false
-    ); //Check participant has any appointments
-    const apptArr = appointmentParticipant?.Items;
-    const sortedApptParticipants = apptArr?.sort(function (x, y) {
-      return new Date(x?.["Timestamp"]?.["S"]) <
-        new Date(y?.["Timestamp"]?.["S"])
-        ? 1
-        : -1;
-    });
+    const sortedApptParticipants = await getLastAppointment(
+      testCrossCheckResultReport
+    );
     const appointmentParticipantItems = sortedApptParticipants[0];
-    const validTRR = await validateTRR(
+    const isValidTRR = await validateTRR(
       testCrossCheckResultReport,
       appointmentParticipantItems
     );
-    await processTRR(testCrossCheckResultReport, key, bucket, s3, validTRR);
+
+    await processTRR(testCrossCheckResultReport, key, bucket, s3, isValidTRR);
   } catch (error) {
     console.error("Error: Issue occurred whilst processing JSON file from S3");
     console.error("Error:", error);
   }
 };
 
-//FUNCTIONS
+//bring back most recent appointment, with timestamp
+export async function getLastAppointment(testCrossCheckResultReport) {
+  const appointmentParticipant = await lookUp(
+    dbClient,
+    testCrossCheckResultReport.Appointment?.ParticipantID,
+    "Appointments",
+    "Participant_Id",
+    "S",
+    false
+  ); //Check participant has any appointments
+  const apptArr = appointmentParticipant?.Items;
+  const sortedApptParticipants = apptArr?.sort(function (x, y) {
+    return new Date(x?.["Timestamp"]?.["S"]) < new Date(y?.["Timestamp"]?.["S"])
+      ? 1
+      : -1;
+  });
+  return sortedApptParticipants;
+}
+
+//process TRR
 export async function processTRR(
   testCrossCheckResultReport,
   reportName,
   originalBucket,
   s3,
-  validTRR
+  isValidTRR
 ) {
-  if (validTRR) {
+  if (isValidTRR) {
     await putTRRInS3Bucket(
       testCrossCheckResultReport,
       reportName,
@@ -150,22 +159,6 @@ export async function deleteTRRinS3Bucket(reportName, bucketName, client) {
     console.error(`Error: deleting ${reportName} from ${bucketName}: ${error}`);
     throw error;
   }
-}
-
-export function responseHasErrors(response, reportName) {
-  const issues = response.issue;
-  let hasError = false;
-
-  for (const issue of issues) {
-    if (issue.severity === "error") {
-      console.error(
-        `Error: APPOINTMENT diagnostic message for ${reportName} : ${issue.diagnostics}`
-      );
-      hasError = true;
-    }
-  }
-
-  return hasError;
 }
 
 // Retrieve and Parse the JSON file
