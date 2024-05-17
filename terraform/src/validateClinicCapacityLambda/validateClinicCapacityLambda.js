@@ -48,17 +48,17 @@ export const handler = async (event) => {
         s3
       );
     } else {
-      if(validationResult.errors) {
-        console.error(
-          "Error: PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Capacity BELOW:\n" +
-            validationResult.errors
+      if(validationResult.message) {
+        console.warn(
+          "PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Capacity BELOW:\n" +
+            validationResult.message
         );
       }
       if(validationResult.message) {
         console.error(`Error: ${validationResult.message}`);
       }
       console.log(
-        `Pushing invalid record to ${bucket}/invalidRecords/${key}`
+        `Pushing invalid record to ${ENVIRONMENT}-processed-inbound-gtms-clinic-schedule-summary/invalidRecords/${key}`
       );
       await pushToS3(
         `${ENVIRONMENT}-processed-inbound-gtms-clinic-schedule-summary`,
