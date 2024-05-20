@@ -134,7 +134,6 @@ export const handler = async (event) => {
   console.log(JSON.stringify(fhirPayload));
   const bufferData = Buffer.from(payloadPdf, "base64");
 
-  // if < ddb, reject record - step4 output error bucket
   const episodeResponse = await lookUp(
     dbClient,
     fhirPayload.Participant_Id,
