@@ -160,7 +160,9 @@ runs:
                 echo "continue"
               } || {
                 echo "no EKS, skip setting variables"
-                terraform ${{ env.tf-action }} -no-color -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars -var="route53_count=0"
+                terraform ${{ env.tf-action }} -no-color -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" \
+                -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars \
+                -var="route53_count=0"
                 exit 1
               }
             fi
@@ -180,4 +182,7 @@ runs:
           }
         fi
 
-        terraform ${{ env.tf-action }} -no-color -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars -var="K8_URL=$TF_VAR_K8_URL" -var="alias_name=$TF_VAR_ALIAS_NAME" -var="alias_zone_id=$TF_VAR_ALIAS_ZONE_ID" -var="route53_count=1"
+        terraform ${{ env.tf-action }} -no-color -auto-approve -input=false -var="account_id=${{ env.AWS_ACCOUNT_ID }}" \
+        -var-file=environment/${{ steps.environment-type.outputs.environment-type }}/${{ env.environment }}.tfvars \
+        -var="K8_URL=$TF_VAR_K8_URL" -var="alias_name=$TF_VAR_ALIAS_NAME" -var="alias_zone_id=$TF_VAR_ALIAS_ZONE_ID" \
+        -var="route53_count=1"
