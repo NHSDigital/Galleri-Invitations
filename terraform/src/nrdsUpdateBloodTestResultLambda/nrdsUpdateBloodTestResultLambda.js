@@ -211,7 +211,7 @@ export const handler = async (event) => {
       } else {
         console.log("reject record");
         const confirmation = await pushCsvToS3(
-          `${failureBucket}`,
+          `${ENVIRONMENT}-${failureBucket}`,
           `invalidRecord/invalidRecord_${dateTime}.json`,
           csvString,
           s3
@@ -222,7 +222,7 @@ export const handler = async (event) => {
   } else {
     console.log("no matched participant, reject");
     const confirmation = await pushCsvToS3(
-      `${failureBucket}`,
+      `${ENVIRONMENT}-${failureBucket}`,
       `invalidRecord/invalidRecord_${dateTime}.json`,
       csvString,
       s3
