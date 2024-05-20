@@ -106,12 +106,12 @@ variable "sso_iam_role_arn" {
 
 variable "alias_name" {
   description = "Name of ALB of FHIR service"
-  default     = false
+  default     = null
 }
 
 variable "alias_zone_id" {
   description = "Zone ID of ALB of FHIR service"
-  default     = false
+  default     = null
 }
 
 variable "route53_count" {
