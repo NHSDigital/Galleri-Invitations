@@ -42,10 +42,10 @@ export const validateData = (dataArray) => {
       errorMsg = `Invalid UUID ${item["UUID"]}`;
     }
     else if (!regexStatus.test(item["Status"])) {
-      errorMsg = `Invalid Status for ${item["UUID"]}}`;
+      errorMsg = `Invalid Status for ${item["UUID"]}`;
     }
     else if (!regexRole.test(item["Role"])) {
-      errorMsg = `Invalid Role for ${item["UUID"]}}`;
+      errorMsg = `Invalid Role for ${item["UUID"]}`;
     }
     else if (!regexName.test(item["Name"])) {
       errorMsg = `Invalid Name for ${item["UUID"]}`;
@@ -112,12 +112,12 @@ export const saveArrayToTable = async (dataArray, environment, client) => {
           "set #NAME = :name, #EMAIL = :email, #STATUS = :status, #ROLE = :role, #UPDATED = :updated",
       };
       if (!existingAccount) {
-        console.log("Adding new user account: ", uuid);
+        console.log(`Adding new user account: ${uuid}`);
         params.ExpressionAttributeNames["#CREATED"] = "Creation_DateTime";
         params.ExpressionAttributeValues[":created"] = { S: dateTime };
         params.UpdateExpression = `${params.UpdateExpression} , #CREATED = :created`;
       } else {
-        console.log("Updating user account: ", uuid);
+        console.log(`Updating user account: ${uuid}`);
       }
 
       const command = new UpdateItemCommand(params);
