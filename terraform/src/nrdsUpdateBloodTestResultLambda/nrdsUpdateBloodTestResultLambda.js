@@ -356,9 +356,16 @@ export const lookUp = async (dbClient, ...params) => {
   return response;
 };
 
-//need participant_Id and Grail_Id for composite key GalleriBloodTestResult
-//need batch_Id and Participant_Id for composite key Episode
-//Need to also update Episode_Status_Updated
+/**
+ * This function is used to write to both episode and GalleriBloodTestResult table depending on the received payload
+ *
+ * @param {Object} client Instance of DynamoDB client
+ * @param {String} participantId Sort Key for Episode table
+ * @param {String} batchId Partition Key for Episode table
+ * @param {Object} fhirPayload Object containing attributes from payload
+ * @param {String} episodeStatus Status to set in Episode table
+ * @returns {Boolean}
+ */
 export const transactionalWrite = async (
   client,
   participantId,
