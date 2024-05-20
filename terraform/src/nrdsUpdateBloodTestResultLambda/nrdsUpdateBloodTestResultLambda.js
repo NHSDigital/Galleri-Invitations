@@ -51,6 +51,7 @@ export const handler = async (event) => {
   // let Cso_Result_Snowmed_Code_Secondary = [];
   // let Cso_Result_Snowmed_Display_Secondary = [];
   // let Participant_Id = "";
+  let payloadPdf = "";
   let fhirPayload = {
     episode_event: "",
     Grail_FHIR_Result_Id: js?.id,
@@ -145,10 +146,16 @@ export const handler = async (event) => {
         `resource.identifier[0].value`
       );
     }
+    //PDF
+    if (get(js.entry[objs].resource, `resourceType`) === "DiagnosticReport") {
+      payloadPdf = get(js.entry[objs].resource.presentedForm[0], `data`);
+    }
   }
 
   console.log(JSON.stringify(fhirPayload));
-
+  const bufferData = Buffer.from(payloadPdf, "base64");
+  console.log(bufferData.length);
+  // console.log(payloadPdf);
   //TODO: check out of order message
   //use Meta_Last_Updated and Identifier_Value,
   //need to lookup GalleriBloodTestResult, if no entry insert
@@ -208,7 +215,7 @@ export const handler = async (event) => {
     console.log(fhirPayload.episodeStatus);
     if (!BloodTestItems) {
       console.log("insert new record");
-      await checkResult(
+      let result = await checkResult(
         js,
         episodeItemStatus,
         dbClient,
@@ -216,6 +223,22 @@ export const handler = async (event) => {
         episodeBatchId,
         fhirPayload
       );
+      console.log(result);
+      if (result) {
+        const pdfconfirmation = await pushCsvToS3(
+          `${ENVIRONMENT}-${successBucket}`,
+          `GalleriTestResults/${fhirPayload.Participant_Id}_pdf_${dateTime}.pdf`,
+          bufferData,
+          s3
+        );
+        const fhirConfirmation = await pushCsvToS3(
+          `${ENVIRONMENT}-${successBucket}`,
+          `GalleriTestResults/${fhirPayload.Participant_Id}_fhir_message_${dateTime}.pdf`,
+          csvString,
+          s3
+        );
+        return [pdfconfirmation, fhirConfirmation];
+      }
       //if success, also decode pdf and push to s3
     } else if (BloodTestItems) {
       console.log("check timestamp from db and identifier value");
@@ -224,7 +247,7 @@ export const handler = async (event) => {
         fhirPayload.Meta_Last_Updated > BloodTestMetaUpdateItems //check last updated from payload is more recent
       ) {
         console.log("update record");
-        await checkResult(
+        let result = await checkResult(
           js,
           episodeItemStatus,
           dbClient,
@@ -232,6 +255,22 @@ export const handler = async (event) => {
           episodeBatchId,
           fhirPayload
         );
+        console.log(result);
+        if (result) {
+          const pdfconfirmation = await pushCsvToS3(
+            `${ENVIRONMENT}-${successBucket}`,
+            `GalleriTestResults/${fhirPayload.Participant_Id}_pdf_${dateTime}.pdf`,
+            bufferData,
+            s3
+          );
+          const fhirConfirmation = await pushCsvToS3(
+            `${ENVIRONMENT}-${successBucket}`,
+            `GalleriTestResults/${fhirPayload.Participant_Id}_fhir_message_${dateTime}.pdf`,
+            csvString,
+            s3
+          );
+          return [pdfconfirmation, fhirConfirmation];
+        }
       } else {
         console.error(
           "Error: Reject record; Invalid timestamp or identifier value"
@@ -460,22 +499,24 @@ export const checkResult = async (
     fhirPayload.episode_event = "Result - CSD";
     console.log(fhirPayload.episode_event);
     if (episodeItemStatus === "Open") {
-      await transactionalWrite(
+      let result = await transactionalWrite(
         dbClient,
         episodeParticipantId,
         episodeBatchId,
         fhirPayload,
         episodeItemStatus
       );
+      return result;
       //THEN update episode_event  to 'Result - CSD'
     } else {
-      await transactionalWrite(
+      let result = await transactionalWrite(
         dbClient,
         episodeParticipantId,
         episodeBatchId,
         fhirPayload,
         "Open"
       );
+      return result;
       // THEN update episode_event  to 'Result - CSD' AND set Episode_Status to 'Open'
     }
   }
@@ -485,13 +526,14 @@ export const checkResult = async (
     if (episodeItemStatus === "Open") {
       // THEN update episode_event to  ‘Result - No CSD’
       // AND close the episode
-      await transactionalWrite(
+      let result = await transactionalWrite(
         dbClient,
         episodeParticipantId,
         episodeBatchId,
         fhirPayload,
         "Closed"
       );
+      return result;
     }
   }
 
@@ -500,13 +542,14 @@ export const checkResult = async (
     console.log(fhirPayload.episode_event);
     if (episodeItemStatus === "Open") {
       // THEN update episode_event  to 'Result - Amended'
-      await transactionalWrite(
+      let result = await transactionalWrite(
         dbClient,
         episodeParticipantId,
         episodeBatchId,
         fhirPayload,
         episodeItemStatus
       );
+      return result;
     }
   }
   if (payload?.id.match(/\b(CorrectedTest)/g)) {
@@ -514,22 +557,24 @@ export const checkResult = async (
     console.log(fhirPayload.episode_event);
     if (episodeItemStatus === "Open") {
       // THEN update episode_event to 'Result - Correction'
-      await transactionalWrite(
+      let result = await transactionalWrite(
         dbClient,
         episodeParticipantId,
         episodeBatchId,
         fhirPayload,
         episodeItemStatus
       );
+      return result;
     } else {
       // THEN open the episode AND update episode_event to 'Result - Correction'
-      await transactionalWrite(
+      let result = await transactionalWrite(
         dbClient,
         episodeParticipantId,
         episodeBatchId,
         fhirPayload,
         "Open"
       );
+      return result;
     }
   }
   if (payload?.id.match(/\b(CancelledTest)/g)) {
@@ -537,22 +582,24 @@ export const checkResult = async (
     console.log(fhirPayload.episode_event);
     if (episodeItemStatus === "Open") {
       // THEN update episode_event to 'Result - Cancelled Test'
-      await transactionalWrite(
+      let result = await transactionalWrite(
         dbClient,
         episodeParticipantId,
         episodeBatchId,
         fhirPayload,
         episodeItemStatus
       );
+      return result;
     } else {
       // THEN open the episode AND update episode_event to 'Result - Cancelled Test'
-      await transactionalWrite(
+      let result = await transactionalWrite(
         dbClient,
         episodeParticipantId,
         episodeBatchId,
         fhirPayload,
         "Open"
       );
+      return result;
     }
   }
 };
