@@ -10,24 +10,24 @@ const mockDynamoDbClient = mockClient(new DynamoDBClient({}));
 describe("validate ClinicID function", () => {
   test("ClinicID not in DynamoDB", async () => {
     mockDynamoDbClient.resolves({
-      metadata: [],
+      Count: 0
     });
     const clinicValidation = await moduleapi.isClinicIDvalid(
       "NJ22I636",
       mockDynamoDbClient
     );
-    expect(clinicValidation.hasOwnProperty("Items")).toBe(false);
+    expect(clinicValidation).toBe(false);
   });
 
-  test("ClinicID not in DynamoDB", async () => {
+  test("ClinicID in DynamoDB", async () => {
     mockDynamoDbClient.resolves({
-      Items: ["NJ22I636"],
+      Count: 1
     });
     const clinicValidation = await moduleapi.isClinicIDvalid(
       "NJ22I636",
       mockDynamoDbClient
     );
-    expect(clinicValidation.hasOwnProperty("Items")).toBe(true);
+    expect(clinicValidation).toBe(true);
   });
 });
 describe("validateClinicCapacity function", () => {
