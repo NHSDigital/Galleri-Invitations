@@ -19,12 +19,6 @@ const ENVIRONMENT = process.env.ENVIRONMENT;
 const failureBucket = process.env.FAILUREBUCKET;
 const successBucket = process.env.SUCCESSBUCKET;
 
-// variables required for logging
-const { timestamp, combine, printf } = winston.format;
-const myFormat = printf(
-  ({ level, message, timestamp }) => `[${timestamp}] ${level}: ${message}`
-);
-
 //HANDLER
 export const handler = async (event) => {
   const record = event.Records[0];
