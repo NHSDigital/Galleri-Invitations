@@ -10,6 +10,7 @@ import {
   pushCsvToS3,
   lookUp,
   transactionalWrite,
+  checkProperties,
 } from "../../nrdsUpdateBloodTestResultLambda/nrdsUpdateBloodTestResultLambda.js";
 
 describe("readCsvFromS3", () => {
@@ -243,5 +244,26 @@ describe("transactionalWrite", () => {
     );
 
     expect(result).toEqual(false);
+  });
+});
+
+describe("checkProperties", () => {
+  let testObj = {
+    t: "Tanjiro",
+    a: "Akaza",
+    s: "Senku Ishigami",
+    k: "",
+    ss: [],
+  };
+  test("reformat object successfully", async () => {
+    await checkProperties(testObj);
+    console.log(testObj);
+    expect(testObj).toEqual({
+      t: "Tanjiro",
+      a: "Akaza",
+      s: "Senku Ishigami",
+      k: "null",
+      ss: ["null"],
+    });
   });
 });
