@@ -10,7 +10,6 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
-import winston from "winston";
 import get from "lodash.get";
 //VARIABLES
 const dbClient = new DynamoDBClient();
@@ -448,17 +447,6 @@ export const transactionalWrite = async (
   }
 };
 
-/**
- * This function aims to decouple parts of the logging process to make it more flexible and extensible.
- * It is used to configure a custom logger with things such as log levels,
- * timestamp. The transport medium is the Console.
- */
-export const logger = winston.createLogger({
-  level: "debug",
-  format: combine(timestamp({ format: "YYYY-MM-DD hh:mm:ss.SSS A" }), myFormat),
-  transports: [new winston.transports.Console()],
-});
-
 export const checkResult = async (
   payload,
   episodeItemStatus,
@@ -576,14 +564,20 @@ export const checkResult = async (
   }
 };
 
-function checkProperties(obj) {
+/**
+ * This function is used to remove any undefined values from the object so that
+ * so that it can be passed into a ddb command without any errors
+ *
+ * @param {Object} obj Object to be formatted
+ */
+export const checkProperties = async (obj) => {
   for (var key in obj) {
     if (obj[key] != "") {
-      console.log("true");
+      console.log(`${key} populated.`);
     } else if (obj[key] == "" && Array.isArray(obj[key])) {
       obj[key] = ["null"];
     } else {
       obj[key] = "null";
     }
   }
-}
+};
