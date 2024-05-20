@@ -1,3 +1,7 @@
+locals {
+  alias_name_valid = var.alias_name >= 1 && var.alias_name <= 1024
+}
+
 variable "environment" {
   description = "Which environment to deploy into: dev, test, uat, performance or prod"
 }
