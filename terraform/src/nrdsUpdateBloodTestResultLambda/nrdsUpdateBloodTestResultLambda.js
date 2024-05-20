@@ -69,82 +69,83 @@ export const handler = async (event) => {
 
   for (let objs in js.entry) {
     //Grail_Id
-    if (
-      get(js, `entry[${objs}]?.resource?.resourceType`) === "ServiceRequest"
-    ) {
+    if (get(js.entry[objs].resource, `resourceType`) === "ServiceRequest") {
+      console.log("inside");
+      console.log(get(js.entry[objs].resource.identifier[0], `value`));
       fhirPayload.Grail_Id = get(
-        js,
-        `entry[${objs}]?.resource?.identifier[0]?.value`
+        js.entry[objs].resource.identifier[0],
+        `value`
       );
     }
+
     // CSD_Result_SNOWMED_Code and CSD_Result_SNOWMED_Display
     if (
-      get(js, `entry[${objs}]?.resource?.code?.coding[0]?.code`) ===
-      "1854971000000106"
+      get(js.entry[objs].resource, `code.coding[0].code`) === "1854971000000106"
     ) {
       fhirPayload.CSD_Result_SNOWMED_Code = get(
-        js,
-        `entry[${objs}]?.resource?.valueCodeableConcept?.coding[0]?.code`
+        js.entry[objs].resource,
+        `valueCodeableConcept.coding[0].code`
       );
       fhirPayload.CSD_Result_SNOWMED_Display = get(
-        js,
-        `entry[${objs}]?.resource?.valueCodeableConcept?.coding[0]?.display`
+        js.entry[objs].resource,
+        `valueCodeableConcept.coding[0].display`
       );
     }
-    // Blood_Draw_Date
-    if (get(`js.entry[${objs}]?.resource?.resourceType`) === "Specimen") {
+    // // Blood_Draw_Date
+    if (get(js.entry[objs].resource, `resourceType`) === "Specimen") {
+      console.log("inside");
       fhirPayload.Blood_Draw_Date = get(
-        js,
-        `entry[${objs}]?.resource?.collection?.collectedDateTime`
+        js.entry[objs].resource,
+        `collection.collectedDateTime`
       );
     }
-    // Cso_Result_Snowmed_Code_Primary and Cso_Result_Snowmed_Display_Primary (will be a list of multiple)
-    if (
-      get(js, `.entry[${objs}]?.resource?.code?.coding[0]?.code`) ===
-        "1873921000000106" &&
-      get(js, `.entry[${objs}]?.resource?.component`)
-    ) {
-      for (let entry of get(js, `entry[${objs}].resource.component`))
-        for (
-          let i = 0;
-          i < get(js, `${entry}?.valueCodeableConcept?.coding?.length`);
-          i++
-        ) {
-          fhirPayload.Cso_Result_Snowmed_Code_Primary.push(
-            get(js, `${entry}?.valueCodeableConcept?.coding[i]?.code`)
-          );
-          fhirPayload.Cso_Result_Snowmed_Display_Primary.push(
-            get(js, `${entry}?.valueCodeableConcept?.coding[i]?.display`)
-          );
-        }
-    }
-    // Cso_Result_Snowmed_Code_Secondary and Cso_Result_Snowmed_Display_Secondary (will be a list of multiple)
-    if (
-      get(js, `entry[${objs}]?.resource?.code?.coding[0].code`) ===
-        "1873931000000108" &&
-      get(js, `entry[${objs}]?.resource?.component`)
-    ) {
-      for (let entry of get(js, `entry[${objs}].resource.component`))
-        for (
-          let i = 0;
-          i < get(js, `${entry}.valueCodeableConcept.coding.length`);
-          i++
-        ) {
-          fhirPayload.Cso_Result_Snowmed_Code_Secondary.push(
-            get(js, `${entry}?.valueCodeableConcept?.coding[i]?.code`)
-          );
-          fhirPayload.Cso_Result_Snowmed_Display_Secondary.push(
-            get(js, `${entry}?.valueCodeableConcept?.coding[i]?.display`)
-          );
-        }
-    }
-    // Participant_Id
-    if (get(js, `entry[${objs}]?.resource?.resourceType`) === "Patient") {
-      fhirPayload.Participant_Id = get(
-        js,
-        `entry[${objs}]?.resource?.identifier[0]?.value`
-      );
-    }
+    // // Cso_Result_Snowmed_Code_Primary and Cso_Result_Snowmed_Display_Primary (will be a list of multiple)
+    // if (
+    //   get(js, `.entry[${objs}]?.resource?.code?.coding[0]?.code`) ===
+    //     "1873921000000106" &&
+    //   get(js, `.entry[${objs}]?.resource?.component`)
+    // ) {
+    //   for (let entry of get(js, `entry[${objs}].resource.component`))
+    //     for (
+    //       let i = 0;
+    //       i < get(js, `${entry}?.valueCodeableConcept?.coding?.length`);
+    //       i++
+    //     ) {
+    //       fhirPayload.Cso_Result_Snowmed_Code_Primary.push(
+    //         get(js, `${entry}?.valueCodeableConcept?.coding[i]?.code`)
+    //       );
+    //       fhirPayload.Cso_Result_Snowmed_Display_Primary.push(
+    //         get(js, `${entry}?.valueCodeableConcept?.coding[i]?.display`)
+    //       );
+    //     }
+    // }
+    // // Cso_Result_Snowmed_Code_Secondary and Cso_Result_Snowmed_Display_Secondary (will be a list of multiple)
+    // if (
+    //   get(js, `entry[${objs}]?.resource?.code?.coding[0].code`) ===
+    //     "1873931000000108" &&
+    //   get(js, `entry[${objs}]?.resource?.component`)
+    // ) {
+    //   for (let entry of get(js, `entry[${objs}].resource.component`))
+    //     for (
+    //       let i = 0;
+    //       i < get(js, `${entry}.valueCodeableConcept.coding.length`);
+    //       i++
+    //     ) {
+    //       fhirPayload.Cso_Result_Snowmed_Code_Secondary.push(
+    //         get(js, `${entry}?.valueCodeableConcept?.coding[i]?.code`)
+    //       );
+    //       fhirPayload.Cso_Result_Snowmed_Display_Secondary.push(
+    //         get(js, `${entry}?.valueCodeableConcept?.coding[i]?.display`)
+    //       );
+    //     }
+    // }
+    // // Participant_Id
+    // if (get(js, `entry[${objs}]?.resource?.resourceType`) === "Patient") {
+    //   fhirPayload.Participant_Id = get(
+    //     js,
+    //     `entry[${objs}]?.resource?.identifier[0]?.value`
+    //   );
+    // }
   }
 
   console.log(JSON.stringify(fhirPayload));
@@ -158,33 +159,33 @@ export const handler = async (event) => {
   //Also save decoded pdf to S3
 
   //if < ddb, reject record - step4 output error bucket
-  const episodeResponse = await lookUp(
-    dbClient,
-    fhirPayload.Participant_Id,
-    "Episode",
-    "Participant_Id",
-    "S",
-    true
-  );
-  console.log(JSON.stringify(episodeResponse?.Items[0]));
-  console.log("episodeResponse");
-  const episodeItemStatus = episodeResponse?.Items[0]?.Episode_Status?.S;
-  console.log(episodeItemStatus);
-  const episodeBatchId = episodeResponse?.Items[0]?.Batch_Id?.S;
-  const episodeParticipantId = episodeResponse?.Items[0]?.Participant_Id?.S;
+  // const episodeResponse = await lookUp(
+  //   dbClient,
+  //   fhirPayload.Participant_Id,
+  //   "Episode",
+  //   "Participant_Id",
+  //   "S",
+  //   true
+  // );
+  // console.log(JSON.stringify(episodeResponse?.Items[0]));
+  // console.log("episodeResponse");
+  // const episodeItemStatus = episodeResponse?.Items[0]?.Episode_Status?.S;
+  // console.log(episodeItemStatus);
+  // const episodeBatchId = episodeResponse?.Items[0]?.Batch_Id?.S;
+  // const episodeParticipantId = episodeResponse?.Items[0]?.Participant_Id?.S;
 
-  const BloodTestResponse = await lookUp(
-    dbClient,
-    fhirPayload.Participant_Id,
-    "GalleriBloodTestResult",
-    "Participant_Id",
-    "S",
-    false
-  );
-  const BloodTestItems = BloodTestResponse?.Items[0]?.Identifier_Value?.S;
-  console.log(BloodTestItems);
-  const BloodTestMetaUpdateItems =
-    BloodTestResponse?.Items[0]?.Meta_Last_Updated?.S;
+  // const BloodTestResponse = await lookUp(
+  //   dbClient,
+  //   fhirPayload.Participant_Id,
+  //   "GalleriBloodTestResult",
+  //   "Participant_Id",
+  //   "S",
+  //   false
+  // );
+  // const BloodTestItems = BloodTestResponse?.Items[0]?.Identifier_Value?.S;
+  // console.log(BloodTestItems);
+  // const BloodTestMetaUpdateItems =
+  //   BloodTestResponse?.Items[0]?.Meta_Last_Updated?.S;
 
   console.log("break point");
   // console.log(Grail_FHIR_Result_Id);
@@ -201,60 +202,60 @@ export const handler = async (event) => {
   // console.log(Participant_Id);
 
   //matches participant
-  if (episodeItemStatus) {
-    const dateTime = new Date(Date.now()).toISOString();
-    fhirPayload.episodeStatus = episodeItemStatus;
-    console.log("here");
-    console.log(fhirPayload.episodeStatus);
-    if (!BloodTestItems) {
-      console.log("insert new record");
-      await checkResult(
-        js,
-        episodeItemStatus,
-        dbClient,
-        episodeParticipantId,
-        episodeBatchId,
-        fhirPayload
-      );
-      //if success, also decode pdf and push to s3
-    } else if (BloodTestItems) {
-      console.log("check timestamp from db and identifier value");
-      if (
-        fhirPayload.Identifier_Value === BloodTestItems && //match identifier from ddb to payload
-        fhirPayload.Meta_Last_Updated > BloodTestMetaUpdateItems //check last updated from payload is more recent
-      ) {
-        console.log("update record");
-        await checkResult(
-          js,
-          episodeItemStatus,
-          dbClient,
-          episodeParticipantId,
-          episodeBatchId,
-          fhirPayload
-        );
-      } else {
-        console.error(
-          "Error: Reject record; Invalid timestamp or identifier value"
-        );
-        const confirmation = await pushCsvToS3(
-          `${ENVIRONMENT}-${failureBucket}`,
-          `invalidRecord/invalidRecord_${dateTime}.json`,
-          csvString,
-          s3
-        );
-        return confirmation;
-      }
-    }
-  } else {
-    console.error("Error: No matching participant, reject record");
-    const confirmation = await pushCsvToS3(
-      `${ENVIRONMENT}-${failureBucket}`,
-      `invalidRecord/invalidRecord_${dateTime}.json`,
-      csvString,
-      s3
-    );
-    return confirmation;
-  }
+  // if (episodeItemStatus) {
+  //   const dateTime = new Date(Date.now()).toISOString();
+  //   fhirPayload.episodeStatus = episodeItemStatus;
+  //   console.log("here");
+  //   console.log(fhirPayload.episodeStatus);
+  //   if (!BloodTestItems) {
+  //     console.log("insert new record");
+  //     await checkResult(
+  //       js,
+  //       episodeItemStatus,
+  //       dbClient,
+  //       episodeParticipantId,
+  //       episodeBatchId,
+  //       fhirPayload
+  //     );
+  //     //if success, also decode pdf and push to s3
+  //   } else if (BloodTestItems) {
+  //     console.log("check timestamp from db and identifier value");
+  //     if (
+  //       fhirPayload.Identifier_Value === BloodTestItems && //match identifier from ddb to payload
+  //       fhirPayload.Meta_Last_Updated > BloodTestMetaUpdateItems //check last updated from payload is more recent
+  //     ) {
+  //       console.log("update record");
+  //       await checkResult(
+  //         js,
+  //         episodeItemStatus,
+  //         dbClient,
+  //         episodeParticipantId,
+  //         episodeBatchId,
+  //         fhirPayload
+  //       );
+  //     } else {
+  //       console.error(
+  //         "Error: Reject record; Invalid timestamp or identifier value"
+  //       );
+  //       const confirmation = await pushCsvToS3(
+  //         `${ENVIRONMENT}-${failureBucket}`,
+  //         `invalidRecord/invalidRecord_${dateTime}.json`,
+  //         csvString,
+  //         s3
+  //       );
+  //       return confirmation;
+  //     }
+  //   }
+  // } else {
+  //   console.error("Error: No matching participant, reject record");
+  //   const confirmation = await pushCsvToS3(
+  //     `${ENVIRONMENT}-${failureBucket}`,
+  //     `invalidRecord/invalidRecord_${dateTime}.json`,
+  //     csvString,
+  //     s3
+  //   );
+  //   return confirmation;
+  // }
 };
 
 //FUNCTIONS
