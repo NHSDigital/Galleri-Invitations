@@ -112,3 +112,15 @@ variable "route53_count" {
 variable "teams_url" {
   description = "the url for the microsoft teams endpoint"
 }
+
+variable "alias_name" {
+  description = "Name of ALB of FHIR service"
+  type        = string
+  default     = null
+}
+
+variable "alias_zone_id" {
+  description = "Zone ID of ALB of FHIR service"
+  type        = string
+  default     = null
+}
