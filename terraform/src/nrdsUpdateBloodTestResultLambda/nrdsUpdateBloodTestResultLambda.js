@@ -209,7 +209,9 @@ export const handler = async (event) => {
           fhirPayload
         );
       } else {
-        console.log("reject record");
+        console.error(
+          "Error: Reject record; Invalid timestamp or identifier value"
+        );
         const confirmation = await pushCsvToS3(
           `${ENVIRONMENT}-${failureBucket}`,
           `invalidRecord/invalidRecord_${dateTime}.json`,
@@ -220,7 +222,7 @@ export const handler = async (event) => {
       }
     }
   } else {
-    console.log("no matched participant, reject");
+    console.error("Error: No matching participant, reject record");
     const confirmation = await pushCsvToS3(
       `${ENVIRONMENT}-${failureBucket}`,
       `invalidRecord/invalidRecord_${dateTime}.json`,
