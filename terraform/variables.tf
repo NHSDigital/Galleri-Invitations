@@ -118,3 +118,7 @@ variable "route53_count" {
   description = "how many route53 to provision"
   default     = 1
 }
+
+variable "teams_url" {
+  description = "the url for the microsoft teams endpoint"
+}
