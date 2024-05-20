@@ -100,52 +100,51 @@ export const handler = async (event) => {
       );
     }
     // // Cso_Result_Snowmed_Code_Primary and Cso_Result_Snowmed_Display_Primary (will be a list of multiple)
-    // if (
-    //   get(js, `.entry[${objs}]?.resource?.code?.coding[0]?.code`) ===
-    //     "1873921000000106" &&
-    //   get(js, `.entry[${objs}]?.resource?.component`)
-    // ) {
-    //   for (let entry of get(js, `entry[${objs}].resource.component`))
-    //     for (
-    //       let i = 0;
-    //       i < get(js, `${entry}?.valueCodeableConcept?.coding?.length`);
-    //       i++
-    //     ) {
-    //       fhirPayload.Cso_Result_Snowmed_Code_Primary.push(
-    //         get(js, `${entry}?.valueCodeableConcept?.coding[i]?.code`)
-    //       );
-    //       fhirPayload.Cso_Result_Snowmed_Display_Primary.push(
-    //         get(js, `${entry}?.valueCodeableConcept?.coding[i]?.display`)
-    //       );
-    //     }
-    // }
+    if (
+      get(js.entry[objs].resource, `code.coding[0].code`) === "1873921000000106"
+    ) {
+      for (let entry of get(js.entry[objs].resource, `component`)) {
+        for (
+          let i = 0;
+          i < get(entry.valueCodeableConcept, `coding`).length;
+          i++
+        ) {
+          fhirPayload.Cso_Result_Snowmed_Code_Primary.push(
+            get(entry.valueCodeableConcept.coding[i], `code`)
+          );
+          fhirPayload.Cso_Result_Snowmed_Display_Primary.push(
+            get(entry.valueCodeableConcept.coding[i], `display`)
+          );
+        }
+      }
+    }
+
     // // Cso_Result_Snowmed_Code_Secondary and Cso_Result_Snowmed_Display_Secondary (will be a list of multiple)
-    // if (
-    //   get(js, `entry[${objs}]?.resource?.code?.coding[0].code`) ===
-    //     "1873931000000108" &&
-    //   get(js, `entry[${objs}]?.resource?.component`)
-    // ) {
-    //   for (let entry of get(js, `entry[${objs}].resource.component`))
-    //     for (
-    //       let i = 0;
-    //       i < get(js, `${entry}.valueCodeableConcept.coding.length`);
-    //       i++
-    //     ) {
-    //       fhirPayload.Cso_Result_Snowmed_Code_Secondary.push(
-    //         get(js, `${entry}?.valueCodeableConcept?.coding[i]?.code`)
-    //       );
-    //       fhirPayload.Cso_Result_Snowmed_Display_Secondary.push(
-    //         get(js, `${entry}?.valueCodeableConcept?.coding[i]?.display`)
-    //       );
-    //     }
-    // }
+    if (
+      get(js.entry[objs].resource, `code.coding[0].code`) === "1873931000000108"
+    ) {
+      for (let entry of get(js.entry[objs].resource, `component`)) {
+        for (
+          let i = 0;
+          i < get(entry.valueCodeableConcept, `coding`).length;
+          i++
+        ) {
+          fhirPayload.Cso_Result_Snowmed_Code_Secondary.push(
+            get(entry.valueCodeableConcept.coding[i], `code`)
+          );
+          fhirPayload.Cso_Result_Snowmed_Display_Secondary.push(
+            get(entry.valueCodeableConcept.coding[i], `display`)
+          );
+        }
+      }
+    }
     // // Participant_Id
-    // if (get(js, `entry[${objs}]?.resource?.resourceType`) === "Patient") {
-    //   fhirPayload.Participant_Id = get(
-    //     js,
-    //     `entry[${objs}]?.resource?.identifier[0]?.value`
-    //   );
-    // }
+    if (get(testPayload.entry[objs].resource, `resourceType`) === "Patient") {
+      fhirPayload.Participant_Id = get(
+        testPayload?.entry[objs],
+        `resource.identifier[0].value`
+      );
+    }
   }
 
   console.log(JSON.stringify(fhirPayload));
