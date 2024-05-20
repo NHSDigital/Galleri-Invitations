@@ -8,7 +8,6 @@ import {
   S3Client,
   GetObjectCommand,
   PutObjectCommand,
-  DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 import get from "lodash.get";
 //VARIABLES
