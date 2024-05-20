@@ -40,7 +40,7 @@ resource "aws_acm_certificate_validation" "example" {
 }
 
 resource "aws_route53_record" "actual_record" {
-  count   = local.alias_name_valid ? 0 : 1
+  count   = local.alias_name_valid ? 1 : 0
   zone_id = data.aws_route53_zone.example.id
   name    = aws_acm_certificate.certificate.domain_name
   type    = "A"
