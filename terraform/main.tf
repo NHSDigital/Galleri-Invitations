@@ -1209,7 +1209,9 @@ module "nrds_update_blood_test_result_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "nrds_update_blood_test_result_lambda.zip"
   environment_vars = {
-    ENVIRONMENT = "${var.environment}"
+    ENVIRONMENT   = "${var.environment}",
+    FAILUREBUCKET = "inbound-nrds-galleritestresult-step4-error",
+    SUCCESSBUCKET = "inbound-nrds-galleritestresult-step4-success",
   }
 }
 

@@ -17,6 +17,9 @@ const dbClient = new DynamoDBClient();
 const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
+const failureBucket = process.env.FAILUREBUCKET;
+const successBucket = process.env.SUCCESSBUCKET;
+
 // variables required for logging
 const { timestamp, combine, printf } = winston.format;
 const myFormat = printf(
@@ -175,6 +178,7 @@ export const handler = async (event) => {
 
   //matches participant
   if (episodeItemStatus) {
+    const dateTime = new Date(Date.now()).toISOString();
     fhirPayload.episodeStatus = episodeItemStatus;
     console.log("here");
     console.log(fhirPayload.episodeStatus);
@@ -206,13 +210,24 @@ export const handler = async (event) => {
         );
       } else {
         console.log("reject record");
-        //TODO: push failed json file to s3
+        const confirmation = await pushCsvToS3(
+          `${failureBucket}`,
+          `invalidRecord/invalidRecord_${dateTime}.json`,
+          csvString,
+          s3
+        );
+        return confirmation;
       }
-      //existing record
     }
   } else {
     console.log("no matched participant, reject");
-    //TODO: push failed json file to s3
+    const confirmation = await pushCsvToS3(
+      `${failureBucket}`,
+      `invalidRecord/invalidRecord_${dateTime}.json`,
+      csvString,
+      s3
+    );
+    return confirmation;
   }
 };
 
