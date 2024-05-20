@@ -31,7 +31,7 @@ export const handler = async (event) => {
     );
 
     console.log(
-      `Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${bucket}`
+      `Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${ENVIRONMENT}-processed-inbound-gtms-clinic-create-or-update`
     );
 
     // Valid Records Arrangement

@@ -1,0 +1,29 @@
+{ "ClinicScheduleSummary": { "ClinicScheduleSummary": [
+  {
+    "ClinicID": "U7B-T8T",
+    "Schedule": [
+      {
+        "WeekCommencingDate": "2024-03-04",
+        "Availability": null
+      },{
+        "WeekCommencingDate": "2024-03-11",
+        "Availability": null
+      },{
+        "WeekCommencingDate": "2024-03-18",
+        "Availability": null
+      },{
+        "WeekCommencingDate": "2024-03-25",
+        "Availability": null
+      },{
+        "WeekCommencingDate": "2024-04-01",
+        "Availability": null
+      },{
+        "WeekCommencingDate": "2024-04-08",
+        "Availability": null
+      }
+    ]
+  }
+],
+"Timestamp": "2006-01-02T15:04:05.999999999Z"
+}
+}
