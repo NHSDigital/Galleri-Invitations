@@ -11,7 +11,7 @@ import {
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 import winston from "winston";
-
+import get from "lodash.get";
 //VARIABLES
 const dbClient = new DynamoDBClient();
 const s3 = new S3Client();
@@ -69,57 +69,81 @@ export const handler = async (event) => {
 
   for (let objs in js.entry) {
     //Grail_Id
-    if (js.entry[objs]?.resource?.resourceType === "ServiceRequest") {
-      fhirPayload.Grail_Id = js?.entry[objs]?.resource?.identifier[0]?.value;
+    if (
+      get(js, `entry[${objs}]?.resource?.resourceType`) === "ServiceRequest"
+    ) {
+      fhirPayload.Grail_Id = get(
+        js,
+        `entry[${objs}]?.resource?.identifier[0]?.value`
+      );
     }
     // CSD_Result_SNOWMED_Code and CSD_Result_SNOWMED_Display
     if (
-      js?.entry[objs]?.resource?.code?.coding[0]?.code === "1854971000000106"
+      get(js, `entry[${objs}]?.resource?.code?.coding[0]?.code`) ===
+      "1854971000000106"
     ) {
-      fhirPayload.CSD_Result_SNOWMED_Code =
-        js?.entry[objs]?.resource?.valueCodeableConcept?.coding[0]?.code;
-      fhirPayload.CSD_Result_SNOWMED_Display =
-        js?.entry[objs]?.resource?.valueCodeableConcept?.coding[0]?.display;
+      fhirPayload.CSD_Result_SNOWMED_Code = get(
+        js,
+        `entry[${objs}]?.resource?.valueCodeableConcept?.coding[0]?.code`
+      );
+      fhirPayload.CSD_Result_SNOWMED_Display = get(
+        js,
+        `entry[${objs}]?.resource?.valueCodeableConcept?.coding[0]?.display`
+      );
     }
     // Blood_Draw_Date
-    if (js.entry[objs]?.resource?.resourceType === "Specimen") {
-      fhirPayload.Blood_Draw_Date =
-        js?.entry[objs]?.resource?.collection?.collectedDateTime;
+    if (get(`js.entry[${objs}]?.resource?.resourceType`) === "Specimen") {
+      fhirPayload.Blood_Draw_Date = get(
+        js,
+        `entry[${objs}]?.resource?.collection?.collectedDateTime`
+      );
     }
     // Cso_Result_Snowmed_Code_Primary and Cso_Result_Snowmed_Display_Primary (will be a list of multiple)
     if (
-      js?.entry[objs]?.resource?.code?.coding[0]?.code === "1873921000000106" &&
-      js?.entry[objs]?.resource?.component
+      get(js, `.entry[${objs}]?.resource?.code?.coding[0]?.code`) ===
+        "1873921000000106" &&
+      get(js, `.entry[${objs}]?.resource?.component`)
     ) {
-      for (let entry of js.entry[objs].resource.component)
-        for (let i = 0; i < entry?.valueCodeableConcept?.coding?.length; i++) {
+      for (let entry of get(js, `entry[${objs}].resource.component`))
+        for (
+          let i = 0;
+          i < get(js, `${entry}?.valueCodeableConcept?.coding?.length`);
+          i++
+        ) {
           fhirPayload.Cso_Result_Snowmed_Code_Primary.push(
-            entry?.valueCodeableConcept?.coding[i]?.code
+            get(js, `${entry}?.valueCodeableConcept?.coding[i]?.code`)
           );
           fhirPayload.Cso_Result_Snowmed_Display_Primary.push(
-            entry?.valueCodeableConcept?.coding[i]?.display
+            get(js, `${entry}?.valueCodeableConcept?.coding[i]?.display`)
           );
         }
     }
     // Cso_Result_Snowmed_Code_Secondary and Cso_Result_Snowmed_Display_Secondary (will be a list of multiple)
     if (
-      js?.entry[objs]?.resource?.code?.coding[0].code === "1873931000000108" &&
-      js?.entry[objs]?.resource?.component
+      get(js, `entry[${objs}]?.resource?.code?.coding[0].code`) ===
+        "1873931000000108" &&
+      get(js, `entry[${objs}]?.resource?.component`)
     ) {
-      for (let entry of js.entry[objs].resource.component)
-        for (let i = 0; i < entry.valueCodeableConcept.coding.length; i++) {
+      for (let entry of get(js, `entry[${objs}].resource.component`))
+        for (
+          let i = 0;
+          i < get(js, `${entry}.valueCodeableConcept.coding.length`);
+          i++
+        ) {
           fhirPayload.Cso_Result_Snowmed_Code_Secondary.push(
-            entry?.valueCodeableConcept?.coding[i]?.code
+            get(js, `${entry}?.valueCodeableConcept?.coding[i]?.code`)
           );
           fhirPayload.Cso_Result_Snowmed_Display_Secondary.push(
-            entry?.valueCodeableConcept?.coding[i]?.display
+            get(js, `${entry}?.valueCodeableConcept?.coding[i]?.display`)
           );
         }
     }
     // Participant_Id
-    if (js.entry[objs]?.resource?.resourceType === "Patient") {
-      fhirPayload.Participant_Id =
-        js?.entry[objs]?.resource?.identifier[0]?.value;
+    if (get(js, `entry[${objs}]?.resource?.resourceType`) === "Patient") {
+      fhirPayload.Participant_Id = get(
+        js,
+        `entry[${objs}]?.resource?.identifier[0]?.value`
+      );
     }
   }
 
