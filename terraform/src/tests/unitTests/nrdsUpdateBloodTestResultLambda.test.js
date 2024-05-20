@@ -192,7 +192,6 @@ describe("transactionalWrite", () => {
     const appointmentId = "12345";
     const episodeStatus = "status";
 
-    episodeStatus;
     const result = await transactionalWrite(
       mockDynamoDbClient,
       testObj.participantId,
@@ -233,7 +232,6 @@ describe("transactionalWrite", () => {
     const appointmentId = "12345";
     const episodeStatus = "status";
 
-    episodeStatus;
     const result = await transactionalWrite(
       mockDynamoDbClient,
       testObj.participantId,
