@@ -78,7 +78,10 @@ export const handler = async (event) => {
             AppointmentID,
             EventType,
             Timestamp,
-            episodeEvent.complete
+            episodeEvent.complete,
+            "NULL",
+            GrailID,
+            BloodCollectionDate
           );
         } else {
           await rejectRecord(appointmentJson);
@@ -232,7 +235,9 @@ export const transactionalWrite = async (
   eventType,
   appointmentTimestamp,
   episodeEvent,
-  eventDescription = "Null"
+  eventDescription = "Null",
+  grailId = "null",
+  bloodCollectionDate = "null"
 ) => {
   const timeNow = new Date(Date.now()).toISOString();
   const params = {
@@ -261,11 +266,13 @@ export const transactionalWrite = async (
             Participant_Id: { S: participantId },
             Appointment_Id: { S: appointmentId },
           },
-          UpdateExpression: `SET event_type = :eventType, Time_stamp = :appointmentTimestamp`,
+          UpdateExpression: `SET event_type = :eventType, Time_stamp = :appointmentTimestamp, grail_id = :grailId, blood_collection_date = :bloodCollectionDate`,
           TableName: `${ENVIRONMENT}-Appointments`,
           ExpressionAttributeValues: {
             ":eventType": { S: eventType },
             ":appointmentTimestamp": { S: appointmentTimestamp },
+            ":grailId": { S: grailId },
+            ":bloodCollectionDate": { S: bloodCollectionDate},
           },
         },
       },
