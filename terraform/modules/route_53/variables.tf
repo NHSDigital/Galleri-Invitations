@@ -1,8 +1,8 @@
 locals {
   alias_name_valid = (
     var.alias_name != null &&
-    var.alias_name >= 1 &&
-    var.alias_name <= 1024
+    length(var.alias_name) >= 1 &&
+    length(var.alias_name) <= 1024
   )
 }
 
@@ -30,9 +30,11 @@ variable "hostname" {
 variable "alias_name" {
   description = "Name of ALB of FHIR service"
   type        = string
+  default     = null
 }
 
 variable "alias_zone_id" {
   description = "Zone ID of ALB of FHIR service"
   type        = string
+  default     = null
 }
