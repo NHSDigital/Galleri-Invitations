@@ -39,9 +39,9 @@ export const handler = async (event) => {
   let payloadPdf = "";
   let fhirPayload = {
     episode_event: "",
-    Grail_FHIR_Result_Id: js?.id,
-    Meta_Last_Updated: js?.meta?.lastUpdated,
-    Identifier_Value: js?.identifier.value,
+    Grail_FHIR_Result_Id: get(js, `id`),
+    Meta_Last_Updated: get(js, `meta.lastUpdated`),
+    Identifier_Value: get(js, `identifier.value`),
     Grail_Id: "",
     CSD_Result_SNOWMED_Code: "",
     CSD_Result_SNOWMED_Display: "",
@@ -127,7 +127,7 @@ export const handler = async (event) => {
     // // Participant_Id
     if (get(js.entry[objs].resource, `resourceType`) === "Patient") {
       fhirPayload.Participant_Id = get(
-        js?.entry[objs],
+        js.entry[objs],
         `resource.identifier[0].value`
       );
     }
