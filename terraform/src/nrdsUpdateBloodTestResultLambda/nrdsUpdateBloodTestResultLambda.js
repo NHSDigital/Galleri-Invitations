@@ -233,7 +233,7 @@ export const handler = async (event) => {
         );
         const fhirConfirmation = await pushCsvToS3(
           `${ENVIRONMENT}-${successBucket}`,
-          `GalleriTestResults/${fhirPayload.Participant_Id}_fhir_message_${dateTime}.pdf`,
+          `GalleriTestResults/${fhirPayload.Participant_Id}_fhir_message_${dateTime}.json`,
           csvString,
           s3
         );
@@ -265,7 +265,7 @@ export const handler = async (event) => {
           );
           const fhirConfirmation = await pushCsvToS3(
             `${ENVIRONMENT}-${successBucket}`,
-            `GalleriTestResults/${fhirPayload.Participant_Id}_fhir_message_${dateTime}.pdf`,
+            `GalleriTestResults/${fhirPayload.Participant_Id}_fhir_message_${dateTime}.json`,
             csvString,
             s3
           );
