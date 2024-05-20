@@ -36,21 +36,6 @@ export const handler = async (event) => {
   const csvString = await readCsvFromS3(bucket, key, s3);
   const js = JSON.parse(csvString); //convert string retrieved from S3 to object
 
-  // console.log(js);
-
-  // let episode_event = "";
-  // let Grail_FHIR_Result_Id = js?.id;
-  // let Meta_Last_Updated = js?.meta?.lastUpdated;
-  // let Identifier_Value = js?.identifier.value;
-  // let Grail_Id = "";
-  // let CSD_Result_SNOWMED_Code = "";
-  // let CSD_Result_SNOWMED_Display = "";
-  // let Blood_Draw_Date = "";
-  // let Cso_Result_Snowmed_Code_Primary = [];
-  // let Cso_Result_Snowmed_Display_Primary = [];
-  // let Cso_Result_Snowmed_Code_Secondary = [];
-  // let Cso_Result_Snowmed_Display_Secondary = [];
-  // let Participant_Id = "";
   let payloadPdf = "";
   let fhirPayload = {
     episode_event: "",
@@ -152,17 +137,9 @@ export const handler = async (event) => {
     }
   }
 
+  checkProperties(fhirPayload);
   console.log(JSON.stringify(fhirPayload));
   const bufferData = Buffer.from(payloadPdf, "base64");
-  console.log(bufferData.length);
-  // console.log(payloadPdf);
-  //TODO: check out of order message
-  //use Meta_Last_Updated and Identifier_Value,
-  //need to lookup GalleriBloodTestResult, if no entry insert
-  //if record exists and lookup.Items[0] exists, check Meta_Last_Updated > ddb Meta_Last_Updated (Accept)
-  //^ save js obj (payload) to step 4 output success bucket and save to ddb. Transactional Write to
-  //GalleriBloodTestResult and Episode
-  //Also save decoded pdf to S3
 
   // if < ddb, reject record - step4 output error bucket
   const episodeResponse = await lookUp(
@@ -193,20 +170,6 @@ export const handler = async (event) => {
   const BloodTestMetaUpdateItems =
     BloodTestResponse?.Items[0]?.Meta_Last_Updated?.S;
 
-  console.log("break point");
-  // console.log(Grail_FHIR_Result_Id);
-  // console.log(Meta_Last_Updated);
-  // console.log(Identifier_Value);
-  // console.log(Grail_Id);
-  // console.log(CSD_Result_SNOWMED_Code);
-  // console.log(CSD_Result_SNOWMED_Display);
-  // console.log(Blood_Draw_Date);
-  // console.log(Cso_Result_Snowmed_Code_Primary);
-  // console.log(Cso_Result_Snowmed_Display_Primary);
-  // console.log(Cso_Result_Snowmed_Code_Secondary);
-  // console.log(Cso_Result_Snowmed_Display_Secondary);
-  // console.log(Participant_Id);
-
   //matches participant
   if (episodeItemStatus) {
     const dateTime = new Date(Date.now()).toISOString();
@@ -225,19 +188,20 @@ export const handler = async (event) => {
       );
       console.log(result);
       if (result) {
-        const pdfconfirmation = await pushCsvToS3(
-          `${ENVIRONMENT}-${successBucket}`,
-          `GalleriTestResults/${fhirPayload.Participant_Id}_pdf_${dateTime}.pdf`,
-          bufferData,
-          s3
-        );
-        const fhirConfirmation = await pushCsvToS3(
+        await pushCsvToS3(
           `${ENVIRONMENT}-${successBucket}`,
           `GalleriTestResults/${fhirPayload.Participant_Id}_fhir_message_${dateTime}.json`,
           csvString,
           s3
         );
-        return [pdfconfirmation, fhirConfirmation];
+        if (bufferData.length > 0) {
+          await pushCsvToS3(
+            `${ENVIRONMENT}-${successBucket}`,
+            `GalleriTestResults/${fhirPayload.Participant_Id}_pdf_${dateTime}.pdf`,
+            bufferData,
+            s3
+          );
+        }
       }
       //if success, also decode pdf and push to s3
     } else if (BloodTestItems) {
@@ -257,19 +221,20 @@ export const handler = async (event) => {
         );
         console.log(result);
         if (result) {
-          const pdfconfirmation = await pushCsvToS3(
-            `${ENVIRONMENT}-${successBucket}`,
-            `GalleriTestResults/${fhirPayload.Participant_Id}_pdf_${dateTime}.pdf`,
-            bufferData,
-            s3
-          );
-          const fhirConfirmation = await pushCsvToS3(
+          await pushCsvToS3(
             `${ENVIRONMENT}-${successBucket}`,
             `GalleriTestResults/${fhirPayload.Participant_Id}_fhir_message_${dateTime}.json`,
             csvString,
             s3
           );
-          return [pdfconfirmation, fhirConfirmation];
+          if (bufferData.length > 0) {
+            await pushCsvToS3(
+              `${ENVIRONMENT}-${successBucket}`,
+              `GalleriTestResults/${fhirPayload.Participant_Id}_pdf_${dateTime}.pdf`,
+              bufferData,
+              s3
+            );
+          }
         }
       } else {
         console.error(
@@ -603,3 +568,15 @@ export const checkResult = async (
     }
   }
 };
+
+function checkProperties(obj) {
+  for (var key in obj) {
+    if (obj[key] != "") {
+      console.log("true");
+    } else if (obj[key] == "" && Array.isArray(obj[key])) {
+      obj[key] = ["null"];
+    } else {
+      obj[key] = "null";
+    }
+  }
+}
