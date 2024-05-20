@@ -216,7 +216,6 @@ export const getParticipantsInQuintile = (
 
   let count = 0;
   let iterationNumber = 0;
-  let selectedParticipantCount = 1;
   const selectedParticipants = new Set();
   // Select random person within quintile, loop through until quintile target is met
   while (count < quintileTarget) {
@@ -244,8 +243,6 @@ export const getParticipantsInQuintile = (
       const personSelectedForecastUptake =
         quintilePopulationObject[personSelectedId];
       count += personSelectedForecastUptake / 100;
-      // increment selectedPerson count
-      selectedParticipantCount++;
       // remove that person from pool of people that can be invited
       delete quintilePopulationObject[personSelectedId];
     } else {
