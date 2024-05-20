@@ -139,9 +139,9 @@ export const handler = async (event) => {
       }
     }
     // // Participant_Id
-    if (get(testPayload.entry[objs].resource, `resourceType`) === "Patient") {
+    if (get(js.entry[objs].resource, `resourceType`) === "Patient") {
       fhirPayload.Participant_Id = get(
-        testPayload?.entry[objs],
+        js?.entry[objs],
         `resource.identifier[0].value`
       );
     }
@@ -157,34 +157,34 @@ export const handler = async (event) => {
   //GalleriBloodTestResult and Episode
   //Also save decoded pdf to S3
 
-  //if < ddb, reject record - step4 output error bucket
-  // const episodeResponse = await lookUp(
-  //   dbClient,
-  //   fhirPayload.Participant_Id,
-  //   "Episode",
-  //   "Participant_Id",
-  //   "S",
-  //   true
-  // );
-  // console.log(JSON.stringify(episodeResponse?.Items[0]));
-  // console.log("episodeResponse");
-  // const episodeItemStatus = episodeResponse?.Items[0]?.Episode_Status?.S;
-  // console.log(episodeItemStatus);
-  // const episodeBatchId = episodeResponse?.Items[0]?.Batch_Id?.S;
-  // const episodeParticipantId = episodeResponse?.Items[0]?.Participant_Id?.S;
+  // if < ddb, reject record - step4 output error bucket
+  const episodeResponse = await lookUp(
+    dbClient,
+    fhirPayload.Participant_Id,
+    "Episode",
+    "Participant_Id",
+    "S",
+    true
+  );
+  console.log(JSON.stringify(episodeResponse?.Items[0]));
+  console.log("episodeResponse");
+  const episodeItemStatus = episodeResponse?.Items[0]?.Episode_Status?.S;
+  console.log(episodeItemStatus);
+  const episodeBatchId = episodeResponse?.Items[0]?.Batch_Id?.S;
+  const episodeParticipantId = episodeResponse?.Items[0]?.Participant_Id?.S;
 
-  // const BloodTestResponse = await lookUp(
-  //   dbClient,
-  //   fhirPayload.Participant_Id,
-  //   "GalleriBloodTestResult",
-  //   "Participant_Id",
-  //   "S",
-  //   false
-  // );
-  // const BloodTestItems = BloodTestResponse?.Items[0]?.Identifier_Value?.S;
-  // console.log(BloodTestItems);
-  // const BloodTestMetaUpdateItems =
-  //   BloodTestResponse?.Items[0]?.Meta_Last_Updated?.S;
+  const BloodTestResponse = await lookUp(
+    dbClient,
+    fhirPayload.Participant_Id,
+    "GalleriBloodTestResult",
+    "Participant_Id",
+    "S",
+    false
+  );
+  const BloodTestItems = BloodTestResponse?.Items[0]?.Identifier_Value?.S;
+  console.log(BloodTestItems);
+  const BloodTestMetaUpdateItems =
+    BloodTestResponse?.Items[0]?.Meta_Last_Updated?.S;
 
   console.log("break point");
   // console.log(Grail_FHIR_Result_Id);
@@ -201,60 +201,60 @@ export const handler = async (event) => {
   // console.log(Participant_Id);
 
   //matches participant
-  // if (episodeItemStatus) {
-  //   const dateTime = new Date(Date.now()).toISOString();
-  //   fhirPayload.episodeStatus = episodeItemStatus;
-  //   console.log("here");
-  //   console.log(fhirPayload.episodeStatus);
-  //   if (!BloodTestItems) {
-  //     console.log("insert new record");
-  //     await checkResult(
-  //       js,
-  //       episodeItemStatus,
-  //       dbClient,
-  //       episodeParticipantId,
-  //       episodeBatchId,
-  //       fhirPayload
-  //     );
-  //     //if success, also decode pdf and push to s3
-  //   } else if (BloodTestItems) {
-  //     console.log("check timestamp from db and identifier value");
-  //     if (
-  //       fhirPayload.Identifier_Value === BloodTestItems && //match identifier from ddb to payload
-  //       fhirPayload.Meta_Last_Updated > BloodTestMetaUpdateItems //check last updated from payload is more recent
-  //     ) {
-  //       console.log("update record");
-  //       await checkResult(
-  //         js,
-  //         episodeItemStatus,
-  //         dbClient,
-  //         episodeParticipantId,
-  //         episodeBatchId,
-  //         fhirPayload
-  //       );
-  //     } else {
-  //       console.error(
-  //         "Error: Reject record; Invalid timestamp or identifier value"
-  //       );
-  //       const confirmation = await pushCsvToS3(
-  //         `${ENVIRONMENT}-${failureBucket}`,
-  //         `invalidRecord/invalidRecord_${dateTime}.json`,
-  //         csvString,
-  //         s3
-  //       );
-  //       return confirmation;
-  //     }
-  //   }
-  // } else {
-  //   console.error("Error: No matching participant, reject record");
-  //   const confirmation = await pushCsvToS3(
-  //     `${ENVIRONMENT}-${failureBucket}`,
-  //     `invalidRecord/invalidRecord_${dateTime}.json`,
-  //     csvString,
-  //     s3
-  //   );
-  //   return confirmation;
-  // }
+  if (episodeItemStatus) {
+    const dateTime = new Date(Date.now()).toISOString();
+    fhirPayload.episodeStatus = episodeItemStatus;
+    console.log("here");
+    console.log(fhirPayload.episodeStatus);
+    if (!BloodTestItems) {
+      console.log("insert new record");
+      await checkResult(
+        js,
+        episodeItemStatus,
+        dbClient,
+        episodeParticipantId,
+        episodeBatchId,
+        fhirPayload
+      );
+      //if success, also decode pdf and push to s3
+    } else if (BloodTestItems) {
+      console.log("check timestamp from db and identifier value");
+      if (
+        fhirPayload.Identifier_Value === BloodTestItems && //match identifier from ddb to payload
+        fhirPayload.Meta_Last_Updated > BloodTestMetaUpdateItems //check last updated from payload is more recent
+      ) {
+        console.log("update record");
+        await checkResult(
+          js,
+          episodeItemStatus,
+          dbClient,
+          episodeParticipantId,
+          episodeBatchId,
+          fhirPayload
+        );
+      } else {
+        console.error(
+          "Error: Reject record; Invalid timestamp or identifier value"
+        );
+        const confirmation = await pushCsvToS3(
+          `${ENVIRONMENT}-${failureBucket}`,
+          `invalidRecord/invalidRecord_${dateTime}.json`,
+          csvString,
+          s3
+        );
+        return confirmation;
+      }
+    }
+  } else {
+    console.error("Error: No matching participant, reject record");
+    const confirmation = await pushCsvToS3(
+      `${ENVIRONMENT}-${failureBucket}`,
+      `invalidRecord/invalidRecord_${dateTime}.json`,
+      csvString,
+      s3
+    );
+    return confirmation;
+  }
 };
 
 //FUNCTIONS
