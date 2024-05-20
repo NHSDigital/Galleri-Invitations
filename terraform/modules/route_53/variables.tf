@@ -1,7 +1,6 @@
 locals {
   alias_name_valid = (
     var.alias_name != null &&
-    var.alias_name != "" &&
     length(var.alias_name) >= 1 &&
     length(var.alias_name) <= 1024
   )
