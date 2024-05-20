@@ -2682,12 +2682,14 @@ resource "aws_ssm_parameter" "contact-escalation-tables" {
 }
 
 module "fhir_cert" {
-  source      = "./modules/route_53"
-  count       = var.route53_count > 0 ? 1 : 0
-  environment = var.environment
-  region      = var.region
-  dns_zone    = var.dns_zone
-  hostname    = var.invitations_hostname
+  source        = "./modules/route_53"
+  count         = var.route53_count > 0 ? 1 : 0
+  environment   = var.environment
+  region        = var.region
+  dns_zone      = var.dns_zone
+  hostname      = var.invitations_hostname
+  alias_name    = var.alias_name
+  alias_zone_id = var.alias_zone_id
 }
 
 resource "null_resource" "deploy_manifests" {
