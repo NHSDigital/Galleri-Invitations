@@ -1,3 +1,7 @@
+locals {
+  alias_name_valid = var.alias_name != null
+}
+
 data "aws_route53_zone" "example" {
   name         = var.hostname
   private_zone = false
