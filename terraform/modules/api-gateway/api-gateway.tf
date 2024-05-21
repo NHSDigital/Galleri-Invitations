@@ -1,6 +1,77 @@
+# This is required becuase the global components are based out of us-east-1
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
+}
+
+# data "aws_route53_zone" "example" {
+#   name         = "${var.hostname}."
+#   private_zone = false
+# }
+
+# resource "aws_acm_certificate" "example" {
+#   provider          = aws.us_east_1
+#   domain_name       = "${var.path_part}.${var.environment}.${var.hostname}"
+#   validation_method = "DNS"
+#   tags = {
+#     ApplicationRole = "${var.application_role}"
+#     Name            = "${var.environment} ACM Certificate"
+#   }
+#   lifecycle {
+#     create_before_destroy = true
+#   }
+# }
+
+# resource "aws_route53_record" "example" {
+#   for_each = {
+#     for dvo in aws_acm_certificate.example.domain_validation_options : dvo.domain_name => {
+#       name   = dvo.resource_record_name
+#       record = dvo.resource_record_value
+#       type   = dvo.resource_record_type
+#     }
+#   }
+
+#   allow_overwrite = true
+#   name            = each.value.name
+#   records         = [each.value.record]
+#   ttl             = 60
+#   type            = each.value.type
+#   zone_id         = data.aws_route53_zone.example.zone_id
+# }
+
+# resource "aws_acm_certificate_validation" "example" {
+#   provider                = aws.us_east_1
+#   certificate_arn         = aws_acm_certificate.example.arn
+#   validation_record_fqdns = [for record in aws_route53_record.example : record.fqdn]
+# }
+
+# resource "aws_api_gateway_domain_name" "api_domain" {
+#   domain_name     = "${var.path_part}.${var.environment}.${var.hostname}"
+#   certificate_arn = aws_acm_certificate.example.arn
+# }
+
+# Once we have validated that the domain is owned and correct then we create the actual record
+# resource "aws_route53_record" "api_domain_cname" {
+#   zone_id = data.aws_route53_zone.example.id
+#   name    = "${var.path_part}.${var.environment}.${var.hostname}"
+#   type    = "CNAME"
+#   records = [aws_api_gateway_domain_name.api_domain.cloudfront_domain_name]
+#   ttl     = 300
+# }
+
+# resource "aws_route53_record" "api_domain_cname" {
+#   zone_id = data.aws_route53_zone.example.id
+#   name    = "${var.path_part}.${var.environment}.${var.hostname}"
+#   type    = "CNAME"
+#   ttl     = 300
+#   records = [aws_api_gateway_domain_name.api_domain.cloudfront_domain_name]
+
+#   depends_on = [aws_api_gateway_domain_name.api_domain]
+# }
+
 # Set up cloudwatch logging
 resource "aws_cloudwatch_log_group" "api_gateway_log_group" {
-  name              = "${var.environment}/aws/apigateway/${var.path_part}"
+  name              = "/aws/apigateway/${var.environment}-${var.path_part}"
   retention_in_days = 90
   tags = {
     ApplicationRole = "${var.application_role}"
