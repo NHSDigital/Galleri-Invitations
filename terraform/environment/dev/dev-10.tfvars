@@ -6,3 +6,4 @@ CIS2_TOKEN_ENDPOINT_URL = "https://am.nhsint.auth-ptl.cis2.spineservices.nhs.uk:
 CIS2_PUBLIC_KEY_ID      = "cis2-int-1"
 invitations_hostname    = "cicd-gps-multi-cancer-blood-test.nhs.uk"
 sso_iam_role_arn        = "AWSReservedSSO_Admin_603cb786ef89bc37"
+teams_url               = "https://prod-08.uksouth.logic.azure.com:443/workflows/7edf4c6b99724691815d74a338b1146c/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=C6mpyBbevvm_sOZUHswhxplabaL34DqBjugX7oCY1UY"

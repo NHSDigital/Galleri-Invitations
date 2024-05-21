@@ -162,6 +162,27 @@ jobs:
           git commit -m "docs: Added new file"
           git push
 
+  build-stage: # Recommended maximum execution time is 10 minutes
+    needs: [metadata]
+    uses: ./.github/workflows/stage-3-build.yaml
+    with:
+      build_datetime: "${{ needs.metadata.outputs.build_datetime }}"
+      build_timestamp: "${{ needs.metadata.outputs.build_timestamp }}"
+      build_epoch: "${{ needs.metadata.outputs.build_epoch }}"
+      nodejs_version: "${{ needs.metadata.outputs.nodejs_version }}"
+      python_version: "${{ needs.metadata.outputs.python_version }}"
+      terraform_version: "${{ needs.metadata.outputs.terraform_version }}"
+      invitations_branch: "${{ github.event.inputs.invitations_branch }}"
+      version: "${{ needs.metadata.outputs.version }}"
+      environment: "${{ needs.metadata.outputs.environment }}"
+      tf_action: "${{ needs.metadata.outputs.tf_action }}"
+      frontend_branch: "${{ github.event.inputs.frontend_branch }}"
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
+      USERS: ${{ secrets.USERS }}
+      CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+
   # test-stage: # Recommended maximum execution time is 5 minutes
   #   needs: [metadata]
   #   uses: ./.github/workflows/stage-2-test.yaml
