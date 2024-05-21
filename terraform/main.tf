@@ -1143,13 +1143,8 @@ module "nrds_update_blood_test_result_lambda" {
     FAILUREBUCKET = "inbound-nrds-galleritestresult-step4-error",
     SUCCESSBUCKET = "inbound-nrds-galleritestresult-step4-success",
   }
-}
-
-module "nrds_update_blood_test_result_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.nrds_update_blood_test_result_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "nrds_update_blood_test_result_lambda_trigger" {

@@ -48,8 +48,6 @@ export const handler = async (event) => {
   for (let objs in js.entry) {
     //Grail_Id
     if (get(js.entry[objs].resource, `resourceType`) === "ServiceRequest") {
-      console.log("inside");
-      console.log(get(js.entry[objs].resource.identifier[0], `value`));
       fhirPayload.Grail_Id = get(
         js.entry[objs].resource.identifier[0],
         `value`
@@ -71,7 +69,6 @@ export const handler = async (event) => {
     }
     // // Blood_Draw_Date
     if (get(js.entry[objs].resource, `resourceType`) === "Specimen") {
-      console.log("inside");
       fhirPayload.Blood_Draw_Date = get(
         js.entry[objs].resource,
         `collection.collectedDateTime`
@@ -130,7 +127,6 @@ export const handler = async (event) => {
   }
 
   checkProperties(fhirPayload);
-  console.log(JSON.stringify(fhirPayload));
   const bufferData = Buffer.from(payloadPdf, "base64");
 
   const episodeResponse = await lookUp(
@@ -141,8 +137,7 @@ export const handler = async (event) => {
     "S",
     true
   );
-  console.log(JSON.stringify(episodeResponse?.Items[0]));
-  console.log("episodeResponse");
+
   const episodeItemStatus = episodeResponse?.Items[0]?.Episode_Status?.S;
   console.log(episodeItemStatus);
   const episodeBatchId = episodeResponse?.Items[0]?.Batch_Id?.S;
@@ -165,8 +160,6 @@ export const handler = async (event) => {
   if (episodeItemStatus) {
     const dateTime = new Date(Date.now()).toISOString();
     fhirPayload.episodeStatus = episodeItemStatus;
-    console.log("here");
-    console.log(fhirPayload.episodeStatus);
     if (!BloodTestItems) {
       console.log("insert new record");
       let result = await checkResult(
@@ -364,9 +357,7 @@ export const transactionalWrite = async (
   fhirPayload,
   episodeStatus
 ) => {
-  console.log(fhirPayload.episode_event);
   const timeNow = new Date(Date.now()).toISOString();
-  console.log(timeNow);
   const params = {
     TransactItems: [
       {
@@ -422,7 +413,6 @@ export const transactionalWrite = async (
   };
 
   try {
-    console.log(JSON.stringify(params));
     const command = new TransactWriteItemsCommand(params);
     const response = await client.send(command);
     if (response.$metadata.httpStatusCode !== 200) {
