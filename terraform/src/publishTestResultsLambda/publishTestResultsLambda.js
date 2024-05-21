@@ -3,7 +3,7 @@ import isEqual from "lodash.isequal";
 
 const sns = new SNSClient({ region: "eu-west-2" });
 const ENVIRONMENT = process.env.ENVIRONMENT;
-const topicName = "testResultTopic";
+const SNS_TOPIC_ARN = process.env.SNS_TOPIC_ARN;
 
 /*
   Lambda to publish test results to SNS topic
@@ -14,7 +14,17 @@ export const handler = async (event) => {
   console.log("Number of records uploaded: ", uploadedRecords.length);
 
   try {
-    await processIncomingRecords(uploadedRecords);
+    const resultsRecordsUpload = await processIncomingRecords(uploadedRecords);
+
+    const filteredRecords = resultsRecordsUpload.filter(
+      (record) => record.status !== "fulfilled"
+    );
+
+    if (filteredRecords.length > 0) {
+      console.warn("Some Records did not update properly");
+    } else {
+      return `The episode records have been successfully created.`;
+    }
   } catch (error) {
     console.error(`Error: Error in publish test results lambda`);
     console.error(`Error: ${error}`);
@@ -44,10 +54,10 @@ export const processIncomingRecords = async (uploadedRecordsArr) => {
           );
           if (uploadRecord.$metadata.httpStatusCode == 200) {
             return Promise.resolve(
-              `Successfully published participant ${newImage.Participant_Id.S} info to ${topicName} topic`
+              `Successfully published participant ${newImage.Participant_Id.S} info to ${SNS_TOPIC_ARN} topic`
             );
           } else {
-            const msg = `Error: An error occured trying to publish participant ${newImage.Participant_Id.S} info to ${topicName} topic`;
+            const msg = `Error: An error occured trying to publish participant ${newImage.Participant_Id.S} info to ${SNS_TOPIC_ARN} topic`;
             console.error(msg);
             return Promise.reject(msg);
           }
@@ -60,6 +70,7 @@ export const processIncomingRecords = async (uploadedRecordsArr) => {
       })
     );
 
+    console.log(JSON.stringify(resultsRecordsUpload));
     console.log("Exiting processIncomingRecords");
     return resultsRecordsUpload;
   } catch (error) {
@@ -71,20 +82,15 @@ export const processIncomingRecords = async (uploadedRecordsArr) => {
 
 export const formatTestResultRecord = (record) => {
   console.log("Entered formatTestResultRecord");
+  var message = {
+    participant_id: record.Participant_Id.S,
+    grail_id: record.Grail_Id.S,
+    grail_FHIR_result_id: record.Grail_FHIR_Result_Id.S
+  };
+
   const params = {
-    Message: {
-      participant_id: {
-        S: `${record.Participant_Id.S}`,
-      },
-      grail_id: {
-        S: `${record.Grail_Id.S}`
-      },
-      grail_FHIR_result_id: {
-        S: `${record.Grail_FHIR_Result_Id.S}`
-      }
-    },
-    MessageStructure: 'json',
-    TopicArn: `arn:aws:sns:eu-west-2:136293001324:${ENVIRONMENT}-${topicName}`
+    Message: JSON.stringify(message),
+    TopicArn: `arn:aws:sns:eu-west-2:136293001324:${ENVIRONMENT}-${SNS_TOPIC_ARN}`
   };
   console.log("Exiting formatTestResultRecord");
   return params;
@@ -100,7 +106,7 @@ export const sendToTopic = async (formattedOutput, sns) => {
 
     return response;
   } catch (error) {
-    console.error(`Error: Failed to send message to SNS Topic: ${topicName}`);
+    console.error(`Error: Failed to send message to SNS Topic: ${SNS_TOPIC_ARN}`);
     console.error(`Error: ${error}`);
     throw error;
   }

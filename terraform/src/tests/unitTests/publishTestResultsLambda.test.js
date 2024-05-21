@@ -34,20 +34,16 @@ describe("formatTestResultRecord", () => {
     jest.clearAllMocks();
   });
   test("Correctly formats Dynamodb JSON object", async () => {
+
+    var message = {
+      participant_id: "ID_1",
+      grail_id: "NHS-06WR7LP",
+      grail_FHIR_result_id: "6f6-47eb-8"
+    };
+
     const expected = {
-      Message: {
-        participant_id: {
-          S: `ID_1`
-        },
-        grail_id: {
-          S: `NHS-06WR7LP`
-        },
-        grail_FHIR_result_id: {
-          S: `6f6-47eb-8`
-        }
-      },
-      MessageStructure: 'json',
-      TopicArn: "arn:aws:sns:eu-west-2:136293001324:undefined-testResultTopic"
+      Message: JSON.stringify(message),
+      TopicArn: "arn:aws:sns:eu-west-2:136293001324:undefined-undefined"
     };
 
     const mockRecord = {
