@@ -90,6 +90,8 @@ export const handler = async (event) => {
       episodeItems?.Participant_Id
     )} loaded.`
   );
+
+  logger.info(`episodeItems: ${JSON.stringify(episodeItems)} loaded.`);
   //doesn't pull associated appointment id as in scenario it is new but links to existing
 
   const appointmentResponse = await lookUp(
