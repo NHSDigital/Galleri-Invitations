@@ -173,6 +173,7 @@ describe("transactionalWrite", () => {
     const batchId = "IB-pck28f-datsf28f-a233-bug41-2right111f4a53";
     const appointmentId = "12345";
     const eventType = "CANCELLED";
+    const appointmentTimestamp = "2024-05-14T15:04:05.999Z"
     const episodeEvent = "Appointment Cancelled by Participant - Withdrawn";
     const eventDescription = "example";
 
@@ -182,6 +183,7 @@ describe("transactionalWrite", () => {
       batchId,
       appointmentId,
       eventType,
+      appointmentTimestamp,
       episodeEvent,
       eventDescription
     );
@@ -201,6 +203,7 @@ describe("transactionalWrite", () => {
     const batchId = "IB-pck28f-datsf28f-a233-bug41-2right111f4a53";
     const appointmentId = "12345";
     const eventType = "CANCELLED";
+    const appointmentTimestamp = "2024-05-14T15:04:05.999Z"
     const episodeEvent = "Appointment Cancelled by Participant - Withdrawn";
     const eventDescription = "example";
 
@@ -210,6 +213,7 @@ describe("transactionalWrite", () => {
       batchId,
       appointmentId,
       eventType,
+      appointmentTimestamp,
       episodeEvent,
       eventDescription
     );

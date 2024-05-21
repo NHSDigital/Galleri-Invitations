@@ -26,6 +26,8 @@ describe("transactionalWrite", () => {
     const eventType = "COMPLETE";
     const episodeEvent = "Event-A";
     const eventDescription = "Null";
+    const grailId = "Grail-ID";
+    const bloodCollectionDate = "Date";
 
     const result = await transactionalWrite(
       mockDynamoDbClient,

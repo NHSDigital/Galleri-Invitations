@@ -48,6 +48,7 @@ export const handler = async (event) => {
   const AppointmentID = js?.["Appointment"]?.["AppointmentID"];
   const CancellationReason = js?.["Appointment"]?.["CancellationReason"];
   const EventType = js?.["Appointment"]?.["EventType"]; //CANCELLED
+  const Timestamp = js?.["Appointment"]?.["Timestamp"];
 
   const episodeResponse = await lookUp(
     dbClient,
@@ -96,6 +97,7 @@ export const handler = async (event) => {
           episodeItems["Batch_Id"]["S"], //required PK for Episode update
           AppointmentID,
           EventType,
+          Timestamp,
           episodeEvent, //Appointment Cancelled by NHS
           CancellationReason //reason its cancelled coming from payload
         );
@@ -109,6 +111,7 @@ export const handler = async (event) => {
           episodeItems["Batch_Id"]["S"],
           AppointmentID,
           EventType,
+          Timestamp,
           episodeEvent,
           CancellationReason
         );
@@ -123,6 +126,7 @@ export const handler = async (event) => {
           episodeItems["Batch_Id"]["S"],
           AppointmentID,
           EventType,
+          Timestamp,
           episodeEvent,
           CancellationReason,
           "Closed"
@@ -237,6 +241,7 @@ export const transactionalWrite = async (
   batchId,
   appointmentId,
   eventType,
+  appointmentTimestamp,
   episodeEvent,
   cancellationReason,
   status = "Open"
@@ -268,10 +273,11 @@ export const transactionalWrite = async (
             Participant_Id: { S: participantId },
             Appointment_Id: { S: appointmentId },
           },
-          UpdateExpression: `SET event_type = :eventType`,
+          UpdateExpression: `SET event_type = :eventType, Time_stamp = :appointmentTimestamp`,
           TableName: `${ENVIRONMENT}-Appointments`,
           ExpressionAttributeValues: {
             ":eventType": { S: eventType },
+            ":appointmentTimestamp": { S: appointmentTimestamp },
           },
         },
       },
