@@ -1583,9 +1583,11 @@ module "publish_test_results_lambda" {
   memory_size          = 1024
   lambda_s3_object_key = "publish_test_results_lambda.zip"
   environment_vars = {
-    ENVIRONMENT = "${var.environment}"
+    ENVIRONMENT   = "${var.environment}"
     SNS_TOPIC_ARN = module.test_result_topic.sns_topic_arn
   }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "publish_test_results_cloudwatch" {
