@@ -77,9 +77,10 @@ describe("S3 Operations", () => {
 });
 
 describe("validateFields", () => {
-  test("should return validate success when replaces field is valid", async () => {
+  test("should return validate success for CANCELLED EventType when replaces field is null",
+  async () => {
     const appointmentObj = {
-      appointment: {
+      Appointment: {
         EventType: "CANCELLED",
         Replaces: null,
       }
@@ -88,14 +89,27 @@ describe("validateFields", () => {
     expect(valid).toBe(true);
   });
 
-  test("should return validate failed when replaces field is invalid", async () => {
+  test("should return validate failed for CANCELLED EventType when replaces field is not null",
+  async () => {
     const appointmentObj = {
-      appointment: {
+      Appointment: {
         EventType: "CANCELLED",
         Replaces: "00000000-ABCD-0000-G&-000000000000",
       }
     }
     const valid = validateFields(appointmentObj);
     expect(valid).toBe(false);
+  });
+
+  test("should return validate success for BOOKED EventType when replaces field is not null",
+  async () => {
+    const appointmentObj = {
+      Appointment: {
+        EventType: "BOOKED",
+        Replaces: "00000000-ABCD-0000-G&-000000000000",
+      }
+    }
+    const valid = validateFields(appointmentObj);
+    expect(valid).toBe(true);
   });
 });
