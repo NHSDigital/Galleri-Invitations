@@ -5,7 +5,7 @@ resource "aws_cloudwatch_log_group" "log_group" {
   lifecycle {
     create_before_destroy = true
     ignore_changes = [
-      tags,
+      tags, # Add any other attributes that might change outside of Terraform's management
     ]
   }
 }
@@ -34,20 +34,34 @@ resource "aws_cloudwatch_metric_alarm" "error_alarm" {
   statistic                 = "Sum"
   threshold                 = 1
   actions_enabled           = true
-  alarm_actions             = [var.sns_topic_arn]
+  alarm_actions             = [aws_sns_topic.alarm_topic.arn]
   ok_actions                = []
   insufficient_data_actions = []
 }
 
-resource "aws_sns_topic_subscription" "subscription" {
-  topic_arn = var.sns_topic_arn
+resource "aws_sns_topic" "alarm_topic" {
+  name = "${var.environment}-${var.sns_topic}"
+}
+
+resource "aws_sns_topic_subscription" "email_subscription" {
+  topic_arn = aws_sns_topic.alarm_topic.arn
   protocol  = "lambda"
-  endpoint  = var.sns_lambda_arn
+  endpoint  = aws_lambda_function.lambda.arn
+}
+
+resource "aws_lambda_permission" "allow_sns_to_invoke_lambda" {
+  statement_id  = "AllowExecutionFromSNS"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lambda.arn
+  principal     = "sns.amazonaws.com"
+  source_arn    = aws_sns_topic.alarm_topic.arn
+  depends_on    = [aws_lambda_function.lambda, aws_sns_topic.alarm_topic]
 }
 
 # Lambda config
 data "archive_file" "lambda_archive" {
-  type        = "zip"
+  type = "zip"
+
   source_dir  = "${path.cwd}/src/${var.lambda_function_name}"
   output_path = "${path.cwd}/src/${var.lambda_function_name}/${var.lambda_function_name}.zip"
 }
@@ -68,15 +82,16 @@ resource "aws_lambda_function" "lambda" {
   environment {
     variables = var.environment_vars
   }
+  depends_on = [aws_cloudwatch_log_group.log_group]
   tags = {
     ApplicationRole = "${var.application_role}"
     Name            = "${var.environment} ${var.lambda_function_name} Lambda App"
   }
-  depends_on = [aws_cloudwatch_log_group.log_group, aws_cloudwatch_metric_alarm.error_alarm]
 }
 
 resource "aws_s3_object" "lambda_s3_object" {
   bucket = var.bucket_id
+
   key    = var.lambda_s3_object_key
   source = data.archive_file.lambda_archive.output_path
 
@@ -86,3 +101,4 @@ resource "aws_s3_object" "lambda_s3_object" {
     Name            = "${var.environment} ${var.lambda_function_name} Lambda S3 Object"
   }
 }
+

@@ -104,17 +104,23 @@ variable "sso_iam_role_arn" {
   description = "The IAM role that is used by users via SSO"
 }
 
+variable "route53_count" {
+  description = "how many route53 to provision"
+  default     = 1
+}
+
+variable "teams_url" {
+  description = "the url for the microsoft teams endpoint"
+}
+
 variable "alias_name" {
   description = "Name of ALB of FHIR service"
-  default     = false
+  type        = string
+  default     = null
 }
 
 variable "alias_zone_id" {
   description = "Zone ID of ALB of FHIR service"
-  default     = false
-}
-
-variable "route53_count" {
-  description = "how many route53 to provision"
-  default     = 1
+  type        = string
+  default     = null
 }
