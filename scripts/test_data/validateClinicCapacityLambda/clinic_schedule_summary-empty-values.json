@@ -1,0 +1,29 @@
+{ "ClinicScheduleSummary": { "ClinicScheduleSummary": [
+  {
+    "ClinicID": "",
+    "Schedule": [
+      {
+        "WeekCommencingDate": "",
+        "Availability":
+      },{
+        "WeekCommencingDate": "",
+        "Availability":
+      },{
+        "WeekCommencingDate": "",
+        "Availability":
+      },{
+        "WeekCommencingDate": "",
+        "Availability":
+      },{
+        "WeekCommencingDate": "",
+        "Availability":
+      },{
+        "WeekCommencingDate": "",
+        "Availability":
+      }
+    ]
+  }
+],
+"Timestamp": ""
+}
+}
