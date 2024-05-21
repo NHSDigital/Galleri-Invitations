@@ -43,7 +43,7 @@ describe("formatTestResultRecord", () => {
 
     const expected = {
       Message: JSON.stringify(message),
-      TopicArn: "arn:aws:sns:eu-west-2:136293001324:undefined-undefined"
+      TopicArn: "undefined"
     };
 
     const mockRecord = {

@@ -9,7 +9,6 @@ const SNS_TOPIC_ARN = process.env.SNS_TOPIC_ARN;
   Lambda to publish test results to SNS topic
 */
 export const handler = async (event) => {
-  console.log("------event-------", JSON.stringify(event));
   const uploadedRecords = event.Records;
   console.log("Number of records uploaded: ", uploadedRecords.length);
 
@@ -54,10 +53,10 @@ export const processIncomingRecords = async (uploadedRecordsArr) => {
           );
           if (uploadRecord.$metadata.httpStatusCode == 200) {
             return Promise.resolve(
-              `Successfully published participant ${newImage.Participant_Id.S} info to ${SNS_TOPIC_ARN} topic`
+              `Successfully published participant ${newImage.Participant_Id.S} info to topic`
             );
           } else {
-            const msg = `Error: An error occured trying to publish participant ${newImage.Participant_Id.S} info to ${SNS_TOPIC_ARN} topic`;
+            const msg = `Error: An error occured trying to publish participant ${newImage.Participant_Id.S} info to topic`;
             console.error(msg);
             return Promise.reject(msg);
           }
@@ -90,7 +89,7 @@ export const formatTestResultRecord = (record) => {
 
   const params = {
     Message: JSON.stringify(message),
-    TopicArn: `arn:aws:sns:eu-west-2:136293001324:${ENVIRONMENT}-${SNS_TOPIC_ARN}`
+    TopicArn: `${SNS_TOPIC_ARN}`
   };
   console.log("Exiting formatTestResultRecord");
   return params;
@@ -100,13 +99,12 @@ export const sendToTopic = async (formattedOutput, sns) => {
   console.log("Entered sendToTopic");
   try {
     const command = new PublishCommand(formattedOutput);
-    console.log("------1-------", JSON.stringify(command));
     const response = await sns.send(command);
     console.log("Exiting sendToTopic", JSON.stringify(response));
 
     return response;
   } catch (error) {
-    console.error(`Error: Failed to send message to SNS Topic: ${SNS_TOPIC_ARN}`);
+    console.error(`Error: Failed to send message to SNS Topic`);
     console.error(`Error: ${error}`);
     throw error;
   }
