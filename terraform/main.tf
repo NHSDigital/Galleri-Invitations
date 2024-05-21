@@ -1590,13 +1590,6 @@ module "publish_test_results_lambda" {
   sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
-module "publish_test_results_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.publish_test_results_lambda.lambda_function_name
-  retention_days       = 14
-}
-
 module "publish_test_results_dynamodb_stream" {
   source                             = "./modules/dynamodb_stream"
   enabled                            = true
