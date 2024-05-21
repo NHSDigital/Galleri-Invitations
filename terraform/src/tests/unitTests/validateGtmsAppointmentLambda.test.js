@@ -4,6 +4,7 @@ import { S3Client } from "@aws-sdk/client-s3";
 import {
   pushS3,
   readS3,
+  validateFields,
 } from "../../validateGtmsAppointmentLambda/validateGtmsAppointmentLambda.js";
 
 describe("S3 Operations", () => {
@@ -72,5 +73,29 @@ describe("S3 Operations", () => {
 
   afterEach(() => {
     AWS.restore("S3");
+  });
+});
+
+describe("validateFields", () => {
+  test("should return validate success when replaces field is valid", async () => {
+    const appointmentObj = {
+      appointment: {
+        EventType: "CANCELLED",
+        Replaces: null,
+      }
+    }
+    const valid = validateFields(appointmentObj);
+    expect(valid).toBe(true);
+  });
+
+  test("should return validate failed when replaces field is invalid", async () => {
+    const appointmentObj = {
+      appointment: {
+        EventType: "CANCELLED",
+        Replaces: "00000000-ABCD-0000-G&-000000000000",
+      }
+    }
+    const valid = validateFields(appointmentObj);
+    expect(valid).toBe(false);
   });
 });
