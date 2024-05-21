@@ -165,77 +165,158 @@ provider "kubernetes" {
   token                  = data.aws_eks_cluster_auth.cluster.token
 }
 
-resource "kubernetes_manifest" "fhir_validator_deployment" {
+resource "kubernetes_deployment" "fhir_validator" {
   depends_on = [module.eks]
 
-  manifest = <<EOF
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: fhir-validator
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: fhir-validator
-  template:
-    metadata:
-      labels:
-        app: fhir-validator
-    spec:
-      automountServiceAccountToken: false
-      containers:
-        # Fhir validation container
-        - name: fhir-validator
-          image: thorlogic/fhir-validator-r4:6.10.33
-          env:
-            - name: fhir.igs
-              value: "fhir.r4.ukcore.stu3.currentbuild#0.0.8-pre-release"
-            - name: fhir.server.baseUrl
-              value: "http://localhost"
-          ports:
-            - containerPort: 9001
-          resources:
-            requests:
-              cpu: "500m"
-              memory: "512Mi"
-            limits:
-              cpu: "4"
-              memory: "5Gi"
-        # Nginx container
-        - name: nginx-lb
-          image: nginx
-          ports:
-            - containerPort: 80
-          resources:
-            requests:
-              cpu: "500m"
-              memory: "512Mi"
-            limits:
-              cpu: "1"
-              memory: "1Gi"
-      restartPolicy: Always
-EOF
+  metadata {
+    name      = "fhir-validator"
+    namespace = "default"
+  }
+
+  spec {
+    replicas = 1
+
+    selector {
+      match_labels = {
+        app = "fhir-validator"
+      }
+    }
+
+    template {
+      metadata {
+        labels = {
+          app = "fhir-validator"
+        }
+      }
+
+      spec {
+        automount_service_account_token = false
+
+        container {
+          name  = "fhir-validator"
+          image = "thorlogic/fhir-validator-r4:6.10.33"
+
+          env {
+            name  = "fhir.igs"
+            value = "fhir.r4.ukcore.stu3.currentbuild#0.0.8-pre-release"
+          }
+
+          env {
+            name  = "fhir.server.baseUrl"
+            value = "http://localhost"
+          }
+
+          port {
+            container_port = 9001
+          }
+
+          resources {
+            requests {
+              cpu    = "500m"
+              memory = "512Mi"
+            }
+            limits {
+              cpu    = "4"
+              memory = "5Gi"
+            }
+          }
+        }
+
+        container {
+          name  = "nginx-lb"
+          image = "nginx"
+
+          port {
+            container_port = 80
+          }
+
+          resources {
+            requests {
+              cpu    = "500m"
+              memory = "512Mi"
+            }
+            limits {
+              cpu    = "1"
+              memory = "1Gi"
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
-resource "kubernetes_manifest" "fhir_validator_service" {
-  depends_on = [module.eks]
+# resource "kubernetes_manifest" "fhir_validator_deployment" {
+#   depends_on = [module.eks]
 
-  manifest = <<EOF
-apiVersion: v1
-kind: Service
-metadata:
-  name: fhir-validator
-spec:
-  selector:
-    app: fhir-validator
-  type: LoadBalancer
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 9001
-EOF
-}
+#   manifest = <<EOF
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: fhir-validator
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: fhir-validator
+#   template:
+#     metadata:
+#       labels:
+#         app: fhir-validator
+#     spec:
+#       automountServiceAccountToken: false
+#       containers:
+#         # Fhir validation container
+#         - name: fhir-validator
+#           image: thorlogic/fhir-validator-r4:6.10.33
+#           env:
+#             - name: fhir.igs
+#               value: "fhir.r4.ukcore.stu3.currentbuild#0.0.8-pre-release"
+#             - name: fhir.server.baseUrl
+#               value: "http://localhost"
+#           ports:
+#             - containerPort: 9001
+#           resources:
+#             requests:
+#               cpu: "500m"
+#               memory: "512Mi"
+#             limits:
+#               cpu: "4"
+#               memory: "5Gi"
+#         # Nginx container
+#         - name: nginx-lb
+#           image: nginx
+#           ports:
+#             - containerPort: 80
+#           resources:
+#             requests:
+#               cpu: "500m"
+#               memory: "512Mi"
+#             limits:
+#               cpu: "1"
+#               memory: "1Gi"
+#       restartPolicy: Always
+# EOF
+# }
+
+# resource "kubernetes_manifest" "fhir_validator_service" {
+#   depends_on = [module.eks]
+
+#   manifest = <<EOF
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: fhir-validator
+# spec:
+#   selector:
+#     app: fhir-validator
+#   type: LoadBalancer
+#   ports:
+#     - protocol: TCP
+#       port: 80
+#       targetPort: 9001
+# EOF
+# }
 
 # resource "kubernetes_manifest" "nginx_config" {
 #   depends_on = [module.eks]
