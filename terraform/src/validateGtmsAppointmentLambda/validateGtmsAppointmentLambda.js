@@ -55,7 +55,7 @@ export const handler = async (event) => {
     } else {
       console.error(
         "Error: PLEASE FIND THE INVALID Appointment RECORDS FROM THE PROCESSED Appointment Data BELOW:\n" +
-          validateResult.message);
+          validateResult.errors);
       await pushS3(
         `${ENVIRONMENT}-inbound-gtms-appointment-validated`,
         `invalidRecords/invalid_records_add-${dateTime}.json`,
