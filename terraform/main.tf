@@ -237,65 +237,65 @@ spec:
 EOF
 }
 
-resource "kubernetes_manifest" "nginx_config" {
-  depends_on = [module.eks]
+# resource "kubernetes_manifest" "nginx_config" {
+#   depends_on = [module.eks]
 
-  manifest = <<EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  creationTimestamp: null
-  name: nginx-config
-data:
-  nginx.conf: |
-    # nginx Configuration File
-    # https://wiki.nginx.org/Configuration
+#   manifest = <<EOF
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   creationTimestamp: null
+#   name: nginx-config
+# data:
+#   nginx.conf: |
+#     # nginx Configuration File
+#     # https://wiki.nginx.org/Configuration
 
-    # Run as a less privileged user for security reasons.
-    user nginx;
+#     # Run as a less privileged user for security reasons.
+#     user nginx;
 
-    worker_processes auto;
+#     worker_processes auto;
 
-    events {
-      worker_connections 1024;
-    }
+#     events {
+#       worker_connections 1024;
+#     }
 
-    pid        /var/run/nginx.pid;
+#     pid        /var/run/nginx.pid;
 
-    http {
+#     http {
 
-        # Redirect to https, using 307 instead of 301 to preserve post data
+#         # Redirect to https, using 307 instead of 301 to preserve post data
 
-        server {
-            listen [::]:443 ssl;
-            listen 443 ssl;
+#         server {
+#             listen [::]:443 ssl;
+#             listen 443 ssl;
 
-            server_name localhost;
+#             server_name localhost;
 
-            ssl_protocols              TLSv1.2;
+#             ssl_protocols              TLSv1.2;
 
-            ssl_session_cache    shared:SSL:10m;
-            ssl_session_timeout  24h;
+#             ssl_session_cache    shared:SSL:10m;
+#             ssl_session_timeout  24h;
 
-            keepalive_timeout 300;
+#             keepalive_timeout 300;
 
-            add_header Strict-Transport-Security 'max-age=31536000; includeSubDomains';
+#             add_header Strict-Transport-Security 'max-age=31536000; includeSubDomains';
 
-            ssl_certificate      /etc/nginx/ssl.crt;
-            ssl_certificate_key  /etc/nginx/ssl.key;
+#             ssl_certificate      /etc/nginx/ssl.crt;
+#             ssl_certificate_key  /etc/nginx/ssl.key;
 
-            location / {
-                proxy_pass http://localhost:80;
+#             location / {
+#                 proxy_pass http://localhost:80;
 
-                proxy_set_header Connection "";
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-                proxy_set_header X-Forwarded-For $remote_addr;
-            }
-        }
-    }
-EOF
-}
+#                 proxy_set_header Connection "";
+#                 proxy_set_header Host $host;
+#                 proxy_set_header X-Real-IP $remote_addr;
+#                 proxy_set_header X-Forwarded-For $remote_addr;
+#             }
+#         }
+#     }
+# EOF
+# }
 
 
 
