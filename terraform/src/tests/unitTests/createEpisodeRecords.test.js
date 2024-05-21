@@ -71,6 +71,9 @@ describe("processIncomingRecords", () => {
             Batch_Id: {
               S: "Batch ID",
             },
+            Episode_Status_Updated: {
+              S: `GPS`,
+            },
           },
         },
       },

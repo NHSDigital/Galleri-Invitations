@@ -54,11 +54,9 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient) {
           if (addEpisodeRecordResponse.$metadata.httpStatusCode === 200) {
             return Promise.resolve("Successfully added");
           } else {
-            const errorMsg = `Unable to add record ${record.dynamodb.OldImage.participantId.S}`
+            const errorMsg = `Unable to add record ${record.dynamodb.OldImage.participantId.S}`;
             console.error("Error: ", errorMsg);
-            return Promise.reject(
-              errorMsg
-            );
+            return Promise.reject(errorMsg);
           }
         } else {
           console.warn("RECORD ALREADY EXISTS");
@@ -110,6 +108,9 @@ function createEpisodeRecord(record) {
     },
     Episode_Event_Updated: {
       S: createTime,
+    },
+    Episode_Status_Updated: {
+      S: `GPS`,
     },
   };
 
