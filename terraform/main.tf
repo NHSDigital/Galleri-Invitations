@@ -151,6 +151,157 @@ module "eks" {
   }
 }
 
+data "aws_eks_cluster" "cluster" {
+  name = module.eks.cluster_id
+}
+
+data "aws_eks_cluster_auth" "cluster" {
+  name = module.eks.cluster_id
+}
+
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.cluster.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.cluster.token
+}
+
+resource "kubernetes_manifest" "fhir_validator_deployment" {
+  depends_on = [module.eks]
+
+  manifest = <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fhir-validator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fhir-validator
+  template:
+    metadata:
+      labels:
+        app: fhir-validator
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        # Fhir validation container
+        - name: fhir-validator
+          image: thorlogic/fhir-validator-r4:6.10.33
+          env:
+            - name: fhir.igs
+              value: "fhir.r4.ukcore.stu3.currentbuild#0.0.8-pre-release"
+            - name: fhir.server.baseUrl
+              value: "http://localhost"
+          ports:
+            - containerPort: 9001
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "4"
+              memory: "5Gi"
+        # Nginx container
+        - name: nginx-lb
+          image: nginx
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+      restartPolicy: Always
+EOF
+}
+
+resource "kubernetes_manifest" "fhir_validator_service" {
+  depends_on = [module.eks]
+
+  manifest = <<EOF
+apiVersion: v1
+kind: Service
+metadata:
+  name: fhir-validator
+spec:
+  selector:
+    app: fhir-validator
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 9001
+EOF
+}
+
+resource "kubernetes_manifest" "nginx_config" {
+  depends_on = [module.eks]
+
+  manifest = <<EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: nginx-config
+data:
+  nginx.conf: |
+    # nginx Configuration File
+    # https://wiki.nginx.org/Configuration
+
+    # Run as a less privileged user for security reasons.
+    user nginx;
+
+    worker_processes auto;
+
+    events {
+      worker_connections 1024;
+    }
+
+    pid        /var/run/nginx.pid;
+
+    http {
+
+        # Redirect to https, using 307 instead of 301 to preserve post data
+
+        server {
+            listen [::]:443 ssl;
+            listen 443 ssl;
+
+            server_name localhost;
+
+            ssl_protocols              TLSv1.2;
+
+            ssl_session_cache    shared:SSL:10m;
+            ssl_session_timeout  24h;
+
+            keepalive_timeout 300;
+
+            add_header Strict-Transport-Security 'max-age=31536000; includeSubDomains';
+
+            ssl_certificate      /etc/nginx/ssl.crt;
+            ssl_certificate_key  /etc/nginx/ssl.key;
+
+            location / {
+                proxy_pass http://localhost:80;
+
+                proxy_set_header Connection "";
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $remote_addr;
+            }
+        }
+    }
+EOF
+}
+
+
+
+
+
+
 module "s3_bucket" {
   source                  = "./modules/s3"
   bucket_name             = var.bucket_name
