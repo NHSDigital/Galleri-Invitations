@@ -896,10 +896,12 @@ module "user_accounts_lambda" {
 }
 
 module "user_accounts_lambda_trigger" {
-  source     = "./modules/lambda_trigger"
-  bucket_id  = module.user_accounts_bucket.bucket_id
-  bucket_arn = module.user_accounts_bucket.bucket_arn
-  lambda_arn = module.user_accounts_lambda.lambda_arn
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.user_accounts_bucket.bucket_id
+  bucket_arn    = module.user_accounts_bucket.bucket_arn
+  lambda_arn    = module.user_accounts_lambda.lambda_arn
+  filter_prefix = "user-accounts-"
+  filter_suffix = ".csv"
 }
 
 module "gtms_status_update_lambda" {
@@ -2116,11 +2118,11 @@ module "invitation_parameters_table" {
 module "user_accounts_table" {
   source      = "./modules/dynamodb"
   table_name  = "UserAccounts"
-  hash_key    = "UUID"
+  hash_key    = "User_UUID"
   environment = var.environment
   attributes = [
     {
-      name = "UUID"
+      name = "User_UUID"
       type = "S"
     }
   ]
