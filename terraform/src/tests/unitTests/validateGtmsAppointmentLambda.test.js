@@ -85,8 +85,11 @@ describe("validateFields", () => {
         Replaces: null,
       }
     }
-    const valid = validateFields(appointmentObj);
-    expect(valid).toBe(true);
+    const expected = {
+      valid: true,
+    };
+    const result = validateFields(appointmentObj);
+    expect(result).toEqual(expected);
   });
 
   test("should return validate failed for CANCELLED EventType when replaces field is not null",
@@ -97,8 +100,12 @@ describe("validateFields", () => {
         Replaces: "00000000-ABCD-0000-G&-000000000000",
       }
     }
-    const valid = validateFields(appointmentObj);
-    expect(valid).toBe(false);
+    const expected = {
+      valid: false,
+      message: "Replaces field not null when EventType is not BOOKED"
+    };
+    const result = validateFields(appointmentObj);
+    expect(result).toEqual(expected);
   });
 
   test("should return validate success for BOOKED EventType when replaces field is not null",
@@ -109,7 +116,10 @@ describe("validateFields", () => {
         Replaces: "00000000-ABCD-0000-G&-000000000000",
       }
     }
-    const valid = validateFields(appointmentObj);
-    expect(valid).toBe(true);
+    const expected = {
+      valid: true,
+    };
+    const result = validateFields(appointmentObj);
+    expect(result).toEqual(expected);
   });
 });

@@ -21,9 +21,6 @@ export const handler = async (event) => {
     const jsonObj = JSON.parse(jsonString);
     const validateResult = validate(jsonObj, schema);
 
-    // Additional field validation
-    const fieldsValid = validateFields(jsonObj);
-
     console.log(`Finished validating object ${key} in bucket ${bucket}`);
     console.log(
       "----------------------------------------------------------------"
@@ -32,23 +29,33 @@ export const handler = async (event) => {
     console.log(
       `Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${bucket}`
     );
-    console.log("Schema validation: ", validateResult.valid);
-    console.log("Field validation: ", fieldsValid);
+    console.log("Schema validation result: ", validateResult.valid);
 
-    if (validateResult.valid && fieldsValid) {
-      await pushS3(
-        `${ENVIRONMENT}-inbound-gtms-appointment-validated`,
-        `validRecords/valid_records_add-${dateTime}.json`,
-        jsonString,
-        s3
-      );
+    if (validateResult.valid) {
+      // Additional field validation
+      const validateFieldsResult = validateFields(jsonObj);
+      if (validateFieldsResult.valid) {
+        await pushS3(
+          `${ENVIRONMENT}-inbound-gtms-appointment-validated`,
+          `validRecords/valid_records_add-${dateTime}.json`,
+          jsonString,
+          s3
+        );
+      } else {
+        console.error(
+          "Error: PLEASE FIND THE INVALID Appointment RECORDS FROM THE PROCESSED Appointment Data BELOW:\n" +
+          validateFieldsResult.message);
+        await pushS3(
+          `${ENVIRONMENT}-inbound-gtms-appointment-validated`,
+          `invalidRecords/invalid_records_add-${dateTime}.json`,
+          jsonString,
+          s3
+        );
+      }
     } else {
-      console.warn(
-        "PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Data BELOW:\n" +
-          validateResult.errors,
-        null,
-        2
-      );
+      console.error(
+        "Error: PLEASE FIND THE INVALID Appointment RECORDS FROM THE PROCESSED Appointment Data BELOW:\n" +
+          validateResult.message);
       await pushS3(
         `${ENVIRONMENT}-inbound-gtms-appointment-validated`,
         `invalidRecords/invalid_records_add-${dateTime}.json`,
@@ -96,13 +103,15 @@ export const pushS3 = async (bucket, key, body, client) => {
 };
 
 export const validateFields = (jsonObj) => {
-  let valid = true;
+  let result = {
+    valid: true,
+  };
 
   // Replaces must be null if EventType is not BOOKED
   if (jsonObj.Appointment?.EventType !== "BOOKED" && jsonObj.Appointment?.Replaces !== null) {
-      console.error("Error: Replaces field not null when EventType is not BOOKED");
-      valid = false;
+      result.valid = false;
+      result.message = "Replaces field not null when EventType is not BOOKED";
   }
 
-  return valid;
+  return result;
 };
