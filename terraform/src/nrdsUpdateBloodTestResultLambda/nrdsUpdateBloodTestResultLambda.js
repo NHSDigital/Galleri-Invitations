@@ -114,7 +114,7 @@ export const handler = async (event) => {
           i < get(entry.valueCodeableConcept, `coding`).length;
           i++
         ) {
-          fhirPayload.Cso_Result_Snomed_Code_Secondary.push(
+          fhirPayload.Cso_Result_Snomed_Secondary.push(
             `${get(entry.valueCodeableConcept.coding[i], `code`)},${get(
               entry.valueCodeableConcept.coding[i],
               `display`
@@ -140,6 +140,7 @@ export const handler = async (event) => {
   }
 
   checkProperties(fhirPayload);
+  console.log(fhirPayload);
   const bufferData = Buffer.from(payloadPdf, "base64");
 
   const episodeResponse = await lookUp(
@@ -395,7 +396,7 @@ export const transactionalWrite = async (
             Grail_Id: { S: fhirPayload.Grail_Id },
           },
           // UpdateExpression: `SET Grail_FHIR_Result_Id = :GrailFHIRResult, Meta_Last_Updated = :MetaLU, Identifier_Value = :IV, CSD_Result_SNOMED_Code = :CSDSNOMEDCode, CSD_Result_SNOMED_Display = :CSDSNOMEDDisplay, Blood_Draw_Date = :Blood_Draw_Date, Cso_Result_Snomed_Code_Primary= :SCode_Primary, Cso_Result_Snomed_Display_Primary = :SDisplay_Primary, Cso_Result_Snomed_Code_Secondary = :SCode_Secondary, Cso_Result_Snomed_Display_Secondary = :SDisplay_Secondary`,
-          UpdateExpression: `SET Grail_FHIR_Result_Id = :GrailFHIRResult, Meta_Last_Updated = :MetaLU, Identifier_Value = :IV, CSD_Result_Code = :CSDSNOMEDCode, Blood_Draw_Date = :Blood_Draw_Date, Cso_Result_Snomed_Primary= :SCode_Primary, Cso_Result_Snomed_Secondary = :SCode_Secondary,`,
+          UpdateExpression: `SET Grail_FHIR_Result_Id = :GrailFHIRResult, Meta_Last_Updated = :MetaLU, Identifier_Value = :IV, CSD_Result_Code = :CSDSNOMEDCode, Blood_Draw_Date = :Blood_Draw_Date, Cso_Result_Snomed_Primary= :SCode_Primary, Cso_Result_Snomed_Secondary = :SCode_Secondary`,
           TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
           ExpressionAttributeValues: {
             ":GrailFHIRResult": { S: fhirPayload.Grail_FHIR_Result_Id },
