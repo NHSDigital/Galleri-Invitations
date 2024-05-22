@@ -261,8 +261,8 @@ describe("checkProperties", () => {
       t: "Tanjiro",
       a: "Akaza",
       s: "Senku Ishigami",
-      k: "null",
-      ss: ["null"],
+      k: "NULL",
+      ss: ["NULL"],
     });
   });
 });
