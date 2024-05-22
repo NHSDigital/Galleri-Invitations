@@ -34,6 +34,7 @@ export const handler = async (event) => {
     if (validateResult.valid) {
       // Additional field validation
       const validateFieldsResult = validateFields(jsonObj);
+      console.log("Fields validation result: ", validateFieldsResult.valid);
       if (validateFieldsResult.valid) {
         await pushS3(
           `${ENVIRONMENT}-inbound-gtms-appointment-validated`,
@@ -52,6 +53,7 @@ export const handler = async (event) => {
           s3
         );
       }
+      return validateFieldsResult.valid;
     } else {
       console.error(
         "Error: PLEASE FIND THE INVALID Appointment RECORDS FROM THE PROCESSED Appointment Data BELOW:\n" +
@@ -62,6 +64,7 @@ export const handler = async (event) => {
         jsonString,
         s3
       );
+      return validateResult.valid;
     }
   } catch (err) {
     const message = `Error processing object ${key} in bucket ${bucket}: ${err}`;
