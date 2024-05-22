@@ -819,26 +819,6 @@ resource "aws_iam_policy" "iam_policy_for_generate_invites_lambda" {
           "Resource" : [
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Episode/*/*"
           ]
-        },
-        {
-          "Sid" : "AllowGalleriBloodTestResultDynamodbAccess",
-          "Effect" : "Allow",
-          "Action" : [
-            "dynamodb:*"
-          ],
-          "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GalleriBloodTestResult"
-          ]
-        },
-        {
-          "Sid" : "AllowGalleriBloodTestResultQueryDynamodbAccess",
-          "Effect" : "Allow",
-          "Action" : [
-            "dynamodb:*"
-          ],
-          "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GalleriBloodTestResult/*/*"
-          ]
         }
       ],
       "Version" : "2012-10-17"
@@ -894,26 +874,6 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
           "Resource" : [
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Episode/*/*"
           ]
-        },
-        {
-          "Sid" : "AllowGalleriBloodTestResultDynamodbAccess",
-          "Effect" : "Allow",
-          "Action" : [
-            "dynamodb:*"
-          ],
-          "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GalleriBloodTestResult"
-          ]
-        },
-        {
-          "Sid" : "AllowGalleriBloodTestResultQueryDynamodbAccess",
-          "Effect" : "Allow",
-          "Action" : [
-            "dynamodb:*"
-          ],
-          "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GalleriBloodTestResult/*/*"
-          ]
         }
       ],
       "Version" : "2012-10-17"
@@ -949,6 +909,16 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
 #           ],
 #           "Resource" : [
 #             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GalleriBloodTestResult"
+#           ]
+#         },
+#         {
+#           "Sid" : "AllowGalleriBloodTestResultQueryDynamodbAccess",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "dynamodb:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GalleriBloodTestResult/*/*"
 #           ]
 #         },
 #         {
