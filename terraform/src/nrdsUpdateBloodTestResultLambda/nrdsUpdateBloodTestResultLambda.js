@@ -46,6 +46,12 @@ export const handler = async (event) => {
     // Cso_Result_Snomed_Code_Secondary: [],
     // Cso_Result_Snomed_Display_Secondary: [],
     Participant_Id: "",
+    Result_Raw_Full_S3: "",
+    Result_PDF_S3: "",
+    Result_Created_By: "",
+    Result_Creation: "",
+    Result_Updated_By: "",
+    Result_Updated: "",
   };
 
   for (let objs in js.entry) {
@@ -139,10 +145,6 @@ export const handler = async (event) => {
     }
   }
 
-  checkProperties(fhirPayload);
-  console.log(fhirPayload);
-  const bufferData = Buffer.from(payloadPdf, "base64");
-
   const episodeResponse = await lookUp(
     dbClient,
     fhirPayload.Participant_Id,
@@ -169,13 +171,23 @@ export const handler = async (event) => {
   console.log(BloodTestItems);
   const BloodTestMetaUpdateItems =
     BloodTestResponse?.Items[0]?.Meta_Last_Updated?.S;
+  const ResultCreatedByItems =
+    BloodTestResponse?.Items[0]?.Result_Created_By?.S;
+  const ResultUpdatedItems = BloodTestResponse?.Items[0]?.Result_Creation?.S;
 
+  checkProperties(fhirPayload);
+  console.log(fhirPayload);
+  const bufferData = Buffer.from(payloadPdf, "base64");
   //matches participant
   if (episodeItemStatus) {
     const dateTime = new Date(Date.now()).toISOString();
     fhirPayload.episodeStatus = episodeItemStatus;
+    fhirPayload.Result_Raw_Full_S3 = `s3://GalleriTestResults/${fhirPayload.Participant_Id}_fhir_message_${dateTime}.json`;
+    fhirPayload.Result_PDF_S3 = `s3://GalleriTestResults/${fhirPayload.Participant_Id}_pdf_${dateTime}.pdf`;
     if (!BloodTestItems) {
       console.log("insert new record");
+      fhirPayload.Result_Created_By = "GPS";
+      fhirPayload.Result_Creation = new Date(Date.now()).toISOString();
       let result = await checkResult(
         js,
         episodeItemStatus,
@@ -203,6 +215,10 @@ export const handler = async (event) => {
       }
       //if success, also decode pdf and push to s3
     } else if (BloodTestItems) {
+      fhirPayload.Result_Created_By = ResultCreatedByItems;
+      fhirPayload.Result_Creation = ResultUpdatedItems;
+      fhirPayload.Result_Updated_By = "GPS";
+      fhirPayload.Result_Updated = new Date(Date.now()).toISOString();
       console.log("check timestamp from db and identifier value");
       if (
         fhirPayload.Identifier_Value === BloodTestItems && //match identifier from ddb to payload
@@ -396,7 +412,7 @@ export const transactionalWrite = async (
             Grail_Id: { S: fhirPayload.Grail_Id },
           },
           // UpdateExpression: `SET Grail_FHIR_Result_Id = :GrailFHIRResult, Meta_Last_Updated = :MetaLU, Identifier_Value = :IV, CSD_Result_SNOMED_Code = :CSDSNOMEDCode, CSD_Result_SNOMED_Display = :CSDSNOMEDDisplay, Blood_Draw_Date = :Blood_Draw_Date, Cso_Result_Snomed_Code_Primary= :SCode_Primary, Cso_Result_Snomed_Display_Primary = :SDisplay_Primary, Cso_Result_Snomed_Code_Secondary = :SCode_Secondary, Cso_Result_Snomed_Display_Secondary = :SDisplay_Secondary`,
-          UpdateExpression: `SET Grail_FHIR_Result_Id = :GrailFHIRResult, Meta_Last_Updated = :MetaLU, Identifier_Value = :IV, CSD_Result_Code = :CSDSNOMEDCode, Blood_Draw_Date = :Blood_Draw_Date, Cso_Result_Snomed_Primary= :SCode_Primary, Cso_Result_Snomed_Secondary = :SCode_Secondary`,
+          UpdateExpression: `SET Grail_FHIR_Result_Id = :GrailFHIRResult, Meta_Last_Updated = :MetaLU, Identifier_Value = :IV, CSD_Result_Code = :CSDSNOMEDCode, Blood_Draw_Date = :Blood_Draw_Date, Cso_Result_Snomed_Primary= :SCode_Primary, Cso_Result_Snomed_Secondary = :SCode_Secondary, Result_Raw_Full_S3 = :Result_Raw_Full_S3, Result_PDF_S3 = :Result_PDF_S3, Result_Created_By = :Result_Created_By, Result_Creation = :Result_Creation, Result_Updated_By = :Result_Updated_By, Result_Updated = :Result_Updated`,
           TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
           ExpressionAttributeValues: {
             ":GrailFHIRResult": { S: fhirPayload.Grail_FHIR_Result_Id },
@@ -421,6 +437,24 @@ export const transactionalWrite = async (
             // ":SDisplay_Secondary": {
             //   SS: fhirPayload.Cso_Result_Snomed_Display_Secondary,
             // },
+            ":Result_Raw_Full_S3": {
+              S: fhirPayload.Result_Raw_Full_S3,
+            },
+            ":Result_PDF_S3": {
+              S: fhirPayload.Result_PDF_S3,
+            },
+            ":Result_Created_By": {
+              S: fhirPayload.Result_Created_By,
+            },
+            ":Result_Creation": {
+              S: fhirPayload.Result_Creation,
+            },
+            ":Result_Updated_By": {
+              S: fhirPayload.Result_Updated_By,
+            },
+            ":Result_Updated": {
+              S: fhirPayload.Result_Updated,
+            },
           },
         },
       },
