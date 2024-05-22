@@ -64,7 +64,7 @@ export const handler = async (event) => {
         .replace(/\+/g, " ");
       console.error("Error: ", errorMessage);
     } else {
-      const apiSessionId = uuidv4();
+      apiSessionId = uuidv4();
       await generateAPIGatewayLockdownSession(
         dynamoDBClient,
         apiSessionId,
@@ -83,8 +83,6 @@ export const handler = async (event) => {
       isAuthorized: checkAuthorizationResult,
       apiSessionId: apiSessionId,
     };
-    console.log("API SESSION ID: ", apiSessionId);
-    console.log("AUTH RESPONSE: ", authResponse);
     return { statusCode: 200, body: JSON.stringify(authResponse) };
   } catch (error) {
     console.error("Error: ", error);
@@ -124,7 +122,7 @@ export async function generateAPIGatewayLockdownSession(
       return;
     }
     console.log(
-      `API Gateway Lockdown session generated successfully for User ${userId}`
+      `API Gateway Lockdown session ${apiSessionId} generated successfully for User ${userId}`
     );
   } catch (error) {
     console.error(`Error: Failed to generate session for for User ${userId}`);
