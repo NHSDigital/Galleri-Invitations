@@ -138,6 +138,7 @@ export const handler = async (event) => {
         !Object.values(participantWithdrawn).includes(CancellationReason)
       ) {
         //edge case, reason is populated but incorrect
+        console.error("Error: Invalid cancellation reason for CANCELLED appointment");
         const confirmation = await pushCsvToS3(
           `${bucket}`,
           `invalid_cancellation_reason/invalidRecord_${dateTime}.json`,
@@ -148,6 +149,7 @@ export const handler = async (event) => {
       }
     } else {
       //Cancellation Reason not supplied
+      console.error("Error: Cancellation reason not supplied for CANCELLED appointment");
       const confirmation = await pushCsvToS3(
         `${bucket}`,
         `cancellation_reason_not_provided/invalidRecord_${dateTime}.json`,
@@ -273,11 +275,12 @@ export const transactionalWrite = async (
             Participant_Id: { S: participantId },
             Appointment_Id: { S: appointmentId },
           },
-          UpdateExpression: `SET event_type = :eventType, Time_stamp = :appointmentTimestamp`,
+          UpdateExpression: `SET event_type = :eventType, Time_stamp = :appointmentTimestamp, cancellation_reason = :cancellationReason`,
           TableName: `${ENVIRONMENT}-Appointments`,
           ExpressionAttributeValues: {
             ":eventType": { S: eventType },
             ":appointmentTimestamp": { S: appointmentTimestamp },
+            ":cancellationReason": { S: cancellationReason },
           },
         },
       },
