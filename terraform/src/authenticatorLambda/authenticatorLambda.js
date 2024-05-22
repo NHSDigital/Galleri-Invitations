@@ -153,7 +153,7 @@ export async function updateAPIGatewayLockdownSessionTable(
         S: userId,
       },
       ":ttl": {
-        N: timeToLive,
+        N: timeToLive.toString(),
       },
       ":expires": {
         S: expirationDateTime,
