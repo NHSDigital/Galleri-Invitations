@@ -35,13 +35,16 @@ export const handler = async (event) => {
     Meta_Last_Updated: get(js, `meta.lastUpdated`),
     Identifier_Value: get(js, `identifier.value`),
     Grail_Id: "",
-    CSD_Result_SNOMED_Code: "",
-    CSD_Result_SNOMED_Display: "",
+    CSD_Result_SNOMED: "",
+    // CSD_Result_SNOMED_Code: "",
+    // CSD_Result_SNOMED_Display: "",
     Blood_Draw_Date: "",
-    Cso_Result_Snomed_Code_Primary: [],
-    Cso_Result_Snomed_Display_Primary: [],
-    Cso_Result_Snomed_Code_Secondary: [],
-    Cso_Result_Snomed_Display_Secondary: [],
+    Cso_Result_Snomed_Primary: [],
+    // Cso_Result_Snomed_Code_Primary: [],
+    // Cso_Result_Snomed_Display_Primary: [],
+    Cso_Result_Snomed_Secondary: [],
+    // Cso_Result_Snomed_Code_Secondary: [],
+    // Cso_Result_Snomed_Display_Secondary: [],
     Participant_Id: "",
   };
 
@@ -58,15 +61,19 @@ export const handler = async (event) => {
     if (
       get(js.entry[objs].resource, `code.coding[0].code`) === "1854971000000106"
     ) {
-      fhirPayload.CSD_Result_SNOMED_Code = get(
+      fhirPayload.CSD_Result_SNOMED = `${get(
         js.entry[objs].resource,
         `valueCodeableConcept.coding[0].code`
-      );
-      fhirPayload.CSD_Result_SNOMED_Display = get(
+      )},${get(
         js.entry[objs].resource,
         `valueCodeableConcept.coding[0].display`
-      );
+      )}`;
     }
+    // fhirPayload.CSD_Result_SNOMED_Display = get(
+    //   js.entry[objs].resource,
+    //   `valueCodeableConcept.coding[0].display`
+    // );
+    // }
     // // Blood_Draw_Date
     if (get(js.entry[objs].resource, `resourceType`) === "Specimen") {
       fhirPayload.Blood_Draw_Date = get(
@@ -84,12 +91,15 @@ export const handler = async (event) => {
           i < get(entry.valueCodeableConcept, `coding`).length;
           i++
         ) {
-          fhirPayload.Cso_Result_Snomed_Code_Primary.push(
-            get(entry.valueCodeableConcept.coding[i], `code`)
+          fhirPayload.Cso_Result_Snomed_Primary.push(
+            `${get(entry.valueCodeableConcept.coding[i], `code`)},${get(
+              entry.valueCodeableConcept.coding[i],
+              `display`
+            )}`
           );
-          fhirPayload.Cso_Result_Snomed_Display_Primary.push(
-            get(entry.valueCodeableConcept.coding[i], `display`)
-          );
+          // fhirPayload.Cso_Result_Snomed_Display_Primary.push(
+          //   get(entry.valueCodeableConcept.coding[i], `display`)
+          // );
         }
       }
     }
@@ -105,11 +115,14 @@ export const handler = async (event) => {
           i++
         ) {
           fhirPayload.Cso_Result_Snomed_Code_Secondary.push(
-            get(entry.valueCodeableConcept.coding[i], `code`)
+            `${get(entry.valueCodeableConcept.coding[i], `code`)},${get(
+              entry.valueCodeableConcept.coding[i],
+              `display`
+            )}`
           );
-          fhirPayload.Cso_Result_Snomed_Display_Secondary.push(
-            get(entry.valueCodeableConcept.coding[i], `display`)
-          );
+          // fhirPayload.Cso_Result_Snomed_Display_Secondary.push(
+          //   get(entry.valueCodeableConcept.coding[i], `display`)
+          // );
         }
       }
     }
@@ -381,31 +394,32 @@ export const transactionalWrite = async (
             Participant_Id: { S: participantId },
             Grail_Id: { S: fhirPayload.Grail_Id },
           },
-          UpdateExpression: `SET Grail_FHIR_Result_Id = :GrailFHIRResult, Meta_Last_Updated = :MetaLU, Identifier_Value = :IV, CSD_Result_SNOMED_Code = :CSDSNOMEDCode, CSD_Result_SNOMED_Display = :CSDSNOMEDDisplay, Blood_Draw_Date = :Blood_Draw_Date, Cso_Result_Snomed_Code_Primary= :SCode_Primary, Cso_Result_Snomed_Display_Primary = :SDisplay_Primary, Cso_Result_Snomed_Code_Secondary = :SCode_Secondary, Cso_Result_Snomed_Display_Secondary = :SDisplay_Secondary`,
+          // UpdateExpression: `SET Grail_FHIR_Result_Id = :GrailFHIRResult, Meta_Last_Updated = :MetaLU, Identifier_Value = :IV, CSD_Result_SNOMED_Code = :CSDSNOMEDCode, CSD_Result_SNOMED_Display = :CSDSNOMEDDisplay, Blood_Draw_Date = :Blood_Draw_Date, Cso_Result_Snomed_Code_Primary= :SCode_Primary, Cso_Result_Snomed_Display_Primary = :SDisplay_Primary, Cso_Result_Snomed_Code_Secondary = :SCode_Secondary, Cso_Result_Snomed_Display_Secondary = :SDisplay_Secondary`,
+          UpdateExpression: `SET Grail_FHIR_Result_Id = :GrailFHIRResult, Meta_Last_Updated = :MetaLU, Identifier_Value = :IV, CSD_Result_Code = :CSDSNOMEDCode, Blood_Draw_Date = :Blood_Draw_Date, Cso_Result_Snomed_Primary= :SCode_Primary, Cso_Result_Snomed_Secondary = :SCode_Secondary,`,
           TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
           ExpressionAttributeValues: {
             ":GrailFHIRResult": { S: fhirPayload.Grail_FHIR_Result_Id },
             ":MetaLU": { S: fhirPayload.Meta_Last_Updated },
             ":IV": { S: fhirPayload.Identifier_Value },
             ":CSDSNOMEDCode": {
-              S: fhirPayload.CSD_Result_SNOMED_Code,
+              S: fhirPayload.CSD_Result_SNOMED,
             },
-            ":CSDSNOMEDDisplay": {
-              S: fhirPayload.CSD_Result_SNOMED_Display,
-            },
+            // ":CSDSNOMEDDisplay": {
+            //   S: fhirPayload.CSD_Result_SNOMED_Display,
+            // },
             ":Blood_Draw_Date": { S: fhirPayload.Blood_Draw_Date },
             ":SCode_Primary": {
-              SS: fhirPayload.Cso_Result_Snomed_Code_Primary,
+              SS: fhirPayload.Cso_Result_Snomed_Primary,
             },
-            ":SDisplay_Primary": {
-              SS: fhirPayload.Cso_Result_Snomed_Display_Primary,
-            },
+            // ":SDisplay_Primary": {
+            //   SS: fhirPayload.Cso_Result_Snomed_Display_Primary,
+            // },
             ":SCode_Secondary": {
-              SS: fhirPayload.Cso_Result_Snomed_Code_Secondary,
+              SS: fhirPayload.Cso_Result_Snomed_Secondary,
             },
-            ":SDisplay_Secondary": {
-              SS: fhirPayload.Cso_Result_Snomed_Display_Secondary,
-            },
+            // ":SDisplay_Secondary": {
+            //   SS: fhirPayload.Cso_Result_Snomed_Display_Secondary,
+            // },
           },
         },
       },
