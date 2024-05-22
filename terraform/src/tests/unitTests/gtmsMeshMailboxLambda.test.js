@@ -137,9 +137,14 @@ describe("processMessage", () => {
       $metadata: { httpStatusCode: 200 },
     });
     const clinicData = {
-      headers: {
-        "mex-workflowid": "GTMS_CLINIC",
+      initial_response: {
+        headers: {
+          "mex-workflowid": "GTMS_CLINIC",
+        },
       },
+    };
+
+    const data = {
       ClinicCreateOrUpdate: {
         ClinicName: "GRAIL Test Clinic",
         Address: "210 Euston Rd, London NW1 2DA",
@@ -149,6 +154,7 @@ describe("processMessage", () => {
 
     const result = await processMessage(
       clinicData,
+      data,
       environment,
       mockS3Client,
       workflows,
@@ -175,9 +181,13 @@ describe("processMessage", () => {
       $metadata: { httpStatusCode: 200 },
     });
     const appointmentData = {
-      headers: {
-        "mex-workflowid": "GTMS_APPOINTMENT",
+      initial_response: {
+        headers: {
+          "mex-workflowid": "GTMS_APPOINTMENT",
+        },
       },
+    };
+    const data = {
       Appointment: {
         ParticipantID: "NHS-AB12-CD34",
         AppointmentID: "00000000-0000-0000-0000-000000000000",
@@ -192,6 +202,7 @@ describe("processMessage", () => {
 
     const result = await processMessage(
       appointmentData,
+      data,
       environment,
       mockS3Client,
       workflows,
@@ -218,9 +229,13 @@ describe("processMessage", () => {
       $metadata: { httpStatusCode: 200 },
     });
     const clinicCapacityData = {
-      headers: {
-        "mex-workflowid": "GTMS_CLINIC_SCHEDULE",
+      initial_response: {
+        headers: {
+          "mex-workflowid": "GTMS_CLINIC_SCHEDULE",
+        },
       },
+    };
+    const data = {
       ClinicScheduleSummary: {
         test_data: "example",
       },
@@ -228,6 +243,7 @@ describe("processMessage", () => {
 
     const result = await processMessage(
       clinicCapacityData,
+      data,
       environment,
       mockS3Client,
       workflows,
@@ -254,9 +270,13 @@ describe("processMessage", () => {
       $metadata: { httpStatusCode: 200 },
     });
     const withdrawalData = {
-      headers: {
-        "mex-workflowid": "GTMS_WITHDRAW",
+      initial_response: {
+        headers: {
+          "mex-workflowid": "GTMS_WITHDRAW",
+        },
       },
+    };
+    const data = {
       Withdrawal: {
         test_data: "example",
       },
@@ -264,6 +284,7 @@ describe("processMessage", () => {
 
     const result = await processMessage(
       withdrawalData,
+      data,
       environment,
       mockS3Client,
       workflows,
@@ -416,6 +437,7 @@ describe("readMsg", () => {
     mailboxPassword: "example",
     sharedKey: "example",
     agent: "example",
+    outputFilePath: "example",
   };
   beforeEach(() => {
     jest.clearAllMocks();

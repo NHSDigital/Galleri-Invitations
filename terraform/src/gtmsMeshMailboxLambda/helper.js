@@ -117,7 +117,7 @@ export const markRead = async (CONFIG, marked, msgID) => {
  */
 export const readMsg = async (CONFIG, readingMsg, msgID) => {
   try {
-    let messages = await readMessage({
+    let messages = await readingMsg({
       url: CONFIG.url,
       mailboxID: CONFIG.receiverMailboxID,
       mailboxPassword: CONFIG.receiverMailboxPassword,
