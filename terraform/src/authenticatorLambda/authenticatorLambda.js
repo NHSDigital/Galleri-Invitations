@@ -57,21 +57,16 @@ export const handler = async (event) => {
       validateTokenExpirationWithAuthTime,
       validateTokenSignature
     );
-    const authResponse = {
-      id: userInfo.uid,
-      name: userRole.Name,
-      email: userRole.Email,
-      role: userRole.Role,
-      isAuthorized: checkAuthorizationResult,
-    };
     if (checkAuthorizationResult !== true) {
       const errorMessage = checkAuthorizationResult
         .split("error=")[1]
         .replace(/\+/g, " ");
       console.error("Error: ", errorMessage);
     } else {
+      const apiSessionId = uuidv4();
       await generateAPIGatewayLockdownSession(
         dynamoDBClient,
+        apiSessionId,
         userInfo.uid,
         updateAPIGatewayLockdownSessionTable
       );
@@ -79,6 +74,14 @@ export const handler = async (event) => {
         `This User has been authenticated and is authorized to access the MCBT App with role - ${userRole.Role}`
       );
     }
+    const authResponse = {
+      id: userInfo.uid,
+      name: userRole.Name,
+      email: userRole.Email,
+      role: userRole.Role,
+      isAuthorized: checkAuthorizationResult,
+      apiSessionId: apiSessionId,
+    };
     return { statusCode: 200, body: JSON.stringify(authResponse) };
   } catch (error) {
     console.error("Error: ", error);
@@ -89,6 +92,7 @@ export const handler = async (event) => {
 // Function to generate session for API Gateway Lock-down
 export async function generateAPIGatewayLockdownSession(
   client,
+  apiSessionId,
   userId,
   updateAPISessionTable
 ) {
@@ -105,7 +109,7 @@ export async function generateAPIGatewayLockdownSession(
 
     const updateSessionTable = await updateAPISessionTable(
       client,
-      uuidv4(),
+      apiSessionId,
       userId,
       timeToLive,
       expirationDateTime,
@@ -116,7 +120,9 @@ export async function generateAPIGatewayLockdownSession(
       console.error(`Error: Failed to generate session for for User ${userId}`);
       return;
     }
-    console.log(`Session generated successfully for User ${userId}`);
+    console.log(
+      `API Gateway Lockdown session generated successfully for User ${userId}`
+    );
   } catch (error) {
     console.error(`Error: Failed to generate session for for User ${userId}`);
     console.error(`Error:`, error);
@@ -127,7 +133,7 @@ export async function generateAPIGatewayLockdownSession(
 // Function to update the API Gateway Lock-down Session Table
 export async function updateAPIGatewayLockdownSessionTable(
   client,
-  sessionId,
+  apiSessionId,
   userId,
   timeToLive,
   expirationDateTime,
@@ -138,7 +144,7 @@ export async function updateAPIGatewayLockdownSessionTable(
     TableName: `${environment}-APIGatewayLockdownSession`,
     Key: {
       API_Session_Id: {
-        S: sessionId,
+        S: apiSessionId,
       },
     },
     ExpressionAttributeNames: {
