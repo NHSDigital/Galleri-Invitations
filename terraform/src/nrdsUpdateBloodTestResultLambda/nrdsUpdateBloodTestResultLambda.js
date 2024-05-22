@@ -167,8 +167,8 @@ export const handler = async (event) => {
   if (episodeItemStatus) {
     const dateTime = new Date(Date.now()).toISOString();
     fhirPayload.episodeStatus = episodeItemStatus;
-    fhirPayload.Result_Raw_Full_S3 = `s3://GalleriTestResults/${fhirPayload.Participant_Id}_fhir_message_${dateTime}.json`;
-    fhirPayload.Result_PDF_S3 = `s3://GalleriTestResults/${fhirPayload.Participant_Id}_pdf_${dateTime}.pdf`;
+    fhirPayload.Result_Raw_Full_S3 = `s3://${ENVIRONMENT}-${successBucket}/GalleriTestResults/${fhirPayload.Participant_Id}_fhir_message_${dateTime}.json`;
+    fhirPayload.Result_PDF_S3 = `s3://${ENVIRONMENT}-${successBucket}/GalleriTestResults/${fhirPayload.Participant_Id}_pdf_${dateTime}.pdf`;
     if (!BloodTestItems) {
       console.log("insert new record");
       fhirPayload.Result_Created_By = "GPS";
