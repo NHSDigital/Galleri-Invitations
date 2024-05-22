@@ -1,6 +1,5 @@
-resource "aws_wafv2_geo_match_set" "uk_geo" {
-  name  = "${var.environment}-${var.name}-uk-geo"
-  scope = "REGIONAL"
+resource "aws_waf_geo_match_set" "uk_geo" {
+  name = "${var.environment}-${var.name}-uk-geo"
 
   geo_match_constraint {
     type  = "Country"
