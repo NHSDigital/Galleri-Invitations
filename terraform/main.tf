@@ -1588,13 +1588,8 @@ module "test_cross_check_report_appointment_validation_lambda" {
     CR_TRR_SUCCESSFUL_BUCKET   = "inbound-nrds-galleritestresult-step3-success"
     CR_TRR_UNSUCCESSFUL_BUCKET = "inbound-nrds-galleritestresult-step3-error"
   }
-}
-
-module "test_cross_check_report_appointment_validation_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.test_cross_check_report_appointment_validation_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "test_cross_check_report_appointment_validation_lambda_trigger" {
