@@ -1,3 +1,61 @@
+resource "aws_wafv2_geo_match_set" "uk_geo" {
+  name  = "${var.environment}-${var.name}-uk-geo"
+  scope = "REGIONAL"
+
+  geo_match_constraint {
+    type  = "Country"
+    value = "GB"
+  }
+}
+
+resource "aws_wafv2_web_acl" "screens" {
+  name        = "${var.environment}-${var.name}-web-acl"
+  description = "Web ACL to allow only UK traffic"
+  scope       = "REGIONAL"
+  default_action {
+    block {}
+  }
+
+  rule {
+    name     = "AllowUK"
+    priority = 1
+    action {
+      allow {}
+    }
+    statement {
+      geo_match_statement {
+        country_codes = ["GB"]
+      }
+    }
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "AllowUK"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = true
+    metric_name                = "screens"
+    sampled_requests_enabled   = true
+  }
+
+  depends_on = [aws_wafv2_geo_match_set.uk_geo]
+}
+
+# Fetch the load balancer associated with the Elastic Beanstalk environment
+data "aws_elb" "beanstalk_lb" {
+  name = aws_elastic_beanstalk_environment.screens.all_settings["LoadBalancerName"]
+}
+
+# Associate the WAF WebACL with the Elastic Beanstalk load balancer
+resource "aws_wafv2_web_acl_association" "screens" {
+  resource_arn = data.aws_elb.beanstalk_lb.arn
+  web_acl_arn  = aws_wafv2_web_acl.screens.arn
+
+  depends_on = [aws_wafv2_web_acl.screens]
+}
+
 locals {
   source_files = fileset(var.frontend_repo_location, "**/*")
   source_hash  = sha256(join("", [for f in local.source_files : filesha256("${var.frontend_repo_location}/${f}")]))
@@ -9,7 +67,7 @@ data "archive_file" "screens" {
   output_path = "${path.cwd}/src/${var.name}.zip"
 }
 
-data "aws_route53_zone" "example" {
+data "aws_route53_zone" "screens" {
   name         = "${var.hostname}."
   private_zone = false
 }
@@ -26,7 +84,7 @@ data "aws_secretsmanager_secret_version" "cis2_client_id" {
 # ownership of the domain, it does this by creating a hostname with a unique prefix and then checks it to verify
 # everything is correct.
 
-resource "aws_acm_certificate" "example" {
+resource "aws_acm_certificate" "screens" {
   domain_name       = "${var.environment}.${var.hostname}"
   validation_method = "DNS"
   tags = {
@@ -38,9 +96,9 @@ resource "aws_acm_certificate" "example" {
   }
 }
 
-resource "aws_route53_record" "example" {
+resource "aws_route53_record" "screens" {
   for_each = {
-    for dvo in aws_acm_certificate.example.domain_validation_options : dvo.domain_name => {
+    for dvo in aws_acm_certificate.screens.domain_validation_options : dvo.domain_name => {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
       type   = dvo.resource_record_type
@@ -52,17 +110,17 @@ resource "aws_route53_record" "example" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = data.aws_route53_zone.example.zone_id
+  zone_id         = data.aws_route53_zone.screens.zone_id
 }
 
-resource "aws_acm_certificate_validation" "example" {
-  certificate_arn         = aws_acm_certificate.example.arn
-  validation_record_fqdns = [for record in aws_route53_record.example : record.fqdn]
+resource "aws_acm_certificate_validation" "screens" {
+  certificate_arn         = aws_acm_certificate.screens.arn
+  validation_record_fqdns = [for record in aws_route53_record.screens : record.fqdn]
 }
 
 # Once we have validated that the domain is owned and correct then we create the actual record
 resource "aws_route53_record" "actual_record" {
-  zone_id = data.aws_route53_zone.example.id
+  zone_id = data.aws_route53_zone.screens.id
   name    = "${var.environment}.${var.hostname}"
   type    = "CNAME"
   ttl     = "300"
@@ -151,7 +209,7 @@ resource "aws_elastic_beanstalk_application_version" "screens" {
   application = aws_elastic_beanstalk_application.screens.name
   bucket      = aws_s3_bucket.screens.bucket
   key         = aws_s3_object.screens.key
-  depends_on  = [aws_acm_certificate_validation.example]
+  depends_on  = [aws_acm_certificate_validation.screens]
   tags = {
     ApplicationRole = "${var.application_role}"
     Name            = "${var.environment} Elastic Beanstalk Application Version"
@@ -186,7 +244,7 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   version_label       = aws_elastic_beanstalk_application_version.screens.name
   cname_prefix        = "${var.environment}-${var.dns_zone}-gps-multi-cancer-blood-test"
 
-  depends_on = [aws_acm_certificate_validation.example]
+  depends_on = [aws_acm_certificate_validation.screens]
 
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
@@ -203,7 +261,7 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   setting {
     namespace = "aws:elb:listener:443"
     name      = "SSLCertificateId"
-    value     = aws_acm_certificate_validation.example.certificate_arn
+    value     = aws_acm_certificate_validation.screens.certificate_arn
   }
 
   setting {
