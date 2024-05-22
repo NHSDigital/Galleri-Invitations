@@ -214,7 +214,7 @@ export async function getUserRole(uuid) {
   const params = {
     TableName: `${environment}-UserAccounts`,
     Key: {
-      UUID: { S: uuid },
+      User_UUID: { S: uuid },
     },
   };
   console.log("UUID from query string parameters is: ", uuid);

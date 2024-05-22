@@ -30,7 +30,7 @@ process.env.ENVIRONMENT = "test_environment";
 jest.mock("@aws-sdk/client-dynamodb", () => ({
   DynamoDBClient: jest.fn(),
   GetItemCommand: jest.fn(() => ({
-    Key: { UUID: { S: "testUUID" } },
+    Key: { User_UUID: { S: "testUUID" } },
     TableName: "test-UserAccounts",
   })),
 }));
@@ -658,7 +658,7 @@ describe("All Test", () => {
       expect(mockSend).toHaveBeenCalledWith(
         expect.objectContaining({
           TableName: "test-UserAccounts",
-          Key: { UUID: { S: "testUUID" } },
+          Key: { User_UUID: { S: "testUUID" } },
         })
       );
     });
