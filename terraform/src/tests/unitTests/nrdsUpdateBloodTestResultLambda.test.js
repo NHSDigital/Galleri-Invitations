@@ -92,7 +92,7 @@ describe("pushCsvToS3", () => {
     expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
   });
   test("Failed response when error occurs sending file to bucket", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
+    const logSpy = jest.spyOn(global.console, "error");
     const errorMsg = new Error("Mocked error");
     const mockClient = {
       send: jest.fn().mockRejectedValue(errorMsg),
@@ -105,7 +105,7 @@ describe("pushCsvToS3", () => {
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith(
-      `Failed to push to galleri-ons-data/test.txt. Error Message: ${errorMsg}`
+      `Error: Failed to push to galleri-ons-data/test.txt. Error Message: ${errorMsg}`
     );
   });
 });
