@@ -625,7 +625,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           "Sid" : "AllowSNSAccess",
           "Effect" : "Allow",
           "Action" : "sns:Publish",
-          "Resource" : "arn:aws:sns:eu-west-2:136293001324:${var.environment}-testResultTopic"
+          "Resource" : "arn:aws:sns:eu-west-2:${var.account_id}:${var.environment}-testResultTopic"
         },
         {
           "Sid" : "AllowDynamodbAccess",
@@ -945,14 +945,14 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
 #             "dynamodb:*"
 #           ],
 #           "Resource" : [
-#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-GalleriBloodTestResult"
+#             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GalleriBloodTestResult"
 #           ]
 #         },
 #         {
 #           "Sid" : "AllowPublishToMyTopic",
 #           "Effect" : "Allow",
 #           "Action" : "sns:Publish",
-#           "Resource" : "arn:aws:sns:eu-west-2:136293001324:${var.environment}-testResultTopic"
+#           "Resource" : "arn:aws:sns:eu-west-2:${var.account_id}:${var.environment}-testResultTopic"
 #         }
 #       ],
 #       "Version" : "2012-10-17"
