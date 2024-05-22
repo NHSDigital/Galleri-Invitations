@@ -42,8 +42,10 @@ resource "aws_wafv2_web_acl" "screens" {
   depends_on = [aws_waf_geo_match_set.uk_geo]
 }
 
-data "aws_elb" "beanstalk_lb" {
-  name = aws_elastic_beanstalk_environment.screens.all_settings["LoadBalancerName"]
+data "aws_lb" "beanstalk_lb" {
+  depends_on = [aws_elastic_beanstalk_environment.screens]
+  for_each   = toset([aws_elastic_beanstalk_environment.screens.name])
+  name       = element(aws_elastic_beanstalk_environment.screens.all_settings[*]["LoadBalancerName"], 0)
 }
 
 # Associate the WAF WebACL with the Elastic Beanstalk load balancer
