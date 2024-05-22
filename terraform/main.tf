@@ -2296,14 +2296,19 @@ module "galleri_blood_test_result_table" {
 }
 
 module "cancer_signal_origin_table" {
-  source      = "./modules/dynamodb"
-  table_name  = "CancerSignalOrigin"
-  hash_key    = "Id"
+  source          = "./modules/dynamodb"
+  table_name      = "CancerSignalOrigin"
+  hash_key        = "Cso_Result_Snomed_Code_Sorted"
+  range_key       = "Grail_Prd_Version"
   projection_type = "ALL"
-  environment = var.environment
+  environment     = var.environment
   attributes = [
     {
-      name = "Id"
+      name = "Cso_Result_Snomed_Code_Sorted"
+      type = "S"
+    },
+    {
+      name = "Grail_Prd_Version"
       type = "S"
     },
   ]

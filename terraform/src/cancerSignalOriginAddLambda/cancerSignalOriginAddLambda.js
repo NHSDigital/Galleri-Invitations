@@ -4,7 +4,6 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
-
 const s3 = new S3Client();
 const dbClient = new DynamoDBClient({
   region: "eu-west-2",
@@ -19,7 +18,9 @@ export const handler = async (event) => {
   );
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
   try {
-    addCancerSignalOriginTable(dbClient);
+    const csvString = await readCsvFromS3(bucket, key, s3);
+    const cancerSignalOrigin = JSON.parse(csvString);
+    addCancerSignalOriginTable(dbClient, cancerSignalOrigin);
   } catch (error) {
     console.error(
       "Error: failed with cancer signal origin extraction, procession or uploading",
@@ -28,14 +29,30 @@ export const handler = async (event) => {
   }
 };
 
+//METHODS
+export const readCsvFromS3 = async (bucketName, key, client) => {
+  try {
+    const response = await client.send(
+      new GetObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+      })
+    );
+    return response.Body.transformToString();
+  } catch (err) {
+    console.error(`Failed to read from ${bucketName}/${key}`);
+    throw err;
+  }
+};
+
 //DYNAMODB FUNCTIONS
 export async function addCancerSignalOriginTable(
   client,
-  appointment,
+  cancerSignalOrigin,
   table = `${ENVIRONMENT}-CancerSignalOrigin`
 ) {
   const partitionKeyName = "Participant_Id";
-  const partitionKeyValue = appointment.participantID;
+  const partitionKeyValue = cancerSignalOrigin.participantID;
 
   const params = {
     TableName: table,
@@ -43,17 +60,22 @@ export async function addCancerSignalOriginTable(
       [partitionKeyName]: partitionKeyValue,
     },
     UpdateExpression:
-      "SET primary_phone_number = :primaryNumber, secondary_phone_number = :secondaryNumber, email_address = :email_address, appointment_accessibility = :appointmentAccessibility, communications_accessibility = :communicationsAccessibility, notification_preferences= :notificationPreferences, Time_stamp = :time_stamp ",
+      "SET Cso_Result_Snomed_Code_Sorted = :csoResultSnomedCodeSorted, Grail_Prd_Version = :grailPrdVersion, Grail_Code = :grailCode, Grail_Heading = :grailHeading, Grail_Subheading = :grailSubheading, Cso_Result_Snomed_Code_And_Preferred_Term = :csoResultSnomedCodeAndPreferredTerm	, Cso_Result_Friendly = :csoResultFriendly, Created_By = :createdBy, Start_Date = :startDate, End_Date = :endDate ",
     ExpressionAttributeValues: {
-      ":primaryNumber": { S: appointment.PrimaryPhoneNumber },
-      ":secondaryNumber": { S: appointment.SecondaryPhoneNumber },
-      ":email_address": { S: appointment.Email },
-      ":appointmentAccessibility": { M: appointment.AppointmentAccessibility },
-      ":communicationsAccessibility": {
-        M: appointment.CommunicationsAccessibility,
+      ":csoResultSnomedCodeSorted": {
+        S: cancerSignalOrigin.Cso_Result_Snomed_Code_Sorted,
       },
-      ":notificationPreferences": { M: appointment.NotificationPreferences },
-      ":time_stamp": { S: appointment.Timestamp },
+      ":grailPrdVersion": { S: cancerSignalOrigin.Grail_Prd_Version },
+      ":grailCode": { S: cancerSignalOrigin.Grail_Code },
+      ":grailHeading": { S: cancerSignalOrigin.Grail_Heading },
+      ":grailSubheading": { S: cancerSignalOrigin.Grail_Subheading },
+      ":csoResultSnomedCodeAndPreferredTerm": {
+        S: cancerSignalOrigin.Cso_Result_Snomed_Code_And_Preferred_Term,
+      },
+      ":csoResultFriendly": { S: cancerSignalOrigin.Cso_Result_Friendly },
+      ":createdBy": { S: cancerSignalOrigin.Created_By },
+      ":startDate": { S: "Date Now" },
+      ":endDate": { S: "End date" },
     },
   };
   const command = new UpdateItemCommand(params);
