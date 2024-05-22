@@ -1,6 +1,10 @@
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
-import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBClient,
+  UpdateItemCommand,
+  GetItemCommand,
+} from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import axios from "axios";
 import jwksClient from "jwks-rsa";
@@ -66,8 +70,13 @@ export const handler = async (event) => {
         .replace(/\+/g, " ");
       console.error("Error: ", errorMessage);
     } else {
+      await generateAPIGatewayLockdownSession(
+        dynamoDBClient,
+        userInfo.uid,
+        updateAPIGatewayLockdownSessionTable
+      );
       console.log(
-        `This User has been authenticated and is authorized to access the Galleri App with role - ${userRole.Role}`
+        `This User has been authenticated and is authorized to access the MCBT App with role - ${userRole.Role}`
       );
     }
     return { statusCode: 200, body: JSON.stringify(authResponse) };
@@ -75,6 +84,99 @@ export const handler = async (event) => {
     console.error("Error: ", error);
   }
 };
+
+//FUNCTIONS
+// Function to generate session for API Gateway Lock-down
+export async function generateAPIGatewayLockdownSession(
+  client,
+  userId,
+  updateAPISessionTable
+) {
+  try {
+    // Current DateTime
+    const dateTime = new Date(Date.now()).toISOString();
+
+    // TODO: After confirming the session duration update the timeToLive & expirationDateTime below
+    // Unix epoch timestamp that is 20 minutes (1200 seconds) in the future from the current time
+    const timeToLive = Math.floor(Date.now() / 1000) + 1200;
+
+    // ISO string format timestamp that is 20 minutes (1200 seconds) in the future from the current time
+    const expirationDateTime = new Date(Date.now() + 20 * 60000).toISOString();
+
+    const updateSessionTable = await updateAPISessionTable(
+      client,
+      uuidv4(),
+      userId,
+      timeToLive,
+      expirationDateTime,
+      dateTime,
+      dateTime
+    );
+    if (updateSessionTable !== 200) {
+      console.error(`Error: Failed to generate session for for User ${userId}`);
+      return;
+    }
+    console.log(`Session generated successfully for User ${userId}`);
+  } catch (error) {
+    console.error(`Error: Failed to generate session for for User ${userId}`);
+    console.error(`Error:`, error);
+    throw error;
+  }
+}
+
+// Function to update the API Gateway Lock-down Session Table
+export async function updateAPIGatewayLockdownSessionTable(
+  client,
+  sessionId,
+  userId,
+  timeToLive,
+  expirationDateTime,
+  creationDateTime,
+  updatedDateTime
+) {
+  const params = {
+    TableName: `${environment}-APIGatewayLockdownSession`,
+    Key: {
+      API_Session_Id: {
+        S: sessionId,
+      },
+    },
+    ExpressionAttributeNames: {
+      "#USER": "User_UUID",
+      "#TTL": "Expires_At",
+      "#EXPIRES": "Expiration_DateTime",
+      "#CREATED": "Creation_DateTime",
+      "#UPDATED": "Last_Updated_DateTime",
+    },
+    ExpressionAttributeValues: {
+      ":user": {
+        S: userId,
+      },
+      ":ttl": {
+        N: timeToLive,
+      },
+      ":expires": {
+        S: expirationDateTime,
+      },
+      ":created": {
+        S: creationDateTime,
+      },
+      ":updated": {
+        S: updatedDateTime,
+      },
+    },
+    UpdateExpression:
+      "SET #USER = :user, #TTL = :ttl, #EXPIRES = :expires, #CREATED = :created, #UPDATED = :updated",
+  };
+  const command = new UpdateItemCommand(params);
+  const response = await client.send(command);
+  if (response.$metadata.httpStatusCode != 200) {
+    console.error(
+      `Error: Failed to update the API Gateway Lockdown Session for User ${userId}`
+    );
+  }
+  return response.$metadata.httpStatusCode;
+}
 
 // Function to return the generated JWT signed by a private Key
 export async function getCIS2SignedJWT(

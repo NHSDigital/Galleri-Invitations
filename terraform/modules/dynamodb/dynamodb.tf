@@ -8,6 +8,11 @@ resource "aws_dynamodb_table" "dynamodb_table" {
   stream_enabled   = var.stream_enabled
   stream_view_type = var.stream_view_type
 
+  ttl {
+    enabled        = var.ttl_enabled
+    attribute_name = var.ttl_attribute_name
+  }
+
   dynamic "attribute" {
     for_each = var.attributes
     content {
