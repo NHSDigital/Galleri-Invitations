@@ -8,6 +8,7 @@ import {
   S3Client,
   GetObjectCommand,
   PutObjectCommand,
+  GetObjectTaggingCommand,
 } from "@aws-sdk/client-s3";
 import get from "lodash.get";
 //VARIABLES
@@ -26,6 +27,7 @@ export const handler = async (event) => {
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
   const csvString = await readCsvFromS3(bucket, key, s3);
+  const tagString = await getTagFromS3(bucket, key, s3);
   const js = JSON.parse(csvString); //convert string retrieved from S3 to object
 
   let payloadPdf = "";
@@ -130,6 +132,18 @@ export const handler = async (event) => {
     }
   }
 
+  //Extract Cso_Result_Friendly_Primary and Cso_Result_Friendly_Secondary
+  if (tagString.length > 0) {
+    for (let i = 0; i < tagString.length; i++) {
+      if (tagString[i].Key === "Cso_Result_Friendly_Primary") {
+        fhirPayload.Cso_Result_Friendly_Primary = tagString[i].Value;
+      }
+      if (tagString[i].Key === "Cso_Result_Friendly_Secondary") {
+        fhirPayload.Cso_Result_Friendly_Secondary = tagString[i].Value;
+      }
+    }
+  }
+
   const episodeResponse = await lookUp(
     dbClient,
     fhirPayload.Participant_Id,
@@ -161,11 +175,10 @@ export const handler = async (event) => {
   const ResultUpdatedItems = BloodTestResponse?.Items[0]?.Result_Creation?.S;
 
   checkProperties(fhirPayload);
-  console.log(fhirPayload);
   const bufferData = Buffer.from(payloadPdf, "base64");
   //matches participant
+  const dateTime = new Date(Date.now()).toISOString();
   if (episodeItemStatus) {
-    const dateTime = new Date(Date.now()).toISOString();
     fhirPayload.episodeStatus = episodeItemStatus;
     fhirPayload.Result_Raw_Full_S3 = `s3://${ENVIRONMENT}-${successBucket}/GalleriTestResults/${fhirPayload.Participant_Id}_fhir_message_${dateTime}.json`;
     fhirPayload.Result_PDF_S3 = `s3://${ENVIRONMENT}-${successBucket}/GalleriTestResults/${fhirPayload.Participant_Id}_pdf_${dateTime}.pdf`;
@@ -286,6 +299,28 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
 };
 
 /**
+ * This function is used to retrieve the tags associated to an object in S3
+ *
+ * @param {String} bucketName The name of the bucket you are querying
+ * @param {String} key The name of the object you are retrieving
+ * @param {Object} client Instance of S3 client
+ * @returns {Array} An array of all tags on object being returned
+ */
+export const getTagFromS3 = async (bucketName, key, client) => {
+  try {
+    const tag = await client.send(
+      new GetObjectTaggingCommand({
+        Bucket: bucketName,
+        Key: key,
+      })
+    );
+    return tag.TagSet;
+  } catch (err) {
+    console.error(`Error: Failed to read from ${bucketName}/${key}`);
+  }
+};
+
+/**
  * This function is used to write a new object in S3
  *
  * @param {string} bucketName The name of the bucket you are pushing to
@@ -396,7 +431,7 @@ export const transactionalWrite = async (
             Participant_Id: { S: participantId },
             Grail_Id: { S: fhirPayload.Grail_Id },
           },
-          UpdateExpression: `SET Grail_FHIR_Result_Id = :GrailFHIRResult, Meta_Last_Updated = :MetaLU, Identifier_Value = :IV, CSD_Result_SNOMED_Code = :CSDSNOMEDCode, Blood_Draw_Date = :Blood_Draw_Date, Cso_Result_SNOMED_Code_Primary = :SCode_Primary, Cso_Result_SNOMED_Code_Secondary = :SCode_Secondary, Result_Raw_Full_S3 = :Result_Raw_Full_S3, Result_PDF_S3 = :Result_PDF_S3, Result_Created_By = :Result_Created_By, Result_Creation = :Result_Creation, Result_Updated_By = :Result_Updated_By, Result_Updated = :Result_Updated, DiagnosticReportStatus = :DiagnosticReportStatus`,
+          UpdateExpression: `SET Grail_FHIR_Result_Id = :GrailFHIRResult, Meta_Last_Updated = :MetaLU, Identifier_Value = :IV, CSD_Result_SNOMED_Code = :CSDSNOMEDCode, Blood_Draw_Date = :Blood_Draw_Date, Cso_Result_SNOMED_Code_Primary = :SCode_Primary, Cso_Result_SNOMED_Code_Secondary = :SCode_Secondary, Result_Raw_Full_S3 = :Result_Raw_Full_S3, Result_PDF_S3 = :Result_PDF_S3, Result_Created_By = :Result_Created_By, Result_Creation = :Result_Creation, Result_Updated_By = :Result_Updated_By, Result_Updated = :Result_Updated, Cso_Result_Friendly_Primary = :Cso_Result_Friendly_Primary, Cso_Result_Friendly_Secondary = :Cso_Result_Friendly_Secondary, DiagnosticReportStatus = :DiagnosticReportStatus`,
           TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
           ExpressionAttributeValues: {
             ":GrailFHIRResult": { S: fhirPayload.Grail_FHIR_Result_Id },
@@ -429,6 +464,12 @@ export const transactionalWrite = async (
             },
             ":Result_Updated": {
               S: fhirPayload.Result_Updated,
+            },
+            ":Cso_Result_Friendly_Primary": {
+              S: fhirPayload.Cso_Result_Friendly_Primary,
+            },
+            ":Cso_Result_Friendly_Secondary": {
+              S: fhirPayload.Cso_Result_Friendly_Secondary,
             },
             ":DiagnosticReportStatus": {
               S: fhirPayload.DiagnosticReportStatus,

@@ -11,6 +11,7 @@ import {
   lookUp,
   transactionalWrite,
   checkProperties,
+  getTagFromS3,
 } from "../../nrdsUpdateBloodTestResultLambda/nrdsUpdateBloodTestResultLambda.js";
 
 describe("readCsvFromS3", () => {
@@ -263,5 +264,57 @@ describe("checkProperties", () => {
       k: "null",
       ss: ["null"],
     });
+  });
+});
+
+describe("getTagFromS3", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("Failed response when error occurs getting file from bucket", async () => {
+    const logSpy = jest.spyOn(global.console, "error");
+    const errorStr = "Error: Mocked error";
+    const errorMsg = new Error(errorStr);
+    const mockClient = {
+      send: jest.fn().mockRejectedValue(errorMsg),
+    };
+
+    const bucket = "bucketName";
+    const key = "key";
+    try {
+      await getTagFromS3(bucket, key, mockClient);
+    } catch (err) {
+      expect(err.message).toBe("Error: Mocked error");
+    }
+
+    expect(logSpy).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledWith(
+      "Error: Failed to read from bucketName/key"
+    );
+  });
+
+  test("return string built from csv file", async () => {
+    const mockS3Client = mockClient(new S3Client({}));
+
+    mockS3Client.resolves({
+      TagSet: [
+        { Key: "Levi", Value: "Ackerman" },
+        { Key: "Mikasa", Value: "Ackerman" },
+      ],
+    });
+
+    const result = await getTagFromS3("aaaaaaa", "aaaaaaa", mockS3Client);
+
+    const expected_result = [
+      { Key: "Levi", Value: "Ackerman" },
+      { Key: "Mikasa", Value: "Ackerman" },
+    ];
+
+    expect(result).toEqual(expected_result);
   });
 });
