@@ -584,9 +584,9 @@ export const checkProperties = async (obj) => {
     if (obj[key] != "") {
       console.log(`${key} populated.`);
     } else if (obj[key] == "" && Array.isArray(obj[key])) {
-      obj[key] = ["null"];
+      obj[key] = ["NULL"];
     } else {
-      obj[key] = "null";
+      obj[key] = "NULL";
     }
   }
 };
