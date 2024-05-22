@@ -43,10 +43,6 @@ resource "aws_wafv2_web_acl" "screens" {
 }
 
 # Fetch the load balancer associated with the Elastic Beanstalk environment
-data "aws_elastic_beanstalk_environment" "screens" {
-  name = "${var.environment}-${var.name}-frontend"
-}
-
 data "aws_elb" "beanstalk_lb" {
   count = length(data.aws_elastic_beanstalk_environment.screens.all_settings)
   # name  = data.aws_elastic_beanstalk_environment.screens.all_settings[count.index].value
