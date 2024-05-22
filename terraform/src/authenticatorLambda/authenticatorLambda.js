@@ -83,6 +83,8 @@ export const handler = async (event) => {
       isAuthorized: checkAuthorizationResult,
       apiSessionId: apiSessionId,
     };
+    console.log("API SESSION ID: ", apiSessionId);
+    console.log("AUTH RESPONSE: ", authResponse);
     return { statusCode: 200, body: JSON.stringify(authResponse) };
   } catch (error) {
     console.error("Error: ", error);
