@@ -109,16 +109,16 @@ module "eks" {
 
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
-    instance_types = ["t3.small"]
+    instance_types = ["t3.micro"]
   }
 
   eks_managed_node_groups = {
     example = {
       min_size     = 1
-      max_size     = 3
-      desired_size = 2
+      max_size     = 2
+      desired_size = 1
 
-      instance_types = ["t3.small"]
+      instance_types = ["t3.micro"]
       capacity_type  = "SPOT"
     }
   }
@@ -211,14 +211,6 @@ resource "kubernetes_deployment" "fhir_validator" {
           }
 
           resources {
-            requests {
-              cpu    = "500m"
-              memory = "512Mi"
-            }
-            limits {
-              cpu    = "4"
-              memory = "5Gi"
-            }
           }
         }
 
@@ -231,14 +223,6 @@ resource "kubernetes_deployment" "fhir_validator" {
           }
 
           resources {
-            requests {
-              cpu    = "500m"
-              memory = "512Mi"
-            }
-            limits {
-              cpu    = "1"
-              memory = "1Gi"
-            }
           }
         }
       }
