@@ -73,14 +73,14 @@ export const handler = async (event) => {
         `valueCodeableConcept.coding[0].display`
       )}),`;
     }
-    // // Blood_Draw_Date
+    // Blood_Draw_Date
     if (get(js.entry[objs].resource, `resourceType`) === "Specimen") {
       fhirPayload.Blood_Draw_Date = get(
         js.entry[objs].resource,
         `collection.collectedDateTime`
       );
     }
-    // // Cso_Result_SNOMED_Code_Primary and Cso_Result_SNOMED_Display_Primary (will be a list of multiple)
+    // Cso_Result_SNOMED_Code_Primary and Cso_Result_SNOMED_Display_Primary (will be a list of multiple)
     if (
       get(js.entry[objs].resource, `code.coding[0].code`) === "1873921000000106"
     ) {
@@ -98,7 +98,7 @@ export const handler = async (event) => {
       }
     }
 
-    // // Cso_Result_SNOMED_Code_Secondary and Cso_Result_SNOMED_Display_Secondary (will be a list of multiple)
+    // Cso_Result_SNOMED_Code_Secondary and Cso_Result_SNOMED_Display_Secondary (will be a list of multiple)
     if (
       get(js.entry[objs].resource, `code.coding[0].code`) === "1873931000000108"
     ) {
@@ -115,7 +115,7 @@ export const handler = async (event) => {
         }
       }
     }
-    // // Participant_Id
+    // Participant_Id
     if (get(js.entry[objs].resource, `resourceType`) === "Patient") {
       fhirPayload.Participant_Id = get(
         js.entry[objs],
@@ -342,8 +342,8 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
     console.log(`Successfully pushed to ${bucketName}/${key}`);
     return response;
   } catch (err) {
-    console.log(
-      `Failed to push to ${bucketName}/${key}. Error Message: ${err}`
+    console.error(
+      `Error: Failed to push to ${bucketName}/${key}. Error Message: ${err}`
     );
     throw err;
   }
@@ -493,7 +493,7 @@ export const transactionalWrite = async (
       return true;
     }
   } catch (error) {
-    console.error("Transactional write failed:", error);
+    console.error("Error: Transactional write failed:", error);
   }
 };
 
