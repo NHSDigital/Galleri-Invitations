@@ -10,6 +10,9 @@ import {
   readMessage,
 } from "nhs-mesh-client";
 
+const FILE_PATH = process.env.FILE_OUTPUT_PATH;
+const FILE_EXTENSION = process.env.FILE_EXTENSION;
+
 //Push string from MESH to S3
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
   try {
@@ -114,13 +117,14 @@ export const markRead = async (CONFIG, marked, msgID) => {
  */
 export const readMsg = async (CONFIG, readingMsg, msgID) => {
   try {
-    let messages = await readingMsg({
+    let messages = await readMessage({
       url: CONFIG.url,
       mailboxID: CONFIG.receiverMailboxID,
       mailboxPassword: CONFIG.receiverMailboxPassword,
       sharedKey: CONFIG.sharedKey,
       messageID: msgID,
       agent: CONFIG.receiverAgent,
+      outputFilePath: `${FILE_PATH}/${msgID}.${FILE_EXTENSION}`,
     });
     return messages;
   } catch (error) {

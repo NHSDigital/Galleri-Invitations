@@ -36,11 +36,13 @@
     "jwks-rsa": "^3.1.0",
     "lodash.isequal": "^4.5.0",
     "loglevel": "^1.9.1",
-    "nhs-mesh-client": "^1.0.8",
+    "nhs-mesh-client": "1.2.0",
     "node-fetch": "^2.7.0",
     "qs": "^6.11.2",
     "randexp": "^0.5.3",
     "uuid": "^9.0.1",
-    "winston": "^3.13.0"
+    "winston": "^3.13.0",
+    "chunk-csv": "^1.0.2",
+    "fs": "^0.0.1-security"
   }
 }

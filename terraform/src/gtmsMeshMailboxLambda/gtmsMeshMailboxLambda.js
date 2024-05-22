@@ -16,11 +16,14 @@ import {
 } from "nhs-mesh-client";
 import { S3Client } from "@aws-sdk/client-s3";
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
+import fs from "fs";
 //VARIABLES
 const smClient = new SecretsManagerClient({ region: "eu-west-2" });
 const clientS3 = new S3Client({});
 
 const ENVIRONMENT = process.env.ENVIRONMENT;
+const FILE_PATH = process.env.FILE_OUTPUT_PATH;
+const FILE_EXTENSION = process.env.FILE_EXTENSION;
 
 //HANDLER
 export const handler = async (event, context) => {
@@ -65,8 +68,12 @@ export const handler = async (event, context) => {
         if (messageArr.length > 0) {
           for (const element of messageArr) {
             let message = await readMsg(CONFIG, READING_MSG, element); //returns messages based on id, iteratively from message list arr
+            const data = fs.readFileSync(
+              `${FILE_PATH}/${msgID}.${FILE_EXTENSION}`
+            );
             const response = await processMessage(
               message,
+              JSON.parse(data),
               ENVIRONMENT,
               clientS3,
               workflows
@@ -104,6 +111,7 @@ export async function readSecret(secretName, client) {
  */
 export async function processMessage(
   message,
+  data,
   environment,
   S3client,
   workflows,
@@ -111,61 +119,63 @@ export async function processMessage(
 ) {
   const dateTime = timestamp || new Date(Date.now()).toISOString();
   if (
-    message?.["headers"]?.["mex-workflowid"] === workflows.CLINIC_WORKFLOWID
+    message.initial_response?.["headers"]?.["mex-workflowid"] ===
+    workflows.CLINIC_WORKFLOWID
   ) {
     //Deposit to S3, ClinicCreateOrUpdate
     const confirmation = await pushCsvToS3(
       `${environment}-inbound-gtms-clinic-create-or-update`,
       `clinic_create_or_update_${dateTime}.json`,
-      JSON.stringify(message["data"]),
+      JSON.stringify(data),
       S3client
     );
     return confirmation;
   }
 
   if (
-    message?.["headers"]?.["mex-workflowid"] ===
+    message.initial_response?.["headers"]?.["mex-workflowid"] ===
     workflows.CLINIC_SCHEDULE_WORKFLOWID
   ) {
     //Deposit to S3, ClinicScheduleSummary
     const confirmation = await pushCsvToS3(
       `${environment}-inbound-gtms-clinic-schedule-summary`,
       `clinic_schedule_summary_${dateTime}.json`,
-      JSON.stringify(message["data"]),
+      JSON.stringify(data),
       S3client
     );
     return confirmation;
   }
 
   if (
-    message?.["headers"]?.["mex-workflowid"] ===
+    message.initial_response?.["headers"]?.["mex-workflowid"] ===
     workflows.APPOINTMENT_WORKFLOWID
   ) {
     //Deposit to S3, Appointment
     const confirmation = await pushCsvToS3(
       `${environment}-inbound-gtms-appointment`,
       `appointment_${dateTime}.json`,
-      JSON.stringify(message["data"]),
+      JSON.stringify(data),
       S3client
     );
     return confirmation;
   }
 
   if (
-    message?.["headers"]?.["mex-workflowid"] === workflows.WITHDRAW_WORKFLOWID
+    message.initial_response?.["headers"]?.["mex-workflowid"] ===
+    workflows.WITHDRAW_WORKFLOWID
   ) {
     //Deposit to S3, Withdrawal
     const confirmation = await pushCsvToS3(
       `${environment}-inbound-gtms-withdrawal`,
       `withdrawal_${dateTime}.json`,
-      JSON.stringify(message["data"]),
+      JSON.stringify(data),
       S3client
     );
     return confirmation;
   }
 
   if (
-    message?.["headers"]?.["mex-workflowid"] !==
+    message.initial_response?.["headers"]?.["mex-workflowid"] !==
     (workflows.CLINIC_WORKFLOWID &&
       workflows.CLINIC_SCHEDULE_WORKFLOWID &&
       workflows.APPOINTMENT_WORKFLOWID &&
@@ -175,7 +185,7 @@ export async function processMessage(
     const confirmation = await pushCsvToS3(
       `${environment}-invalid-gtms-payload`,
       `invalid_gtms_record_${dateTime}.json`,
-      JSON.stringify(message["data"]),
+      JSON.stringify(data),
       S3client
     );
     return confirmation;
