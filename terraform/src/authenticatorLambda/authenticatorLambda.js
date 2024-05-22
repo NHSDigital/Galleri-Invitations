@@ -26,6 +26,7 @@ const GALLERI_ACTIVITY_CODE = process.env.GALLERI_ACTIVITY_CODE;
 
 export const handler = async (event) => {
   try {
+    let apiSessionId;
     const cis2ClientID = await getSecret(CLIENT_ID, smClient);
     const code = event.queryStringParameters.code; // getting authorization code from Query parameter
     // getting signed private key JWT
