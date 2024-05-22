@@ -87,7 +87,7 @@ variable "region" {
   default = "eu-west-2"
 }
 
-variable "invitations-hostname" {
+variable "invitations_hostname" {
   description = "the dns name for the account"
 }
 
@@ -97,5 +97,30 @@ variable "dns_zone" {
 
 variable "K8_URL" {
   description = "url for eks mesh service"
+  default     = null
+}
+
+variable "sso_iam_role_arn" {
+  description = "The IAM role that is used by users via SSO"
+}
+
+variable "route53_count" {
+  description = "how many route53 to provision"
+  default     = 1
+}
+
+variable "teams_url" {
+  description = "the url for the microsoft teams endpoint"
+}
+
+variable "alias_name" {
+  description = "Name of ALB of FHIR service"
+  type        = string
+  default     = null
+}
+
+variable "alias_zone_id" {
+  description = "Zone ID of ALB of FHIR service"
+  type        = string
   default     = null
 }

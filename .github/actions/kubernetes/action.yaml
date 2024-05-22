@@ -29,4 +29,5 @@ runs:
       run: |
         aws eks update-kubeconfig --name ${{ env.environment }}-eks-cluster
         kubectl apply -f ./scripts/test_data/k8s/mesh-sandbox.yaml
+        kubectl apply -f ./scripts/test_data/k8s/fhir-validation.yaml
       continue-on-error: true

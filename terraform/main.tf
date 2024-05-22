@@ -60,7 +60,7 @@ module "galleri_invitations_screen" {
   NEXTAUTH_URL                                          = var.NEXTAUTH_URL
   CIS2_REDIRECT_URL                                     = var.CIS2_REDIRECT_URL
   GALLERI_ACTIVITY_CODE                                 = var.GALLERI_ACTIVITY_CODE
-  hostname                                              = var.invitations-hostname
+  hostname                                              = var.invitations_hostname
   dns_zone                                              = var.dns_zone
   region                                                = var.region
 }
@@ -131,7 +131,7 @@ module "eks" {
     # One access entry with a policy associated
     example = {
       kubernetes_groups = []
-      principal_arn     = "arn:aws:iam::136293001324:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_Admin_603cb786ef89bc37"
+      principal_arn     = "arn:aws:iam::${var.account_id}:role/aws-reserved/sso.amazonaws.com/eu-west-2/${var.sso_iam_role_arn}"
 
       policy_associations = {
         eksAdmin = {
@@ -325,6 +325,7 @@ module "data_filter_gridall_imd_lambda" {
   lambda_timeout       = 900
   memory_size          = 4096
   lambda_s3_object_key = "data_filter_gridall_imd_lambda.zip"
+  # account_id           = var.account_id
   environment_vars = {
     BUCKET_NAME     = "galleri-ons-data",
     GRIDALL_CHUNK_1 = "gridall/chunk_data/chunk_1.csv",
@@ -332,15 +333,9 @@ module "data_filter_gridall_imd_lambda" {
     GRIDALL_CHUNK_3 = "gridall/chunk_data/chunk_3.csv",
     ENVIRONMENT     = "${var.environment}"
   }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
-
-module "data_filter_gridall_imd_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.data_filter_gridall_imd_lambda.lambda_function_name
-  retention_days       = 14
-}
-
 
 # LSOA loader
 module "lsoa_loader_lambda" {
@@ -357,15 +352,24 @@ module "lsoa_loader_lambda" {
     KEY         = "lsoa_data/lsoa_data_2023-08-15T15:42:13.301Z.csv",
     ENVIRONMENT = "${var.environment}"
   }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
-module "lsoa_loader_cloudwatch" {
-  source               = "./modules/cloudwatch"
+module "sns_alert_lambda" {
+  source               = "./modules/alert_lambda"
   environment          = var.environment
-  lambda_function_name = module.lsoa_loader_lambda.lambda_function_name
-  retention_days       = 14
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "SNSAlertLambda"
+  lambda_timeout       = 900
+  memory_size          = 2048
+  lambda_s3_object_key = "sns_alert_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+    url         = var.teams_url
+  }
 }
-
 
 # clinic information
 module "clinic_information_lambda" {
@@ -380,13 +384,8 @@ module "clinic_information_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "clinic_information_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.clinic_information_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "clinic_information_api_gateway" {
@@ -399,6 +398,8 @@ module "clinic_information_api_gateway" {
     "method.request.querystring.clinicName" = true
   }
   lambda_function_name = module.clinic_information_lambda.lambda_function_name
+  hostname             = var.invitations_hostname
+  dns_zone             = var.dns_zone
 }
 
 
@@ -415,13 +416,8 @@ module "clinic_icb_list_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "clinic_icb_list_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.clinic_icb_list_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "clinic_icb_list_api_gateway" {
@@ -433,6 +429,8 @@ module "clinic_icb_list_api_gateway" {
     "method.request.querystring.participatingIcb" = true
   }
   lambda_function_name = module.clinic_icb_list_lambda.lambda_function_name
+  hostname             = var.invitations_hostname
+  dns_zone             = var.dns_zone
 }
 
 
@@ -449,13 +447,8 @@ module "participating_icb_list_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "participating_icb_list_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.participating_icb_list_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "participating_icb_list_api_gateway" {
@@ -465,6 +458,8 @@ module "participating_icb_list_api_gateway" {
   path_part              = "participating-icb-list"
   method_http_parameters = {}
   lambda_function_name   = module.participating_icb_list_lambda.lambda_function_name
+  hostname               = var.invitations_hostname
+  dns_zone               = var.dns_zone
 }
 
 
@@ -481,13 +476,8 @@ module "clinic_summary_list_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "clinic_summary_list_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.clinic_summary_list_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "clinic_summary_list_api_gateway" {
@@ -499,6 +489,8 @@ module "clinic_summary_list_api_gateway" {
     "method.request.querystring.participatingIcb" = true
   }
   lambda_function_name = module.clinic_summary_list_lambda.lambda_function_name
+  hostname             = var.invitations_hostname
+  dns_zone             = var.dns_zone
 }
 
 
@@ -515,13 +507,8 @@ module "invitation_parameters_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "invitation_parameters_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.invitation_parameters_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "invitation_parameters_api_gateway" {
@@ -531,6 +518,8 @@ module "invitation_parameters_api_gateway" {
   path_part              = "invitation-parameters"
   method_http_parameters = {}
   lambda_function_name   = module.invitation_parameters_lambda.lambda_function_name
+  hostname               = var.invitations_hostname
+  dns_zone               = var.dns_zone
 }
 
 
@@ -547,13 +536,8 @@ module "invitation_parameters_put_forecast_uptake_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "invitation_parameters_put_forecast_uptake_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.invitation_parameters_put_forecast_uptake_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "invitation_parameters_put_forecast_uptake_api_gateway" {
@@ -565,6 +549,8 @@ module "invitation_parameters_put_forecast_uptake_api_gateway" {
   lambda_api_gateway_method = "PUT"
   lambda_function_name      = module.invitation_parameters_put_forecast_uptake_lambda.lambda_function_name
   method                    = "/*/PUT/*"
+  hostname                  = var.invitations_hostname
+  dns_zone                  = var.dns_zone
 }
 
 
@@ -581,13 +567,8 @@ module "invitation_parameters_put_quintiles_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "invitation_parameters_put_quintiles_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.invitation_parameters_put_quintiles_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "invitation_parameters_put_quintiles_api_gateway" {
@@ -599,6 +580,8 @@ module "invitation_parameters_put_quintiles_api_gateway" {
   lambda_api_gateway_method = "PUT"
   lambda_function_name      = module.invitation_parameters_put_quintiles_lambda.lambda_function_name
   method                    = "/*/PUT/*"
+  hostname                  = var.invitations_hostname
+  dns_zone                  = var.dns_zone
 }
 
 
@@ -613,13 +596,8 @@ module "target_fill_to_percentage_put_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "target_fill_to_percentage_put_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.target_fill_to_percentage_put_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "target_fill_to_percentage_put_api_gateway" {
@@ -636,6 +614,8 @@ module "target_fill_to_percentage_put_api_gateway" {
   }
   lambda_function_name = module.target_fill_to_percentage_put_lambda.lambda_function_name
   method               = "/*/PUT/*"
+  hostname             = var.invitations_hostname
+  dns_zone             = var.dns_zone
 }
 
 
@@ -650,13 +630,8 @@ module "target_fill_to_percentage_get_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "target_fill_to_percentage_get_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.target_fill_to_percentage_get_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "target_fill_to_percentage_get_api_gateway" {
@@ -666,6 +641,8 @@ module "target_fill_to_percentage_get_api_gateway" {
   path_part              = "target-percentage"
   method_http_parameters = {}
   lambda_function_name   = module.target_fill_to_percentage_get_lambda.lambda_function_name
+  hostname               = var.invitations_hostname
+  dns_zone               = var.dns_zone
 }
 
 # LSOA in range
@@ -679,13 +656,8 @@ module "lsoa_in_range_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "lsoa_in_range_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.lsoa_in_range_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "lsoa_in_range_api_gateway" {
@@ -699,6 +671,8 @@ module "lsoa_in_range_api_gateway" {
 
   lambda_function_name = module.lsoa_in_range_lambda.lambda_function_name
   environment          = var.environment
+  hostname             = var.invitations_hostname
+  dns_zone             = var.dns_zone
 }
 
 # Population in LSOA
@@ -712,13 +686,8 @@ module "participants_in_lsoa_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "participants_in_lsoa_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.participants_in_lsoa_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 # Calculate number of participatnts to invite
@@ -733,13 +702,8 @@ module "calculate_number_to_invite_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "calculate_number_to_invite_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  lambda_function_name = module.calculate_number_to_invite_lambda.lambda_function_name
-  environment          = var.environment
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "calculate_number_to_invite_api_gateway" {
@@ -756,6 +720,8 @@ module "calculate_number_to_invite_api_gateway" {
   lambda_function_name = module.calculate_number_to_invite_lambda.lambda_function_name
   method               = "/*/POST/*"
   environment          = var.environment
+  hostname             = var.invitations_hostname
+  dns_zone             = var.dns_zone
 }
 
 # Calculate number of participatnts to invite
@@ -770,13 +736,8 @@ module "generate_invites_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "generate_invites_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  lambda_function_name = module.generate_invites_lambda.lambda_function_name
-  environment          = var.environment
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "generate_invites_api_gateway" {
@@ -793,6 +754,8 @@ module "generate_invites_api_gateway" {
   lambda_function_name = module.generate_invites_lambda.lambda_function_name
   method               = "/*/POST/*"
   environment          = var.environment
+  hostname             = var.invitations_hostname
+  dns_zone             = var.dns_zone
 }
 
 # GP Practices Loader
@@ -808,13 +771,8 @@ module "gp_practices_loader_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "gp_practices_loader_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.gp_practices_loader_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "gp_practices_loader_lambda_trigger" {
@@ -837,13 +795,8 @@ module "create_episode_record_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "create_episode_record_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.create_episode_record_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "create_episode_record_dynamodb_stream" {
@@ -870,13 +823,8 @@ module "add_episode_history_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "add_episode_history_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.add_episode_history_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "add_episode_history_dynamodb_stream" {
@@ -902,13 +850,8 @@ module "gtms_appointment_event_booked_lambda" {
     ENVIRONMENT = "${var.environment}",
     DATEPARAM   = "5"
   }
-}
-
-module "gtms_appointment_event_booked_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.gtms_appointment_event_booked_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "appointments_event_cancelled_lambda" {
@@ -923,22 +866,17 @@ module "appointments_event_cancelled_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
-module "appointments_event_cancelled_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.appointments_event_cancelled_lambda.lambda_function_name
-  retention_days       = 14
-}
-
-module "appointments_event_cancelled_lambda_trigger" {
-  source        = "./modules/lambda_trigger"
-  bucket_id     = module.proccessed_appointments.bucket_id
-  bucket_arn    = module.proccessed_appointments.bucket_arn
-  lambda_arn    = module.appointments_event_cancelled_lambda.lambda_arn
-  filter_prefix = "validRecords/valid_records-"
-}
+# module "appointments_event_cancelled_lambda_trigger" {
+#   source        = "./modules/lambda_trigger"
+#   bucket_id     = module.proccessed_appointments.bucket_id
+#   bucket_arn    = module.proccessed_appointments.bucket_arn
+#   lambda_arn    = module.appointments_event_cancelled_lambda.lambda_arn
+#   filter_prefix = "validRecords/valid_records-"
+# }
 
 # User Accounts Lambda
 module "user_accounts_lambda" {
@@ -953,20 +891,17 @@ module "user_accounts_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "user_accounts_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.user_accounts_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "user_accounts_lambda_trigger" {
-  source     = "./modules/lambda_trigger"
-  bucket_id  = module.user_accounts_bucket.bucket_id
-  bucket_arn = module.user_accounts_bucket.bucket_arn
-  lambda_arn = module.user_accounts_lambda.lambda_arn
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.user_accounts_bucket.bucket_id
+  bucket_arn    = module.user_accounts_bucket.bucket_arn
+  lambda_arn    = module.user_accounts_lambda.lambda_arn
+  filter_prefix = "user-accounts-"
+  filter_suffix = ".csv"
 }
 
 module "gtms_status_update_lambda" {
@@ -981,13 +916,8 @@ module "gtms_status_update_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "gtms_status_update_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.gtms_status_update_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "gtms_status_update_lambda_trigger" {
@@ -1010,13 +940,8 @@ module "validate_gtms_withdrawal_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "validate_gtms_withdrawal_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.validate_gtms_withdrawal_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "validate_gtms_withdrawal_lambda_trigger" {
@@ -1048,6 +973,8 @@ module "poll_mesh_mailbox_lambda" {
     CAAS_MESH_MAILBOX_PASSWORD   = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_password.secret_string)["CAAS_MESH_MAILBOX_PASSWORD"],
     EXIT_TIME                    = "12",
   }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 # GTMS Validate Appointment Lambda
@@ -1063,13 +990,8 @@ module "validate_gtms_appointment_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "validate_gtms_appointment_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.validate_gtms_appointment_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "validate_gtms_appointment_lambda_trigger" {
@@ -1092,13 +1014,8 @@ module "validate_appointment_common_data_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "validate_appointment_common_data_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.validate_appointment_common_data_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "validate_appointment_common_data_lambda_trigger" {
@@ -1107,6 +1024,36 @@ module "validate_appointment_common_data_lambda_trigger" {
   bucket_arn    = module.gtms_appointment_validated.bucket_arn
   lambda_arn    = module.validate_appointment_common_data_lambda.lambda_arn
   filter_prefix = "validRecords/valid_records_add-"
+}
+
+# ProcessEventNotification
+module "process_event_notification_dynamodb_stream" {
+  source                             = "./modules/dynamodb_stream"
+  enabled                            = true
+  event_source_arn                   = module.episode_history_table.dynamodb_stream_arn
+  function_name                      = module.process_event_notification_lambda.lambda_function_name
+  starting_position                  = "LATEST"
+  batch_size                         = 200
+  maximum_batching_window_in_seconds = 300
+  filter                             = { dynamodb : { NewImage : { Episode_Event : { S : [{ "anything-but" : ["Invited"] }] } } } }
+}
+
+# ProcessEventNotification lambda
+module "process_event_notification_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "processEventNotificationLambda"
+  lambda_timeout       = 900
+  memory_size          = 1024
+  lambda_s3_object_key = "process_event_notification_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT   = "${var.environment}"
+    SQS_QUEUE_URL = module.notify_raw_message_queue_sqs.sqs_queue_url
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 # Create GTMS Invitation Batch
@@ -1122,13 +1069,8 @@ module "create_invitation_batch_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "create_invitation_batch_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.create_invitation_batch_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "create_invitation_batch_dynamodb_stream" {
@@ -1164,13 +1106,8 @@ module "gtms_mesh_mailbox_lambda" {
     APPOINTMENT_WORKFLOW       = "GTMS_APPOINTMENT",
     WITHDRAW_WORKFLOW          = "GTMS_WITHDRAW",
   }
-}
-
-module "gtms_mesh_mailbox_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.gtms_mesh_mailbox_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 # NRDS MESH lambda
@@ -1190,13 +1127,8 @@ module "nrds_mesh_mailbox_lambda" {
     MESH_RECEIVER_MAILBOX_PASSWORD = jsondecode(data.aws_secretsmanager_secret_version.sand_mesh_mailbox_password.secret_string)["SAND_MESH_MAILBOX_PASSWORD"],
     K8_URL                         = "${var.K8_URL}",
   }
-}
-
-module "nrds_mesh_mailbox_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.nrds_mesh_mailbox_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 # GTMS Validate clinic Lambda
@@ -1212,13 +1144,8 @@ module "validate_clinic_data_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "validate_clinic_data_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.validate_clinic_data_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "validate_clinic_data_lambda_trigger" {
@@ -1242,13 +1169,8 @@ module "gtms_upload_clinic_data_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "gtms_upload_clinic_data_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.gtms_upload_clinic_data_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "gtms_upload_clinic_data_lambda_trigger" {
@@ -1273,13 +1195,8 @@ module "gps_jwks_lambda" {
     ENVIRONMENT        = "${var.environment}",
     PUBLIC_KEYS_BUCKET = "${module.gps_public_keys_bucket.bucket_id}"
   }
-}
-
-module "gps_jwks_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.gps_jwks_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "gps_jwks_api_gateway" {
@@ -1289,6 +1206,8 @@ module "gps_jwks_api_gateway" {
   path_part              = "gps-jwks"
   method_http_parameters = {}
   lambda_function_name   = module.gps_jwks_lambda.lambda_function_name
+  hostname               = var.invitations_hostname
+  dns_zone               = var.dns_zone
 }
 
 # Authenticator Lambda
@@ -1307,21 +1226,16 @@ module "authenticator_lambda" {
     CIS2_TOKEN_ENDPOINT_URL = "${var.CIS2_TOKEN_ENDPOINT_URL}",
     CIS2_PUBLIC_KEY_ID      = "${var.CIS2_PUBLIC_KEY_ID}",
     CIS2_KEY_NAME           = "${var.CIS2_KNAME}"
-    CIS2_REDIRECT_URL       = "https://${var.environment}.${var.invitations-hostname}/api/auth/callback/cis2"
+    CIS2_REDIRECT_URL       = "https://${var.environment}.${var.invitations_hostname}/api/auth/callback/cis2"
     GALLERI_ACTIVITY_CODE   = "${data.aws_secretsmanager_secret_version.galleri_activity_code.secret_string}"
   }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 # Retrieve Galleri activity code
 data "aws_secretsmanager_secret_version" "galleri_activity_code" {
   secret_id = "GALLERI_ACTIVITY_CODE"
-}
-
-module "authenticator_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.authenticator_lambda.lambda_function_name
-  retention_days       = 14
 }
 
 module "authenticator_lambda_api_gateway" {
@@ -1331,6 +1245,8 @@ module "authenticator_lambda_api_gateway" {
   path_part              = "authenticator-lambda"
   method_http_parameters = {}
   lambda_function_name   = module.authenticator_lambda.lambda_function_name
+  hostname               = var.invitations_hostname
+  dns_zone               = var.dns_zone
 }
 
 
@@ -1347,15 +1263,9 @@ module "validate_clinic_capacity_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
-
-module "validate_clinic_capacity_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.validate_clinic_capacity_lambda.lambda_function_name
-  retention_days       = 14
-}
-
 
 module "validate_clinic_capacity_lambda_trigger" {
   source        = "./modules/lambda_trigger"
@@ -1379,13 +1289,8 @@ module "gtms_upload_clinic_capacity_data_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "gtms_upload_clinic_capacity_data_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.gtms_upload_clinic_capacity_data_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "gtms_upload_clinic_capacity_data_trigger" {
@@ -1417,13 +1322,8 @@ module "send_GTMS_invitation_batch_lambda" {
     MESH_SENDER_MAILBOX_PASSWORD  = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_mailbox_password.secret_string)["GTMS_MESH_MAILBOX_PASSWORD"],
     GTMS_MESH_RECEIVER_MAILBOX_ID = jsondecode(data.aws_secretsmanager_secret_version.gtms_mesh_receiver_mailbox_id.secret_string)["GTMS_MESH_RECEIVER_MAILBOX_ID"],
   }
-}
-
-module "send_GTMS_invitation_batch_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.send_GTMS_invitation_batch_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "send_GTMS_invitation_batch_lambda_trigger" {
@@ -1447,13 +1347,8 @@ module "send_invitation_batch_to_raw_message_queue_lambda" {
     ENVIRONMENT   = "${var.environment}"
     SQS_QUEUE_URL = module.notify_raw_message_queue_sqs.sqs_queue_url
   }
-}
-
-module "send_invitation_batch_to_raw_message_queue_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.send_invitation_batch_to_raw_message_queue_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "send_invitation_batch_to_raw_message_queue_lambda_trigger" {
@@ -1488,13 +1383,8 @@ module "send_enriched_message_to_notify_queue_lambda" {
     RAW_MESSAGE_QUEUE_URL      = module.notify_raw_message_queue_sqs.sqs_queue_url
     ENRICHED_MESSAGE_QUEUE_URL = module.notify_enriched_message_queue_sqs.sqs_queue_url
   }
-}
-
-module "send_enriched_message_to_notify_queue_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.send_enriched_message_to_notify_queue_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "send_enriched_message_to_notify_queue_SQS_trigger" {
@@ -1534,13 +1424,8 @@ module "send_single_notify_message_lambda" {
     MAX_RETRIES                = 3
     ENRICHED_MESSAGE_QUEUE_URL = module.notify_enriched_message_queue_sqs.sqs_queue_url
   }
-}
-
-module "send_single_notify_message_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.send_single_notify_message_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "send_single_notify_message_SQS_trigger" {
@@ -1549,8 +1434,98 @@ module "send_single_notify_message_SQS_trigger" {
   lambda_arn       = module.send_single_notify_message_lambda.lambda_arn
 }
 
-data "aws_secretsmanager_secret_version" "nhs_notify_api_key" {
-  secret_id = "NHS_NOTIFY_API_KEY"
+# Test Result Acknowledgement Queue
+module "test_result_ack_queue_sqs" {
+  source                         = "./modules/sqs"
+  environment                    = var.environment
+  name                           = "testResultAckQueue.fifo"
+  is_fifo_queue                  = true
+  is_content_based_deduplication = true
+  visibility_timeout_seconds     = 100
+}
+
+# Send Test Result Error Acknowledgement Queue Lambda
+module "send_test_result_error_ack_queue_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "sendTestResultErrorAckQueueLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "send_test_result_error_ack_queue_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT               = "${var.environment}"
+    TEST_RESULT_ACK_QUEUE_URL = module.test_result_ack_queue_sqs.sqs_queue_url
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+
+# Lambda triggers for Step 1-4 fhir validation error buckets
+module "fhir_validation_step1_error_bucket_lambda_trigger" {
+  source       = "./modules/lambda_trigger"
+  statement_id = "${var.environment}-AllowExecution-Step-1"
+  bucket_id    = module.inbound_nrds_galleritestresult_step1_error.bucket_id
+  bucket_arn   = module.inbound_nrds_galleritestresult_step1_error.bucket_arn
+  lambda_arn   = module.send_test_result_error_ack_queue_lambda.lambda_arn
+}
+
+module "fhir_validation_step2_error_bucket_lambda_trigger" {
+  source       = "./modules/lambda_trigger"
+  statement_id = "${var.environment}-AllowExecution-Step-2"
+  bucket_id    = module.inbound_nrds_galleritestresult_step2_error.bucket_id
+  bucket_arn   = module.inbound_nrds_galleritestresult_step2_error.bucket_arn
+  lambda_arn   = module.send_test_result_error_ack_queue_lambda.lambda_arn
+}
+
+module "fhir_validation_step3_error_bucket_lambda_trigger" {
+  source       = "./modules/lambda_trigger"
+  statement_id = "${var.environment}-AllowExecution-Step-3"
+  bucket_id    = module.inbound_nrds_galleritestresult_step3_error.bucket_id
+  bucket_arn   = module.inbound_nrds_galleritestresult_step3_error.bucket_arn
+  lambda_arn   = module.send_test_result_error_ack_queue_lambda.lambda_arn
+}
+
+module "fhir_validation_step4_error_bucket_lambda_trigger" {
+  source       = "./modules/lambda_trigger"
+  statement_id = "${var.environment}-AllowExecution-Step-4"
+  bucket_id    = module.inbound_nrds_galleritestresult_step4_error.bucket_id
+  bucket_arn   = module.inbound_nrds_galleritestresult_step4_error.bucket_arn
+  lambda_arn   = module.send_test_result_error_ack_queue_lambda.lambda_arn
+}
+
+# SNS Topic to publish and read test result ok Acknowledgement response
+module "test_result_topic" {
+  source      = "./modules/sns_topic"
+  environment = var.environment
+  name        = "testResultTopic"
+}
+
+# Send Test Result Ok Acknowledgement Lambda
+module "send_test_result_ok_ack_queue_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "sendTestResultOkAckQueueLambda"
+  lambda_timeout       = 370
+  memory_size          = 1024
+  lambda_s3_object_key = "send_test_result_ok_ack_queue_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT               = "${var.environment}"
+    TEST_RESULT_ACK_QUEUE_URL = module.test_result_ack_queue_sqs.sqs_queue_url
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+
+# Lambda subscription/trigger for Test result SNS Topic
+module "send_test_result_ok_ack_queue_lambda_sns_topic_subscription" {
+  source                = "./modules/lambda_sns_trigger"
+  sns_topic_arn         = module.test_result_topic.sns_topic_arn
+  subscription_endpoint = module.send_test_result_ok_ack_queue_lambda.lambda_arn
+  lambda_name           = module.send_test_result_ok_ack_queue_lambda.lambda_function_name
 }
 
 # Delete Caas feed records
@@ -1566,15 +1541,38 @@ module "caas_feed_delete_records_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "caas_feed_delete_records_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.caas_feed_delete_records_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 # trigger replaced by group trigger for bucket
+
+# Validate Test Result Report using FHIR Validation Service
+module "test_result_report_fhir_validation_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "testResultReportFhirValidationLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "test_result_report_fhir_validation_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                 = "${var.environment}"
+    TRR_SUCCESSFUL_BUCKET       = "inbound-nrds-galleritestresult-step1-success"
+    TRR_UNSUCCESSFUL_BUCKET     = "inbound-nrds-galleritestresult-step1-error"
+    FHIR_VALIDATION_SERVICE_URL = "FHIR_VALIDATION_SERVICE_URL"
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+
+module "test_result_report_fhir_validation_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.proccessed_nrds.bucket_id
+  bucket_arn    = module.proccessed_nrds.bucket_arn
+  lambda_arn    = module.test_result_report_fhir_validation_lambda.lambda_arn
+  filter_prefix = "record_"
+}
 
 # Dynamodb tables
 module "sdrs_table" {
@@ -1732,13 +1730,6 @@ data "aws_secretsmanager_secret_version" "sand_mesh_mailbox_password" {
 }
 #END of MESH keys
 
-module "poll_mesh_mailbox_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.poll_mesh_mailbox_lambda.lambda_function_name
-  retention_days       = 14
-}
-
 module "validate_caas_feed_lambda" {
   source               = "./modules/lambda"
   environment          = var.environment
@@ -1751,13 +1742,8 @@ module "validate_caas_feed_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "validate_caas_feed_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.validate_caas_feed_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "validate_caas_feed_lambda_trigger" {
@@ -1780,13 +1766,8 @@ module "caas_feed_add_records_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "caas_feed_add_records_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.caas_feed_add_records_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "caas_data_triggers" {
@@ -1814,7 +1795,7 @@ module "caas_data_triggers" {
       bucket_events = ["s3:ObjectCreated:*"],
       filter_prefix = "validRecords/valid_records_delete-",
       filter_suffix = ""
-    }
+    },
   }
 }
 
@@ -1830,15 +1811,9 @@ module "caas_feed_update_records_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
-
-module "caas_feed_update_records_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.caas_feed_update_records_lambda.lambda_function_name
-  retention_days       = 14
-}
-# trigger replaced by group trigger for bucket
 
 # Dynamodb tables
 module "participating_icb_table" {
@@ -1868,13 +1843,8 @@ module "process_appointment_event_type_lambda" {
   environment_vars = {
     ENVIRONMENT = "${var.environment}"
   }
-}
-
-module "process_appointment_event_type_lambda_cloudwatch" {
-  source               = "./modules/cloudwatch"
-  environment          = var.environment
-  lambda_function_name = module.process_appointment_event_type_lambda.lambda_function_name
-  retention_days       = 14
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
 module "event_type_triggers" {
@@ -2148,11 +2118,11 @@ module "invitation_parameters_table" {
 module "user_accounts_table" {
   source      = "./modules/dynamodb"
   table_name  = "UserAccounts"
-  hash_key    = "UUID"
+  hash_key    = "User_UUID"
   environment = var.environment
   attributes = [
     {
-      name = "UUID"
+      name = "User_UUID"
       type = "S"
     }
   ]
@@ -2734,4 +2704,24 @@ resource "aws_ssm_parameter" "contact-escalation-tables" {
   type      = "StringList"
   value     = "Null"
   overwrite = true
+}
+
+module "fhir_cert" {
+  source        = "./modules/route_53"
+  count         = var.route53_count > 0 ? 1 : 0
+  environment   = var.environment
+  region        = var.region
+  dns_zone      = var.dns_zone
+  hostname      = var.invitations_hostname
+  alias_name    = var.alias_name
+  alias_zone_id = var.alias_zone_id
+}
+
+resource "null_resource" "deploy_manifests" {
+  # Trigger deployment after EKS is ready
+  depends_on = [module.eks]
+
+  provisioner "local-exec" {
+    command = "aws eks update-kubeconfig --name ${var.environment}-eks-cluster && kubectl apply -f ../scripts/test_data/k8s/mesh-sandbox.yaml && kubectl apply -f ../scripts/test_data/k8s/fhir-validation.yaml"
+  }
 }

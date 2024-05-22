@@ -1,0 +1,137 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fhir-validator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fhir-validator
+  template:
+    metadata:
+      labels:
+        app: fhir-validator
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        # Fhir validation container
+        - name: fhir-validator
+          image: thorlogic/fhir-validator-r4:6.10.33
+          env:
+            - name: fhir.igs
+              value: "fhir.r4.ukcore.stu3.currentbuild#0.0.8-pre-release"
+            - name: fhir.server.baseUrl
+              value: "http://localhost"
+          ports:
+            - containerPort: 9001
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "4"
+              memory: "5Gi"
+        # Nginx container
+        - name: nginx-lb
+          image: nginx
+          ports:
+            - containerPort: 80
+          # volumeMounts:
+          #   - name: config
+          #     mountPath: /etc/nginx/conf.d
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+      restartPolicy: Always
+      # volumes:
+      #   # You set volumes at the Pod level, then mount them into containers inside that Pod
+      #   - name: config
+      #     configMap:
+      #       # Provide the name of the ConfigMap you want to mount.
+      #       name: nginx-config
+      #       # An array of keys from the ConfigMap to create as files
+      #       # items:
+      #       #   - key: "nginx.conf"
+      #       #     path: "game.properties"
+      #       #   - key: "user-interface.properties"
+      #       #     path: "user-interface.properties"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fhir-validator
+spec:
+  selector:
+    app: fhir-validator
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 9001
+---
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   creationTimestamp: null
+#   name: nginx-config
+# data:
+#   nginx.conf: |
+#     # nginx Configuration File
+#     # https://wiki.nginx.org/Configuration
+
+#     # Run as a less privileged user for security reasons.
+#     user nginx;
+
+#     worker_processes auto;
+
+#     events {
+#       worker_connections 1024;
+#     }
+
+#     pid        /var/run/nginx.pid;
+
+#     http {
+
+#         # Redirect to https, using 307 instead of 301 to preserve post data
+
+#         server {
+#             listen [::]:443 ssl;
+#             listen 443 ssl;
+
+#             server_name localhost;
+
+#             # Protect against the BEAST attack by not using SSLv3 at all. If you need to support older browsers (IE6) you may need to add
+#             # SSLv3 to the list of protocols below.
+#             ssl_protocols              TLSv1.2;
+
+#             # Optimize TLS/SSL by caching session parameters for 10 minutes. This cuts down on the number of expensive TLS/SSL handshakes.
+#             # The handshake is the most CPU-intensive operation, and by default it is re-negotiated on every new/parallel connection.
+#             # By enabling a cache (of type "shared between all Nginx workers"), we tell the client to re-use the already negotiated state.
+#             # Further optimization can be achieved by raising keepalive_timeout, but that shouldn't be done unless you serve primarily HTTPS.
+#             ssl_session_cache    shared:SSL:10m; # a 1mb cache can hold about 4000 sessions, so we can hold 40000 sessions
+#             ssl_session_timeout  24h;
+
+#             # Use a higher keepalive timeout to reduce the need for repeated handshakes
+#             keepalive_timeout 300; # up from 75 secs default
+
+#             # Remember the certificate for a year and automatically connect to HTTPS
+#             add_header Strict-Transport-Security 'max-age=31536000; includeSubDomains';
+
+#             ssl_certificate      /etc/nginx/ssl.crt;
+#             ssl_certificate_key  /etc/nginx/ssl.key;
+
+#             location / {
+#                 proxy_pass http://localhost:80; # TODO: replace port if app listens on port other than 443
+
+#                 proxy_set_header Connection "";
+#                 proxy_set_header Host $host;
+#                 proxy_set_header X-Real-IP $remote_addr;
+#                 proxy_set_header X-Forwarded-For $remote_addr;
+#             }
+#         }
+#     }

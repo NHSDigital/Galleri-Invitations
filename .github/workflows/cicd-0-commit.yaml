@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 1
     env:
-      environment: "dev"
+      environment: "dev-cicd"
       database_seeding: "yes"
       test: "yes"
     outputs:
@@ -57,7 +57,7 @@ jobs:
           echo "python_version=$(grep python .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
-          echo "environment=dev" >> $GITHUB_OUTPUT
+          echo "environment=dev-cicd" >> $GITHUB_OUTPUT
           echo "environment_type=$(echo '${{ env.environment }}' | cut -f1 -d'-')" >> $GITHUB_OUTPUT
       - name: "Check if pull request exists for this branch"
         id: pr_exists

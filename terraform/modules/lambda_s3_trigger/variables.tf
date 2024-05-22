@@ -29,5 +29,5 @@ variable "name" {
 
 variable "environment" {
   type        = string
-  description = "The environment name in use"
+  description = "Name of the environment this is deployed into"
 }
