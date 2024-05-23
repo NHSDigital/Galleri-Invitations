@@ -1107,8 +1107,8 @@ module "gtms_mesh_mailbox_lambda" {
     CLINIC_SCHEDULE_WORKFLOW   = "GTMS_CLINIC_SCHEDULE",
     APPOINTMENT_WORKFLOW       = "GTMS_APPOINTMENT",
     WITHDRAW_WORKFLOW          = "GTMS_WITHDRAW",
-    FILE_PATH                    = "/tmp",
-    FILE_EXTENSION               = "json"
+    FILE_PATH                  = "/tmp",
+    FILE_EXTENSION             = "json"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
   sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
