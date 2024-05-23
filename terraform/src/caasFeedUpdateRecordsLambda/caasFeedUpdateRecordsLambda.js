@@ -72,9 +72,7 @@ export const handler = async (event) => {
       );
 
       const filteredRejectedRecords = recordsToUploadSettled.filter(
-        (record) => {
-          (record) => record.value.rejected === true;
-        }
+        (record) => record.value.rejected === true
       );
 
       console.log(
