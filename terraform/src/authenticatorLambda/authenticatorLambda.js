@@ -66,6 +66,7 @@ export const handler = async (event) => {
     } else {
       apiSessionId = uuidv4();
       await generateAPIGatewayLockdownSession(
+        environment,
         dynamoDBClient,
         apiSessionId,
         userInfo.uid,
@@ -92,6 +93,7 @@ export const handler = async (event) => {
 //FUNCTIONS
 // Function to generate session for API Gateway Lock-down
 export async function generateAPIGatewayLockdownSession(
+  environment,
   client,
   apiSessionId,
   userId,
@@ -109,6 +111,7 @@ export async function generateAPIGatewayLockdownSession(
     const expirationDateTime = new Date(Date.now() + 20 * 60000).toISOString();
 
     const updateSessionTable = await updateAPISessionTable(
+      environment,
       client,
       apiSessionId,
       userId,
@@ -122,7 +125,7 @@ export async function generateAPIGatewayLockdownSession(
       return;
     }
     console.log(
-      `API Gateway Lockdown session ${apiSessionId} generated successfully for User ${userId}`
+      `API Gateway Lockdown session ${apiSessionId}, generated successfully for User ${userId}`
     );
   } catch (error) {
     console.error(`Error: Failed to generate session for for User ${userId}`);
@@ -133,6 +136,7 @@ export async function generateAPIGatewayLockdownSession(
 
 // Function to update the API Gateway Lock-down Session Table
 export async function updateAPIGatewayLockdownSessionTable(
+  environment,
   client,
   apiSessionId,
   userId,
@@ -326,7 +330,7 @@ export async function getUserRole(uuid) {
       User_UUID: { S: uuid },
     },
   };
-  console.log("UUID from query string parameters is: ", uuid);
+  console.log("User UUID from query string parameters is: ", uuid);
 
   try {
     const command = new GetItemCommand(params);
@@ -343,11 +347,11 @@ export async function getUserRole(uuid) {
       };
     }
     const item = unmarshall(data.Item);
-    console.log("UUID exists on Galleri User database");
+    console.log("User exists on Galleri User database");
 
     return item;
   } catch (error) {
-    console.error("Error getting item from DynamoDB");
+    console.error("Error getting User data from Galleri User database");
     console.error("Error: ", error);
     throw new Error(error);
   }
@@ -401,10 +405,7 @@ export async function checkAuthorization(
   }
 
   // not active or user account does not exist
-  if (
-    user.accountStatus === "Inactive" ||
-    user.accountStatus === "User Not Found"
-  ) {
+  if (user.accountStatus !== "Active") {
     return "/autherror/account_not_found?error=User+Account+does+not+exist+or+is+inactive";
     // Keeping this here in case we want to route different users to different pages for referrals repo
   } else if (
