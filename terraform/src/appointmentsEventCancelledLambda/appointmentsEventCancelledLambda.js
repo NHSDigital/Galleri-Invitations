@@ -59,32 +59,45 @@ export const handler = async (event) => {
     true
   );
 
-  const episodeItems = episodeResponse.Items[0];
+  const episodeItems = episodeResponse.Items?.[0];
   console.log(
-    `episodeItems for participant: ${JSON.stringify(
-      episodeItems.Participant_Id
-    )} loaded.`
+    `episodeItems for participant: ${episodeItems?.Participant_Id} loaded.`
   );
 
   const appointmentResponse = await lookUp(
     dbClient,
-    AppointmentID,
+    ParticipantID,
     "Appointments",
-    "Appointment_Id",
+    "Participant_Id",
     "S",
-    true
+    false
   );
-  const appointmentItems = appointmentResponse.Items[0];
+  // Get latest appointment for participant
+  let appointmentItems;
+  if (appointmentResponse.Items?.length) {
+    const sortedAppointments = sortBy(appointmentResponse.Items, "Timestamp", false);
+    appointmentItems = sortedAppointments[0];
+  }
   console.log(
-    `appointmentItems for appointment: ${JSON.stringify(
-      appointmentItems.Appointment_Id
-    )} loaded.`
+    `appointmentItems for appointment: ${appointmentItems?.Appointment_Id} loaded.`
   );
 
   const dateTime = new Date(Date.now()).toISOString();
 
   if (episodeItems && appointmentItems && EventType === "CANCELLED") {
     //if both queries are not undefined
+    if (appointmentItems.Appointment_Id.S !== AppointmentID) {
+      // Latest participant appointment does not match cancelled appointment
+      console.error("Error: Cancelled appointment does not match latest participant appointment");
+        const confirmation = await pushCsvToS3(
+          `${bucket}`,
+          `not_latest_participant_appointment/invalidRecord_${dateTime}.json`,
+          csvString,
+          s3
+        );
+        return confirmation;
+    }
+
     if (CancellationReason) {
       //cancellation reason is supplied
       console.log("The Supplied Reason Is: ");
@@ -171,6 +184,17 @@ export const handler = async (event) => {
 };
 
 //FUNCTIONS
+export const sortBy = (items, key, asc = true) => {
+  items.sort( (a,b) => {
+    if (asc) {
+    	return (a[key] > b[key]) ? 1 : ((a[key] < b[key]) ? -1 : 0);
+    } else {
+    	return (b[key] > a[key]) ? 1 : ((b[key] < a[key]) ? -1 : 0);
+    }
+  });
+  return items;
+};
+
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(

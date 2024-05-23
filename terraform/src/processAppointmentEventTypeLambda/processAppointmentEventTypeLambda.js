@@ -60,7 +60,9 @@ export const handler = async (event) => {
     if (!numAppointments) {
       await rejectRecord(appointmentJson);
       throw new Error("Invalid Appointment - no participant appointment found");
-    } else if (appointmentResponse.Items.sort()[numAppointments - 1].Appointment_Id.S !== AppointmentID) {
+    }
+    const sortedAppointments = sortBy(appointmentResponse.Items, "Timestamp", false);
+    if (sortedAppointments[0].Appointment_Id.S !== AppointmentID) {
       await rejectRecord(appointmentJson);
       throw new Error("Invalid Appointment - does not match latest participant appointment");
     }
@@ -287,4 +289,15 @@ export const transactionalWrite = async (
   } catch (error) {
     console.error("Error: Transactional write failed:", error);
   }
+};
+
+export const sortBy = (items, key, asc = true) => {
+  items.sort( (a,b) => {
+    if (asc) {
+    	return (a[key] > b[key]) ? 1 : ((a[key] < b[key]) ? -1 : 0);
+    } else {
+    	return (b[key] > a[key]) ? 1 : ((b[key] < a[key]) ? -1 : 0);
+    }
+  });
+  return items;
 };
