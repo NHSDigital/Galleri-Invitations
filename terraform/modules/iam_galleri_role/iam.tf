@@ -884,6 +884,53 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
   }
 }
 
+# Policy required by authenticatorLambda
+# resource "aws_iam_policy" "iam_policy_for_authenticator_lambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_authenticator_lambda_role"
+#   path        = "/"
+#   description = "AWS IAM Policy for managing aws lambda send invitation batch to raw message queue role"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+#           "Sid" : "AllowAuthDynamodbAccess",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "dynamodb:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-UserAccounts",
+#             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-APIGatewayLockdownSession",
+#           ]
+#         },
+#         {
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "secretsmanager:GetResourcePolicy",
+#             "secretsmanager:GetSecretValue",
+#             "secretsmanager:DescribeSecret",
+#             "secretsmanager:ListSecretVersionIds"
+#           ],
+#           "Resource" : [
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_INT_1*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_CLIENT_ID*",
+#           ]
+#         },
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+# }
+
+
 # Policy required by sendInvitationBatchToRawMessageQueueLambda
 # resource "aws_iam_policy" "iam_policy_for_send_invitation_batch_to_raw_message_queue_lambda" {
 #   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_send_invitation_batch_to_raw_message_queue_lambda_role"
