@@ -6,10 +6,10 @@ on:
   workflow_dispatch:
     inputs:
       invitations_branch:
-        description: "This is the branch/tag of Galleri-Invitations be deployed to the Performance environment"
+        description: "This is the branch/tag of Galleri-Invitations be deployed to the Prod environment"
         required: true
       frontend_branch:
-        description: "This is the branch/tag of the Galleri frontend to be deployed to the Performance environment"
+        description: "This is the branch/tag of the Galleri frontend to be deployed to the Prod environment"
         required: true
       database_seeding:
         description: "Determines if the seeding scripts are run to populate the database"
@@ -21,7 +21,7 @@ on:
           - "no"
       tf_action:
         type: choice
-        description: Terraform action to be carried out against UAT environment
+        description: Terraform action to be carried out against Prod environment
         required: true
         default: apply
         options:
@@ -87,7 +87,7 @@ jobs:
           echo "python_version=$(grep python .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "terraform_version=$(grep terraform .tool-versions | cut -f2 -d' ')" >> $GITHUB_OUTPUT
           echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
-          echo "environment=performance" >> $GITHUB_OUTPUT
+          echo "environment=prod" >> $GITHUB_OUTPUT
       - name: "Check if pull request exists for this branch"
         id: pr_exists
         env:
@@ -158,7 +158,7 @@ jobs:
       frontend_branch: "${{ github.event.inputs.frontend_branch }}"
       tf_action: "${{ github.event.inputs.tf_action }}"
     secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.PRE_PROD_AWS_ACCOUNT_ID }}
+      AWS_ACCOUNT_ID: ${{ secrets.PROD_AWS_ACCOUNT_ID }}
       USERS: ${{ secrets.USERS }}
       CIS2_SECRET: ${{ secrets.CIS2_SECRET }}
       NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
@@ -175,7 +175,7 @@ jobs:
       version: "${{ needs.metadata.outputs.version }}"
       environment: "${{ needs.metadata.outputs.environment }}"
     secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.DEV_AWS_ACCOUNT_ID }}
+      AWS_ACCOUNT_ID: ${{ secrets.PROD_AWS_ACCOUNT_ID }}
 
   data-stage: # Recommended maximum execution time is 10 minutes
     needs: [metadata, build-stage]
@@ -191,7 +191,7 @@ jobs:
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
     secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.PRE_PROD_AWS_ACCOUNT_ID }}
+      AWS_ACCOUNT_ID: ${{ secrets.PROD_AWS_ACCOUNT_ID }}
 
   acceptance-stage: # Recommended maximum execution time is 10 minutes
     needs: [metadata, build-stage, data-stage]
@@ -207,7 +207,7 @@ jobs:
       version: "${{ needs.metadata.outputs.version }}"
       environment: ${{ needs.metadata.outputs.environment }}
     secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.PRE_PROD_AWS_ACCOUNT_ID }}
+      AWS_ACCOUNT_ID: ${{ secrets.PROD_AWS_ACCOUNT_ID }}
 
   performance-stage:
     needs: [metadata, build-stage, data-stage]
