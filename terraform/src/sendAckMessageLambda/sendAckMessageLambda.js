@@ -15,7 +15,7 @@ const NRDS_MESH_RECEIVER_MAILBOX_ID = process.env.NRDS_MESH_RECEIVER_MAILBOX_ID;
 const MESH_SENDER_MAILBOX_ID = process.env.MESH_SENDER_MAILBOX_ID;
 const MESH_SHARED_KEY = process.env.MESH_SHARED_KEY;
 const MESH_SENDER_MAILBOX_PASSWORD = process.env.MESH_SENDER_MAILBOX_PASSWORD;
-const KEY_PREFIX = "acknowledgement_";
+const KEY_PREFIX = "ack_";
 const TEST_RESULT_ACK_QUEUE_URL = process.env.TEST_RESULT_ACK_QUEUE_URL;
 
 
@@ -76,19 +76,20 @@ export async function processRecords(records, sqsClient) {
       const messageBody = JSON.parse(record.body);
       const {grail_fhir_result_id, ack_code} = messageBody;
 
+      console.log(`Processing acknowledgment for result id ${grail_fhir_result_id} with ack code ${ack_code}`);
+
       const timestamp = new Date(Date.now()).toISOString();
+      const messageReferenceId = uuidv4();
 
-      const msg = await buildMessage(MESH_SENDER_MAILBOX_ID, NRDS_MESH_RECEIVER_MAILBOX_ID, grail_fhir_result_id, ack_code);
+      const msg = await buildMessage(MESH_SENDER_MAILBOX_ID, NRDS_MESH_RECEIVER_MAILBOX_ID, grail_fhir_result_id, ack_code, messageReferenceId);
 
-      const result = await sendMessageToMesh(
+      await sendMessageToMesh(
         CONFIG,
         msg,
-        `${KEY_PREFIX}${timestamp}.json`,
+        `${KEY_PREFIX}${grail_fhir_result_id}_${timestamp}.json`,
         handShake,
         sendMessage
       );
-
-      console.log(result);
 
       await deleteMessageInQueue(grail_fhir_result_id, ack_code, record, TEST_RESULT_ACK_QUEUE_URL, sqsClient);
 
@@ -142,7 +143,6 @@ export async function sendMessageToMesh(
       );
     } else {
       console.log(`Successfully sent ${filename} to N-RDS mailbox`);
-      console.log(message);
       return message.status;
     }
   } catch (error) {
@@ -166,9 +166,13 @@ export const getSecret = async (secretName, client) => {
   }
 };
 
-export async function buildMessage(sourceEndpoint, destinationEndpoint, result_id, ack_code) {
-  const messageReferenceId = uuidv4();
-  console.log(`Message Reference ID generated: ${messageReferenceId}`);
+export async function readSecret(fetchSecret, secretName, client) {
+  return Buffer.from(await fetchSecret(secretName, client), "base64").toString(
+    "utf8"
+  );
+}
+
+export async function buildMessage(sourceEndpoint, destinationEndpoint, result_id, ack_code, messageReferenceId) {
   const message = {
       resourceType: "Bundle",
       id: messageReferenceId,
@@ -204,13 +208,7 @@ export async function buildMessage(sourceEndpoint, destinationEndpoint, result_i
   return message;
 }
 
-export async function readSecret(fetchSecret, secretName, client) {
-  return Buffer.from(await fetchSecret(secretName, client), "base64").toString(
-    "utf8"
-  );
-}
-
-export async function deleteMessageInQueue(result_id, ack_code ,record, queue, sqsClient) {
+export async function deleteMessageInQueue(result_id, ack_code, record, queue, sqsClient) {
   const deleteMessageCommand = new DeleteMessageCommand({
     QueueUrl: queue,
     ReceiptHandle: record.receiptHandle
