@@ -8,6 +8,7 @@ import {
   S3Client,
   GetObjectCommand,
   PutObjectCommand,
+  GetObjectTaggingCommand,
 } from "@aws-sdk/client-s3";
 import get from "lodash.get";
 //VARIABLES
@@ -26,6 +27,7 @@ export const handler = async (event) => {
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
   const csvString = await readCsvFromS3(bucket, key, s3);
+  const tagString = await getTagFromS3(bucket, key, s3);
   const js = JSON.parse(csvString); //convert string retrieved from S3 to object
 
   let payloadPdf = "";
@@ -35,14 +37,20 @@ export const handler = async (event) => {
     Meta_Last_Updated: get(js, `meta.lastUpdated`),
     Identifier_Value: get(js, `identifier.value`),
     Grail_Id: "",
-    CSD_Result_SNOWMED_Code: "",
-    CSD_Result_SNOWMED_Display: "",
+    CSD_Result_SNOMED_Code: "",
     Blood_Draw_Date: "",
-    Cso_Result_Snowmed_Code_Primary: [],
-    Cso_Result_Snowmed_Display_Primary: [],
-    Cso_Result_Snowmed_Code_Secondary: [],
-    Cso_Result_Snowmed_Display_Secondary: [],
+    Cso_Result_SNOMED_Code_Primary: "",
+    Cso_Result_SNOMED_Code_Secondary: "",
     Participant_Id: "",
+    Result_Raw_Full_S3: "",
+    Result_PDF_S3: "",
+    Result_Created_By: "",
+    Result_Creation: "",
+    Result_Updated_By: "",
+    Result_Updated: "",
+    Cso_Result_Friendly_Primary: "",
+    Cso_Result_Friendly_Secondary: "",
+    DiagnosticReportStatus: "",
   };
 
   for (let objs in js.entry) {
@@ -53,28 +61,26 @@ export const handler = async (event) => {
         `value`
       );
     }
-
-    // CSD_Result_SNOWMED_Code and CSD_Result_SNOWMED_Display
+    // CSD_Result_SNOMED_Code and CSD_Result_SNOMED_Display
     if (
       get(js.entry[objs].resource, `code.coding[0].code`) === "1854971000000106"
     ) {
-      fhirPayload.CSD_Result_SNOWMED_Code = get(
+      fhirPayload.CSD_Result_SNOMED_Code = `${get(
         js.entry[objs].resource,
         `valueCodeableConcept.coding[0].code`
-      );
-      fhirPayload.CSD_Result_SNOWMED_Display = get(
+      )} (${get(
         js.entry[objs].resource,
         `valueCodeableConcept.coding[0].display`
-      );
+      )}),`;
     }
-    // // Blood_Draw_Date
+    // Blood_Draw_Date
     if (get(js.entry[objs].resource, `resourceType`) === "Specimen") {
       fhirPayload.Blood_Draw_Date = get(
         js.entry[objs].resource,
         `collection.collectedDateTime`
       );
     }
-    // // Cso_Result_Snowmed_Code_Primary and Cso_Result_Snowmed_Display_Primary (will be a list of multiple)
+    // Cso_Result_SNOMED_Code_Primary and Cso_Result_SNOMED_Display_Primary (will be a list of multiple)
     if (
       get(js.entry[objs].resource, `code.coding[0].code`) === "1873921000000106"
     ) {
@@ -84,17 +90,15 @@ export const handler = async (event) => {
           i < get(entry.valueCodeableConcept, `coding`).length;
           i++
         ) {
-          fhirPayload.Cso_Result_Snowmed_Code_Primary.push(
-            get(entry.valueCodeableConcept.coding[i], `code`)
-          );
-          fhirPayload.Cso_Result_Snowmed_Display_Primary.push(
-            get(entry.valueCodeableConcept.coding[i], `display`)
-          );
+          fhirPayload.Cso_Result_SNOMED_Code_Primary += `${get(
+            entry.valueCodeableConcept.coding[i],
+            `code`
+          )} (${get(entry.valueCodeableConcept.coding[i], `display`)}),`;
         }
       }
     }
 
-    // // Cso_Result_Snowmed_Code_Secondary and Cso_Result_Snowmed_Display_Secondary (will be a list of multiple)
+    // Cso_Result_SNOMED_Code_Secondary and Cso_Result_SNOMED_Display_Secondary (will be a list of multiple)
     if (
       get(js.entry[objs].resource, `code.coding[0].code`) === "1873931000000108"
     ) {
@@ -104,16 +108,14 @@ export const handler = async (event) => {
           i < get(entry.valueCodeableConcept, `coding`).length;
           i++
         ) {
-          fhirPayload.Cso_Result_Snowmed_Code_Secondary.push(
-            get(entry.valueCodeableConcept.coding[i], `code`)
-          );
-          fhirPayload.Cso_Result_Snowmed_Display_Secondary.push(
-            get(entry.valueCodeableConcept.coding[i], `display`)
-          );
+          fhirPayload.Cso_Result_SNOMED_Code_Secondary += `${get(
+            entry.valueCodeableConcept.coding[i],
+            `code`
+          )} (${get(entry.valueCodeableConcept.coding[i], `display`)}),`;
         }
       }
     }
-    // // Participant_Id
+    // Participant_Id
     if (get(js.entry[objs].resource, `resourceType`) === "Patient") {
       fhirPayload.Participant_Id = get(
         js.entry[objs],
@@ -123,11 +125,24 @@ export const handler = async (event) => {
     //PDF
     if (get(js.entry[objs].resource, `resourceType`) === "DiagnosticReport") {
       payloadPdf = get(js.entry[objs].resource.presentedForm[0], `data`);
+      fhirPayload.DiagnosticReportStatus = get(
+        js.entry[objs].resource,
+        `status`
+      );
     }
   }
 
-  checkProperties(fhirPayload);
-  const bufferData = Buffer.from(payloadPdf, "base64");
+  //Extract Cso_Result_Friendly_Primary and Cso_Result_Friendly_Secondary
+  if (tagString.length > 0) {
+    for (let i = 0; i < tagString.length; i++) {
+      if (tagString[i].Key === "Cso_Result_Friendly_Primary") {
+        fhirPayload.Cso_Result_Friendly_Primary = tagString[i].Value;
+      }
+      if (tagString[i].Key === "Cso_Result_Friendly_Secondary") {
+        fhirPayload.Cso_Result_Friendly_Secondary = tagString[i].Value;
+      }
+    }
+  }
 
   const episodeResponse = await lookUp(
     dbClient,
@@ -155,13 +170,22 @@ export const handler = async (event) => {
   console.log(BloodTestItems);
   const BloodTestMetaUpdateItems =
     BloodTestResponse?.Items[0]?.Meta_Last_Updated?.S;
+  const ResultCreatedByItems =
+    BloodTestResponse?.Items[0]?.Result_Created_By?.S;
+  const ResultUpdatedItems = BloodTestResponse?.Items[0]?.Result_Creation?.S;
 
+  checkProperties(fhirPayload);
+  const bufferData = Buffer.from(payloadPdf, "base64");
   //matches participant
+  const dateTime = new Date(Date.now()).toISOString();
   if (episodeItemStatus) {
-    const dateTime = new Date(Date.now()).toISOString();
     fhirPayload.episodeStatus = episodeItemStatus;
+    fhirPayload.Result_Raw_Full_S3 = `s3://${ENVIRONMENT}-${successBucket}/GalleriTestResults/${fhirPayload.Participant_Id}_fhir_message_${dateTime}.json`;
+    fhirPayload.Result_PDF_S3 = `s3://${ENVIRONMENT}-${successBucket}/GalleriTestResults/${fhirPayload.Participant_Id}_pdf_${dateTime}.pdf`;
     if (!BloodTestItems) {
       console.log("insert new record");
+      fhirPayload.Result_Created_By = "GPS";
+      fhirPayload.Result_Creation = new Date(Date.now()).toISOString();
       let result = await checkResult(
         js,
         episodeItemStatus,
@@ -189,6 +213,10 @@ export const handler = async (event) => {
       }
       //if success, also decode pdf and push to s3
     } else if (BloodTestItems) {
+      fhirPayload.Result_Created_By = ResultCreatedByItems;
+      fhirPayload.Result_Creation = ResultUpdatedItems;
+      fhirPayload.Result_Updated_By = "GPS";
+      fhirPayload.Result_Updated = new Date(Date.now()).toISOString();
       console.log("check timestamp from db and identifier value");
       if (
         fhirPayload.Identifier_Value === BloodTestItems && //match identifier from ddb to payload
@@ -271,6 +299,28 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
 };
 
 /**
+ * This function is used to retrieve the tags associated to an object in S3
+ *
+ * @param {String} bucketName The name of the bucket you are querying
+ * @param {String} key The name of the object you are retrieving
+ * @param {Object} client Instance of S3 client
+ * @returns {Array} An array of all tags on object being returned
+ */
+export const getTagFromS3 = async (bucketName, key, client) => {
+  try {
+    const tag = await client.send(
+      new GetObjectTaggingCommand({
+        Bucket: bucketName,
+        Key: key,
+      })
+    );
+    return tag.TagSet;
+  } catch (err) {
+    console.error(`Error: Failed to read from ${bucketName}/${key}`);
+  }
+};
+
+/**
  * This function is used to write a new object in S3
  *
  * @param {string} bucketName The name of the bucket you are pushing to
@@ -292,8 +342,8 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
     console.log(`Successfully pushed to ${bucketName}/${key}`);
     return response;
   } catch (err) {
-    console.log(
-      `Failed to push to ${bucketName}/${key}. Error Message: ${err}`
+    console.error(
+      `Error: Failed to push to ${bucketName}/${key}. Error Message: ${err}`
     );
     throw err;
   }
@@ -381,30 +431,48 @@ export const transactionalWrite = async (
             Participant_Id: { S: participantId },
             Grail_Id: { S: fhirPayload.Grail_Id },
           },
-          UpdateExpression: `SET Grail_FHIR_Result_Id = :GrailFHIRResult, Meta_Last_Updated = :MetaLU, Identifier_Value = :IV, CSD_Result_SNOWMED_Code = :CSDSNOWMEDCode, CSD_Result_SNOWMED_Display = :CSDSNOWMEDDisplay, Blood_Draw_Date = :Blood_Draw_Date, Cso_Result_Snowmed_Code_Primary= :SCode_Primary, Cso_Result_Snowmed_Display_Primary = :SDisplay_Primary, Cso_Result_Snowmed_Code_Secondary = :SCode_Secondary, Cso_Result_Snowmed_Display_Secondary = :SDisplay_Secondary`,
+          UpdateExpression: `SET Grail_FHIR_Result_Id = :GrailFHIRResult, Meta_Last_Updated = :MetaLU, Identifier_Value = :IV, CSD_Result_SNOMED_Code = :CSDSNOMEDCode, Blood_Draw_Date = :Blood_Draw_Date, Cso_Result_SNOMED_Code_Primary = :SCode_Primary, Cso_Result_SNOMED_Code_Secondary = :SCode_Secondary, Result_Raw_Full_S3 = :Result_Raw_Full_S3, Result_PDF_S3 = :Result_PDF_S3, Result_Created_By = :Result_Created_By, Result_Creation = :Result_Creation, Result_Updated_By = :Result_Updated_By, Result_Updated = :Result_Updated, Cso_Result_Friendly_Primary = :Cso_Result_Friendly_Primary, Cso_Result_Friendly_Secondary = :Cso_Result_Friendly_Secondary, DiagnosticReportStatus = :DiagnosticReportStatus`,
           TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
           ExpressionAttributeValues: {
             ":GrailFHIRResult": { S: fhirPayload.Grail_FHIR_Result_Id },
             ":MetaLU": { S: fhirPayload.Meta_Last_Updated },
             ":IV": { S: fhirPayload.Identifier_Value },
-            ":CSDSNOWMEDCode": {
-              S: fhirPayload.CSD_Result_SNOWMED_Code,
-            },
-            ":CSDSNOWMEDDisplay": {
-              S: fhirPayload.CSD_Result_SNOWMED_Display,
+            ":CSDSNOMEDCode": {
+              S: fhirPayload.CSD_Result_SNOMED_Code,
             },
             ":Blood_Draw_Date": { S: fhirPayload.Blood_Draw_Date },
             ":SCode_Primary": {
-              SS: fhirPayload.Cso_Result_Snowmed_Code_Primary,
-            },
-            ":SDisplay_Primary": {
-              SS: fhirPayload.Cso_Result_Snowmed_Display_Primary,
+              S: fhirPayload.Cso_Result_SNOMED_Code_Primary,
             },
             ":SCode_Secondary": {
-              SS: fhirPayload.Cso_Result_Snowmed_Code_Secondary,
+              S: fhirPayload.Cso_Result_SNOMED_Code_Secondary,
             },
-            ":SDisplay_Secondary": {
-              SS: fhirPayload.Cso_Result_Snowmed_Display_Secondary,
+            ":Result_Raw_Full_S3": {
+              S: fhirPayload.Result_Raw_Full_S3,
+            },
+            ":Result_PDF_S3": {
+              S: fhirPayload.Result_PDF_S3,
+            },
+            ":Result_Created_By": {
+              S: fhirPayload.Result_Created_By,
+            },
+            ":Result_Creation": {
+              S: fhirPayload.Result_Creation,
+            },
+            ":Result_Updated_By": {
+              S: fhirPayload.Result_Updated_By,
+            },
+            ":Result_Updated": {
+              S: fhirPayload.Result_Updated,
+            },
+            ":Cso_Result_Friendly_Primary": {
+              S: fhirPayload.Cso_Result_Friendly_Primary,
+            },
+            ":Cso_Result_Friendly_Secondary": {
+              S: fhirPayload.Cso_Result_Friendly_Secondary,
+            },
+            ":DiagnosticReportStatus": {
+              S: fhirPayload.DiagnosticReportStatus,
             },
           },
         },
@@ -425,7 +493,7 @@ export const transactionalWrite = async (
       return true;
     }
   } catch (error) {
-    console.error("Transactional write failed:", error);
+    console.error("Error: Transactional write failed:", error);
   }
 };
 
@@ -557,9 +625,9 @@ export const checkProperties = async (obj) => {
     if (obj[key] != "") {
       console.log(`${key} populated.`);
     } else if (obj[key] == "" && Array.isArray(obj[key])) {
-      obj[key] = ["null"];
+      obj[key] = ["NULL"];
     } else {
-      obj[key] = "null";
+      obj[key] = "NULL";
     }
   }
 };

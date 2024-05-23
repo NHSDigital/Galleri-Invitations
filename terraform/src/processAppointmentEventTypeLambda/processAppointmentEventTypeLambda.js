@@ -79,7 +79,7 @@ export const handler = async (event) => {
             EventType,
             Timestamp,
             episodeEvent.complete,
-            "NULL",
+            "null",
             GrailID,
             BloodCollectionDate
           );
@@ -235,7 +235,7 @@ export const transactionalWrite = async (
   eventType,
   appointmentTimestamp,
   episodeEvent,
-  eventDescription = "Null",
+  eventDescription = "null",
   grailId = "null",
   bloodCollectionDate = "null"
 ) => {
@@ -266,13 +266,14 @@ export const transactionalWrite = async (
             Participant_Id: { S: participantId },
             Appointment_Id: { S: appointmentId },
           },
-          UpdateExpression: `SET event_type = :eventType, Time_stamp = :appointmentTimestamp, grail_id = :grailId, blood_collection_date = :bloodCollectionDate`,
+          UpdateExpression: `SET event_type = :eventType, Time_stamp = :appointmentTimestamp, grail_id = :grailId, blood_collection_date = :bloodCollectionDate, blood_not_collected_reason = :bloodNotCollectedReason`,
           TableName: `${ENVIRONMENT}-Appointments`,
           ExpressionAttributeValues: {
             ":eventType": { S: eventType },
             ":appointmentTimestamp": { S: appointmentTimestamp },
             ":grailId": { S: grailId },
             ":bloodCollectionDate": { S: bloodCollectionDate},
+            ":bloodNotCollectedReason": { S: eventDescription },
           },
         },
       },
