@@ -323,6 +323,7 @@ export const getLsoa = async (record, dbClient) => {
 
   try {
     if (postcode) {
+      console.log("checking from postcode");
       const checkLsoa = await getItemFromTable(
         dbClient,
         "Postcode",
@@ -330,8 +331,10 @@ export const getLsoa = async (record, dbClient) => {
         "S",
         postcode
       );
+      console.log("checkLSOA:", checkLsoa);
       // Get LSOA using GP practice
-      if (!checkLsoa.Item) {
+      if (checkLsoa.Item.LSOA_2011.S.trim().length === 0) {
+        console.log("checking from gp practice");
         const lsoaFromGp = await getItemFromTable(
           dbClient,
           "GpPractice",
@@ -339,6 +342,7 @@ export const getLsoa = async (record, dbClient) => {
           "S",
           primary_care_provider
         );
+        console.log("lsoaFromGp:", lsoaFromGp);
         // LSOA code could not be found for record using postcode or gp practice code. Set as null
         if (!lsoaFromGp.Item || lsoaFromGp.Item.LSOA_2011.S === "")
           return (lsoaObject.lsoaCode = "null");
@@ -483,6 +487,16 @@ export const formatDynamoDbRecord = async (record) => {
   if (record.telephone_number === "null") record.telephone_number = "0";
   // mobile_number: {S: record.mobile_number}, -> 0
   if (record.mobile_number === "null") record.mobile_number = "0";
+
+  console.log("record.is_interpreter_required", record.is_interpreter_required);
+  console.log(
+    "record.is_interpreter_required",
+    record.is_interpreter_required.toLowerCase()
+  );
+  if (record.is_interpreter_required.toLowerCase() === "false") {
+    record.is_interpreter_required = false;
+    console.log("here");
+  }
 
   return {
     PutRequest: {
