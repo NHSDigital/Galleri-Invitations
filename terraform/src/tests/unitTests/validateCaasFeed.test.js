@@ -141,12 +141,23 @@ describe("validateCaasFeed function", () => {
     );
   });
 
-  test("should return failure for missing other given name", () => {
+  test("should pass for action DEL with null values except NHS number", () => {
     const validationResult = validateRecord({
       ...validRecord,
       action: "DEL",
       primary_care_provider: "null",
       reason_for_removal: "null",
+      gp_connect: "null",
+      given_name: "null",
+      other_given_names: "null",
+      family_name: "null",
+      date_of_birth: "null",
+      gender: "null",
+      address_line_1: "null",
+      address_line_2: "null",
+      address_line_3: "null",
+      address_line_4: "null",
+      postcode: "null",
     });
 
     expect(validationResult.success).toBe(true);

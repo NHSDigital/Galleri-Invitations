@@ -11,6 +11,7 @@ import {
   lookUp,
   transactionalWrite,
   checkProperties,
+  getTagFromS3,
 } from "../../nrdsUpdateBloodTestResultLambda/nrdsUpdateBloodTestResultLambda.js";
 
 describe("readCsvFromS3", () => {
@@ -91,7 +92,7 @@ describe("pushCsvToS3", () => {
     expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
   });
   test("Failed response when error occurs sending file to bucket", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
+    const logSpy = jest.spyOn(global.console, "error");
     const errorMsg = new Error("Mocked error");
     const mockClient = {
       send: jest.fn().mockRejectedValue(errorMsg),
@@ -104,7 +105,7 @@ describe("pushCsvToS3", () => {
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith(
-      `Failed to push to galleri-ons-data/test.txt. Error Message: ${errorMsg}`
+      `Error: Failed to push to galleri-ons-data/test.txt. Error Message: ${errorMsg}`
     );
   });
 });
@@ -178,13 +179,13 @@ describe("transactionalWrite", () => {
       Meta_Last_Updated: "2000-09-11T11:22:00+00:00",
       Identifier_Value: "example",
       Grail_Id: "NHS1234567",
-      CSD_Result_SNOWMED_Code: "12345",
-      CSD_Result_SNOWMED_Display: "onceICaughtAFishAlive",
+      CSD_Result_SNOMED_Code: "12345",
+      CSD_Result_SNOMED_Display: "onceICaughtAFishAlive",
       Blood_Draw_Date: "2000-09-11T11:22:00+00:00",
-      Cso_Result_Snowmed_Code_Primary: ["6"],
-      Cso_Result_Snowmed_Display_Primary: ["7"],
-      Cso_Result_Snowmed_Code_Secondary: ["8", "9", "10"],
-      Cso_Result_Snowmed_Display_Secondary: ["thenILetItGoAgain"],
+      Cso_Result_Snomed_Code_Primary: ["6"],
+      Cso_Result_Snomed_Display_Primary: ["7"],
+      Cso_Result_Snomed_Code_Secondary: ["8", "9", "10"],
+      Cso_Result_Snomed_Display_Secondary: ["thenILetItGoAgain"],
       Participant_Id: "NHS-12345",
     };
 
@@ -218,13 +219,13 @@ describe("transactionalWrite", () => {
       Meta_Last_Updated: "2000-09-11T11:22:00+00:00",
       Identifier_Value: "example",
       Grail_Id: "NHS1234567",
-      CSD_Result_SNOWMED_Code: "Erin",
-      CSD_Result_SNOWMED_Display: "Yeager",
+      CSD_Result_SNOMED_Code: "Erin",
+      CSD_Result_SNOMED_Display: "Yeager",
       Blood_Draw_Date: "2000-09-11T11:22:00+00:00",
-      Cso_Result_Snowmed_Code_Primary: ["Grisha"],
-      Cso_Result_Snowmed_Display_Primary: ["Yeager"],
-      Cso_Result_Snowmed_Code_Secondary: ["Zeke"],
-      Cso_Result_Snowmed_Display_Secondary: ["Yeager"],
+      Cso_Result_Snomed_Code_Primary: ["Grisha"],
+      Cso_Result_Snomed_Display_Primary: ["Yeager"],
+      Cso_Result_Snomed_Code_Secondary: ["Zeke"],
+      Cso_Result_Snomed_Display_Secondary: ["Yeager"],
       Participant_Id: "NHS-12345",
     };
 
@@ -260,8 +261,60 @@ describe("checkProperties", () => {
       t: "Tanjiro",
       a: "Akaza",
       s: "Senku Ishigami",
-      k: "null",
-      ss: ["null"],
+      k: "NULL",
+      ss: ["NULL"],
     });
+  });
+});
+
+describe("getTagFromS3", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("Failed response when error occurs getting file from bucket", async () => {
+    const logSpy = jest.spyOn(global.console, "error");
+    const errorStr = "Error: Mocked error";
+    const errorMsg = new Error(errorStr);
+    const mockClient = {
+      send: jest.fn().mockRejectedValue(errorMsg),
+    };
+
+    const bucket = "bucketName";
+    const key = "key";
+    try {
+      await getTagFromS3(bucket, key, mockClient);
+    } catch (err) {
+      expect(err.message).toBe("Error: Mocked error");
+    }
+
+    expect(logSpy).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledWith(
+      "Error: Failed to read from bucketName/key"
+    );
+  });
+
+  test("return string built from csv file", async () => {
+    const mockS3Client = mockClient(new S3Client({}));
+
+    mockS3Client.resolves({
+      TagSet: [
+        { Key: "Levi", Value: "Ackerman" },
+        { Key: "Mikasa", Value: "Ackerman" },
+      ],
+    });
+
+    const result = await getTagFromS3("aaaaaaa", "aaaaaaa", mockS3Client);
+
+    const expected_result = [
+      { Key: "Levi", Value: "Ackerman" },
+      { Key: "Mikasa", Value: "Ackerman" },
+    ];
+
+    expect(result).toEqual(expected_result);
   });
 });
