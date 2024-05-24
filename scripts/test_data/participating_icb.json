@@ -1,5 +1,5 @@
 {
-  "dev-cicd-ParticipatingIcb": [
+  "ENVIRONMENT-ParticipatingIcb": [
     {
       "PutRequest": {
         "Item": {
