@@ -2017,7 +2017,6 @@ module "population_table" {
   stream_view_type         = "NEW_AND_OLD_IMAGES"
   table_name               = "Population"
   hash_key                 = "PersonId"
-  range_key                = "LsoaCode"
   read_capacity            = null
   write_capacity           = null
   secondary_write_capacity = null
