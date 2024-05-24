@@ -12,33 +12,59 @@ import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 jest.mock("axios");
 import axios from "axios";
-
 const testCrossCheckResultReport = {
-  Appointment: {
-    ParticipantID: "NHS-FD10-SH57",
-    AppointmentID: "190f5740-ed7e-4071-a581-60a2d488800b",
-    ClinicID: "QO49R767",
-    AppointmentDateTime: "2024-06-02T15:00:00Z",
-    Channel: "ONLINE",
-    EventType: "BOOKED",
-    GrailID: "9000098399",
-    AppointmentAccessibility: {
-      accessibleToilet: false,
-      disabledParking: false,
-      inductionLoop: false,
-      signLanguage: false,
-      stepFreeAccess: false,
-      wheelchairAccess: false,
-    },
-    CommunicationsAccessibility: {
-      signLanguage: false,
-      braille: false,
-      interpreter: false,
-    },
-    NotificationPreferences: { canEmail: false, canSMS: true },
-    Timestamp: "2024-05-07T10:00:00.999999999Z",
-    BloodCollectionDate: "22024-05-23T19:19:12.939Z",
+  resourceType: "Bundle",
+  id: "MCED-CancerMarkersDetected-Example",
+  identifier: {
+    system: "https://tools.ietf.org/html/rfc4122",
+    value: "f36927ef-7703-45ed-b0e5-6ec6723cf0f6",
   },
+  type: "message",
+  entry: [
+    {
+      fullUrl: "urn:uuid:8d6c2cd5-0eec-496a-88d0-3785a135df09",
+      resource: {
+        resourceType: "Patient",
+        id: "8d6c2cd5-0eec-496a-88d0-3785a135df09",
+        identifier: [
+          {
+            system: "https://ScreeningOrg/patient-id",
+            value: "NHS-AB12-CD34",
+          },
+        ],
+      },
+    },
+    {
+      fullUrl: "urn:uuid:756a8361-79ce-4561-afcb-a91fe19df123",
+      resource: {
+        resourceType: "Specimen",
+        id: "756a8361-79ce-4561-afcb-a91fe19df123",
+        identifier: [
+          {
+            system: "http://ScreeningOrg/request-id",
+            value: "NHS9123123",
+          },
+        ],
+        status: "available",
+        type: {
+          coding: [
+            {
+              system: "http://snomed.info/sct",
+              code: "119297000",
+              display: "Blood specimen",
+            },
+          ],
+        },
+        subject: {
+          reference: "urn:uuid:8d6c2cd5-0eec-496a-88d0-3785a135df09",
+          display: "NHS-AB12-CD34",
+        },
+        collection: {
+          collectedDateTime: "2020-09-23T11:00:00+00:00",
+        },
+      },
+    },
+  ],
 };
 
 const errorIssues = {
@@ -143,13 +169,13 @@ describe("validateTRR", () => {
 
     const appointmentParticipantItems = {
       blood_collection_date: {
-        S: "22024-05-23T19:19:12.939Z",
+        S: "2020-09-23T11:00:00+00:00",
       },
       grail_id: {
-        S: "9000098399",
+        S: "NHS9123123",
       },
       Participant_Id: {
-        S: "NHS-FD10-SH57",
+        S: "NHS-AB12-CD34",
       },
     };
 
@@ -159,7 +185,7 @@ describe("validateTRR", () => {
     );
 
     expect(result).toBeTruthy();
-    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledTimes(4);
     expect(logSpy).toHaveBeenCalledWith(
       "Move TRR to the 'Step 3 validated successfully bucket"
     );
@@ -174,13 +200,13 @@ describe("validateTRR", () => {
 
     const appointmentParticipantItems = {
       blood_collection_date: {
-        S: "22024-05-23T19:19:12.939Z",
+        S: "2020-09-23T11:00:00+00:00",
       },
       grail_id: {
-        S: "9000098399",
+        S: "NHS9123123",
       },
       Participant_Id: {
-        S: "NHS-FD10-SH58",
+        S: "NHS-AB12-CD30",
       },
     };
 

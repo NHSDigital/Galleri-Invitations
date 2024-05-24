@@ -6,6 +6,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 
+import get from "lodash.get";
 //VARIABLES
 const s3 = new S3Client();
 const CR_TRR_SUCCESSFUL_BUCKET = process.env.CR_TRR_SUCCESSFUL_BUCKET;
@@ -13,6 +14,11 @@ const CR_TRR_UNSUCCESSFUL_BUCKET = process.env.CR_TRR_UNSUCCESSFUL_BUCKET;
 const ENVIRONMENT = process.env.ENVIRONMENT;
 const dbClient = new DynamoDBClient();
 
+let fhirPayload = {
+  Grail_Id: "",
+  Participant_Id: "",
+  Blood_Collection_Date: "",
+};
 //HANDLER
 export const handler = async (event, context) => {
   const bucket = event.Records[0].s3.bucket.name;
@@ -22,24 +28,16 @@ export const handler = async (event, context) => {
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
   try {
-    const testCrossCheckResultReport = await retrieveAndParseJSON(
-      getJSONFromS3,
-      bucket,
-      key,
-      s3
-    );
-
+    const js = await retrieveAndParseJSON(getJSONFromS3, bucket, key, s3);
     //bring back most recent appointment, with timestamp
-    const sortedApptParticipants = await getLastAppointment(
-      testCrossCheckResultReport
-    );
-    const appointmentParticipantItems = sortedApptParticipants[0];
-    const isValidTRR = await validateTRR(
-      testCrossCheckResultReport,
-      appointmentParticipantItems
-    );
+    const sortedApptParticipants = await getLastAppointment();
+    const isValidTRR = false;
+    if (sortedApptParticipants !== null) {
+      const appointmentParticipantItems = sortedApptParticipants[0];
+      isValidTRR = await validateTRR(js, appointmentParticipantItems);
+    }
 
-    await processTRR(testCrossCheckResultReport, key, bucket, s3, isValidTRR);
+    await processTRR(js, key, bucket, s3, isValidTRR);
   } catch (error) {
     console.error("Error: Issue occurred whilst processing JSON file from S3");
     console.error("Error:", error);
@@ -47,10 +45,10 @@ export const handler = async (event, context) => {
 };
 
 //bring back most recent appointment, with timestamp
-export async function getLastAppointment(testCrossCheckResultReport) {
+export async function getLastAppointment() {
   const appointmentParticipant = await lookUp(
     dbClient,
-    testCrossCheckResultReport.Appointment?.ParticipantID,
+    fhirPayload.Participant_Id,
     "Appointments",
     "Participant_Id",
     "S",
@@ -67,48 +65,57 @@ export async function getLastAppointment(testCrossCheckResultReport) {
 
 //process TRR
 export async function processTRR(
-  testCrossCheckResultReport,
+  js,
   reportName,
   originalBucket,
   s3,
   isValidTRR
 ) {
   if (isValidTRR) {
-    await putTRRInS3Bucket(
-      testCrossCheckResultReport,
-      reportName,
-      CR_TRR_SUCCESSFUL_BUCKET,
-      s3
-    );
+    await putTRRInS3Bucket(js, reportName, CR_TRR_SUCCESSFUL_BUCKET, s3);
   } else {
-    await putTRRInS3Bucket(
-      testCrossCheckResultReport,
-      reportName,
-      CR_TRR_UNSUCCESSFUL_BUCKET,
-      s3
-    );
+    await putTRRInS3Bucket(js, reportName, CR_TRR_UNSUCCESSFUL_BUCKET, s3);
   }
   await deleteTRRinS3Bucket(reportName, originalBucket, s3);
 }
 
 // Validate TRR
-export async function validateTRR(
-  testCrossCheckResultReport,
-  appointmentParticipantItems
-) {
-  const {
-    Appointment: {
-      ParticipantID: payloadParticipantId,
-      GrailID: payloadGrailId,
-      BloodCollectionDate: payloadBloodCollectionDate,
-    },
-  } = testCrossCheckResultReport;
+export async function validateTRR(js, appointmentParticipantItems) {
+  for (let objs in js.entry) {
+    //Participant_Id
+    if (get(js.entry[objs].resource, `resourceType`) === "Patient") {
+      fhirPayload.Participant_Id = get(
+        js.entry[objs],
+        `resource.identifier[0].value`
+      );
+    }
+    //Grail_Id
+    if (get(js.entry[objs].resource, `resourceType`) === "Specimen") {
+      fhirPayload.Grail_Id = get(
+        js.entry[objs].resource.identifier[0],
+        `value`
+      );
+    }
+    //Blood Collection Date
+    if (get(js.entry[objs].resource, `resourceType`) === "Specimen") {
+      fhirPayload.Blood_Collection_Date = get(
+        js.entry[objs].resource,
+        `collection.collectedDateTime`
+      );
+    }
+  }
+  console.log(`Participant_Id ${fhirPayload.Participant_Id}`);
+  console.log(`fhirPayload.Grail_Id ${fhirPayload.Grail_Id}`);
+  console.log(
+    `fhirPayload.Blood_Collection_Date ${fhirPayload.Blood_Collection_Date}`
+  );
 
   if (
-    appointmentParticipantItems?.Participant_Id.S === payloadParticipantId &&
-    appointmentParticipantItems?.grail_id.S === payloadGrailId &&
+    appointmentParticipantItems?.Participant_Id.S ===
+      fhirPayload.Participant_Id &&
+    appointmentParticipantItems?.grail_id.S === fhirPayload.Grail_Id &&
     appointmentParticipantItems?.blood_collection_date.S ===
-      payloadBloodCollectionDate
+      fhirPayload.Blood_Collection_Date
   ) {
     console.log(`Move TRR to the 'Step 3 validated successfully bucket`);
     return true;
@@ -119,18 +126,13 @@ export async function validateTRR(
 }
 
 // Move TRR to S3 bucket
-export async function putTRRInS3Bucket(
-  testCrossCheckResultReport,
-  reportName,
-  bucketName,
-  client
-) {
+export async function putTRRInS3Bucket(js, reportName, bucketName, client) {
   try {
     const response = await client.send(
       new PutObjectCommand({
         Bucket: `${ENVIRONMENT}-${bucketName}`,
         Key: reportName,
-        Body: JSON.stringify(testCrossCheckResultReport),
+        Body: JSON.stringify(js),
       })
     );
     console.log(`Successfully pushed to ${bucketName}/${reportName}`);

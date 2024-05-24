@@ -4,5 +4,7 @@
   "type": "module",
   "main": "testCrossCheckReportAppointmentValidationLambda.js",
   "author": "",
-  "dependencies": {}
+  "dependencies": {
+    "lodash.get": "^4.4.2"
+  }
 }
