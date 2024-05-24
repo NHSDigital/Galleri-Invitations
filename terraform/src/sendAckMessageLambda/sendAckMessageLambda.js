@@ -23,7 +23,7 @@ const TEST_RESULT_ACK_QUEUE_URL = process.env.TEST_RESULT_ACK_QUEUE_URL;
 export const handler = async (event) => {
 
   try {
-    await processRecords(event.Records, sqsClient);
+    await processRecords(event.Records, handShake, sendMessage, loadConfig, sqsClient);
   }
   catch (error) {
     console.error('Error: Failed to process the batch of messages from SQS');
@@ -32,7 +32,7 @@ export const handler = async (event) => {
 };
 
 //FUNCTIONS
-export async function processRecords(records, sqsClient) {
+export async function processRecords(records, handShake, sendMessage, loadConfig, sqsClient) {
   const totalRecords = records.length;
   let recordsSuccessfullySent = 0;
   let recordsFailedToSend = 0;
@@ -92,6 +92,8 @@ export async function processRecords(records, sqsClient) {
       );
 
       await deleteMessageInQueue(grail_fhir_result_id, ack_code, record, TEST_RESULT_ACK_QUEUE_URL, sqsClient);
+
+      recordsSuccessfullySent++;
 
     } catch (error) {
       recordsFailedToSend++;

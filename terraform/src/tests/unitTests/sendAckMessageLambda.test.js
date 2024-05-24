@@ -1,5 +1,5 @@
 import { mockClient } from "aws-sdk-client-mock";
-import { getSecret, readSecret, deleteMessageInQueue, sendMessageToMesh, buildMessage } from "../../sendAckMessageLambda";
+import { getSecret, readSecret, deleteMessageInQueue, sendMessageToMesh, buildMessage, processRecords } from "../../sendAckMessageLambda";
 import { SQSClient, DeleteMessageCommand } from '@aws-sdk/client-sqs';
 import {
   SecretsManagerClient,
@@ -9,6 +9,124 @@ import { handShake, readMessage } from "nhs-mesh-client";
 jest.mock("nhs-mesh-client");
 handShake.mockResolvedValue({ status: "Handshake successful, status 200" });
 readMessage.mockResolvedValue({ data: { nhs_num: "123", name: "bolo" } });
+
+describe("processRecords", () => {
+  let mockSQSClient;
+  const mockPerformHandshake = jest.fn();
+  const mockDispatchMessage = jest.fn();
+  const mockLoadConfig = jest.fn();
+
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    mockSQSClient = mockClient(new SQSClient({}));
+  });
+
+  afterEach(() => {
+    mockSQSClient.reset();
+  });
+
+  const records = [
+    {
+      receiptHandle: 'receiptHandle1',
+      body: '{"grail_fhir_result_id":"id-1","ack_code":"ok"}'
+    },
+    {
+      receiptHandle: 'receiptHandle2',
+      body: '{"grail_fhir_result_id":"id-2","ack_code":"ok"}'
+
+    },
+    {
+      receiptHandle: 'receiptHandle3',
+      body: '{"grail_fhir_result_id":"id-3","ack_code":"ok"}'
+
+    },
+    {
+      receiptHandle: 'receiptHandle4',
+      body: '{"grail_fhir_result_id":"id-4","ack_code":"fatal-error"}'
+
+    },
+    {
+      receiptHandle: 'receiptHandle5',
+      body: '{"grail_fhir_result_id":"id-5","ack_code":"fatal-error"}'
+    }
+  ];
+
+  test("Successfully process records", async () => {
+    const logSpy = jest.spyOn(global.console, "log");
+    const errorSpy = jest.spyOn(global.console, "error");
+    const smClient = mockClient(SecretsManagerClient);
+
+    smClient.on(GetSecretValueCommand).resolves({
+      SecretString: JSON.stringify({ my_secret_key: "my_secret_value" }),
+    });
+
+    mockPerformHandshake.mockResolvedValue({ status: 200 });
+
+    // Mock dispatchMessage to return a message with status 202
+    mockDispatchMessage.mockResolvedValue({
+      status: 202,
+      data: { message_id: "123456789" },
+    });
+
+    mockLoadConfig.mockResolvedValue({
+      url: "example.com",
+      senderMailboxID: "sender@example.com",
+      senderMailboxPassword: "password",
+      sharedKey: "sharedKey",
+      senderAgent: "senderAgent",
+      receiverMailboxID: "receiver@example.com",
+    });
+
+    await processRecords(records, mockPerformHandshake, mockDispatchMessage, mockLoadConfig, mockSQSClient);
+
+    expect(logSpy).toHaveBeenCalledWith('Processing acknowledgment for result id id-1 with ack code ok');
+    expect(logSpy).toHaveBeenCalledWith('Processing acknowledgment for result id id-2 with ack code ok');
+    expect(logSpy).toHaveBeenCalledWith('Processing acknowledgment for result id id-3 with ack code ok');
+    expect(logSpy).toHaveBeenCalledWith('Processing acknowledgment for result id id-4 with ack code fatal-error');
+    expect(logSpy).toHaveBeenCalledWith('Processing acknowledgment for result id id-5 with ack code fatal-error');
+    expect(logSpy).toHaveBeenCalledWith('Total records in the batch: 5 - Records successfully processed/sent: 5 - Records failed to send: 0');
+    expect(errorSpy).toHaveBeenCalledTimes(0);
+  });
+
+  test("Should handle errors when processing records", async () => {
+    mockSQSClient.on(DeleteMessageCommand).rejects(new Error('Failed to delete message'));
+
+    const logSpy = jest.spyOn(global.console, "log");
+    const errorSpy = jest.spyOn(global.console, "error");
+    const smClient = mockClient(SecretsManagerClient);
+
+    smClient.on(GetSecretValueCommand).resolves({
+      SecretString: JSON.stringify({ my_secret_key: "my_secret_value" }),
+    });
+
+    mockPerformHandshake.mockResolvedValue({ status: 200 });
+
+    // Mock dispatchMessage to return a message with status 202
+    mockDispatchMessage.mockResolvedValue({
+      status: 202,
+      data: { message_id: "123456789" },
+    });
+
+    mockLoadConfig.mockResolvedValue({
+      url: "example.com",
+      senderMailboxID: "sender@example.com",
+      senderMailboxPassword: "password",
+      sharedKey: "sharedKey",
+      senderAgent: "senderAgent",
+      receiverMailboxID: "receiver@example.com",
+    });
+
+    await processRecords(records, mockPerformHandshake, mockDispatchMessage, mockLoadConfig, mockSQSClient);
+
+    expect(logSpy).toHaveBeenCalledWith("Total records in the batch: 5 - Records successfully processed/sent: 0 - Records failed to send: 5")
+    expect(errorSpy).toHaveBeenCalledWith("Error: Not able to process record due to error Failed to delete message");
+    expect(errorSpy).toHaveBeenCalledWith("Error: Failed to delete message: result id id-1 with ack code ok");
+    expect(errorSpy).toHaveBeenCalledWith("Error: Failed to delete message: result id id-2 with ack code ok");
+    expect(errorSpy).toHaveBeenCalledWith("Error: Failed to delete message: result id id-3 with ack code ok");
+    expect(errorSpy).toHaveBeenCalledWith("Error: Failed to delete message: result id id-4 with ack code fatal-error");
+    expect(errorSpy).toHaveBeenCalledWith("Error: Failed to delete message: result id id-5 with ack code fatal-error");
+  });
+});
 
 describe("getSecret", () => {
   afterEach(() => {
