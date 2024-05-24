@@ -386,17 +386,6 @@ export function validateRecord(record) {
     return validationResults;
   }
 
-  //GAL-1366
-  if (
-    record.action != "DEL" &&
-    (record.is_interpreter_required === null ||
-      record.is_interpreter_required.trim().length === 0)
-  ) {
-    validationResults.success = false;
-    validationResults.message =
-      "Technical error - is_interpreter_required is invalid";
-    return validationResults;
-  }
   return validationResults;
 }
 

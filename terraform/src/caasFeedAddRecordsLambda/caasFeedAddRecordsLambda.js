@@ -331,8 +331,7 @@ export const getLsoa = async (record, dbClient) => {
         postcode
       );
       // Get LSOA using GP practice
-      if (checkLsoa.Item.LSOA_2011.S.trim().length === 0) {
-        console.log("checking from gp practice");
+      if (!checkLsoa.Item) {
         const lsoaFromGp = await getItemFromTable(
           dbClient,
           "GpPractice",
@@ -484,9 +483,6 @@ export const formatDynamoDbRecord = async (record) => {
   if (record.telephone_number === "null") record.telephone_number = "0";
   // mobile_number: {S: record.mobile_number}, -> 0
   if (record.mobile_number === "null") record.mobile_number = "0";
-  if (record.is_interpreter_required.toLowerCase() === "false") {
-    record.is_interpreter_required = false;
-  }
 
   return {
     PutRequest: {
