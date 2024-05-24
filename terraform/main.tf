@@ -2574,16 +2574,17 @@ resource "aws_ssm_parameter" "result-no-csd-notify" {
 }
 
 resource "aws_ssm_parameter" "result-no-csd-routing-id" {
-  name      = "result-no-csd-routing-id"
-  type      = "String"
-  value     = "Unavailable"
+  name = "result-no-csd-routing-id"
+  type = "String"
+  # value     = "3f2a604a-b6ac-40bd-bc56-68f7d3618422"
   overwrite = true
 }
 
 resource "aws_ssm_parameter" "result-no-csd-tables" {
-  name      = "result-no-csd-tables"
-  type      = "StringList"
-  value     = "appointment, phlebotomy"
+  name  = "result-no-csd-tables"
+  type  = "StringList"
+  value = "appointment"
+  # value     = "appointment, phlebotomy"
   overwrite = true
 }
 

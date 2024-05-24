@@ -52,9 +52,21 @@ export const handler = async (event, context) => {
 
 export async function getParameterStore(episodeEvent) {
   try {
-    const parameterName = `${episodeEvent
-      ?.replace(/\s+/g, "-")
-      ?.toLowerCase()}-notify`;
+    let parameterName = "";
+    if (episodeEvent.indexOf("-") == -1) {
+      parameterName = `${episodeEvent
+        ?.replace(/\s+/g, "-")
+        ?.toLowerCase()}-notify`;
+    } else {
+      const param = episodeEvent.split("-");
+      for (let item of param) {
+        parameterName += item;
+      }
+      parameterName = `${parameterName
+        .replace(/\s+/g, "-")
+        .toLowerCase()}-notify`;
+    }
+    console.log(parameterName);
     const { Parameter } = await ssmClient.send(
       new GetParameterCommand({ Name: parameterName })
     );
@@ -65,6 +77,22 @@ export async function getParameterStore(episodeEvent) {
     throw error;
   }
 }
+
+// export async function getParameterStore(episodeEvent) {
+//   try {
+//     const parameterName = `${episodeEvent
+//       ?.replace(/\s+/g, "-")
+//       ?.toLowerCase()}-notify`;
+//     const { Parameter } = await ssmClient.send(
+//       new GetParameterCommand({ Name: parameterName })
+//     );
+//     console.log("Parameter value:", Parameter.Value);
+//     return Parameter.Value;
+//   } catch (error) {
+//     console.error("Error:", error);
+//     throw error;
+//   }
+// }
 
 export async function getParticipantFromDB(participantId) {
   try {
