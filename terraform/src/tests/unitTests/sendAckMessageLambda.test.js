@@ -23,6 +23,7 @@ describe("processRecords", () => {
 
   afterEach(() => {
     mockSQSClient.reset();
+    jest.clearAllMocks();
   });
 
   const records = [
@@ -133,6 +134,10 @@ describe("getSecret", () => {
     jest.clearAllMocks();
   });
 
+  beforeEach(() => {
+    jest.restoreAllMocks();
+  });
+
   test("Successfully retrieve secret from secret manager", async () => {
     const logSpy = jest.spyOn(global.console, "log");
     const smClient = mockClient(SecretsManagerClient);
@@ -175,6 +180,14 @@ describe("getSecret", () => {
 });
 
 describe("readSecret", () => {
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  beforeEach(() => {
+    jest.restoreAllMocks();
+  });
   test("should return secret string when fetched successfully", async () => {
     // Mock data
     const fetchSecretMock = jest
@@ -217,6 +230,7 @@ describe('deleteMessageInQueue', () => {
 
   afterEach(() => {
     mockSQSClient.reset();
+    jest.clearAllMocks();
   });
 
   test('Successful message deleted', async () => {
@@ -277,6 +291,10 @@ describe("sendMessageToMesh", () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  beforeEach(() => {
+    jest.restoreAllMocks();
   });
 
   test("should log success message and return message_id if message creation succeeds", async () => {
@@ -367,6 +385,15 @@ describe("sendMessageToMesh", () => {
 });
 
 describe("buildMessage", () => {
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  beforeEach(() => {
+    jest.restoreAllMocks();
+  });
+
   const positiveAckMessage = {
     resourceType: "Bundle",
     id: "ff09cccc-2c9b-4238-91d2-66fa6ee845d3",
