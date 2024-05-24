@@ -154,8 +154,8 @@ describe("All Test", () => {
     test("should generate API Gateway lockdown session", async () => {
       const mockEnvironment = "dev";
       const mockClient = {};
-      const mockApiSessionId = "mock-session-id";
-      const mockUserId = "mock-user-id";
+      const mockApiSessionId = "cap-ai-session-id";
+      const mockUserId = "michaeru-chiiptii";
 
       // Mock updateAPISessionTable function to return success status
       const mockUpdateAPISessionTable = jest.fn().mockResolvedValue(200);
@@ -184,8 +184,8 @@ describe("All Test", () => {
       const logSpy = jest.spyOn(global.console, "error");
       const mockEnvironment = "dev";
       const mockClient = {};
-      const mockApiSessionId = "mock-session-id";
-      const mockUserId = "mock-user-id";
+      const mockApiSessionId = "cap-ai-session-id";
+      const mockUserId = "michaeru-chiiptii";
 
       // Mock updateAPISessionTable function to return failure status
       const mockUpdateAPISessionTable = jest.fn().mockResolvedValue(500);
@@ -204,8 +204,8 @@ describe("All Test", () => {
     test("should handle error scenario", async () => {
       const mockEnvironment = "dev";
       const mockClient = {};
-      const mockApiSessionId = "mock-session-id";
-      const mockUserId = "mock-user-id";
+      const mockApiSessionId = "cap-ai-session-id";
+      const mockUserId = "michaeru-chiiptii";
 
       // Mock updateAPISessionTable function to throw an error
       const mockUpdateAPISessionTable = jest
@@ -227,7 +227,7 @@ describe("All Test", () => {
 
       expect(console.error).toHaveBeenCalledWith(
         expect.stringContaining(
-          `Error: Failed to generate session for for User mock-user-id`
+          `Error: Failed to generate session for for User michaeru-chiiptii`
         )
       );
     });
