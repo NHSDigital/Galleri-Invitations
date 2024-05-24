@@ -61,7 +61,7 @@ export const handler = async (event) => {
       await rejectRecord(appointmentJson);
       throw new Error("Invalid Appointment - no participant appointment found");
     }
-    const sortedAppointments = sortBy(appointmentResponse.Items, "Timestamp", false);
+    const sortedAppointments = sortBy(appointmentResponse.Items, "Time_stamp", "S", false);
     if (sortedAppointments[0].Appointment_Id.S !== AppointmentID ||
       sortedAppointments[0].Timestamp.S > Timestamp) {
       await rejectRecord(appointmentJson);
@@ -293,12 +293,12 @@ export const transactionalWrite = async (
   }
 };
 
-export const sortBy = (items, key, asc = true) => {
+export const sortBy = (items, key, keyType, asc = true) => {
   items.sort( (a,b) => {
     if (asc) {
-    	return (a[key] > b[key]) ? 1 : ((a[key] < b[key]) ? -1 : 0);
+    	return (a[key][keyType] > b[key][keyType]) ? 1 : ((a[key][keyType] < b[key][keyType]) ? -1 : 0);
     } else {
-    	return (b[key] > a[key]) ? 1 : ((b[key] < a[key]) ? -1 : 0);
+    	return (b[key][keyType] > a[key][keyType]) ? 1 : ((b[key][keyType] < a[key][keyType]) ? -1 : 0);
     }
   });
   return items;
