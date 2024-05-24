@@ -63,10 +63,10 @@ export const handler = async (event) => {
     }
     const sortedAppointments = sortBy(appointmentResponse.Items, "Time_stamp", "S", false);
     if (sortedAppointments[0].Appointment_Id.S !== AppointmentID ||
-      sortedAppointments[0].Timestamp.S > Timestamp) {
+      sortedAppointments[0].Time_stamp.S > Timestamp) {
       await rejectRecord(appointmentJson);
       throw new Error("Invalid Appointment - does not match or timestamp is earlier" +
-      " latest participant appointment");
+      " than latest participant appointment");
     }
 
     let response = false;
