@@ -296,9 +296,11 @@ export const transactionalWrite = async (
 export const sortBy = (items, key, keyType, asc = true) => {
   items.sort( (a,b) => {
     if (asc) {
-    	return (a[key][keyType] > b[key][keyType]) ? 1 : ((a[key][keyType] < b[key][keyType]) ? -1 : 0);
+    	return (a[key][keyType] > b[key][keyType]) ? 1 :
+        ((a[key][keyType] < b[key][keyType]) ? -1 : 0);
     } else {
-    	return (b[key][keyType] > a[key][keyType]) ? 1 : ((b[key][keyType] < a[key][keyType]) ? -1 : 0);
+    	return (b[key][keyType] > a[key][keyType]) ? 1 :
+        ((b[key][keyType] < a[key][keyType]) ? -1 : 0);
     }
   });
   return items;
