@@ -29,14 +29,54 @@ export const handler = async (event, context) => {
 
   try {
     const js = await retrieveAndParseJSON(getJSONFromS3, bucket, key, s3);
+    console.log(`js.entry ${js.entry}`);
+    for (let objs in js.entry) {
+      //Grail_Id
+      if (get(js.entry[objs].resource, `resourceType`) === "Specimen") {
+        fhirPayload.Grail_Id = get(
+          js.entry[objs].resource.identifier[0],
+          `value`
+        );
+      }
+
+      console.log(`fhirPayload.Grail_Id ${fhirPayload.Grail_Id}`);
+      //Blood Collection Date
+      //Participant_Id
+      if (get(js.entry[objs].resource, `resourceType`) === "Patient") {
+        fhirPayload.Participant_Id = get(
+          js.entry[objs],
+          `resource.identifier[0].value`
+        );
+      }
+      console.log(`Participant_Id ${fhirPayload.Participant_Id}`);
+
+      if (get(js.entry[objs].resource, `resourceType`) === "Specimen") {
+        fhirPayload.Blood_Collection_Date = get(
+          js.entry[objs].resource,
+          `collection.collectedDateTime`
+        );
+      }
+      console.log(
+        `fhirPayload.Blood_Collection_Date ${fhirPayload.Blood_Collection_Date}`
+      );
+    }
+
     //bring back most recent appointment, with timestamp
     const sortedApptParticipants = await getLastAppointment();
     const isValidTRR = false;
+    console.log(
+      `sortedApptParticipants 0 ? ${JSON.stringif(sortedApptParticipants)}`
+    );
     if (sortedApptParticipants !== null) {
+      console.log(
+        `sortedApptParticipants 1 ? ${JSON.stringif(sortedApptParticipants)}`
+      );
       const appointmentParticipantItems = sortedApptParticipants[0];
-      isValidTRR = await validateTRR(js, appointmentParticipantItems);
+      isValidTRR = await validateTRR(appointmentParticipantItems);
+      console.log(`isValidTRR 0 ? ${isValidTRR}`);
     }
 
+    console.log(`isValidTRR ? ${isValidTRR}`);
     await processTRR(js, key, bucket, s3, isValidTRR);
   } catch (error) {
     console.error("Error: Issue occurred whilst processing JSON file from S3");
@@ -72,44 +112,24 @@ export async function processTRR(
   isValidTRR
 ) {
   if (isValidTRR) {
+    console.log(`isValidTRR true ${isValidTRR}`);
     await putTRRInS3Bucket(js, reportName, CR_TRR_SUCCESSFUL_BUCKET, s3);
   } else {
+    console.log(`putTRRInS3Bucket`);
+    console.log(`isValidTRR false ${isValidTRR}`);
     await putTRRInS3Bucket(js, reportName, CR_TRR_UNSUCCESSFUL_BUCKET, s3);
   }
+  console.log(`deleteTRRinS3Bucket`);
   await deleteTRRinS3Bucket(reportName, originalBucket, s3);
 }
 
 // Validate TRR
-export async function validateTRR(js, appointmentParticipantItems) {
-  for (let objs in js.entry) {
-    //Participant_Id
-    if (get(js.entry[objs].resource, `resourceType`) === "Patient") {
-      fhirPayload.Participant_Id = get(
-        js.entry[objs],
-        `resource.identifier[0].value`
-      );
-    }
-    //Grail_Id
-    if (get(js.entry[objs].resource, `resourceType`) === "Specimen") {
-      fhirPayload.Grail_Id = get(
-        js.entry[objs].resource.identifier[0],
-        `value`
-      );
-    }
-    //Blood Collection Date
-    if (get(js.entry[objs].resource, `resourceType`) === "Specimen") {
-      fhirPayload.Blood_Collection_Date = get(
-        js.entry[objs].resource,
-        `collection.collectedDateTime`
-      );
-    }
-  }
-  console.log(`Participant_Id ${fhirPayload.Participant_Id}`);
-  console.log(`fhirPayload.Grail_Id ${fhirPayload.Grail_Id}`);
+export async function validateTRR(appointmentParticipantItems) {
   console.log(
-    `fhirPayload.Blood_Collection_Date ${fhirPayload.Blood_Collection_Date}`
+    `appointmentParticipantItems 0 ? ${JSON.stringif(
+      appointmentParticipantItems
+    )}`
   );
-
   if (
     appointmentParticipantItems?.Participant_Id.S ===
       fhirPayload.Participant_Id &&
@@ -120,13 +140,14 @@ export async function validateTRR(js, appointmentParticipantItems) {
     console.log(`Move TRR to the 'Step 3 validated successfully bucket`);
     return true;
   } else {
-    console.log(`Move TRR to the 'Step 3 validated unsuccessful bucket`);
+    console.log(`Move TRR to the 'Step 3 validated unsuccessful bucket1`);
     return false;
   }
 }
 
 // Move TRR to S3 bucket
 export async function putTRRInS3Bucket(js, reportName, bucketName, client) {
+  onsole.log(`Move TRR to S3 bucket ${bucketName}/${reportName}`);
   try {
     const response = await client.send(
       new PutObjectCommand({
