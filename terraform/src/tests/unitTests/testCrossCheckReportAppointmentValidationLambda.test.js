@@ -12,59 +12,10 @@ import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 jest.mock("axios");
 import axios from "axios";
-const testCrossCheckResultReport = {
-  resourceType: "Bundle",
-  id: "MCED-CancerMarkersDetected-Example",
-  identifier: {
-    system: "https://tools.ietf.org/html/rfc4122",
-    value: "f36927ef-7703-45ed-b0e5-6ec6723cf0f6",
-  },
-  type: "message",
-  entry: [
-    {
-      fullUrl: "urn:uuid:8d6c2cd5-0eec-496a-88d0-3785a135df09",
-      resource: {
-        resourceType: "Patient",
-        id: "8d6c2cd5-0eec-496a-88d0-3785a135df09",
-        identifier: [
-          {
-            system: "https://ScreeningOrg/patient-id",
-            value: "NHS-AB12-CD34",
-          },
-        ],
-      },
-    },
-    {
-      fullUrl: "urn:uuid:756a8361-79ce-4561-afcb-a91fe19df123",
-      resource: {
-        resourceType: "Specimen",
-        id: "756a8361-79ce-4561-afcb-a91fe19df123",
-        identifier: [
-          {
-            system: "http://ScreeningOrg/request-id",
-            value: "NHS9123123",
-          },
-        ],
-        status: "available",
-        type: {
-          coding: [
-            {
-              system: "http://snomed.info/sct",
-              code: "119297000",
-              display: "Blood specimen",
-            },
-          ],
-        },
-        subject: {
-          reference: "urn:uuid:8d6c2cd5-0eec-496a-88d0-3785a135df09",
-          display: "NHS-AB12-CD34",
-        },
-        collection: {
-          collectedDateTime: "2020-09-23T11:00:00+00:00",
-        },
-      },
-    },
-  ],
+const fhirPayload = {
+  Grail_Id: "E01023942",
+  Participant_Id: "NHS-AM78-RX14",
+  Blood_Collection_Date: "22024-05-23T19:19:12.939Z",
 };
 
 const errorIssues = {
@@ -169,23 +120,20 @@ describe("validateTRR", () => {
 
     const appointmentParticipantItems = {
       blood_collection_date: {
-        S: "2020-09-23T11:00:00+00:00",
+        S: "22024-05-23T19:19:12.939Z",
       },
       grail_id: {
-        S: "NHS9123123",
+        S: "E01023942",
       },
       Participant_Id: {
-        S: "NHS-AB12-CD34",
+        S: "NHS-AM78-RX14",
       },
     };
 
-    const result = await validateTRR(
-      testCrossCheckResultReport,
-      appointmentParticipantItems
-    );
+    const result = await validateTRR(fhirPayload, appointmentParticipantItems);
 
     expect(result).toBeTruthy();
-    expect(logSpy).toHaveBeenCalledTimes(4);
+    expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith(
       "Move TRR to the 'Step 3 validated successfully bucket"
     );
@@ -210,10 +158,7 @@ describe("validateTRR", () => {
       },
     };
 
-    const result = await validateTRR(
-      testCrossCheckResultReport,
-      appointmentParticipantItems
-    );
+    const result = await validateTRR(fhirPayload, appointmentParticipantItems);
 
     expect(result).toBe(false);
     expect(logSpy).toHaveBeenCalledWith(

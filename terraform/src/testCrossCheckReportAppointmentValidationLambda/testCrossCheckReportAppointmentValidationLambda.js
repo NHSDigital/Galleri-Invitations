@@ -38,9 +38,6 @@ export const handler = async (event, context) => {
           `value`
         );
       }
-
-      console.log(`fhirPayload.Grail_Id ${fhirPayload.Grail_Id}`);
-      //Blood Collection Date
       //Participant_Id
       if (get(js.entry[objs].resource, `resourceType`) === "Patient") {
         fhirPayload.Participant_Id = get(
@@ -48,35 +45,23 @@ export const handler = async (event, context) => {
           `resource.identifier[0].value`
         );
       }
-      console.log(`Participant_Id ${fhirPayload.Participant_Id}`);
-
+      //Blood Collection Date
       if (get(js.entry[objs].resource, `resourceType`) === "Specimen") {
         fhirPayload.Blood_Collection_Date = get(
           js.entry[objs].resource,
           `collection.collectedDateTime`
         );
       }
-      console.log(
-        `fhirPayload.Blood_Collection_Date ${fhirPayload.Blood_Collection_Date}`
-      );
     }
 
     //bring back most recent appointment, with timestamp
     const sortedApptParticipants = await getLastAppointment();
-    const isValidTRR = false;
-    console.log(
-      `sortedApptParticipants 0 ? ${JSON.stringif(sortedApptParticipants)}`
-    );
+    let isValidTRR = false;
     if (sortedApptParticipants !== null) {
-      console.log(
-        `sortedApptParticipants 1 ? ${JSON.stringif(sortedApptParticipants)}`
-      );
       const appointmentParticipantItems = sortedApptParticipants[0];
-      isValidTRR = await validateTRR(appointmentParticipantItems);
-      console.log(`isValidTRR 0 ? ${isValidTRR}`);
+      isValidTRR = await validateTRR(fhirPayload, appointmentParticipantItems);
     }
 
-    console.log(`isValidTRR ? ${isValidTRR}`);
     await processTRR(js, key, bucket, s3, isValidTRR);
   } catch (error) {
     console.error("Error: Issue occurred whilst processing JSON file from S3");
@@ -94,12 +79,16 @@ export async function getLastAppointment() {
     "S",
     false
   ); //Check participant has any appointments
-  const apptArr = appointmentParticipant?.Items;
-  const sortedApptParticipants = apptArr?.sort(function (x, y) {
-    return new Date(x?.["Timestamp"]?.["S"]) < new Date(y?.["Timestamp"]?.["S"])
-      ? 1
-      : -1;
-  });
+  let sortedApptParticipants = [];
+  if (appointmentParticipant != null) {
+    const apptArr = appointmentParticipant?.Items;
+    sortedApptParticipants = apptArr?.sort(function (x, y) {
+      return new Date(x?.["Timestamp"]?.["S"]) <
+        new Date(y?.["Timestamp"]?.["S"])
+        ? 1
+        : -1;
+    });
+  }
   return sortedApptParticipants;
 }
 
@@ -112,24 +101,15 @@ export async function processTRR(
   isValidTRR
 ) {
   if (isValidTRR) {
-    console.log(`isValidTRR true ${isValidTRR}`);
     await putTRRInS3Bucket(js, reportName, CR_TRR_SUCCESSFUL_BUCKET, s3);
   } else {
-    console.log(`putTRRInS3Bucket`);
-    console.log(`isValidTRR false ${isValidTRR}`);
     await putTRRInS3Bucket(js, reportName, CR_TRR_UNSUCCESSFUL_BUCKET, s3);
   }
-  console.log(`deleteTRRinS3Bucket`);
   await deleteTRRinS3Bucket(reportName, originalBucket, s3);
 }
 
 // Validate TRR
-export async function validateTRR(appointmentParticipantItems) {
-  console.log(
-    `appointmentParticipantItems 0 ? ${JSON.stringif(
-      appointmentParticipantItems
-    )}`
-  );
+export async function validateTRR(fhirPayload, appointmentParticipantItems) {
   if (
     appointmentParticipantItems?.Participant_Id.S ===
       fhirPayload.Participant_Id &&
@@ -140,14 +120,13 @@ export async function validateTRR(appointmentParticipantItems) {
     console.log(`Move TRR to the 'Step 3 validated successfully bucket`);
     return true;
   } else {
-    console.log(`Move TRR to the 'Step 3 validated unsuccessful bucket1`);
+    console.log(`Move TRR to the 'Step 3 validated unsuccessful bucket`);
     return false;
   }
 }
 
 // Move TRR to S3 bucket
 export async function putTRRInS3Bucket(js, reportName, bucketName, client) {
-  onsole.log(`Move TRR to S3 bucket ${bucketName}/${reportName}`);
   try {
     const response = await client.send(
       new PutObjectCommand({
