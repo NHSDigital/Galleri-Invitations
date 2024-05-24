@@ -2157,6 +2157,24 @@ module "user_accounts_table" {
   }
 }
 
+module "api_gateway_lockdown_session_table" {
+  source             = "./modules/dynamodb"
+  table_name         = "APIGatewayLockdownSession"
+  hash_key           = "API_Session_Id"
+  environment        = var.environment
+  ttl_enabled        = true
+  ttl_attribute_name = "Expires_At"
+  attributes = [
+    {
+      name = "API_Session_Id"
+      type = "S"
+    }
+  ]
+  tags = {
+    Name = "Dynamodb Table API Gateway Lockdown Session"
+  }
+}
+
 # To be replaced with a script
 resource "aws_dynamodb_table_item" "quintileTargets" {
   table_name = module.invitation_parameters_table.dynamodb_table_name
