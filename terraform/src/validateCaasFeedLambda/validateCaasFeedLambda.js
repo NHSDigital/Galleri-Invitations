@@ -387,12 +387,6 @@ export function validateRecord(record) {
   }
 
   //GAL-1366
-  console.log("record.is_interpreter_required", record.is_interpreter_required);
-  console.log(
-    "record.is_interpreter_required",
-    record.is_interpreter_required.toLowerCase()
-  );
-
   if (
     record.action != "DEL" &&
     (record.is_interpreter_required === null ||
