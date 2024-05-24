@@ -29,10 +29,9 @@ export const handler = async (event, context) => {
 
   try {
     const js = await retrieveAndParseJSON(getJSONFromS3, bucket, key, s3);
-    console.log(`js.entry ${js.entry}`);
     for (let objs in js.entry) {
       //Grail_Id
-      if (get(js.entry[objs].resource, `resourceType`) === "Specimen") {
+      if (get(js.entry[objs].resource, `resourceType`) === "ServiceRequest") {
         fhirPayload.Grail_Id = get(
           js.entry[objs].resource.identifier[0],
           `value`
@@ -79,6 +78,7 @@ export async function getLastAppointment() {
     "S",
     false
   ); //Check participant has any appointments
+
   let sortedApptParticipants = [];
   if (appointmentParticipant != null) {
     const apptArr = appointmentParticipant?.Items;
