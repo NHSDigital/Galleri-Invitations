@@ -86,8 +86,10 @@ export const handler = async (event) => {
 
   if (episodeItems && appointmentItems && EventType === "CANCELLED") {
     //if both queries are not undefined
-    if (appointmentItems.Appointment_Id.S !== AppointmentID) {
-      console.error("Error: Cancelled appointment does not match latest participant appointment");
+    if (appointmentItems.Appointment_Id.S !== AppointmentID ||
+      appointmentItems.Timestamp.S > Timestamp) {
+      console.error("Error: Cancelled appointment does not match or the timestamp is earlier",
+      " than latest participant appointment");
         const confirmation = await pushCsvToS3(
           `${bucket}`,
           `not_latest_participant_appointment/invalidRecord_${dateTime}.json`,
