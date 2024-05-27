@@ -2598,14 +2598,14 @@ resource "aws_ssm_parameter" "result-cancelled-test-notify" {
 resource "aws_ssm_parameter" "result-cancelled-test-routing-id" {
   name      = "result-cancelled-test-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "f8bd0e2c-f10a-4134-8d07-09b8cef6d290"
   overwrite = true
 }
 
 resource "aws_ssm_parameter" "result-cancelled-test-tables" {
   name      = "result-cancelled-test-tables"
   type      = "StringList"
-  value     = "appointment, phlebotomy"
+  value     = "appointment"
   overwrite = true
 }
 
