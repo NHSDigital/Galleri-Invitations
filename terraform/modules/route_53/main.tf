@@ -1,3 +1,7 @@
+locals {
+  alias_name_valid = var.alias_name != null
+}
+
 data "aws_route53_zone" "example" {
   name         = var.hostname
   private_zone = false
@@ -40,6 +44,7 @@ resource "aws_acm_certificate_validation" "example" {
 }
 
 resource "aws_route53_record" "actual_record" {
+  count   = local.alias_name_valid == null ? 1 : 0
   zone_id = data.aws_route53_zone.example.id
   name    = aws_acm_certificate.certificate.domain_name
   type    = "A"

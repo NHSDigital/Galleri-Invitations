@@ -48,6 +48,7 @@ export const handler = async (event) => {
   const AppointmentID = js?.["Appointment"]?.["AppointmentID"];
   const CancellationReason = js?.["Appointment"]?.["CancellationReason"];
   const EventType = js?.["Appointment"]?.["EventType"]; //CANCELLED
+  const Timestamp = js?.["Appointment"]?.["Timestamp"];
 
   const episodeResponse = await lookUp(
     dbClient,
@@ -58,32 +59,46 @@ export const handler = async (event) => {
     true
   );
 
-  const episodeItems = episodeResponse.Items[0];
+  const episodeItems = episodeResponse.Items?.[0];
   console.log(
-    `episodeItems for participant: ${JSON.stringify(
-      episodeItems.Participant_Id
-    )} loaded.`
+    `episodeItems for participant: ${JSON.stringify(episodeItems?.Participant_Id)} loaded.`
   );
 
   const appointmentResponse = await lookUp(
     dbClient,
-    AppointmentID,
+    ParticipantID,
     "Appointments",
-    "Appointment_Id",
+    "Participant_Id",
     "S",
-    true
+    false
   );
-  const appointmentItems = appointmentResponse.Items[0];
+  // Get latest appointment for participant
+  let appointmentItems;
+  if (appointmentResponse.Items?.length) {
+    const sortedAppointments = sortBy(appointmentResponse.Items, "Time_stamp", "S", false);
+    appointmentItems = sortedAppointments[0];
+  }
   console.log(
-    `appointmentItems for appointment: ${JSON.stringify(
-      appointmentItems.Appointment_Id
-    )} loaded.`
+    `appointmentItems for appointment: ${JSON.stringify(appointmentItems?.Appointment_Id)} loaded.`
   );
 
   const dateTime = new Date(Date.now()).toISOString();
 
   if (episodeItems && appointmentItems && EventType === "CANCELLED") {
     //if both queries are not undefined
+    if (appointmentItems.Appointment_Id.S !== AppointmentID ||
+      appointmentItems.Time_stamp.S > Timestamp) {
+      console.error("Error: Cancelled appointment does not match or the timestamp is earlier",
+      " than latest participant appointment");
+        const confirmation = await pushCsvToS3(
+          `${bucket}`,
+          `not_latest_participant_appointment/invalidRecord_${dateTime}.json`,
+          csvString,
+          s3
+        );
+        return confirmation;
+    }
+
     if (CancellationReason) {
       //cancellation reason is supplied
       console.log("The Supplied Reason Is: ");
@@ -96,6 +111,7 @@ export const handler = async (event) => {
           episodeItems["Batch_Id"]["S"], //required PK for Episode update
           AppointmentID,
           EventType,
+          Timestamp,
           episodeEvent, //Appointment Cancelled by NHS
           CancellationReason //reason its cancelled coming from payload
         );
@@ -109,6 +125,7 @@ export const handler = async (event) => {
           episodeItems["Batch_Id"]["S"],
           AppointmentID,
           EventType,
+          Timestamp,
           episodeEvent,
           CancellationReason
         );
@@ -123,6 +140,7 @@ export const handler = async (event) => {
           episodeItems["Batch_Id"]["S"],
           AppointmentID,
           EventType,
+          Timestamp,
           episodeEvent,
           CancellationReason,
           "Closed"
@@ -134,6 +152,7 @@ export const handler = async (event) => {
         !Object.values(participantWithdrawn).includes(CancellationReason)
       ) {
         //edge case, reason is populated but incorrect
+        console.error("Error: Invalid cancellation reason for CANCELLED appointment");
         const confirmation = await pushCsvToS3(
           `${bucket}`,
           `invalid_cancellation_reason/invalidRecord_${dateTime}.json`,
@@ -144,6 +163,7 @@ export const handler = async (event) => {
       }
     } else {
       //Cancellation Reason not supplied
+      console.error("Error: Cancellation reason not supplied for CANCELLED appointment");
       const confirmation = await pushCsvToS3(
         `${bucket}`,
         `cancellation_reason_not_provided/invalidRecord_${dateTime}.json`,
@@ -165,6 +185,19 @@ export const handler = async (event) => {
 };
 
 //FUNCTIONS
+export const sortBy = (items, key, keyType, asc = true) => {
+  items.sort( (a,b) => {
+    if (asc) {
+      return (a[key][keyType] > b[key][keyType]) ? 1 :
+        ((a[key][keyType] < b[key][keyType]) ? -1 : 0);
+    } else {
+      return (b[key][keyType] > a[key][keyType]) ? 1 :
+        ((b[key][keyType] < a[key][keyType]) ? -1 : 0);
+    }
+  });
+  return items;
+};
+
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -237,6 +270,7 @@ export const transactionalWrite = async (
   batchId,
   appointmentId,
   eventType,
+  appointmentTimestamp,
   episodeEvent,
   cancellationReason,
   status = "Open"
@@ -268,10 +302,12 @@ export const transactionalWrite = async (
             Participant_Id: { S: participantId },
             Appointment_Id: { S: appointmentId },
           },
-          UpdateExpression: `SET event_type = :eventType`,
+          UpdateExpression: `SET event_type = :eventType, Time_stamp = :appointmentTimestamp, cancellation_reason = :cancellationReason`,
           TableName: `${ENVIRONMENT}-Appointments`,
           ExpressionAttributeValues: {
             ":eventType": { S: eventType },
+            ":appointmentTimestamp": { S: appointmentTimestamp },
+            ":cancellationReason": { S: cancellationReason },
           },
         },
       },

@@ -28,7 +28,19 @@ export const handler = async (event) => {
     GrailID,
     BloodNotCollectedReason,
     EventType,
+    Timestamp,
   } = Appointment;
+
+  // Appointment must match latest participant appointment
+  const appointmentResponse = await lookUp(
+    dbClient,
+    ParticipantID,
+    "Appointments",
+    "Participant_Id",
+    "S",
+    false
+  );
+
   const episodeResponse = await lookUp(
     dbClient,
     ParticipantID,
@@ -44,6 +56,19 @@ export const handler = async (event) => {
     aborted: "Appointment Attended – No Sample Taken",
   };
   try {
+    const numAppointments = appointmentResponse.Items?.length;
+    if (!numAppointments) {
+      await rejectRecord(appointmentJson);
+      throw new Error("Invalid Appointment - no participant appointment found");
+    }
+    const sortedAppointments = sortBy(appointmentResponse.Items, "Time_stamp", "S", false);
+    if (sortedAppointments[0].Appointment_Id.S !== AppointmentID ||
+      sortedAppointments[0].Time_stamp.S > Timestamp) {
+      await rejectRecord(appointmentJson);
+      throw new Error("Invalid Appointment - does not match or timestamp is earlier" +
+      " than latest participant appointment");
+    }
+
     let response = false;
 
     switch (EventType) {
@@ -56,7 +81,11 @@ export const handler = async (event) => {
             episodeItems.Batch_Id.S,
             AppointmentID,
             EventType,
-            episodeEvent.complete
+            Timestamp,
+            episodeEvent.complete,
+            "null",
+            GrailID,
+            BloodCollectionDate
           );
         } else {
           await rejectRecord(appointmentJson);
@@ -74,6 +103,7 @@ export const handler = async (event) => {
           episodeItems.Batch_Id.S,
           AppointmentID,
           EventType,
+          Timestamp,
           episodeEvent.no_show
         );
         break;
@@ -87,6 +117,7 @@ export const handler = async (event) => {
             episodeItems.Batch_Id.S,
             AppointmentID,
             EventType,
+            Timestamp,
             episodeEvent.aborted,
             BloodNotCollectedReason
           );
@@ -110,7 +141,7 @@ export const handler = async (event) => {
       console.error("Error: Could not Update Episode and Appointment Table");
     }
   } catch (error) {
-    const message = `Error processing object ${key} in bucket ${bucket}: ${error}`;
+    const message = `Error: processing object ${key} in bucket ${bucket}: ${error}`;
     console.error(message);
     throw new Error(message);
   }
@@ -206,8 +237,11 @@ export const transactionalWrite = async (
   batchId,
   appointmentId,
   eventType,
+  appointmentTimestamp,
   episodeEvent,
-  eventDescription = "Null"
+  eventDescription = "null",
+  grailId = "null",
+  bloodCollectionDate = "null"
 ) => {
   const timeNow = new Date(Date.now()).toISOString();
   const params = {
@@ -236,10 +270,14 @@ export const transactionalWrite = async (
             Participant_Id: { S: participantId },
             Appointment_Id: { S: appointmentId },
           },
-          UpdateExpression: `SET event_type = :eventType`,
+          UpdateExpression: `SET event_type = :eventType, Time_stamp = :appointmentTimestamp, grail_id = :grailId, blood_collection_date = :bloodCollectionDate, blood_not_collected_reason = :bloodNotCollectedReason`,
           TableName: `${ENVIRONMENT}-Appointments`,
           ExpressionAttributeValues: {
             ":eventType": { S: eventType },
+            ":appointmentTimestamp": { S: appointmentTimestamp },
+            ":grailId": { S: grailId },
+            ":bloodCollectionDate": { S: bloodCollectionDate},
+            ":bloodNotCollectedReason": { S: eventDescription },
           },
         },
       },
@@ -251,6 +289,19 @@ export const transactionalWrite = async (
     const response = await client.send(command);
     return true;
   } catch (error) {
-    console.error("Transactional write failed:", error);
+    console.error("Error: Transactional write failed:", error);
   }
+};
+
+export const sortBy = (items, key, keyType, asc = true) => {
+  items.sort( (a,b) => {
+    if (asc) {
+      return (a[key][keyType] > b[key][keyType]) ? 1 :
+        ((a[key][keyType] < b[key][keyType]) ? -1 : 0);
+    } else {
+      return (b[key][keyType] > a[key][keyType]) ? 1 :
+        ((b[key][keyType] < a[key][keyType]) ? -1 : 0);
+    }
+  });
+  return items;
 };

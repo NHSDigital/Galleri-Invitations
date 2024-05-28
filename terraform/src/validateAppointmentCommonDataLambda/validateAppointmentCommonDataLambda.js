@@ -29,7 +29,7 @@ export const handler = async (event) => {
     const { Appointment } = appointmentJson;
     //Check if ParticipantID and Episode exist in respective Dynamo tables
     if (Appointment.ParticipantID && Appointment.ParticipantID?.trim() !== "") {
-      const validateParticipantIdResponse = await lookUp(
+      validateParticipantIdResponse = await lookUp(
         dbClient,
         Appointment.ParticipantID,
         "Population",
@@ -71,9 +71,9 @@ export const handler = async (event) => {
       if (
         validateParticipantIdResponse &&
         Appointment.InvitationNHSNumber !==
-          validateParticipantIdResponse.Items[0].nhs_number.S &&
+          validateParticipantIdResponse.Items[0].nhs_number.N &&
         Appointment.PDSNHSNumber !==
-          validateParticipantIdResponse.Items[0].nhs_number.S
+          validateParticipantIdResponse.Items[0].nhs_number.N
       ) {
         await rejectRecord(
           appointmentJson,
@@ -132,7 +132,7 @@ export const handler = async (event) => {
           return;
         }
         if (
-          Appointment.Replaces === "null" &&
+          Appointment.Replaces === null &&
           validateAppointmentIdResponse.Items[0].event_type.S ===
             Appointment.EventType
         ) {
@@ -140,7 +140,7 @@ export const handler = async (event) => {
             validateAppointmentIdResponse.Items[0].Appointment_Id.S ==
             Appointment.AppointmentID
           ) {
-            updateAppointmentTable(dbClient, Appointment);
+            await updateAppointmentTable(dbClient, Appointment);
           } else {
             await rejectRecord(
               appointmentJson,
@@ -270,24 +270,69 @@ export async function updateAppointmentTable(
   table = `${ENVIRONMENT}-Appointments`
 ) {
   const partitionKeyName = "Participant_Id";
-  const partitionKeyValue = appointment.participantID;
-
+  const partitionKeyValue = appointment.ParticipantID;
+  const sortKeyName = "Appointment_Id";
+  const sortKeyValue = appointment.AppointmentID;
   const params = {
     TableName: table,
     Key: {
-      [partitionKeyName]: partitionKeyValue,
+      [partitionKeyName]: { S: partitionKeyValue },
+      [sortKeyName]: { S: sortKeyValue },
     },
     UpdateExpression:
-      "SET primary_phone_number = :primaryNumber, secondary_phone_number = :secondaryNumber, email_address = :email_address, appointment_accessibility = :appointmentAccessibility, communications_accessibility = :communicationsAccessibility, notification_preferences= :notificationPreferences, Time_stamp = :time_stamp ",
+      "SET primary_phone_number = :primaryNumber, secondary_phone_number = :secondaryNumber, email_address = :email_address, appointment_accessibility = :appointmentAccessibility, communications_accessibility = :communicationsAccessibility, notification_preferences= :notificationPreferences, Time_stamp = :time_stamp",
     ExpressionAttributeValues: {
       ":primaryNumber": { S: appointment.PrimaryPhoneNumber },
       ":secondaryNumber": { S: appointment.SecondaryPhoneNumber },
       ":email_address": { S: appointment.Email },
-      ":appointmentAccessibility": { M: appointment.AppointmentAccessibility },
-      ":communicationsAccessibility": {
-        M: appointment.CommunicationsAccessibility,
+      ":appointmentAccessibility": {
+        M: {
+          accessibleToilet: {
+            BOOL: appointment.AppointmentAccessibility.accessibleToilet,
+          },
+          disabledParking: {
+            BOOL: appointment.AppointmentAccessibility.disabledParking,
+          },
+          inductionLoop: {
+            BOOL: appointment.AppointmentAccessibility.inductionLoop,
+          },
+          signLanguage: {
+            BOOL: appointment.AppointmentAccessibility.signLanguage,
+          },
+          stepFreeAccess: {
+            BOOL: appointment.AppointmentAccessibility.stepFreeAccess,
+          },
+          wheelchairAccess: {
+            BOOL: appointment.AppointmentAccessibility.wheelchairAccess,
+          },
+        },
       },
-      ":notificationPreferences": { M: appointment.NotificationPreferences },
+      ":communicationsAccessibility": {
+        M: {
+          signLanguage: {
+            BOOL: appointment.CommunicationsAccessibility.signLanguage,
+          },
+          braille: {
+            BOOL: appointment.CommunicationsAccessibility.braille,
+          },
+          interpreter: {
+            BOOL: appointment.CommunicationsAccessibility.interpreter,
+          },
+          language: {
+            S: appointment.CommunicationsAccessibility.language,
+          },
+        },
+      },
+      ":notificationPreferences": {
+        M: {
+          canEmail: {
+            BOOL: appointment.NotificationPreferences.canEmail,
+          },
+          canSMS: {
+            BOOL: appointment.NotificationPreferences.canSMS,
+          },
+        },
+      },
       ":time_stamp": { S: appointment.Timestamp },
     },
   };
@@ -295,6 +340,8 @@ export async function updateAppointmentTable(
   const response = await client.send(command);
   if (response.$metadata.httpStatusCode != 200) {
     console.log(`record update failed for person ${partitionKeyValue}`);
+  } else {
+    console.log(`Updated Appointment successfully`);
   }
   return response.$metadata.httpStatusCode;
 }

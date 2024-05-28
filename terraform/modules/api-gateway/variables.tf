@@ -57,3 +57,9 @@ variable "application_role" {
   description = "Used for tagging resource according to Cloud guidelines"
   default     = "API Management"
 }
+
+variable "hostname" {
+}
+
+variable "dns_zone" {
+}

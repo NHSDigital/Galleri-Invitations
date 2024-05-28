@@ -22,22 +22,24 @@ export const handler = async (event) => {
 
   try {
     const jsonString = await readFromS3(bucket, key, s3);
+    let validationResult = {};
 
-    const validationResult = await validateRecord(
-      JSON.parse(jsonString),
-      client
-    );
-    console.log(`Finished validating object ${key} in bucket ${bucket}`);
-    console.log(
-      "----------------------------------------------------------------"
-    );
+    try {
+        validationResult = await validateRecord(
+        JSON.parse(jsonString),
+        client
+        );
+      } catch (error) {
+        console.error(`Error: Failed to validate record with error: ${error.message}`);
+        validationResult.success = false;
+      }
+      console.log(`Finished validating object ${key} in bucket ${bucket}`);
 
-    console.log(
-      `Pushing filtered valid records and invalid records to their respective sub-folder in bucket ${bucket}`
-    );
-
-    // Valid Records Arrangement
-    if (validationResult.success) {
+      // Valid Records Arrangement
+      if (validationResult.success) {
+      console.log(
+        `Pushing valid record to ${bucket}/validRecords/${key}`
+      );
       // Deposit to S3 bucket
       await pushToS3(
         `${ENVIRONMENT}-processed-inbound-gtms-clinic-schedule-summary`,
@@ -46,18 +48,25 @@ export const handler = async (event) => {
         s3
       );
     } else {
+      if(validationResult.message) {
+        console.warn(
+          "PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Capacity BELOW:\n" +
+            validationResult.message
+        );
+      }
+      if(validationResult.message) {
+        console.error(`Error: ${validationResult.message}`);
+      }
+      console.log(
+        `Pushing invalid record to ${ENVIRONMENT}-processed-inbound-gtms-clinic-schedule-summary/invalidRecords/${key}`
+      );
       await pushToS3(
         `${ENVIRONMENT}-processed-inbound-gtms-clinic-schedule-summary`,
         `invalidRecords/${key}`,
         jsonString,
         s3
       );
-      console.error(
-        "Error: PLEASE FIND THE INVALID Clinic RECORDS FROM THE PROCESSED Clinic Capacity BELOW:\n" +
-          validationResult.errors
-      );
     }
-    return `Finished validating object ${key} in bucket ${bucket}`;
   } catch (err) {
     const message = `Error: processing object ${key} in bucket ${bucket}: ${err}`;
     console.error(message);
@@ -108,16 +117,15 @@ export async function validateRecord(record, client) {
 
   const numberOfClinics =
     record.ClinicScheduleSummary.ClinicScheduleSummary.length;
-  console.log("length:", numberOfClinics);
   let count = 0;
 
   while (count < numberOfClinics) {
-    const clinicValidation = await isClinicIDvalid(
+    const validClinic = await isClinicIDvalid(
       record.ClinicScheduleSummary.ClinicScheduleSummary[count].ClinicID,
       client
     );
 
-    if (clinicValidation.Count === 1) {
+    if (validClinic) {
       const validation = validate(record, ClinicSchemaGTMS);
       if (!validation.valid) {
         // validate the JSON Schema
@@ -155,19 +163,29 @@ export async function validateRecord(record, client) {
 }
 
 export async function isClinicIDvalid(record, client) {
-  const input = {
-    ExpressionAttributeValues: {
-      ":ClinicId": {
-        S: `${record}`,
+
+  if (record === undefined || record === "") {
+    console.error('Error: ClinicID value is undefined');
+    return false;
+  } else {
+    const input = {
+      ExpressionAttributeValues: {
+        ":ClinicId": {
+          S: `${record}`,
+        },
       },
-    },
-    KeyConditionExpression: "ClinicId = :ClinicId",
-    ProjectionExpression: "ClinicName",
-    TableName: `${ENVIRONMENT}-PhlebotomySite`,
-  };
+      KeyConditionExpression: "ClinicId = :ClinicId",
+      ProjectionExpression: "ClinicName",
+      TableName: `${ENVIRONMENT}-PhlebotomySite`,
+    };
 
-  const command = new QueryCommand(input);
-  const response = await client.send(command);
+    const command = new QueryCommand(input);
+    const response = await client.send(command);
 
-  return response;
+    if (response.Count === 1) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }

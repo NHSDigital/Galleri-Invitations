@@ -24,6 +24,18 @@ variable "range_key" {
   default     = ""
 }
 
+variable "ttl_enabled" {
+  description = "Indicates whether ttl is enabled"
+  type        = bool
+  default     = false
+}
+
+variable "ttl_attribute_name" {
+  description = "The name of the table attribute to store the TTL timestamp in"
+  type        = string
+  default     = ""
+}
+
 variable "attributes" {
   description = "A map of keys for the dynamodb table"
   type = list(object({
@@ -78,6 +90,12 @@ variable "tags" {
 }
 
 variable "environment" {}
+
+variable "envs_to_backup" {
+  description = "A list of environments to select for backing up dynamodb tables"
+  type        = list(string)
+  default     = ["prod"]
+}
 
 variable "stream_enabled" {
   default = false
