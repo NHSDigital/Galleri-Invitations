@@ -2017,7 +2017,6 @@ module "population_table" {
   stream_view_type         = "NEW_AND_OLD_IMAGES"
   table_name               = "Population"
   hash_key                 = "PersonId"
-  range_key                = "LsoaCode"
   read_capacity            = null
   write_capacity           = null
   secondary_write_capacity = null
@@ -2154,6 +2153,24 @@ module "user_accounts_table" {
   ]
   tags = {
     Name = "Dynamodb Table User Accounts"
+  }
+}
+
+module "api_gateway_lockdown_session_table" {
+  source             = "./modules/dynamodb"
+  table_name         = "APIGatewayLockdownSession"
+  hash_key           = "API_Session_Id"
+  environment        = var.environment
+  ttl_enabled        = true
+  ttl_attribute_name = "Expires_At"
+  attributes = [
+    {
+      name = "API_Session_Id"
+      type = "S"
+    }
+  ]
+  tags = {
+    Name = "Dynamodb Table API Gateway Lockdown Session"
   }
 }
 
@@ -2576,14 +2593,14 @@ resource "aws_ssm_parameter" "result-no-csd-notify" {
 resource "aws_ssm_parameter" "result-no-csd-routing-id" {
   name      = "result-no-csd-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "3f2a604a-b6ac-40bd-bc56-68f7d3618422"
   overwrite = true
 }
 
 resource "aws_ssm_parameter" "result-no-csd-tables" {
   name      = "result-no-csd-tables"
   type      = "StringList"
-  value     = "appointment, phlebotomy"
+  value     = "appointment"
   overwrite = true
 }
 
@@ -2597,14 +2614,14 @@ resource "aws_ssm_parameter" "result-cancelled-test-notify" {
 resource "aws_ssm_parameter" "result-cancelled-test-routing-id" {
   name      = "result-cancelled-test-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "f8bd0e2c-f10a-4134-8d07-09b8cef6d290"
   overwrite = true
 }
 
 resource "aws_ssm_parameter" "result-cancelled-test-tables" {
   name      = "result-cancelled-test-tables"
   type      = "StringList"
-  value     = "appointment, phlebotomy"
+  value     = "appointment"
   overwrite = true
 }
 

@@ -1,6 +1,10 @@
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
-import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBClient,
+  UpdateItemCommand,
+  GetItemCommand,
+} from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import axios from "axios";
 import jwksClient from "jwks-rsa";
@@ -22,6 +26,7 @@ const GALLERI_ACTIVITY_CODE = process.env.GALLERI_ACTIVITY_CODE;
 
 export const handler = async (event) => {
   try {
+    let apiSessionId;
     const cis2ClientID = await getSecret(CLIENT_ID, smClient);
     const code = event.queryStringParameters.code; // getting authorization code from Query parameter
     // getting signed private key JWT
@@ -53,28 +58,136 @@ export const handler = async (event) => {
       validateTokenExpirationWithAuthTime,
       validateTokenSignature
     );
-    const authResponse = {
-      id: userInfo.uid,
-      name: userRole.Name,
-      email: userRole.Email,
-      role: userRole.Role,
-      isAuthorized: checkAuthorizationResult,
-    };
     if (checkAuthorizationResult !== true) {
       const errorMessage = checkAuthorizationResult
         .split("error=")[1]
         .replace(/\+/g, " ");
       console.error("Error: ", errorMessage);
     } else {
+      apiSessionId = uuidv4();
+      await generateAPIGatewayLockdownSession(
+        environment,
+        dynamoDBClient,
+        apiSessionId,
+        userInfo.uid,
+        updateAPIGatewayLockdownSessionTable
+      );
       console.log(
-        `This User has been authenticated and is authorized to access the Galleri App with role - ${userRole.Role}`
+        `This User has been authenticated and is authorized to access the MCBT App with role - ${userRole.Role}`
       );
     }
+    const authResponse = {
+      id: userInfo.uid,
+      name: userRole.Name,
+      email: userRole.Email,
+      role: userRole.Role,
+      isAuthorized: checkAuthorizationResult,
+      apiSessionId: apiSessionId,
+    };
     return { statusCode: 200, body: JSON.stringify(authResponse) };
   } catch (error) {
     console.error("Error: ", error);
   }
 };
+
+//FUNCTIONS
+// Function to generate session for API Gateway Lock-down
+export async function generateAPIGatewayLockdownSession(
+  environment,
+  client,
+  apiSessionId,
+  userId,
+  updateAPISessionTable
+) {
+  try {
+    // Current DateTime
+    const dateTime = new Date(Date.now()).toISOString();
+
+    // TODO: After confirming the session duration update the timeToLive & expirationDateTime below
+    // Unix epoch timestamp that is 20 minutes (1200 seconds) in the future from the current time
+    const timeToLive = Math.floor(Date.now() / 1000) + 1200;
+
+    // ISO string format timestamp that is 20 minutes (1200 seconds) in the future from the current time
+    const expirationDateTime = new Date(Date.now() + 20 * 60000).toISOString();
+
+    const updateSessionTable = await updateAPISessionTable(
+      environment,
+      client,
+      apiSessionId,
+      userId,
+      timeToLive,
+      expirationDateTime,
+      dateTime,
+      dateTime
+    );
+    if (updateSessionTable !== 200) {
+      console.error(`Error: Failed to generate session for for User ${userId}`);
+      return;
+    }
+    console.log(
+      `API Gateway Lockdown session ${apiSessionId}, generated successfully for User ${userId}`
+    );
+  } catch (error) {
+    console.error(`Error: Failed to generate session for for User ${userId}`);
+    console.error(`Error:`, error);
+    throw error;
+  }
+}
+
+// Function to update the API Gateway Lock-down Session Table
+export async function updateAPIGatewayLockdownSessionTable(
+  environment,
+  client,
+  apiSessionId,
+  userId,
+  timeToLive,
+  expirationDateTime,
+  creationDateTime,
+  updatedDateTime
+) {
+  const params = {
+    TableName: `${environment}-APIGatewayLockdownSession`,
+    Key: {
+      API_Session_Id: {
+        S: apiSessionId,
+      },
+    },
+    ExpressionAttributeNames: {
+      "#USER": "User_UUID",
+      "#TTL": "Expires_At",
+      "#EXPIRES": "Expiration_DateTime",
+      "#CREATED": "Creation_DateTime",
+      "#UPDATED": "Last_Updated_DateTime",
+    },
+    ExpressionAttributeValues: {
+      ":user": {
+        S: userId,
+      },
+      ":ttl": {
+        N: timeToLive.toString(),
+      },
+      ":expires": {
+        S: expirationDateTime,
+      },
+      ":created": {
+        S: creationDateTime,
+      },
+      ":updated": {
+        S: updatedDateTime,
+      },
+    },
+    UpdateExpression:
+      "SET #USER = :user, #TTL = :ttl, #EXPIRES = :expires, #CREATED = :created, #UPDATED = :updated",
+  };
+  const command = new UpdateItemCommand(params);
+  const response = await client.send(command);
+  if (response.$metadata.httpStatusCode != 200) {
+    console.error(
+      `Error: Failed to update the API Gateway Lockdown Session for User ${userId}`
+    );
+  }
+  return response.$metadata.httpStatusCode;
+}
 
 // Function to return the generated JWT signed by a private Key
 export async function getCIS2SignedJWT(
@@ -217,7 +330,7 @@ export async function getUserRole(uuid) {
       User_UUID: { S: uuid },
     },
   };
-  console.log("UUID from query string parameters is: ", uuid);
+  console.log("User UUID from query string parameters is: ", uuid);
 
   try {
     const command = new GetItemCommand(params);
@@ -234,11 +347,11 @@ export async function getUserRole(uuid) {
       };
     }
     const item = unmarshall(data.Item);
-    console.log("UUID exists on Galleri User database");
+    console.log("User exists on Galleri User database");
 
     return item;
   } catch (error) {
-    console.error("Error getting item from DynamoDB");
+    console.error("Error getting User data from Galleri User database");
     console.error("Error: ", error);
     throw new Error(error);
   }
@@ -292,10 +405,7 @@ export async function checkAuthorization(
   }
 
   // not active or user account does not exist
-  if (
-    user.accountStatus === "Inactive" ||
-    user.accountStatus === "User Not Found"
-  ) {
+  if (user.accountStatus !== "Active") {
     return "/autherror/account_not_found?error=User+Account+does+not+exist+or+is+inactive";
     // Keeping this here in case we want to route different users to different pages for referrals repo
   } else if (
