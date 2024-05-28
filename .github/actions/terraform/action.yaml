@@ -150,6 +150,7 @@ runs:
         npm install --prefix src/sendTestResultErrorAckQueueLambda
         npm install --prefix src/sendTestResultOkAckQueueLambda
         npm install --prefix src/testResultReportFhirValidationLambda
+        npm install --prefix src/testCrossCheckReportAppointmentValidationLambda
         npm install --prefix src/nrdsUpdateBloodTestResultLambda
         npm install --prefix src/onwardReferralListLambda
 

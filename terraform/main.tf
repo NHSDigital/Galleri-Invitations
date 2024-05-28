@@ -1601,6 +1601,33 @@ module "test_result_report_fhir_validation_lambda_trigger" {
   filter_prefix = "record_"
 }
 
+# Validate Test Cross-check Report using appointment Validation Service
+module "test_cross_check_report_appointment_validation_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "testCrossCheckReportAppointmentValidationLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "test_cross_check_report_appointment_validation_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                = "${var.environment}"
+    CR_TRR_SUCCESSFUL_BUCKET   = "inbound-nrds-galleritestresult-step3-success"
+    CR_TRR_UNSUCCESSFUL_BUCKET = "inbound-nrds-galleritestresult-step3-error"
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+
+module "test_cross_check_report_appointment_validation_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_arn    = module.inbound_nrds_galleritestresult_step2_success.bucket_arn
+  bucket_id     = module.inbound_nrds_galleritestresult_step2_success.bucket_id
+  lambda_arn    = module.test_cross_check_report_appointment_validation_lambda.lambda_arn
+  filter_prefix = "record_"
+}
+
 # Onward Referral List Lambda
 module "onward_referral_list_lambda" {
   source               = "./modules/lambda"
@@ -2401,7 +2428,7 @@ resource "aws_ssm_parameter" "invited-notify" {
 resource "aws_ssm_parameter" "invited-routing-id" {
   name      = "invited-routing-id"
   type      = "String"
-  value     = "a91601f5-ed53-4472-bbaa-580f418c7091"
+  value     = "cf66590a-c6bd-4b29-b571-67a63e33ff0e"
   overwrite = true
 }
 
@@ -2422,7 +2449,7 @@ resource "aws_ssm_parameter" "withdrawn-notify" {
 resource "aws_ssm_parameter" "withdrawn-routing-id" {
   name      = "withdrawn-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "687f4bb8-7fb4-4814-96c1-1ee23299b6d1"
   overwrite = true
 }
 
@@ -2443,7 +2470,7 @@ resource "aws_ssm_parameter" "appointment-booked-letter-notify" {
 resource "aws_ssm_parameter" "appointment-booked-letter-routing-id" {
   name      = "appointment-booked-letter-routing-id"
   type      = "String"
-  value     = "4c4c4c06-0f6d-465a-ab6a-ca358c2721b0"
+  value     = "5a966acc-69c8-4596-8071-60ba3fa6696f"
   overwrite = true
 }
 
@@ -2464,7 +2491,7 @@ resource "aws_ssm_parameter" "appointment-booked-text-notify" {
 resource "aws_ssm_parameter" "appointment-booked-text-routing-id" {
   name      = "appointment-booked-text-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "37fb0375-5acc-454b-ac61-ad2d064a9c8a"
   overwrite = true
 }
 
@@ -2485,7 +2512,7 @@ resource "aws_ssm_parameter" "appointment-rebooked-letter-notify" {
 resource "aws_ssm_parameter" "appointment-rebooked-letter-routing-id" {
   name      = "appointment-rebooked-letter-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "5a966acc-69c8-4596-8071-60ba3fa6696f"
   overwrite = true
 }
 
@@ -2506,7 +2533,7 @@ resource "aws_ssm_parameter" "appointment-rebooked-text-notify" {
 resource "aws_ssm_parameter" "appointment-rebooked-text-routing-id" {
   name      = "appointment-rebooked-text-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "37fb0375-5acc-454b-ac61-ad2d064a9c8a"
   overwrite = true
 }
 
@@ -2527,7 +2554,7 @@ resource "aws_ssm_parameter" "appointment-cancelled-by-nhs-notify" {
 resource "aws_ssm_parameter" "appointment-cancelled-by-nhs-routing-id" {
   name      = "appointment-cancelled-by-nhs-routing-id"
   type      = "String"
-  value     = "841ebf60-4ffa-45d3-874b-b3e9db895c70"
+  value     = "14075266-e14a-4aec-8ddb-a8e9bab15963"
   overwrite = true
 }
 
@@ -2547,7 +2574,7 @@ resource "aws_ssm_parameter" "appointment-cancelled-by-participant-notify" {
 resource "aws_ssm_parameter" "appointment-cancelled-by-participant-routing-id" {
   name      = "appointment-cancelled-by-participant-routing-id"
   type      = "String"
-  value     = "841ebf60-4ffa-45d3-874b-b3e9db895c70"
+  value     = "d966ae5c-ff4b-4472-8270-ab8d2c88a245"
   overwrite = true
 }
 
@@ -2578,7 +2605,6 @@ resource "aws_ssm_parameter" "appointment-cancelled-by-participant-withdrawn-tab
   value     = "Null"
   overwrite = true
 }
-
 
 resource "aws_ssm_parameter" "appointment-attended-sample-taken-notify" {
   name      = "appointment-attended-sample-taken-notify"
@@ -2674,7 +2700,7 @@ resource "aws_ssm_parameter" "referred-notify" {
 resource "aws_ssm_parameter" "referred-routing-id" {
   name      = "referred-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "03ac0e78-be6b-4dd8-9339-56e6a6bbc793"
   overwrite = true
 }
 
@@ -2754,7 +2780,7 @@ resource "aws_ssm_parameter" "contact-escalation-notify" {
 resource "aws_ssm_parameter" "contact-escalation-routing-id" {
   name      = "contact-escalation-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "b99e52d3-2c20-4750-98ff-6b1c6c3bacb9"
   overwrite = true
 }
 
