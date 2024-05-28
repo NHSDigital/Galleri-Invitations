@@ -199,7 +199,7 @@ export async function sendSingleMessage(messageBody, token, messageReferenceId, 
           'nhsNumber': nhsNumber
         },
         'personalisation': {
-          'participant_id': participantId,
+          participantId,
           ...personalisation
         }
       }

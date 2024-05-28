@@ -2362,7 +2362,7 @@ resource "aws_ssm_parameter" "invited-notify" {
 resource "aws_ssm_parameter" "invited-routing-id" {
   name      = "invited-routing-id"
   type      = "String"
-  value     = "a91601f5-ed53-4472-bbaa-580f418c7091"
+  value     = "cf66590a-c6bd-4b29-b571-67a63e33ff0e"
   overwrite = true
 }
 
@@ -2404,7 +2404,7 @@ resource "aws_ssm_parameter" "appointment-booked-letter-notify" {
 resource "aws_ssm_parameter" "appointment-booked-letter-routing-id" {
   name      = "appointment-booked-letter-routing-id"
   type      = "String"
-  value     = "4c4c4c06-0f6d-465a-ab6a-ca358c2721b0"
+  value     = "5a966acc-69c8-4596-8071-60ba3fa6696f"
   overwrite = true
 }
 
@@ -2488,7 +2488,7 @@ resource "aws_ssm_parameter" "appointment-cancelled-by-nhs-notify" {
 resource "aws_ssm_parameter" "appointment-cancelled-by-nhs-routing-id" {
   name      = "appointment-cancelled-by-nhs-routing-id"
   type      = "String"
-  value     = "841ebf60-4ffa-45d3-874b-b3e9db895c70"
+  value     = "14075266-e14a-4aec-8ddb-a8e9bab15963"
   overwrite = true
 }
 
@@ -2508,7 +2508,7 @@ resource "aws_ssm_parameter" "appointment-cancelled-by-participant-notify" {
 resource "aws_ssm_parameter" "appointment-cancelled-by-participant-routing-id" {
   name      = "appointment-cancelled-by-participant-routing-id"
   type      = "String"
-  value     = "841ebf60-4ffa-45d3-874b-b3e9db895c70"
+  value     = "d966ae5c-ff4b-4472-8270-ab8d2c88a245"
   overwrite = true
 }
 
@@ -2539,7 +2539,6 @@ resource "aws_ssm_parameter" "appointment-cancelled-by-participant-withdrawn-tab
   value     = "Null"
   overwrite = true
 }
-
 
 resource "aws_ssm_parameter" "appointment-attended-sample-taken-notify" {
   name      = "appointment-attended-sample-taken-notify"
