@@ -12,8 +12,21 @@ import {
 import RandExp from "randexp";
 import { Readable } from "stream";
 import csv from "csv-parser";
+import { NodeHttpHandler } from "@smithy/node-http-handler";
+import { Agent as HttpsAgent } from "node:https";
 
-const s3 = new S3Client();
+const connectionTimeout = 5000;
+const requestTimeout = 120000;
+const maxSockets = 500;
+const keepAlive = true;
+
+const s3 = new S3Client({
+	requestHandler: new NodeHttpHandler({
+		connectionTimeout,
+		requestTimeout,
+		httpsAgent: new HttpsAgent({ maxSockets, keepAlive }),
+	}),
+});
 const client = new DynamoDBClient({
   region: "eu-west-2",
   convertEmptyValues: true,
