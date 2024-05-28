@@ -1,8 +1,7 @@
 import {
   processIncomingRecords,
   lookupParticipantId,
-  loopThroughRecords,
-  batchWriteToDynamo,
+  createEpisodeRecord,
 } from "../../createEpisodeRecords/createEpisodeRecords";
 import { mockClient } from "aws-sdk-client-mock";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
@@ -177,5 +176,43 @@ describe("lookupParticipantId", () => {
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledWith("Duplicate exists");
     expect(result).toEqual(false);
+  });
+});
+
+describe("createEpisodeRecord", () => {
+  test("return array", async () => {
+    const records = {
+      participantId: {
+        S: "Participant ID",
+      },
+      Batch_Id: {
+        S: "Batch ID",
+      },
+      created_by: {
+        S: "GPS",
+      },
+      Episode_Event_Updated: {
+        S: "2024-05-14T18:13:50.303Z",
+      },
+      Episode_Creation: {
+        S: "2024-05-14T18:13:50.303Z",
+      },
+      LsoaCode: {
+        S: "9000234487",
+      },
+      gp_connect: {
+        S: "SO14 0SL",
+      },
+      Episode_Status_Updated: {
+        S: "2024-05-14T18:13:50.303Z",
+      },
+    };
+
+    const ids = createEpisodeRecord(records);
+    expect(ids.length).toEqual(records.length);
+    expect(ids.Participant_Id).toEqual(records.participantId);
+    expect(ids.Batch_Id).toEqual(records.Batch_Id);
+    expect(ids.Episode_Event.S).toEqual("Invited");
+    expect(ids.Episode_Event_Updated_By.S).toEqual("GPS");
   });
 });
