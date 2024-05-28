@@ -1618,14 +1618,14 @@ module "onward_referral_list_lambda" {
 }
 
 module "onward_referral_list_api_gateway" {
-  source            = "./modules/api-gateway"
-  environment       = var.environment
-  lambda_invoke_arn = module.onward_referral_list_lambda.lambda_invoke_arn
-  path_part         = "onward-referral-list"
+  source                 = "./modules/api-gateway"
+  environment            = var.environment
+  lambda_invoke_arn      = module.onward_referral_list_lambda.lambda_invoke_arn
+  path_part              = "onward-referral-list"
   method_http_parameters = {}
-  lambda_function_name = module.onward_referral_list_lambda.lambda_function_name
-  hostname             = var.invitations_hostname
-  dns_zone             = var.dns_zone
+  lambda_function_name   = module.onward_referral_list_lambda.lambda_function_name
+  hostname               = var.invitations_hostname
+  dns_zone               = var.dns_zone
 }
 
 # Dynamodb tables
@@ -2256,9 +2256,9 @@ module "episode_table" {
       range_key = null
     },
     {
-      name      = "Episode_Event-index"
-      hash_key  = "Episode_Event"
-      range_key = null
+      name            = "Episode_Event-index"
+      hash_key        = "Episode_Event"
+      range_key       = null
       projection_type = "ALL"
     }
   ]
