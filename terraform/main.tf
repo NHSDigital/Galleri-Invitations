@@ -1607,7 +1607,7 @@ module "onward_referral_list_lambda" {
   environment          = var.environment
   bucket_id            = module.s3_bucket.bucket_id
   lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
-  lambda_function_name = "OnwardReferralListLambda"
+  lambda_function_name = "onwardReferralListLambda"
   lambda_timeout       = 100
   memory_size          = 1024
   lambda_s3_object_key = "onward_referral_list_lambda.zip"
