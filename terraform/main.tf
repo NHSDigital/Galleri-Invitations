@@ -2631,14 +2631,14 @@ resource "aws_ssm_parameter" "result-no-csd-notify" {
 resource "aws_ssm_parameter" "result-no-csd-routing-id" {
   name      = "result-no-csd-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "3f2a604a-b6ac-40bd-bc56-68f7d3618422"
   overwrite = true
 }
 
 resource "aws_ssm_parameter" "result-no-csd-tables" {
   name      = "result-no-csd-tables"
   type      = "StringList"
-  value     = "appointment, phlebotomy"
+  value     = "appointment"
   overwrite = true
 }
 
@@ -2652,14 +2652,14 @@ resource "aws_ssm_parameter" "result-cancelled-test-notify" {
 resource "aws_ssm_parameter" "result-cancelled-test-routing-id" {
   name      = "result-cancelled-test-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "f8bd0e2c-f10a-4134-8d07-09b8cef6d290"
   overwrite = true
 }
 
 resource "aws_ssm_parameter" "result-cancelled-test-tables" {
   name      = "result-cancelled-test-tables"
   type      = "StringList"
-  value     = "appointment, phlebotomy"
+  value     = "appointment"
   overwrite = true
 }
 
