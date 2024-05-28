@@ -1304,6 +1304,50 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
 #   })
 # }
 
+# Policy required by testCrossCheckReportAppointmentValidationLambda
+# resource "aws_iam_policy" "iam_policy_for_test_cross_check_report_appinmtment_validation_lambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_test_cross_check_report_appinmtment_validation_lambda"
+#   path        = "/"
+#   description = "AWS IAM Policy for managing aws lambda create episode record role"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+#           "Sid" : "AllowEpisodeDynamodbAccess",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "dynamodb:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Appointments",,
+#           ]
+#         },
+#         {
+#           "Sid" : "AllowS3Access",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "s3:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step3-success/*",
+#             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step3-error/*",
+#             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step2-error/*"
+#           ]
+#         },
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+# }
+
 resource "aws_iam_role_policy_attachment" "galleri_lambda_policy" {
   role       = aws_iam_role.galleri_lambda_role.name
   policy_arn = aws_iam_policy.iam_policy_for_lambda.arn

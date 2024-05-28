@@ -149,7 +149,7 @@ export async function putTRRInS3Bucket(js, reportName, bucketName, client) {
     throw err;
   }
 }
-
+//Delete TRR from Step 2 validated successfully bucket
 export async function deleteTRRinS3Bucket(reportName, bucketName, client) {
   try {
     const response = await client.send(

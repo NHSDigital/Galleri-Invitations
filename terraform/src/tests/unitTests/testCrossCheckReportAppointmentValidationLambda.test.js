@@ -81,7 +81,6 @@ describe("processTRR", () => {
   });
 
   test("should process invalid TRR", async () => {
-    const errorSpy = jest.spyOn(global.console, "error");
     const logSpy = jest.spyOn(global.console, "log");
     const mockS3Client = mockClient(new S3Client({}));
     mockS3Client.resolves({
@@ -320,7 +319,6 @@ describe("getJSONFromS3", () => {
     // Arrange
     const bucketName = "test-bucket";
     const key = "test-key";
-    const client = new S3Client({});
     const responseBody = '{"name": "John"}';
     const response = {
       $metadata: { httpStatusCode: 200 },
@@ -341,7 +339,6 @@ describe("getJSONFromS3", () => {
     // Arrange
     const bucketName = "test-bucket";
     const key = "test-key";
-    const client = new S3Client({});
     const error = new Error("Failed to retrieve object");
     const s3SendMock = jest.fn().mockRejectedValue(error);
     const s3Client = { send: s3SendMock };
