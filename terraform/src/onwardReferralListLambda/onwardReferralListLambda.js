@@ -1,4 +1,4 @@
-import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 
 const client = new DynamoDBClient({ region: "eu-west-2" });
 const ENVIRONMENT = process.env.ENVIRONMENT;
@@ -71,13 +71,12 @@ export const lookupParticipantsCsd = async (client) => {
         }
       },
       FilterExpression: "Episode_Event = :a",
-      KeyConditionExpression: "Participant_Id = :Participant_Id",
       ProjectionExpression: "Participant_Id",
       TableName: `${ENVIRONMENT}-Episode`,
       IndexName: "Episode_Event-index"
     };
 
-    const command = new QueryCommand(input);
+    const command = new ScanCommand(input);
     const response = await client.send(command);
 
     console.log("Exiting function lookupParticipantsCsd");
