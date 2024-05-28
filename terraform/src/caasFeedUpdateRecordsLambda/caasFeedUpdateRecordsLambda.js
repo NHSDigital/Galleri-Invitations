@@ -544,12 +544,11 @@ export async function deleteTableRecord(client, table, oldRecord) {
 
 function formatPopulationDeleteItem(table, record) {
   console.log("Entered function formatPopulationDeleteItem");
-  const { PersonId, LsoaCode } = record;
+  const { PersonId } = record;
 
   const input = {
     Key: {
       PersonId: { S: PersonId.S },
-      LsoaCode: { S: LsoaCode.S },
     },
     TableName: `${ENVIRONMENT}-${table}`,
   };

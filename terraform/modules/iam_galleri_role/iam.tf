@@ -605,6 +605,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added sendTestResultOkAckQueueLambda to this policy as lambda role exceeded policy limit
 # Added sendTestResultErrorAckQueueLambda to this policy as lambda role exceeded policy limit
 # Added testResultReportFhirValidationLambda to this policy as lambda role exceeded policy limit
+# Added authenticatorLambda to this policy as lambda role exceeded policy limit
 # Added nrdsUpdateBloodTestResultLambda to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
@@ -648,6 +649,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Episode",
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-EpisodeHistory/*/*",
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-NotifySendMessageStatus",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-APIGatewayLockdownSession",
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GalleriBloodTestResult",
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GalleriBloodTestResult/*/*"
           ]
@@ -883,6 +885,52 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
     Name            = "${var.environment} Create Episode Record Policy"
   }
 }
+
+# Policy required by authenticatorLambda
+# resource "aws_iam_policy" "iam_policy_for_authenticator_lambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_authenticator_lambda_role"
+#   path        = "/"
+#   description = "AWS IAM Policy for managing aws lambda send invitation batch to raw message queue role"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+#           "Sid" : "AllowAuthDynamodbAccess",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "dynamodb:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-UserAccounts",
+#             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-APIGatewayLockdownSession",
+#           ]
+#         },
+#         {
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "secretsmanager:GetResourcePolicy",
+#             "secretsmanager:GetSecretValue",
+#             "secretsmanager:DescribeSecret",
+#             "secretsmanager:ListSecretVersionIds"
+#           ],
+#           "Resource" : [
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_INT_1*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_CLIENT_ID*",
+#           ]
+#         },
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+# }
 
 # Policy required by publishTestResultsLambda
 # resource "aws_iam_policy" "iam_policy_for_publish_test_results_lambda" {
