@@ -109,6 +109,9 @@ export async function processTRR(
     await putTRRInS3Bucket(js, reportName, CR_TRR_SUCCESSFUL_BUCKET, s3);
   } else {
     await putTRRInS3Bucket(js, reportName, CR_TRR_UNSUCCESSFUL_BUCKET, s3);
+    console.error(
+      "Error: Re-identification Fails move TRR to the Step 3 validated unsuccessful bucket"
+    );
   }
   await deleteTRRinS3Bucket(reportName, originalBucket, s3);
 }
