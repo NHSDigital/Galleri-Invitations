@@ -2598,10 +2598,9 @@ resource "aws_ssm_parameter" "result-no-csd-routing-id" {
 }
 
 resource "aws_ssm_parameter" "result-no-csd-tables" {
-  name  = "result-no-csd-tables"
-  type  = "StringList"
-  value = "appointment"
-  # value     = "appointment, phlebotomy"
+  name      = "result-no-csd-tables"
+  type      = "StringList"
+  value     = "appointment"
   overwrite = true
 }
 

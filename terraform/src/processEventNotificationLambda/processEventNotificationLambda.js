@@ -78,22 +78,6 @@ export async function getParameterStore(episodeEvent) {
   }
 }
 
-// export async function getParameterStore(episodeEvent) {
-//   try {
-//     const parameterName = `${episodeEvent
-//       ?.replace(/\s+/g, "-")
-//       ?.toLowerCase()}-notify`;
-//     const { Parameter } = await ssmClient.send(
-//       new GetParameterCommand({ Name: parameterName })
-//     );
-//     console.log("Parameter value:", Parameter.Value);
-//     return Parameter.Value;
-//   } catch (error) {
-//     console.error("Error:", error);
-//     throw error;
-//   }
-// }
-
 export async function getParticipantFromDB(participantId) {
   try {
     const {
