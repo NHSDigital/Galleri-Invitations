@@ -59,32 +59,46 @@ export const handler = async (event) => {
     true
   );
 
-  const episodeItems = episodeResponse.Items[0];
+  const episodeItems = episodeResponse.Items?.[0];
   console.log(
-    `episodeItems for participant: ${JSON.stringify(
-      episodeItems.Participant_Id
-    )} loaded.`
+    `episodeItems for participant: ${JSON.stringify(episodeItems?.Participant_Id)} loaded.`
   );
 
   const appointmentResponse = await lookUp(
     dbClient,
-    AppointmentID,
+    ParticipantID,
     "Appointments",
-    "Appointment_Id",
+    "Participant_Id",
     "S",
-    true
+    false
   );
-  const appointmentItems = appointmentResponse.Items[0];
+  // Get latest appointment for participant
+  let appointmentItems;
+  if (appointmentResponse.Items?.length) {
+    const sortedAppointments = sortBy(appointmentResponse.Items, "Time_stamp", "S", false);
+    appointmentItems = sortedAppointments[0];
+  }
   console.log(
-    `appointmentItems for appointment: ${JSON.stringify(
-      appointmentItems.Appointment_Id
-    )} loaded.`
+    `appointmentItems for appointment: ${JSON.stringify(appointmentItems?.Appointment_Id)} loaded.`
   );
 
   const dateTime = new Date(Date.now()).toISOString();
 
   if (episodeItems && appointmentItems && EventType === "CANCELLED") {
     //if both queries are not undefined
+    if (appointmentItems.Appointment_Id.S !== AppointmentID ||
+      appointmentItems.Time_stamp.S > Timestamp) {
+      console.error("Error: Cancelled appointment does not match or the timestamp is earlier",
+      " than latest participant appointment");
+        const confirmation = await pushCsvToS3(
+          `${bucket}`,
+          `not_latest_participant_appointment/invalidRecord_${dateTime}.json`,
+          csvString,
+          s3
+        );
+        return confirmation;
+    }
+
     if (CancellationReason) {
       //cancellation reason is supplied
       console.log("The Supplied Reason Is: ");
@@ -171,6 +185,19 @@ export const handler = async (event) => {
 };
 
 //FUNCTIONS
+export const sortBy = (items, key, keyType, asc = true) => {
+  items.sort( (a,b) => {
+    if (asc) {
+      return (a[key][keyType] > b[key][keyType]) ? 1 :
+        ((a[key][keyType] < b[key][keyType]) ? -1 : 0);
+    } else {
+      return (b[key][keyType] > a[key][keyType]) ? 1 :
+        ((b[key][keyType] < a[key][keyType]) ? -1 : 0);
+    }
+  });
+  return items;
+};
+
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(

@@ -7,6 +7,7 @@ import {
   lookUp,
   readFromS3,
   pushToS3,
+  sortBy
 } from "../../processAppointmentEventTypeLambda/processAppointmentEventTypeLambda";
 
 describe("transactionalWrite", () => {
@@ -166,5 +167,33 @@ describe("S3 Operations", () => {
 
   afterEach(() => {
     AWS.restore("S3");
+  });
+});
+
+describe("sortBy", () => {
+  const item1 = { Time_stamp: { S: "2024-06-23T10:00:00.000Z" } };
+  const item2 = { Time_stamp: { S: "2024-05-23T10:00:00.000Z" } };
+  const item3 = { Time_stamp: { S: "2024-05-23T08:00:00.000Z" } };
+  const item4 = { Time_stamp: { S: "2024-06-21T08:00:00.000Z" } };
+  const arr = [
+    item1,
+    item2,
+    item3,
+    item4,
+  ];
+  test("Should sort by field ascending correctly", async () => {
+    const sorted = sortBy(arr, "Time_stamp", "S");
+    expect(sorted[0]).toEqual(item3);
+    expect(sorted[1]).toEqual(item2);
+    expect(sorted[2]).toEqual(item4);
+    expect(sorted[3]).toEqual(item1);
+  });
+
+  test("Should sort by field descending correctly", async () => {
+    const sorted = sortBy(arr, "Time_stamp", "S", false);
+    expect(sorted[0]).toEqual(item1);
+    expect(sorted[1]).toEqual(item4);
+    expect(sorted[2]).toEqual(item2);
+    expect(sorted[3]).toEqual(item3);
   });
 });
