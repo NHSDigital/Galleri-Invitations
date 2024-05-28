@@ -151,6 +151,7 @@ runs:
         npm install --prefix src/sendTestResultOkAckQueueLambda
         npm install --prefix src/testResultReportFhirValidationLambda
         npm install --prefix src/nrdsUpdateBloodTestResultLambda
+        npm install --prefix src/onwardReferralListLambda
 
         if [[ ${{ env.environment }} != prod ]]; then
           {
