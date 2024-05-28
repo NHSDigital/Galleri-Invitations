@@ -29,30 +29,8 @@ export const handler = async (event, context) => {
 
   try {
     const js = await retrieveAndParseJSON(getJSONFromS3, bucket, key, s3);
-    for (let objs in js.entry) {
-      //Grail_Id
-      if (get(js.entry[objs].resource, `resourceType`) === "ServiceRequest") {
-        fhirPayload.Grail_Id = get(
-          js.entry[objs].resource.identifier[0],
-          `value`
-        );
-      }
-      //Participant_Id
-      if (get(js.entry[objs].resource, `resourceType`) === "Patient") {
-        fhirPayload.Participant_Id = get(
-          js.entry[objs],
-          `resource.identifier[0].value`
-        );
-      }
-      //Blood Collection Date
-      if (get(js.entry[objs].resource, `resourceType`) === "Specimen") {
-        fhirPayload.Blood_Collection_Date = get(
-          js.entry[objs].resource,
-          `collection.collectedDateTime`
-        );
-      }
-    }
-
+    //Extract ParticipantID, GrailID, BloodCollectionDate fields
+    extractFHIRMessage(js);
     //bring back most recent appointment, with timestamp
     const sortedApptParticipants = await getLastAppointment();
     let isValidTRR = false;
@@ -67,6 +45,33 @@ export const handler = async (event, context) => {
     console.error("Error:", error);
   }
 };
+
+//Extract ParticipantID, GrailID, BloodCollectionDate fields
+function extractFHIRMessage(js) {
+  for (let objs in js.entry) {
+    //Grail_Id
+    if (get(js.entry[objs].resource, `resourceType`) === "ServiceRequest") {
+      fhirPayload.Grail_Id = get(
+        js.entry[objs].resource.identifier[0],
+        `value`
+      );
+    }
+    //Participant_Id
+    if (get(js.entry[objs].resource, `resourceType`) === "Patient") {
+      fhirPayload.Participant_Id = get(
+        js.entry[objs],
+        `resource.identifier[0].value`
+      );
+    }
+    //Blood Collection Date
+    if (get(js.entry[objs].resource, `resourceType`) === "Specimen") {
+      fhirPayload.Blood_Collection_Date = get(
+        js.entry[objs].resource,
+        `collection.collectedDateTime`
+      );
+    }
+  }
+}
 
 //bring back most recent appointment, with timestamp
 export async function getLastAppointment() {

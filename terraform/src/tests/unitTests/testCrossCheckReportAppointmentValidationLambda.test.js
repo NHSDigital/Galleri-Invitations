@@ -12,6 +12,7 @@ import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 jest.mock("axios");
 import axios from "axios";
+
 const fhirPayload = {
   Grail_Id: "E01023942",
   Participant_Id: "NHS-AM78-RX14",
@@ -111,7 +112,7 @@ describe("validateTRR", () => {
     jest.clearAllMocks();
   });
 
-  test("Should expect success response", async () => {
+  test("Should expect valid TRR message", async () => {
     const logSpy = jest.spyOn(global.console, "log");
     axios.mockResolvedValueOnce({
       status: 200,
@@ -139,7 +140,7 @@ describe("validateTRR", () => {
     );
   });
 
-  test("Should expect unsuccessful validation", async () => {
+  test("Should expect invalid TRR message", async () => {
     const logSpy = jest.spyOn(global.console, "log");
     axios.mockResolvedValueOnce({
       status: 200,
