@@ -1,0 +1,10 @@
+{
+  "name": "testCrossCheckReportAppointmentValidationLambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "testCrossCheckReportAppointmentValidationLambda.js",
+  "author": "",
+  "dependencies": {
+    "lodash.get": "^4.4.2"
+  }
+}
