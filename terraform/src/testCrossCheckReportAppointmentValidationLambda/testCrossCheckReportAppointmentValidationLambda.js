@@ -34,7 +34,7 @@ export const handler = async (event, context) => {
     //bring back most recent appointment, with timestamp
     const sortedApptParticipants = await getLastAppointment();
     let isValidTRR = false;
-    if (sortedApptParticipants !== null) {
+    if (sortedApptParticipants.length > 0) {
       const appointmentParticipantItems = sortedApptParticipants[0];
       isValidTRR = await validateTRR(fhirPayload, appointmentParticipantItems);
     }
