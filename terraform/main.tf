@@ -1708,7 +1708,7 @@ data "aws_secretsmanager_secret_version" "mesh_url" {
 }
 
 data "aws_secretsmanager_secret_version" "mesh_shared_key" {
-  secret_id = "MESH_SHARED_KEY_1"
+  secret_id = "MESH_SHARED_KEY"
 }
 
 data "aws_secretsmanager_secret_version" "mesh_sender_mailbox_id" {
