@@ -11,10 +11,12 @@ import {
   extractClaims,
   validateTokenExpirationWithAuthTime,
   validateTokenSignature,
+  updateAPIGatewayLockdownSessionTable,
+  generateAPIGatewayLockdownSession,
 } from "../../authenticatorLambda/authenticatorLambda";
 import jwt from "jsonwebtoken";
 import axios from "axios";
-import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 
 // Mock env variables
@@ -29,6 +31,9 @@ process.env.ENVIRONMENT = "test_environment";
 // Mock DBClient and GetItemCommand
 jest.mock("@aws-sdk/client-dynamodb", () => ({
   DynamoDBClient: jest.fn(),
+  UpdateItemCommand: jest.fn((params) => ({
+    input: params,
+  })),
   GetItemCommand: jest.fn(() => ({
     Key: { User_UUID: { S: "testUUID" } },
     TableName: "test-UserAccounts",
@@ -144,6 +149,208 @@ describe("All Test", () => {
       );
     });
   });
+
+  describe("generateAPIGatewayLockdownSession", () => {
+    test("should generate API Gateway lockdown session", async () => {
+      const mockEnvironment = "dev";
+      const mockClient = {};
+      const mockApiSessionId = "cap-ai-session-id";
+      const mockUserId = "michaeru-chiiptii";
+
+      // Mock updateAPISessionTable function to return success status
+      const mockUpdateAPISessionTable = jest.fn().mockResolvedValue(200);
+
+      await generateAPIGatewayLockdownSession(
+        mockEnvironment,
+        mockClient,
+        mockApiSessionId,
+        mockUserId,
+        mockUpdateAPISessionTable
+      );
+
+      expect(mockUpdateAPISessionTable).toHaveBeenCalledWith(
+        mockEnvironment,
+        mockClient,
+        mockApiSessionId,
+        mockUserId,
+        expect.any(Number), // Ensure timeToLive is a number
+        expect.any(String), // Ensure expirationDateTime is a string
+        expect.any(String), // Ensure dateTime is a string
+        expect.any(String) // Ensure dateTime is a string
+      );
+    });
+
+    test("should handle failure scenario", async () => {
+      const logSpy = jest.spyOn(global.console, "error");
+      const mockEnvironment = "dev";
+      const mockClient = {};
+      const mockApiSessionId = "cap-ai-session-id";
+      const mockUserId = "michaeru-chiiptii";
+
+      // Mock updateAPISessionTable function to return failure status
+      const mockUpdateAPISessionTable = jest.fn().mockResolvedValue(500);
+
+      await generateAPIGatewayLockdownSession(
+        mockEnvironment,
+        mockClient,
+        mockApiSessionId,
+        mockUserId,
+        mockUpdateAPISessionTable
+      );
+      expect(logSpy).toHaveBeenCalledWith(
+        `Error: Failed to generate session for for User ${mockUserId}`
+      );
+    });
+    test("should handle error scenario", async () => {
+      const mockEnvironment = "dev";
+      const mockClient = {};
+      const mockApiSessionId = "cap-ai-session-id";
+      const mockUserId = "michaeru-chiiptii";
+
+      // Mock updateAPISessionTable function to throw an error
+      const mockUpdateAPISessionTable = jest
+        .fn()
+        .mockRejectedValue(new Error("Mock update error"));
+
+      // Mock console.error
+      console.error = jest.fn();
+
+      await expect(
+        generateAPIGatewayLockdownSession(
+          mockEnvironment,
+          mockClient,
+          mockApiSessionId,
+          mockUserId,
+          mockUpdateAPISessionTable
+        )
+      ).rejects.toThrow();
+
+      expect(console.error).toHaveBeenCalledWith(
+        expect.stringContaining(
+          `Error: Failed to generate session for for User michaeru-chiiptii`
+        )
+      );
+    });
+  });
+
+  describe("updateAPIGatewayLockdownSessionTable", () => {
+    let mockDynamoDbClient;
+
+    beforeEach(() => {
+      mockDynamoDbClient = new DynamoDBClient({});
+      mockDynamoDbClient.send = jest.fn();
+    });
+
+    test("returns 200 when call executes successfully", async () => {
+      mockDynamoDbClient.send.mockResolvedValue({
+        $metadata: {
+          httpStatusCode: 200,
+        },
+      });
+
+      const apiSessionId = "test-session-id";
+      const environment = "dev";
+      const userId = "test-user-id";
+      const timeToLive = Math.floor(Date.now() / 1000) + 1200; // 20 minutes in the future
+      const expirationDateTime = new Date(
+        Date.now() + 20 * 60000
+      ).toISOString();
+      const creationDateTime = new Date(Date.now()).toISOString();
+      const updatedDateTime = new Date(Date.now()).toISOString();
+
+      const result = await updateAPIGatewayLockdownSessionTable(
+        environment,
+        mockDynamoDbClient,
+        apiSessionId,
+        userId,
+        timeToLive,
+        expirationDateTime,
+        creationDateTime,
+        updatedDateTime
+      );
+      expect(result).toEqual(200);
+
+      const expectedParams = {
+        TableName: `${environment}-APIGatewayLockdownSession`,
+        Key: {
+          API_Session_Id: {
+            S: apiSessionId,
+          },
+        },
+        ExpressionAttributeNames: {
+          "#USER": "User_UUID",
+          "#TTL": "Expires_At",
+          "#EXPIRES": "Expiration_DateTime",
+          "#CREATED": "Creation_DateTime",
+          "#UPDATED": "Last_Updated_DateTime",
+        },
+        ExpressionAttributeValues: {
+          ":user": {
+            S: userId,
+          },
+          ":ttl": {
+            N: timeToLive.toString(),
+          },
+          ":expires": {
+            S: expirationDateTime,
+          },
+          ":created": {
+            S: creationDateTime,
+          },
+          ":updated": {
+            S: updatedDateTime,
+          },
+        },
+        UpdateExpression:
+          "SET #USER = :user, #TTL = :ttl, #EXPIRES = :expires, #CREATED = :created, #UPDATED = :updated",
+      };
+
+      console.log("Expected Params:", expectedParams);
+      console.log("Received Params:", mockDynamoDbClient.send.mock.calls);
+
+      expect(mockDynamoDbClient.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expectedParams,
+        })
+      );
+    });
+
+    test("logs an error and returns the status code when call fails", async () => {
+      mockDynamoDbClient.send.mockResolvedValue({
+        $metadata: {
+          httpStatusCode: 500,
+        },
+      });
+
+      const apiSessionId = "test-session-id";
+      const environment = "dev";
+      const userId = "test-user-id";
+      const timeToLive = Math.floor(Date.now() / 1000) + 1200; // 20 minutes in the future (TODO: update this if the codebase session duration gets updated)
+      const expirationDateTime = new Date(
+        Date.now() + 20 * 60000
+      ).toISOString();
+      const creationDateTime = new Date(Date.now()).toISOString();
+      const updatedDateTime = new Date(Date.now()).toISOString();
+
+      console.error = jest.fn();
+      const result = await updateAPIGatewayLockdownSessionTable(
+        environment,
+        mockDynamoDbClient,
+        apiSessionId,
+        userId,
+        timeToLive,
+        expirationDateTime,
+        creationDateTime,
+        updatedDateTime
+      );
+
+      expect(result).toEqual(500);
+      expect(console.error).toHaveBeenCalledWith(
+        `Error: Failed to update the API Gateway Lockdown Session for User ${userId}`
+      );
+    });
+  });
+
   describe("extractClaims", () => {
     test("should correctly extract claims from the ID token", async () => {
       const extractClaims = jest.fn().mockResolvedValue({
@@ -653,7 +860,7 @@ describe("All Test", () => {
       const result = await getUserRole(uuid);
       expect(result).toEqual({ Role: "testRole" });
       expect(logSpy).toHaveBeenCalledWith(
-        "UUID exists on Galleri User database"
+        "User exists on Galleri User database"
       );
       expect(mockSend).toHaveBeenCalledWith(
         expect.objectContaining({
