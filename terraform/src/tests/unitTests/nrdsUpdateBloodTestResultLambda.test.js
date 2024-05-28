@@ -1,7 +1,7 @@
 import { mockClient } from "aws-sdk-client-mock";
 import { S3Client } from "@aws-sdk/client-s3";
 import { sdkStreamMixin } from "@aws-sdk/util-stream-node";
-import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import * as fs from "fs";
 import path from "path";
 
@@ -10,8 +10,9 @@ import {
   pushCsvToS3,
   lookUp,
   transactionalWrite,
-  sortBy,
-} from "../../appointmentsEventCancelledLambda/appointmentsEventCancelledLambda.js";
+  checkProperties,
+  getTagFromS3,
+} from "../../nrdsUpdateBloodTestResultLambda/nrdsUpdateBloodTestResultLambda.js";
 
 describe("readCsvFromS3", () => {
   beforeEach(() => {
@@ -39,7 +40,9 @@ describe("readCsvFromS3", () => {
 
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
-    expect(logSpy).toHaveBeenCalledWith("Failed to read from bucketName/key");
+    expect(logSpy).toHaveBeenCalledWith(
+      "Error: Failed to read from bucketName/key"
+    );
   });
 
   test("return string built from csv file", async () => {
@@ -89,7 +92,7 @@ describe("pushCsvToS3", () => {
     expect(result).toHaveProperty("$metadata.httpStatusCode", 200);
   });
   test("Failed response when error occurs sending file to bucket", async () => {
-    const logSpy = jest.spyOn(global.console, "log");
+    const logSpy = jest.spyOn(global.console, "error");
     const errorMsg = new Error("Mocked error");
     const mockClient = {
       send: jest.fn().mockRejectedValue(errorMsg),
@@ -102,7 +105,7 @@ describe("pushCsvToS3", () => {
     expect(logSpy).toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledTimes(1);
     expect(logSpy).toHaveBeenCalledWith(
-      `Failed to push to galleri-ons-data/test.txt. Error Message: ${errorMsg}`
+      `Error: Failed to push to galleri-ons-data/test.txt. Error Message: ${errorMsg}`
     );
   });
 });
@@ -170,23 +173,33 @@ describe("transactionalWrite", () => {
       Items: ["I exist"],
     });
 
-    const participantId = "NHS-12345";
+    let testObj = {
+      episode_event: "null",
+      Grail_FHIR_Result_Id: "MCED-AmendedTest-Example",
+      Meta_Last_Updated: "2000-09-11T11:22:00+00:00",
+      Identifier_Value: "example",
+      Grail_Id: "NHS1234567",
+      CSD_Result_SNOMED_Code: "12345",
+      CSD_Result_SNOMED_Display: "onceICaughtAFishAlive",
+      Blood_Draw_Date: "2000-09-11T11:22:00+00:00",
+      Cso_Result_Snomed_Code_Primary: ["6"],
+      Cso_Result_Snomed_Display_Primary: ["7"],
+      Cso_Result_Snomed_Code_Secondary: ["8", "9", "10"],
+      Cso_Result_Snomed_Display_Secondary: ["thenILetItGoAgain"],
+      Participant_Id: "NHS-12345",
+    };
+
     const batchId = "IB-pck28f-datsf28f-a233-bug41-2right111f4a53";
     const appointmentId = "12345";
-    const eventType = "CANCELLED";
-    const appointmentTimestamp = "2024-05-14T15:04:05.999Z"
-    const episodeEvent = "Appointment Cancelled by Participant - Withdrawn";
-    const eventDescription = "example";
+    const episodeStatus = "status";
 
     const result = await transactionalWrite(
       mockDynamoDbClient,
-      participantId,
+      testObj.participantId,
       batchId,
       appointmentId,
-      eventType,
-      appointmentTimestamp,
-      episodeEvent,
-      eventDescription
+      testObj,
+      episodeStatus
     );
 
     expect(result).toEqual(true);
@@ -200,53 +213,108 @@ describe("transactionalWrite", () => {
       Items: [],
     });
 
-    const participantId = "NHS-12345";
+    let testObj = {
+      episode_event: "null",
+      Grail_FHIR_Result_Id: "MCED-AmendedTest-Example",
+      Meta_Last_Updated: "2000-09-11T11:22:00+00:00",
+      Identifier_Value: "example",
+      Grail_Id: "NHS1234567",
+      CSD_Result_SNOMED_Code: "Erin",
+      CSD_Result_SNOMED_Display: "Yeager",
+      Blood_Draw_Date: "2000-09-11T11:22:00+00:00",
+      Cso_Result_Snomed_Code_Primary: ["Grisha"],
+      Cso_Result_Snomed_Display_Primary: ["Yeager"],
+      Cso_Result_Snomed_Code_Secondary: ["Zeke"],
+      Cso_Result_Snomed_Display_Secondary: ["Yeager"],
+      Participant_Id: "NHS-12345",
+    };
+
     const batchId = "IB-pck28f-datsf28f-a233-bug41-2right111f4a53";
     const appointmentId = "12345";
-    const eventType = "CANCELLED";
-    const appointmentTimestamp = "2024-05-14T15:04:05.999Z"
-    const episodeEvent = "Appointment Cancelled by Participant - Withdrawn";
-    const eventDescription = "example";
+    const episodeStatus = "status";
 
     const result = await transactionalWrite(
       mockDynamoDbClient,
-      participantId,
+      testObj.participantId,
       batchId,
       appointmentId,
-      eventType,
-      appointmentTimestamp,
-      episodeEvent,
-      eventDescription
+      testObj,
+      episodeStatus
     );
 
     expect(result).toEqual(false);
   });
 });
 
-describe("sortBy", () => {
-  const item1 = { Time_stamp: { S: "2024-06-23T10:00:00.000Z" } };
-  const item2 = { Time_stamp: { S: "2024-05-23T10:00:00.000Z" } };
-  const item3 = { Time_stamp: { S: "2024-05-23T08:00:00.000Z" } };
-  const item4 = { Time_stamp: { S: "2024-06-21T08:00:00.000Z" } };
-  const arr = [
-    item1,
-    item2,
-    item3,
-    item4,
-  ];
-  test("Should sort by field ascending correctly", async () => {
-    const sorted = sortBy(arr, "Time_stamp", "S");
-    expect(sorted[0]).toEqual(item3);
-    expect(sorted[1]).toEqual(item2);
-    expect(sorted[2]).toEqual(item4);
-    expect(sorted[3]).toEqual(item1);
+describe("checkProperties", () => {
+  let testObj = {
+    t: "Tanjiro",
+    a: "Akaza",
+    s: "Senku Ishigami",
+    k: "",
+    ss: [],
+  };
+  test("reformat object successfully", async () => {
+    await checkProperties(testObj);
+    console.log(testObj);
+    expect(testObj).toEqual({
+      t: "Tanjiro",
+      a: "Akaza",
+      s: "Senku Ishigami",
+      k: "NULL",
+      ss: ["NULL"],
+    });
+  });
+});
+
+describe("getTagFromS3", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
-  test("Should sort by field descending correctly", async () => {
-    const sorted = sortBy(arr, "Time_stamp", "S", false);
-    expect(sorted[0]).toEqual(item1);
-    expect(sorted[1]).toEqual(item4);
-    expect(sorted[2]).toEqual(item2);
-    expect(sorted[3]).toEqual(item3);
+  test("Failed response when error occurs getting file from bucket", async () => {
+    const logSpy = jest.spyOn(global.console, "error");
+    const errorStr = "Error: Mocked error";
+    const errorMsg = new Error(errorStr);
+    const mockClient = {
+      send: jest.fn().mockRejectedValue(errorMsg),
+    };
+
+    const bucket = "bucketName";
+    const key = "key";
+    try {
+      await getTagFromS3(bucket, key, mockClient);
+    } catch (err) {
+      expect(err.message).toBe("Error: Mocked error");
+    }
+
+    expect(logSpy).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledWith(
+      "Error: Failed to read from bucketName/key"
+    );
+  });
+
+  test("return string built from csv file", async () => {
+    const mockS3Client = mockClient(new S3Client({}));
+
+    mockS3Client.resolves({
+      TagSet: [
+        { Key: "Levi", Value: "Ackerman" },
+        { Key: "Mikasa", Value: "Ackerman" },
+      ],
+    });
+
+    const result = await getTagFromS3("aaaaaaa", "aaaaaaa", mockS3Client);
+
+    const expected_result = [
+      { Key: "Levi", Value: "Ackerman" },
+      { Key: "Mikasa", Value: "Ackerman" },
+    ];
+
+    expect(result).toEqual(expected_result);
   });
 });

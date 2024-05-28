@@ -1131,6 +1131,32 @@ module "nrds_mesh_mailbox_lambda" {
   sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
 }
 
+module "nrds_update_blood_test_result_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "nrdsUpdateBloodTestResultLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "nrds_update_blood_test_result_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT   = "${var.environment}",
+    FAILUREBUCKET = "inbound-nrds-galleritestresult-step4-error",
+    SUCCESSBUCKET = "inbound-nrds-galleritestresult-step4-success",
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+
+module "nrds_update_blood_test_result_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.inbound_nrds_galleritestresult_step3_success.bucket_id
+  bucket_arn    = module.inbound_nrds_galleritestresult_step3_success.bucket_arn
+  lambda_arn    = module.nrds_update_blood_test_result_lambda.lambda_arn
+  filter_prefix = "validRecords/valid_records"
+}
+
 # GTMS Validate clinic Lambda
 module "validate_clinic_data_lambda" {
   source               = "./modules/lambda"
@@ -1991,7 +2017,6 @@ module "population_table" {
   stream_view_type         = "NEW_AND_OLD_IMAGES"
   table_name               = "Population"
   hash_key                 = "PersonId"
-  range_key                = "LsoaCode"
   read_capacity            = null
   write_capacity           = null
   secondary_write_capacity = null
@@ -2128,6 +2153,24 @@ module "user_accounts_table" {
   ]
   tags = {
     Name = "Dynamodb Table User Accounts"
+  }
+}
+
+module "api_gateway_lockdown_session_table" {
+  source             = "./modules/dynamodb"
+  table_name         = "APIGatewayLockdownSession"
+  hash_key           = "API_Session_Id"
+  environment        = var.environment
+  ttl_enabled        = true
+  ttl_attribute_name = "Expires_At"
+  attributes = [
+    {
+      name = "API_Session_Id"
+      type = "S"
+    }
+  ]
+  tags = {
+    Name = "Dynamodb Table API Gateway Lockdown Session"
   }
 }
 
