@@ -4,7 +4,7 @@ const client = new DynamoDBClient({ region: "eu-west-2" });
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
 /*
-  Lambda to load clinic information and pass on to GPS client.
+  Lambda to load participant info for participants with result - CSD
 */
 export const handler = async (event, context) => {
 
@@ -20,6 +20,8 @@ export const handler = async (event, context) => {
       participantList,
       client
     );
+
+    console.log("------participantsInfo-------", JSON.stringify(participantsInfo));
 
     let responseObject = {};
 
@@ -69,6 +71,7 @@ export const lookupParticipantsCsd = async (client) => {
         }
       },
       FilterExpression: "Episode_Event = :a",
+      KeyConditionExpression: "Participant_Id = :Participant_Id",
       ProjectionExpression: "Participant_Id",
       TableName: `${ENVIRONMENT}-Episode`,
       IndexName: "Episode_Event-index"
