@@ -1,8 +1,8 @@
 # This is required becuase the global components are based out of us-east-1
-provider "aws" {
-  alias  = "us_east_1"
-  region = "us-east-1"
-}
+# provider "aws" {
+#   alias  = "us_east_1"
+#   region = "us-east-1"
+# }
 
 # data "aws_route53_zone" "example" {
 #   name         = "${var.hostname}."
@@ -68,6 +68,49 @@ provider "aws" {
 
 #   depends_on = [aws_api_gateway_domain_name.api_domain]
 # }
+
+# WAF Web ACL
+resource "aws_wafv2_web_acl" "geo_block" {
+  name        = "${var.environment}-${var.path_part}-web-acl"
+  description = "Web ACL to allow only UK traffic"
+  scope       = "REGIONAL"
+  default_action {
+    allow {}
+  }
+  rule {
+    name     = "GeoBlock"
+    priority = 1
+    action {
+      block {}
+    }
+    statement {
+      not_statement {
+        statement {
+          geo_match_statement {
+            country_codes = ["GB"]
+          }
+        }
+      }
+    }
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "GeoBlock"
+      sampled_requests_enabled   = true
+    }
+  }
+  visibility_config {
+    cloudwatch_metrics_enabled = true
+    metric_name                = "webACL"
+    sampled_requests_enabled   = true
+  }
+}
+
+# API Gateway WAF Association
+resource "aws_wafv2_web_acl_association" "api_gateway_waf" {
+  resource_arn = aws_api_gateway_rest_api.galleri.execution_arn
+  web_acl_arn  = aws_wafv2_web_acl.geo_block.arn
+}
+
 
 # Set up cloudwatch logging
 resource "aws_cloudwatch_log_group" "api_gateway_log_group" {
