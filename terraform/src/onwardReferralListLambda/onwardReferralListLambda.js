@@ -92,24 +92,39 @@ export const lookupParticipantsInfo = async (participantList, client) => {
   console.log("Entered function lookupParticipantsInfo");
 
   try {
-    const input = {
-      ExpressionAttributeNames: {
-        "#PI": "Participant_Id",
-        "#BDD": "Blood_Draw_Date",
-        "#RC": "Result_Creation",
-        "#PN": "Participant_Name",
-      },
-      ExpressionAttributeValues: participantList,
-      FilterExpression: "Participant_Id IN (" + Object.keys(participantList).toString() + ")",
-      ProjectionExpression: "#PI, #BDD, #RC, #PN",
-      TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
-    };
 
-    const command = new ScanCommand(input);
-    const response = await client.send(command);
+    console.log("------participantList.S-------", JSON.stringify(participantList.S));
+    let participantIds = [];
 
-    console.log("Exiting function lookupParticipantsInfo");
-    return response;
+    if (participantList.length) {
+
+      participantList.forEach((obj) => {
+        participantIds.push(obj.S);
+      });
+
+      console.log("------participantIds-------", JSON.stringify(participantIds));
+      console.log("------participantIds[0]-------", JSON.stringify(participantIds[0]));
+
+      const input = {
+        ExpressionAttributeNames: {
+          "#PI": "Participant_Id",
+          "#BDD": "Blood_Draw_Date",
+          "#RC": "Result_Creation",
+          "#PN": "Participant_Name",
+        },
+        ExpressionAttributeValues: participantList.S,
+        FilterExpression: "Participant_Id IN (" + participantIds[0].toString() + ")",
+        ProjectionExpression: "#PI, #BDD, #RC, #PN",
+        TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
+      };
+
+      const command = new ScanCommand(input);
+      const response = await client.send(command);
+
+      console.log("Exiting function lookupParticipantsInfo");
+      return response;
+    }
+
   } catch (error) {
     console.log("Error in lookupParticipantsInfo");
     throw error;
