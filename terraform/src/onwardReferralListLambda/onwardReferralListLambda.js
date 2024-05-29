@@ -99,7 +99,7 @@ export const lookupParticipantsInfo = async (participantList, client) => {
     if (participantList.length) {
 
       participantList.forEach((obj) => {
-        participantIds.push(obj.S);
+        participantIds.push(obj.Participant_Id.S);
       });
 
       console.log("------participantIds-------", JSON.stringify(participantIds));
