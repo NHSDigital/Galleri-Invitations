@@ -107,7 +107,7 @@ resource "aws_wafv2_web_acl" "geo_block" {
 
 # API Gateway WAF Association
 resource "aws_wafv2_web_acl_association" "api_gateway_waf" {
-  resource_arn = aws_api_gateway_rest_api.galleri.execution_arn
+  resource_arn = aws_api_gateway_rest_api.galleri.arn
   web_acl_arn  = aws_wafv2_web_acl.geo_block.arn
 }
 
