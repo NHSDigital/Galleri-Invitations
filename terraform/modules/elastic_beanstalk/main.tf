@@ -285,8 +285,8 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   setting {
     namespace = "aws:elasticbeanstalk:environment"
     name      = "EnvironmentType"
-    # value     = "LoadBalanced"
-    value = "SingleInstance"
+    value     = "LoadBalanced"
+    # value = "SingleInstance"
   }
 
   setting {

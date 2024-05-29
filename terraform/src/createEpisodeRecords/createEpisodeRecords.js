@@ -6,7 +6,6 @@ import {
 
 const client = new DynamoDBClient({ region: "eu-west-2" });
 const ENVIRONMENT = process.env.ENVIRONMENT;
-const UNSUCCESSFUL_RESPONSE = 400;
 /*
   Lambda to get create episode records for modified population records
 */
@@ -54,11 +53,9 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient) {
           if (addEpisodeRecordResponse.$metadata.httpStatusCode === 200) {
             return Promise.resolve("Successfully added");
           } else {
-            const errorMsg = `Unable to add record ${record.dynamodb.OldImage.participantId.S}`
+            const errorMsg = `Unable to add record ${record.dynamodb.OldImage.participantId.S}`;
             console.error("Error: ", errorMsg);
-            return Promise.reject(
-              errorMsg
-            );
+            return Promise.reject(errorMsg);
           }
         } else {
           console.warn("RECORD ALREADY EXISTS");
@@ -77,7 +74,7 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient) {
   return episodeRecordsUpload;
 }
 
-function createEpisodeRecord(record) {
+export function createEpisodeRecord(record) {
   console.log("Entered function createEpisodeRecord");
   const createTime = new Date(Date.now()).toISOString();
   const item = {
@@ -110,6 +107,9 @@ function createEpisodeRecord(record) {
     },
     Episode_Event_Updated: {
       S: createTime,
+    },
+    Episode_Event_Updated_By: {
+      S: "GPS",
     },
   };
 

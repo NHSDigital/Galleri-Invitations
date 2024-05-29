@@ -321,8 +321,9 @@ export function validateRecord(record) {
   }
   // AC7 - Date of Birth is an invalid format or is in the future
   if (
-    !record.date_of_birth ||
-    !isValidDateFormatOrInTheFuture(record.date_of_birth)
+    record.action != "DEL" &&
+    (!record.date_of_birth ||
+      !isValidDateFormatOrInTheFuture(record.date_of_birth))
   ) {
     validationResults.success = false;
     validationResults.message =
@@ -331,14 +332,17 @@ export function validateRecord(record) {
   }
 
   // AC3 - Missing or Invalid Gender provided
-  if (!isValidGender(record.gender)) {
+  if (record.action != "DEL" && !isValidGender(record.gender)) {
     validationResults.success = false;
     validationResults.message = "Technical error - Missing or invalid Gender";
     return validationResults;
   }
 
   // AC?? - postcode is not supplied
-  if (!record.postcode || record.postcode === "null") {
+  if (
+    record.action != "DEL" &&
+    (!record.postcode || record.postcode === "null")
+  ) {
     validationResults.success = false;
     validationResults.message = "Technical error - Postcode was not supplied";
     return validationResults;
@@ -382,6 +386,17 @@ export function validateRecord(record) {
     return validationResults;
   }
 
+  //GAL-1366
+  if (
+    record.action != "DEL" &&
+    (record.is_interpreter_required === null ||
+      record.is_interpreter_required.trim().length === 0)
+  ) {
+    validationResults.success = false;
+    validationResults.message =
+      "Technical error - is_interpreter_required is invalid";
+    return validationResults;
+  }
   return validationResults;
 }
 
