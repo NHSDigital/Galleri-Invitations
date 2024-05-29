@@ -48,21 +48,10 @@ resource "aws_wafv2_web_acl" "screens" {
 #   name       = element(aws_elastic_beanstalk_environment.screens.all_settings[*]["LoadBalancerName"], 0)
 # }
 
-# Fetch the ELB details using the name from the previous step
-data "aws_elastic_beanstalk_environment" "screens" {
-  name = aws_elastic_beanstalk_environment.screens.name
-}
-
-# Fetch the ELB details using the environment ID
-data "aws_lb" "beanstalk_lb" {
-  depends_on = [aws_elastic_beanstalk_environment.screens]
-  name       = data.aws_elastic_beanstalk_environment.screens.all_settings["LoadBalancerName"]
-}
-
 # Associate the WAF WebACL with the Elastic Beanstalk load balancer
 resource "aws_wafv2_web_acl_association" "screens" {
   # resource_arn = data.aws_elb.beanstalk_lb[0].arn
-  resource_arn = data.aws_lb.beanstalk_lb.arn
+  resource_arn = aws_elastic_beanstalk_application.screens.arn
   web_acl_arn  = aws_wafv2_web_acl.screens.arn
 
   depends_on = [aws_wafv2_web_acl.screens]
