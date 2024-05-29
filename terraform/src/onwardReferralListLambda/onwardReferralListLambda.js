@@ -92,8 +92,6 @@ export const lookupParticipantsInfo = async (participantList, client) => {
   console.log("Entered function lookupParticipantsInfo");
 
   try {
-
-    console.log("------participantList.S-------", JSON.stringify(participantList.S));
     let participantIds = [];
 
     if (participantList.length) {
@@ -112,8 +110,8 @@ export const lookupParticipantsInfo = async (participantList, client) => {
           "#RC": "Result_Creation",
           "#PN": "Participant_Name",
         },
-        ExpressionAttributeValues: participantList.S,
-        FilterExpression: "Participant_Id IN (" + participantIds[0].toString() + ")",
+        ExpressionAttributeValues: participantIds,
+        FilterExpression: "#PI IN (" + participantIds[0].toString() + ")",
         ProjectionExpression: "#PI, #BDD, #RC, #PN",
         TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
       };
