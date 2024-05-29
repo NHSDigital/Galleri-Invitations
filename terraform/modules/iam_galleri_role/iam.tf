@@ -619,6 +619,8 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added sendTestResultOkAckQueueLambda to this policy as lambda role exceeded policy limit
 # Added sendTestResultErrorAckQueueLambda to this policy as lambda role exceeded policy limit
 # Added testResultReportFhirValidationLambda to this policy as lambda role exceeded policy limit
+# Added testCrossCheckReportAppointmentValidationLambda to this policy as lambda role exceeded policy limit
+# Added authenticatorLambda to this policy as lambda role exceeded policy limit
 # Added nrdsUpdateBloodTestResultLambda to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_participants_in_lsoa_lambda_role"
@@ -662,6 +664,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Episode",
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-EpisodeHistory/*/*",
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-NotifySendMessageStatus",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-APIGatewayLockdownSession",
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GalleriBloodTestResult",
           ]
         },
@@ -700,8 +703,8 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step3-error/*", ### step 3 fhir validation error bucket
             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step4-error/*", ### step 4 fhir validation error bucket
             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step1-success/*",
-            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step1-error/*",
             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step3-success/*",
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step2-success/*",
             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step4-success/*"
           ]
         },
@@ -896,6 +899,53 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
     Name            = "${var.environment} Create Episode Record Policy"
   }
 }
+
+# Policy required by authenticatorLambda
+# resource "aws_iam_policy" "iam_policy_for_authenticator_lambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_authenticator_lambda_role"
+#   path        = "/"
+#   description = "AWS IAM Policy for managing aws lambda send invitation batch to raw message queue role"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+#           "Sid" : "AllowAuthDynamodbAccess",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "dynamodb:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-UserAccounts",
+#             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-APIGatewayLockdownSession",
+#           ]
+#         },
+#         {
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "secretsmanager:GetResourcePolicy",
+#             "secretsmanager:GetSecretValue",
+#             "secretsmanager:DescribeSecret",
+#             "secretsmanager:ListSecretVersionIds"
+#           ],
+#           "Resource" : [
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_INT_1*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_CLIENT_ID*",
+#           ]
+#         },
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+# }
+
 
 # Policy required by sendInvitationBatchToRawMessageQueueLambda
 # resource "aws_iam_policy" "iam_policy_for_send_invitation_batch_to_raw_message_queue_lambda" {
@@ -1264,6 +1314,50 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
 #            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-Appointments"
 #          ]
 #        },
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+# }
+
+# Policy required by testCrossCheckReportAppointmentValidationLambda
+# resource "aws_iam_policy" "iam_policy_for_test_cross_check_report_appinmtment_validation_lambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_test_cross_check_report_appinmtment_validation_lambda"
+#   path        = "/"
+#   description = "AWS IAM Policy for managing aws lambda create episode record role"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+#           "Sid" : "AllowEpisodeDynamodbAccess",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "dynamodb:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:dynamodb:eu-west-2:136293001324:table/${var.environment}-Appointments",,
+#           ]
+#         },
+#         {
+#           "Sid" : "AllowS3Access",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "s3:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step3-success/*",
+#             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step3-error/*",
+#             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step2-error/*"
+#           ]
+#         },
 #       ],
 #       "Version" : "2012-10-17"
 #   })
