@@ -27,7 +27,7 @@ data "aws_secretsmanager_secret_version" "cis2_client_id" {
 # everything is correct.
 
 resource "aws_acm_certificate" "example" {
-  domain_name       = "${var.environment}.${var.hostname}"
+  domain_name       = var.environment == "prod" ? "${var.hostname}" : "${var.environment}.${var.hostname}"
   validation_method = "DNS"
   tags = {
     ApplicationRole = "${var.application_role}"
