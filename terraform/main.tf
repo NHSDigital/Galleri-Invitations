@@ -1628,6 +1628,34 @@ module "test_cross_check_report_appointment_validation_lambda_trigger" {
   filter_prefix = "record_"
 }
 
+# getDocumentsLambda
+module "get_documents_lambda" {
+  source               = "./modules/lambda"
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "getDocumentsLambda"
+  lambda_s3_object_key = "getDocumentsLambda.zip"
+  environment          = var.environment
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+
+
+module "get_documents_api_gateway" {
+  source            = "./modules/api-gateway"
+  lambda_invoke_arn = module.get_documents_lambda.lambda_invoke_arn
+  path_part         = "get-documents"
+  method_http_parameters = {
+    "method.request.querystring.participantId" = true
+  }
+  lambda_function_name = module.get_documents_lambda.lambda_function_name
+  environment          = var.environment
+  hostname             = var.invitations_hostname
+  dns_zone             = var.dns_zone
+}
 
 # Dynamodb tables
 module "sdrs_table" {

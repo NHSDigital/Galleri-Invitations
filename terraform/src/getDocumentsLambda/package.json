@@ -1,0 +1,10 @@
+{
+  "name": "getDocumentsLambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "getDocumentsLambda.js",
+  "author": "",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.388.0"
+  }
+}

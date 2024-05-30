@@ -90,6 +90,43 @@ resource "aws_iam_policy" "clinic_information_lambda" {
   }
 }
 
+
+# resource "aws_iam_policy" "get_documents_lambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_get_documents_lambda_role"
+#   path        = "/"
+#   description = "AWS IAM Policy for managing aws lambda clinic details role"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+#           "Sid" : "AllowDynamodbAccess",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "s3:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step4-success/*"
+#           ]
+#         }
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+#   tags = {
+#     ApplicationRole = "${var.application_role}"
+#     Name            = "${var.environment} Get Documents"
+#   }
+# }
+
+
 # Policy required by gpPracticesLoaderLambda
 #resource "aws_iam_policy" "gp_practice_loader_lambda" {
 #  name        = "${var.environment}-aws_iam_policy_for_terraform_aws_gp_practices_loader_lambda_role"
@@ -690,7 +727,8 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step1-success/*",
             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step3-success/*",
             "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step2-success/*",
-            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step4-success/*"
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step4-success/*",
+            "arn:aws:s3:::${var.environment}-inbound-nrds-galleritestresult-step4-success"
           ]
         },
         {
@@ -1358,6 +1396,10 @@ resource "aws_iam_role_policy_attachment" "clinic_information_lambda" {
   policy_arn = aws_iam_policy.clinic_information_lambda.arn
 }
 
+# resource "aws_iam_role_policy_attachment" "get_documents_lambda" {
+#   role       = aws_iam_role.galleri_lambda_role.name
+#   policy_arn = aws_iam_policy.get_documents_lambda.arn
+# }
 # Role exceeded quota for PoliciesPerRole: 10
 #resource "aws_iam_role_policy_attachment" "gp_practice_loader_lambda" {
 #  role       = aws_iam_role.galleri_lambda_role.name
