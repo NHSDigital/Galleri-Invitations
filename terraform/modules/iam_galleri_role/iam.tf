@@ -307,6 +307,7 @@ resource "aws_iam_policy" "iam_policy_for_calculate_num_to_invite_lambda" {
   }
 }
 
+# Added sendAckMessageLambda to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_get_lsoa_in_range_lambda_role"
   path        = "/"
@@ -342,7 +343,21 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
           "Resource" : [
             "arn:aws:lambda:eu-west-2:${var.account_id}:function:${var.environment}-getLsoaParticipantsLambda"
           ]
-        }
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "secretsmanager:GetResourcePolicy",
+            "secretsmanager:GetSecretValue",
+            "secretsmanager:DescribeSecret",
+            "secretsmanager:ListSecretVersionIds"
+          ],
+          "Resource" : [
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:NRDS_MESH_MAILBOX_ID*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:NRDS_MESH_MAILBOX_PASSWORD*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:NRDS_MESH_RECEIVER_MAILBOX_ID*"
+          ]
+        },
       ],
       "Version" : "2012-10-17"
   })
