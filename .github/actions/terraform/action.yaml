@@ -153,6 +153,7 @@ runs:
         npm install --prefix src/testCrossCheckReportAppointmentValidationLambda
         npm install --prefix src/nrdsUpdateBloodTestResultLambda
         npm install --prefix src/getDocumentsLambda
+        npm install --prefix src/downloadDocumentLambda
 
         if [[ ${{ env.environment }} != prod ]]; then
           {

@@ -1657,6 +1657,35 @@ module "get_documents_api_gateway" {
   dns_zone             = var.dns_zone
 }
 
+# downloadDocumentLambda
+module "download_document_lambda" {
+  source               = "./modules/lambda"
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "downloadDocumentLambda"
+  lambda_s3_object_key = "downloadDocumentLambda.zip"
+  environment          = var.environment
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+
+
+module "download_document_api_gateway" {
+  source            = "./modules/api-gateway"
+  lambda_invoke_arn = module.download_document_lambda.lambda_invoke_arn
+  path_part         = "download-document"
+  method_http_parameters = {
+    "method.request.querystring.participantId" = true
+  }
+  lambda_function_name = module.download_document_lambda.lambda_function_name
+  environment          = var.environment
+  hostname             = var.invitations_hostname
+  dns_zone             = var.dns_zone
+}
+
 # Dynamodb tables
 module "sdrs_table" {
   source      = "./modules/dynamodb"
