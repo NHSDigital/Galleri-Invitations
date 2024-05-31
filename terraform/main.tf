@@ -1601,6 +1601,37 @@ module "test_result_report_fhir_validation_lambda_trigger" {
   filter_prefix = "record_"
 }
 
+# Send Ack Message
+module "send_ack_message_lambda" {
+  source          = "./modules/lambda"
+  environment     = var.environment
+  bucket_id       = module.s3_bucket.bucket_id
+  lambda_iam_role = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+
+  lambda_function_name = "sendAckMessageLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "send_ack_message_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                   = "${var.environment}"
+    MESH_SANDBOX                  = "false"
+    WORKFLOW_ID                   = "GRAIL_RESULT_ACK"
+    MESH_URL                      = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"]
+    MESH_SHARED_KEY               = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"]
+    MESH_SENDER_MAILBOX_ID        = jsondecode(data.aws_secretsmanager_secret_version.nrds_mesh_mailbox_id.secret_string)["NRDS_MESH_MAILBOX_ID"]
+    MESH_SENDER_MAILBOX_PASSWORD  = jsondecode(data.aws_secretsmanager_secret_version.nrds_mesh_mailbox_password.secret_string)["NRDS_MESH_MAILBOX_PASSWORD"]
+    NRDS_MESH_RECEIVER_MAILBOX_ID = jsondecode(data.aws_secretsmanager_secret_version.nrds_mesh_receiver_mailbox_id.secret_string)["NRDS_MESH_RECEIVER_MAILBOX_ID"]
+    TEST_RESULT_ACK_QUEUE_URL     = module.test_result_ack_queue_sqs.sqs_queue_url
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+module "send_ack_message_SQS_trigger" {
+  source           = "./modules/lambda_sqs_trigger"
+  event_source_arn = module.test_result_ack_queue_sqs.sqs_queue_arn
+  lambda_arn       = module.send_ack_message_lambda.lambda_arn
+}
+
 # Validate Test Cross-check Report using appointment Validation Service
 module "test_cross_check_report_appointment_validation_lambda" {
   source               = "./modules/lambda"
@@ -1626,6 +1657,34 @@ module "test_cross_check_report_appointment_validation_lambda_trigger" {
   bucket_id     = module.inbound_nrds_galleritestresult_step2_success.bucket_id
   lambda_arn    = module.test_cross_check_report_appointment_validation_lambda.lambda_arn
   filter_prefix = "record_"
+}
+
+# Publish test results Lambda
+module "publish_test_results_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "publishTestResultsLambda"
+  lambda_timeout       = 900
+  memory_size          = 1024
+  lambda_s3_object_key = "publish_test_results_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT   = "${var.environment}"
+    SNS_TOPIC_ARN = module.test_result_topic.sns_topic_arn
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+
+module "publish_test_results_dynamodb_stream" {
+  source                             = "./modules/dynamodb_stream"
+  enabled                            = true
+  event_source_arn                   = module.galleri_blood_test_result_table.dynamodb_stream_arn
+  function_name                      = module.publish_test_results_lambda.lambda_function_name
+  starting_position                  = "LATEST"
+  batch_size                         = 200
+  maximum_batching_window_in_seconds = 30
 }
 
 # Onward Referral List Lambda
@@ -1810,6 +1869,19 @@ data "aws_secretsmanager_secret_version" "sand_mesh_mailbox_id" {
 data "aws_secretsmanager_secret_version" "sand_mesh_mailbox_password" {
   secret_id = "SAND_MESH_MAILBOX_PASSWORD"
 }
+
+data "aws_secretsmanager_secret_version" "nrds_mesh_mailbox_id" {
+  secret_id = "NRDS_MESH_MAILBOX_ID"
+}
+
+data "aws_secretsmanager_secret_version" "nrds_mesh_mailbox_password" {
+  secret_id = "NRDS_MESH_MAILBOX_PASSWORD"
+}
+
+data "aws_secretsmanager_secret_version" "nrds_mesh_receiver_mailbox_id" {
+  secret_id = "NRDS_MESH_RECEIVER_MAILBOX_ID"
+}
+
 #END of MESH keys
 
 module "validate_caas_feed_lambda" {
@@ -2353,11 +2425,19 @@ module "appointment_table" {
 }
 
 module "galleri_blood_test_result_table" {
-  source      = "./modules/dynamodb"
-  table_name  = "GalleriBloodTestResult"
-  hash_key    = "Participant_Id"
-  range_key   = "Grail_Id"
-  environment = var.environment
+  source                   = "./modules/dynamodb"
+  billing_mode             = "PROVISIONED"
+  stream_enabled           = true
+  stream_view_type         = "NEW_AND_OLD_IMAGES"
+  table_name               = "GalleriBloodTestResult"
+  hash_key                 = "Participant_Id"
+  range_key                = "Grail_Id"
+  read_capacity            = 10
+  write_capacity           = 10
+  secondary_write_capacity = 10
+  secondary_read_capacity  = 10
+  environment              = var.environment
+  projection_type          = "ALL"
   attributes = [
     {
       name = "Participant_Id"
@@ -2369,8 +2449,7 @@ module "galleri_blood_test_result_table" {
     }
   ]
   tags = {
-    Name        = "Dynamodb Table Galleri Blood Test Result"
-    Environment = var.environment
+    Name = "Dynamodb Table Galleri Blood Test Result"
   }
 }
 

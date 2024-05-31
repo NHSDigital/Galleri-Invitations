@@ -307,6 +307,7 @@ resource "aws_iam_policy" "iam_policy_for_calculate_num_to_invite_lambda" {
   }
 }
 
+# Added sendAckMessageLambda to this policy as lambda role exceeded policy limit
 resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_get_lsoa_in_range_lambda_role"
   path        = "/"
@@ -342,7 +343,21 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
           "Resource" : [
             "arn:aws:lambda:eu-west-2:${var.account_id}:function:${var.environment}-getLsoaParticipantsLambda"
           ]
-        }
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "secretsmanager:GetResourcePolicy",
+            "secretsmanager:GetSecretValue",
+            "secretsmanager:DescribeSecret",
+            "secretsmanager:ListSecretVersionIds"
+          ],
+          "Resource" : [
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:NRDS_MESH_MAILBOX_ID*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:NRDS_MESH_MAILBOX_PASSWORD*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:NRDS_MESH_RECEIVER_MAILBOX_ID*"
+          ]
+        },
       ],
       "Version" : "2012-10-17"
   })
@@ -597,6 +612,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 # Added validateAppointmentCommonDataLambda to this policy as lambda role exceeded policy limit
 # Added appointmentEventCancelledLambda to this policy as lambda role exceeded policy limit
 # Added processAppointmentEventTypeLambda to this policy as lambda role exceeded policy limit
+# Added publishTestResultsLambda to this policy as lambda role exceeded policy limit
 # Added sendInvitationBatchToRawMessageQueueLambda to this policy as lambda role exceeded policy limit
 # Added sendEnrichedMessageToNotifyQueueLambda to this policy as lambda role exceeded policy limit
 # Added sendSingleNotifyMessageLambda to this policy as lambda role exceeded policy limit
@@ -627,7 +643,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           "Sid" : "AllowSNSAccess",
           "Effect" : "Allow",
           "Action" : "sns:Publish",
-          "Resource" : "arn:aws:sns:region:account-id:topic-name"
+          "Resource" : "arn:aws:sns:eu-west-2:${var.account_id}:${var.environment}-testResultTopic"
         },
         {
           "Sid" : "AllowDynamodbAccess",
@@ -651,6 +667,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-NotifySendMessageStatus",
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-APIGatewayLockdownSession",
             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GalleriBloodTestResult",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GalleriBloodTestResult/*/*"
           ]
         },
         {
@@ -931,6 +948,53 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
 #   })
 # }
 
+# Policy required by publishTestResultsLambda
+# resource "aws_iam_policy" "iam_policy_for_publish_test_results_lambda" {
+#   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_publish_test_results_lambda_role"
+#   path        = "/"
+#   description = "AWS IAM Policy for managing aws lambda publishTestResultsLambda"
+#   policy = jsonencode(
+#     {
+#       "Statement" : [
+#         {
+#           "Action" : [
+#             "logs:CreateLogGroup",
+#             "logs:CreateLogStream",
+#             "logs:PutLogEvents"
+#           ],
+#           "Effect" : "Allow",
+#           "Resource" : "arn:aws:logs:*:*:*"
+#         },
+#         {
+#           "Sid" : "AllowGalleriBloodTestResultDynamodbAccess",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "dynamodb:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GalleriBloodTestResult"
+#           ]
+#         },
+#         {
+#           "Sid" : "AllowGalleriBloodTestResultQueryDynamodbAccess",
+#           "Effect" : "Allow",
+#           "Action" : [
+#             "dynamodb:*"
+#           ],
+#           "Resource" : [
+#             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GalleriBloodTestResult/*/*"
+#           ]
+#         },
+#         {
+#           "Sid" : "AllowPublishToMyTopic",
+#           "Effect" : "Allow",
+#           "Action" : "sns:Publish",
+#           "Resource" : "arn:aws:sns:eu-west-2:${var.account_id}:${var.environment}-testResultTopic"
+#         }
+#       ],
+#       "Version" : "2012-10-17"
+#   })
+# }
 
 # Policy required by sendInvitationBatchToRawMessageQueueLambda
 # resource "aws_iam_policy" "iam_policy_for_send_invitation_batch_to_raw_message_queue_lambda" {
@@ -1092,6 +1156,16 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
 #             "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-EpisodeHistory"
 #           ]
 #         },
+#        {
+#          "Sid" : "AllowGalleriBloodTestResultDynamodbAccess",
+#          "Effect" : "Allow",
+#          "Action" : [
+#            "dynamodb:*"
+#          ],
+#          "Resource" : [
+#            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-GalleriBloodTestResult"
+#          ]
+#        }
 #       ],
 #       "Version" : "2012-10-17"
 #   })
@@ -1261,6 +1335,7 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
 #       "Version" : "2012-10-17"
 #   })
 # }
+
 
 # resource "aws_iam_policy" "iam_policy_for_validate_appointment_common_data_lambda" {
 #   name        = "${var.environment}-aws_iam_policy_for_terraform_aws_validate_appointment_common_data_lambda_role"

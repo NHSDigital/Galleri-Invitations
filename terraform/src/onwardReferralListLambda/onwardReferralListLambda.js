@@ -111,7 +111,7 @@ export const lookupParticipantsInfo = async (participantList, client) => {
           "#PN": "Participant_Name",
         },
         ExpressionAttributeValues: participantIds,
-        FilterExpression: "#PI IN (" + participantIds[0].toString() + ")",
+        FilterExpression: "#PI IN (" + participantIds.toString() + ")",
         ProjectionExpression: "#PI, #BDD, #RC, #PN",
         TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
       };

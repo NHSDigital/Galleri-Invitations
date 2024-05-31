@@ -1,0 +1,14 @@
+{
+  "name": "sendAckMessageLambda",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "sendAckMessageLambda.js",
+  "author": "",
+  "dependencies": {
+    "nhs-mesh-client": "^1.0.8",
+    "uuid": "^9.0.1"
+  },
+  "engines": {
+    "nhs-mesh-client": ">=1.06"
+  }
+}
