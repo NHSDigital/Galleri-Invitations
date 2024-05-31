@@ -2,7 +2,6 @@ import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
 import isEqual from "lodash.isequal";
 
 const sns = new SNSClient({ region: "eu-west-2" });
-const ENVIRONMENT = process.env.ENVIRONMENT;
 const SNS_TOPIC_ARN = process.env.SNS_TOPIC_ARN;
 
 /*
@@ -20,9 +19,9 @@ export const handler = async (event) => {
     );
 
     if (filteredRecords.length > 0) {
-      console.warn("Some Records did not update properly");
+      console.warn("Some records did not publish properly");
     } else {
-      return `The episode records have been successfully created.`;
+      return `The test result records have been successfully published.`;
     }
   } catch (error) {
     console.error(`Error: Error in publish test results lambda`);
