@@ -138,6 +138,7 @@ runs:
         npm install --prefix src/gtmsStatusUpdateLambda
         npm install --prefix src/appointmentsEventCancelledLambda
         npm install --prefix src/processAppointmentEventTypeLambda
+        npm install --prefix src/publishTestResultsLambda
         npm install --prefix src/validateGtmsWithdrawalLambda
         npm install --prefix src/authenticatorLambda
         npm install --prefix src/processEventNotificationLambda
