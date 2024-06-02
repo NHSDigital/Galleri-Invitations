@@ -2000,6 +2000,28 @@ module "event_type_triggers" {
   }
 }
 
+module "cancer_signal_origin_add_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "cancerSignalOriginAddLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "cancer_signal_origin_add_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+module "cancer_signal_origin_add_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.proccessed_appointments.bucket_id
+  bucket_arn    = module.proccessed_appointments.bucket_arn
+  lambda_arn    = module.cancer_signal_origin_add_lambda.lambda_arn
+  filter_prefix = "snowmedCode/"
+}
 module "gp_practice_table" {
   source                   = "./modules/dynamodb"
   billing_mode             = "PAY_PER_REQUEST"
