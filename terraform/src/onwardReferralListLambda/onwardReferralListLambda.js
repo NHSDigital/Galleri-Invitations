@@ -103,16 +103,17 @@ export const lookupParticipantsInfo = async (participantList, client) => {
       console.log("------participantIds-------", JSON.stringify(participantIds));
       console.log("------participantIds[0]-------", JSON.stringify(participantIds[0]));
 
-      var idObject = {};
+      //var titleValues = ["The Big New Movie 2012", "The Big New Movie"];
+      var titleObject = {};
       var index = 0;
       participantIds.forEach(function (value) {
         index++;
-        var idKey = value;
-        idObject[idKey.toString()] = index;
+        var titleKey = ":titlevalue" + index;
+        titleObject[titleKey.toString()] = value;
       });
 
-      console.log("------idObject-------", JSON.stringify(idObject));
-      console.log("------Object.keys(idObject).toString()-------", Object.keys(idObject).toString());
+      console.log("------titleObject-------", JSON.stringify(titleObject));
+      console.log("------Object.keys(titleObject).toString()-------", Object.keys(titleObject).toString());
 
       const input = {
         ExpressionAttributeNames: {
@@ -122,7 +123,7 @@ export const lookupParticipantsInfo = async (participantList, client) => {
           "#PN": "Participant_Name",
         },
         ExpressionAttributeValues: idObject,
-        FilterExpression: "#PI IN (" + Object.keys(idObject).toString() + ")",
+        FilterExpression: "#PI IN (" + Object.keys(titleObject).toString() + ")",
         ProjectionExpression: "#PI, #BDD, #RC, #PN",
         TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
       };
