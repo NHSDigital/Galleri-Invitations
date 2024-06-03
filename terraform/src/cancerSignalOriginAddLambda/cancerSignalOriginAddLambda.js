@@ -3,7 +3,7 @@ import {
   DynamoDBClient,
   BatchWriteItemCommand,
 } from "@aws-sdk/client-dynamodb";
-import csv from "csv-parse";
+import csv from "csv-parser";
 import { Readable } from "stream";
 
 const s3 = new S3Client();
@@ -79,19 +79,18 @@ export async function batchWriteCancerSignalOriginTable(
     const putRequests = batch.map((item) => ({
       PutRequest: {
         Item: {
-          Participant_Id: { S: item.Participant_Id },
           Cso_Result_Snomed_Code_Sorted: {
-            S: item.Cso_Result_Snomed_Code_Sorted,
+            S: item.Cso_Result_Snomed_Code_Sorted || "",
           },
-          Grail_Prd_Version: { S: item.Grail_Prd_Version },
-          Grail_Code: { S: item.Grail_Code },
-          Grail_Heading: { S: item.Grail_Heading },
-          Grail_Subheading: { S: item.Grail_Subheading },
+          Grail_Prd_Version: { S: item.Grail_Prd_Version || "" },
+          Grail_Code: { S: item.Grail_Code || "" },
+          Grail_Heading: { S: item.Grail_Heading || "" },
+          Grail_Subheading: { S: item.Grail_Subheading || "" },
           Cso_Result_Snomed_Code_And_Preferred_Term: {
-            S: item.Cso_Result_Snomed_Code_And_Preferred_Term,
+            S: item.Cso_Result_Snomed_Code_And_Preferred_Term || "",
           },
-          Cso_Result_Friendly: { S: item.Cso_Result_Friendly },
-          Created_By: { S: item.Created_By },
+          Cso_Result_Friendly: { S: item.Cso_Result_Friendly || "" },
+          Created_By: { S: item.Created_By || "" },
           Start_Date: { S: "Date Now" },
           End_Date: { S: "End date" },
         },
