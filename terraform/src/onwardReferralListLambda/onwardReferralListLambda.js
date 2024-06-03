@@ -103,6 +103,17 @@ export const lookupParticipantsInfo = async (participantList, client) => {
       console.log("------participantIds-------", JSON.stringify(participantIds));
       console.log("------participantIds[0]-------", JSON.stringify(participantIds[0]));
 
+      var idObject = {};
+      var index = 0;
+      participantIds.forEach(function (value) {
+        index++;
+        var idKey = value;
+        idObject[idKey.toString()] = index;
+      });
+
+      console.log("------idObject-------", JSON.stringify(idObject));
+      console.log("------Object.keys(idObject).toString()-------", Object.keys(idObject).toString());
+
       const input = {
         ExpressionAttributeNames: {
           "#PI": "Participant_Id",
@@ -110,8 +121,8 @@ export const lookupParticipantsInfo = async (participantList, client) => {
           "#RC": "Result_Creation",
           "#PN": "Participant_Name",
         },
-        ExpressionAttributeValues: participantIds,
-        FilterExpression: "#PI IN (" + participantIds.toString() + ")",
+        ExpressionAttributeValues: idObject,
+        FilterExpression: "#PI IN (" + Object.keys(idObject).toString() + ")",
         ProjectionExpression: "#PI, #BDD, #RC, #PN",
         TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
       };
