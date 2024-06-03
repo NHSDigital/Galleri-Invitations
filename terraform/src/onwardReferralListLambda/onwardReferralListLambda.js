@@ -16,10 +16,16 @@ export const handler = async (event, context) => {
 
     console.log("------participantList-------", JSON.stringify(participantList));
 
-    const participantsInfo = await lookupParticipantsInfo(
+    const tableItems = [];
+    let lastEvaluatedItem = {};
+    await lookupParticipantsInfo(
       participantList,
-      client
+      client,
+      lastEvaluatedItem,
+      tableItems
     );
+    const participantsInfo = tableItems.flat();
+
 
     console.log("------participantsInfo-------", JSON.stringify(participantsInfo));
 
@@ -88,7 +94,7 @@ export const lookupParticipantsCsd = async (client) => {
 
 };
 
-export const lookupParticipantsInfo = async (participantList, client) => {
+export const lookupParticipantsInfo = async (participantList, client, lastEvaluatedItem, tableItems) => {
   console.log("Entered function lookupParticipantsInfo");
 
   try {
@@ -104,16 +110,16 @@ export const lookupParticipantsInfo = async (participantList, client) => {
       console.log("------participantIds[0]-------", JSON.stringify(participantIds[0]));
 
       //var titleValues = ["The Big New Movie 2012", "The Big New Movie"];
-      var titleObject = {};
+      var idsObject = {};
       var index = 0;
-      participantIds.forEach(function (value) {
+      participantIds.forEach(function (id) {
         index++;
-        var titleKey = ":titlevalue" + index;
-        titleObject[titleKey.toString()] = value;
+        var titleKey = ":participantId" + index;
+        idsObject[titleKey.toString()] = id;
       });
 
-      console.log("------titleObject-------", JSON.stringify(titleObject));
-      console.log("------Object.keys(titleObject).toString()-------", Object.keys(titleObject).toString());
+      console.log("------idsObject-------", JSON.stringify(idsObject));
+      console.log("------Object.keys(idsObject).toString()-------", Object.keys(idsObject).toString());
 
       const input = {
         ExpressionAttributeNames: {
@@ -122,14 +128,43 @@ export const lookupParticipantsInfo = async (participantList, client) => {
           "#RC": "Result_Creation",
           "#PN": "Participant_Name",
         },
-        ExpressionAttributeValues: idObject,
-        FilterExpression: "#PI IN (" + Object.keys(titleObject).toString() + ")",
+        ExpressionAttributeValues: idsObject,
+        FilterExpression: "#PI IN (" + Object.keys(idsObject).toString() + ")",
         ProjectionExpression: "#PI, #BDD, #RC, #PN",
         TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
       };
 
       const command = new ScanCommand(input);
       const response = await client.send(command);
+
+      if (response.LastEvaluatedKey) {
+        console.log("------1-------", response.LastEvaluatedKey);
+        if (response.$metadata.httpStatusCode == 200) {
+          console.log(
+            "Table is larger than 1Mb hence recursively routing through to obtain all data"
+          );
+          tableItems.push(response.Items);
+          lastEvaluatedItem = response.LastEvaluatedKey;
+          await lookupParticipantsInfo(client, lastEvaluatedItem, tableItems);
+        } else {
+          console.log("Unsuccess");
+          console.error("Response from table encountered an error");
+        }
+      } else {
+        console.log("------2-------");
+        // run last invocation
+        console.log("at last bit");
+        input.ExclusiveStartKey = lastEvaluatedItem;
+        const command = new ScanCommand(input);
+        const response = await client.send(command);
+
+        if (response.$metadata.httpStatusCode == 200) {
+          tableItems.push(response.Items);
+          return `Galleri Test Results table scanned. Returning ${tableItems.length} records`;
+        } else {
+          console.error("Something went wrong with last request");
+        }
+      }
 
       console.log("Exiting function lookupParticipantsInfo");
       return response;
