@@ -36,6 +36,7 @@ export const handler = async(event) => {
  * This function is used to process records that are picked up from the queue.
  * Messages are sent to NHS Notify and will have the response stored in the NotifySendMessageStatus DynamoDB table.
  * Afterwards the message will be deleted from the queue it was picked up from.
+ * @async
  * @param {Array} records The array of records picked up from the SQS queue
  * @param {Object} accessToken Access token object used to send requests to NHS Notify
  * @param {Object} dynamodbClient An instance of a DynamoDB client
@@ -79,6 +80,7 @@ export async function processRecords(records, accessToken, dynamodbClient, sqsCl
 
 /**
  * Function to save details of a successful response into a DynamoDB table
+ * @async
  * @param {Object} messageBody Body of message that was sent
  * @param {string} messageSentAt Timestamp of when the message was sent
  * @param {number} numberOfAttempts Number of attempts for sending the message
@@ -86,6 +88,7 @@ export async function processRecords(records, accessToken, dynamodbClient, sqsCl
  * @param {string} messageReferenceId Message Reference id that was sent with the message
  * @param {string} table Table name of the where to store the successful response details
  * @param {Object} dynamodbClient An instance of a DynamoDB client
+ * @throws {Error} Error related to building or putting record
  */
 export async function putSuccessResponseIntoTable(messageBody, messageSentAt, numberOfAttempts, responseBody, messageReferenceId, table, dynamodbClient) {
   let item;
@@ -133,6 +136,7 @@ export async function putSuccessResponseIntoTable(messageBody, messageSentAt, nu
 
 /**
  * Function to save details of a failed response into a DynamoDB table
+ * @async
  * @param {Object} messageBody Body of message that was sent
  * @param {string} messageSentAt Timestamp of when the message was sent
  * @param {number} numberOfAttempts Number of attempts for sending the message
@@ -141,6 +145,7 @@ export async function putSuccessResponseIntoTable(messageBody, messageSentAt, nu
  * @param {string} messageReferenceId Message Reference id that was sent with the message
  * @param {string} table Table name of the where to store the failed response details
  * @param {Object} dynamodbClient An instance of a DynamoDB client
+ * @throws {Error} Error related to building or putting record
  */
 export async function putFailedResponseIntoTable(messageBody, messageSentAt, numberOfAttempts, statusCode, errorDetails, messageReferenceId, table, dynamodbClient) {
   let item;
@@ -190,10 +195,12 @@ export async function putFailedResponseIntoTable(messageBody, messageSentAt, num
 
 /**
  * Item to be put into the DynamoDB table
+ * @async
  * @param {Object} item Item to be put into the table
  * @param {string} table Table name
  * @param {Object} client An instance of an S3 client
  * @returns {Object} Response returned from the S3 send command
+ * @throws {Error} Error putting record in DynamoDB table
  */
 export async function putItemIntoTable(item, table, client) {
   const input = {
@@ -222,6 +229,7 @@ export async function generateMessageReference() {
 
 /**
  * Send a message to NHS Notify
+ * @async
  * @param {Object} messageBody Message body to be sent
  * @param {Object} token Token to be used to send the request
  * @param {string} messageReferenceId Message reference to be send with the request
@@ -229,6 +237,7 @@ export async function generateMessageReference() {
  * @param {number} initialRetryDelay The initial delay after the first failed attempt
  * @param {number} maxRetries Max number of retries after the first failed attempt
  * @returns {Object} Response object and number of attempts to send the message
+ * @throws {Error} Error sending message to NHS Notify
  */
 export async function sendSingleMessage(messageBody, token, messageReferenceId, messagesEndpoint, initialRetryDelay, maxRetries) {
   const { nhsNumber, routingId, participantId, ...personalisation} = messageBody;
@@ -300,10 +309,12 @@ export async function sendSingleMessage(messageBody, token, messageReferenceId, 
 
 /**
  * Delete message from the SQS queue
+ * @async
  * @param {Object} message message to be deleted from the queue
  * @param {Object} record record to be deleted from the queue
  * @param {string} queue Url of the SQS queue
  * @param {Object} sqsClient An instance of an SQS client
+ * @throws {Error} Failed to delete message error
  */
 export async function deleteMessageInQueue(message,record,queue,sqsClient) {
   const deleteMessageCommand = new DeleteMessageCommand({
@@ -322,9 +333,11 @@ export async function deleteMessageInQueue(message,record,queue,sqsClient) {
 
 /**
  * Get secret from SSM
+ * @async
  * @param {string} secretName Name of secret to be retrieved
  * @param {Object} client An instance of an Secrets Manager client
  * @returns Value of secret
+ * @throws {Error} Failed to get secret
  */
 export const getSecret = async (secretName, client) => {
   try {
@@ -365,9 +378,11 @@ export const generateJWT = (apiKey, tokenEndpointUrl, publicKeyId, privateKey) =
 
 /**
  * Get access token from token endpoint url using signed JWT
+ * @async
  * @param {string} tokenEndpointUrl Endpoint of the token
  * @param {Object} signedJWT Signed JWT previously generated
  * @returns {Object} Object body of response from token endpoint
+ * @throws {Error} Error getting access token
  */
 export const getAccessToken = async (tokenEndpointUrl, signedJWT) => {
   const data = {

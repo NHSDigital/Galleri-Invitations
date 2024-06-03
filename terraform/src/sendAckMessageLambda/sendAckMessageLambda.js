@@ -35,7 +35,7 @@ export const handler = async (event) => {
 /**
  * This function is used to process records that are picked up from the queue.
  * Building a message, sending this message to N-RDS and then deleting it from the queue.
- *
+ * @async
  * @param {Array} records The array of records picked up from the SQS queue
  * @param {Function} handShake Function from the nhs-mesh-client library
  * @param {Function} sendMessage Function from the nhs-mesh-client library
@@ -116,13 +116,14 @@ export async function processRecords(records, handShake, sendMessage, loadConfig
 
 /**
  * Send a message to a Mesh mailbox passed in the config
- *
+ * @async
  * @param {Object} config Configuration object containing information such as keys, certificates and mailbox ids
  * @param {Object} msg Message to be sent
  * @param {string} filename Filename for the message
  * @param {Function} performHandshake Function from the nhs-mesh-client library
  * @param {Function} dispatchMessage Function from the nhs-mesh-client library
  * @returns {number} Status code of the response when calling dispatchMessage
+ * @throws {Error} Request errors
  */
 export async function sendMessageToMesh(
   config,
@@ -173,9 +174,11 @@ export async function sendMessageToMesh(
 
 /**
  * Retrieves a secret from AWS Secrets Manager
+ * @async
  * @param {string} secretName The name of the secret you want to retrieve
  * @param {Object} client Instance of a Secrets Manager client
- * @returns {string} the value of the secret
+ * @returns {string} The value of the secret
+ * @throws {Error} Failed to get secret
  */
 export const getSecret = async (secretName, client) => {
   try {
@@ -194,6 +197,7 @@ export const getSecret = async (secretName, client) => {
 
 /**
  * Reads the secret, converting the secret value to a utf8 string
+ * @async
  * @param {Function} fetchSecret Function to fetch the secret
  * @param {string} secretName Name of the secret to be fetched
  * @param {Object} client Instance of a Secrets Manager Client
@@ -207,6 +211,7 @@ export async function readSecret(fetchSecret, secretName, client) {
 
 /**
  * Builds the message to be sent to the mesh mailbox
+ * @async
  * @param {string} sourceEndpoint Source endpoint of the message
  * @param {string} destinationEndpoint Destination endpoint of the message
  * @param {string} result_id Result id of the acknowledgement
@@ -252,11 +257,13 @@ export async function buildMessage(sourceEndpoint, destinationEndpoint, result_i
 
 /**
  * Delete message in SQS queue
+ * @async
  * @param {string} result_id Result id of the acknowledgement
  * @param {string} ack_code Either Ok or fatal-error
  * @param {Object} record Record picked up from the queue
  * @param {string} queue Url of the queue
  * @param {Object} sqsClient An instance of an SQS Queue
+ * @throws {Error} Failed to delete message error
  */
 export async function deleteMessageInQueue(result_id, ack_code, record, queue, sqsClient) {
   const deleteMessageCommand = new DeleteMessageCommand({

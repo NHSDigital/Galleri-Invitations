@@ -25,6 +25,7 @@ export const handler = async (event, context) => {
 //FUNCTIONS
 /**
  * Process JSON file and send to SQS queue
+ * @async
  * @param {Object} jsonObj Batch of records to be processed
  * @param {Object} client An instance of an SQS client
  */
@@ -68,6 +69,7 @@ export async function processJSONObj(jsonObj, client) {
 
 /**
  * Retrieve and parse the JSON file
+ * @async
  * @param {Function} getJSONFunc Function to retrieve a JSON file from a bucket
  * @param {string} bucket Name of bucket
  * @param {string} key Object key
@@ -86,10 +88,12 @@ export const retrieveAndParseJSON = async (
 
 /**
  * Get JSON file from the bucket
+ * @async
  * @param {string} bucketName Name of bucket
  * @param {string} key Object key
  * @param {Object} client An Instance of an S3 client
  * @returns {string} Body of file transformed into a string
+ * @throws {Error} Failed to get object from S3
  */
 export async function getJSONFromS3(bucketName, key, client) {
   console.log(`Getting object key ${key} from bucket ${bucketName}`);
