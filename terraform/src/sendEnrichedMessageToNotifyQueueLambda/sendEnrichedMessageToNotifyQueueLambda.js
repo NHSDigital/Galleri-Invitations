@@ -43,7 +43,7 @@ export const handler = async (event) => {
  * @param {Array} records The array of records picked up from the SQS queue
  * @param {Object} sqsClient Instance of an SQS client
  * @param {Object} dynamoDbClient Instance of a DynamoDB client
- * @param {*} ssmClient Instance of an SSM client
+ * @param {Object} ssmClient Instance of an SSM client
  * @param {string} environment Environment name
  */
 export async function processRecords(
@@ -112,10 +112,10 @@ export async function processRecords(
 /**
  * Enriches message with data from the tables given
  * @param {Object} message Raw message
- * @param {*} tables Tables to be queried to enrich message
- * @param {*} routingId Routing Id to enrich message with
- * @param {*} dynamoDbClient Instance of a DynamoDB client
- * @param {*} environment Environment name
+ * @param {string} tables Tables to be queried to enrich message
+ * @param {string} routingId Routing Id to enrich message with
+ * @param {Object} dynamoDbClient Instance of a DynamoDB client
+ * @param {string} environment Environment name
  * @returns {Object} Enriched message
  */
 export async function enrichMessage(

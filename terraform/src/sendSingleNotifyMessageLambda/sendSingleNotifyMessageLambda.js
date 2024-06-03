@@ -343,10 +343,10 @@ export const getSecret = async (secretName, client) => {
 
 /**
  * Generates the JWT token
- * @param {*} apiKey Api key
- * @param {*} tokenEndpointUrl Token endpoint URL
- * @param {*} publicKeyId Public Key Id
- * @param {*} privateKey Private Key
+ * @param {string} apiKey Api key
+ * @param {string} tokenEndpointUrl Token endpoint URL
+ * @param {string} publicKeyId Public Key Id
+ * @param {string} privateKey Private Key
  * @returns {Object} Signed JWT
  */
 export const generateJWT = (apiKey, tokenEndpointUrl, publicKeyId, privateKey) => {
@@ -366,7 +366,7 @@ export const generateJWT = (apiKey, tokenEndpointUrl, publicKeyId, privateKey) =
 /**
  * Get access token from token endpoint url using signed JWT
  * @param {string} tokenEndpointUrl Endpoint of the token
- * @param {*} signedJWT Signed JWT previously generated
+ * @param {Object} signedJWT Signed JWT previously generated
  * @returns {Object} Object body of response from token endpoint
  */
 export const getAccessToken = async (tokenEndpointUrl, signedJWT) => {
