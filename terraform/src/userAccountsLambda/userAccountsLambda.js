@@ -13,6 +13,14 @@ const regexRole = /^Invitation Planner$|^Referring Clinician$|^Invitation Planne
 const regexName = /^[a-zA-Z][a-zA-Z 0-9\-]*$/;
 const regexEmail = /^[a-zA-Z][a-zA-Z@_0-9\.\-]+$/;
 
+/**
+ * Lambda handler to process an upload user accounts csv file.
+ * @function handler
+ * @async
+ * @param {Object} event - S3 event notification.
+ * @returns {string} Message that processing completed successfully.
+ * @throws {Error} Processing error.
+ */
 export const handler = async (event) => {
   const bucket = event.Records[0].s3.bucket.name;
   const key = decodeURIComponent(
@@ -33,6 +41,13 @@ export const handler = async (event) => {
   }
 };
 
+/**
+ * Validates the UUID, Status, Role, Name and Email Address fields in
+ * each user account object.
+ * @function validateData
+ * @param {Array} dataArray - Array of user account csv objects.
+ * @throws {Error} Validation error.
+ */
 export const validateData = (dataArray) => {
   console.log(`Validating data`);
   for (let i = 0; i < dataArray.length; i++) {
@@ -61,6 +76,15 @@ export const validateData = (dataArray) => {
   }
 };
 
+/**
+ * Saves new or updates existing user accounts to the UserAccounts table.
+ * @function saveArrayToTable
+ * @async
+ * @param {Array} dataArray - Array of user account csv objects.
+ * @param {string} environment - Name of environment.
+ * @param {DynamoDBClient} client - Dynamodb client.
+ * @returns {Promise}
+ */
 export const saveArrayToTable = async (dataArray, environment, client) => {
   console.log(`Populating database table`);
   const dateTime = new Date(Date.now()).toISOString();
@@ -129,6 +153,13 @@ export const saveArrayToTable = async (dataArray, environment, client) => {
   );
 };
 
+/**
+ * Parses a csv string to an array of user account csv objects.
+ * @function parseCsvToArray
+ * @async
+ * @param {string} csvString - Csv string.
+ * @returns {Promise}
+ */
 export const parseCsvToArray = async (csvString) => {
   console.log("Parsing csv string");
   const dataArray = [];
@@ -150,6 +181,16 @@ export const parseCsvToArray = async (csvString) => {
   });
 };
 
+/**
+ * Reads an S3 object.
+ * @function readCsvFromS3
+ * @async
+ * @param {string} bucketName - S3 bucket name.
+ * @param {string} key - S3 object key.
+ * @param {S3Client} client - S3 client.
+ * @returns {string} S3 object content string.
+ * @throws {Error}
+ */
 export const readCsvFromS3 = async (bucketName, key, client) => {
   console.log(`Reading object ${key} from bucket ${bucketName}`);
   try {
@@ -169,6 +210,18 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
   }
 };
 
+/**
+ * Queries a table item.
+ * @function lookUp
+ * @async
+ * @param {DynamoDBClient} dbClient - Dynamodb client.
+ * @param {string} id - Item attribute value.
+ * @param {string} table - Table name.
+ * @param {string} attribute - Item attribute name.
+ * @param {string} attributeType - Item attribute type.
+ * @param {boolean} useIndex - use index for attribute.
+ * @returns {Object} Query response.
+ */
 export const lookUp = async (dbClient, ...params) => {
   const [id, table, attribute, attributeType, useIndex] = params;
 
