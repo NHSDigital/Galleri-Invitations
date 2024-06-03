@@ -141,6 +141,32 @@ export const lookupParticipantsInfo = async (participantList, client, lastEvalua
       // const command = new ScanCommand(input);
       // const response = await client.send(command);
 
+
+
+      console.log("------2222222-------");
+
+      var abc = "NHS-DL50-ER34";
+      const input2 = {
+        ExpressionAttributeNames: {
+          "#PI": "Participant_Id",
+          "#BDD": "Blood_Draw_Date",
+          "#RC": "Result_Creation",
+          "#PN": "Participant_Name",
+        },
+        ExpressionAttributeValues: abc,
+        FilterExpression: "#PI IN (" + abc.toString() + ")",
+        ProjectionExpression: "#PI, #BDD, #RC, #PN",
+        TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
+      };
+
+      const command2 = new ScanCommand(input2);
+      const response2 = await client.send(command2);
+      console.log("------response2-------", response2.Items);
+
+
+
+
+      
       console.log("------111111-------");
 
         let ExpressionAttributeValues1 = {};
@@ -167,28 +193,6 @@ export const lookupParticipantsInfo = async (participantList, client, lastEvalua
       const response1 = await client.send(command1);
       console.log("------response1-------", response1.Items);
 
-
-
-
-      console.log("------2222222-------");
-
-      var abc = "NHS-DL50-ER34";
-      const input2 = {
-        ExpressionAttributeNames: {
-          "#PI": "Participant_Id",
-          "#BDD": "Blood_Draw_Date",
-          "#RC": "Result_Creation",
-          "#PN": "Participant_Name",
-        },
-        ExpressionAttributeValues: abc,
-        FilterExpression: "#PI IN (" + abc.toString() + ")",
-        ProjectionExpression: "#PI, #BDD, #RC, #PN",
-        TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
-      };
-
-      const command2 = new ScanCommand(input2);
-      const response2 = await client.send(command2);
-      console.log("------response2-------", response2.Items);
 
 
 
