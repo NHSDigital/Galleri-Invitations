@@ -32,6 +32,13 @@ export const handler = async (event, context) => {
 };
 
 //FUNCTIONS
+/**
+ * Validate the test result report and depending on outcome put it into the correct s3 bucket.
+ * @param {Object} testResultReport Test result report as a JSON object
+ * @param {string} reportName Name of the test report file
+ * @param {string} originalBucket Name of originating bucket
+ * @param {Object} s3 An instance of an S3 client
+ */
 export async function processTRR(testResultReport, reportName, originalBucket, s3) {
   const validTRR = await validateTRR(testResultReport, reportName, validationServiceUrl);
   if (validTRR) {
@@ -43,6 +50,13 @@ export async function processTRR(testResultReport, reportName, originalBucket, s
 };
 
 // Validate TRR
+/**
+ * Validates a given test result report by sending it to a FHIR validation service
+ * @param {Object} testResultReport Test result report to be given validated
+ * @param {string} reportName Name of the test report file
+ * @param {string} validationServiceUrl URL of the validation service
+ * @returns {boolean} Returns true if report is valid otherwise return false
+ */
 export async function validateTRR(testResultReport, reportName, validationServiceUrl) {
   try {
     const response = await axios({
@@ -72,6 +86,14 @@ export async function validateTRR(testResultReport, reportName, validationServic
 };
 
 // Move TRR to S3 bucket
+/**
+ * Put Test result report in an S3 bucket
+ * @param {Object} testResultReport Test result report to be put in a bucket
+ * @param {string} reportName Name of the test report file
+ * @param {string} bucketName Name of the S3 bucket to be used
+ * @param {Object} client An instance of an S3 client
+ * @returns {Object} Response from the s3 send command
+ */
 export async function putTRRInS3Bucket(testResultReport, reportName, bucketName, client) {
   try {
     const response = await client.send(
@@ -91,6 +113,13 @@ export async function putTRRInS3Bucket(testResultReport, reportName, bucketName,
   }
 };
 
+/**
+ * Delete a test result report from an S3 bucket
+ * @param {string} reportName Test result report to be deleted from a bucket
+ * @param {string} bucketName Name of the S3 bucket to be used
+ * @param {Object} client An instance of an S3 client
+ * @returns {Object} Response from the s3 send command
+ */
 export async function deleteTRRinS3Bucket(reportName, bucketName, client) {
   try {
     const response = await client.send(
@@ -122,7 +151,14 @@ export function responseHasErrors(response, reportName) {
   return hasError;
 };
 
-// Retrieve and Parse the JSON file
+/**
+ * Retrieve and parse the JSON file
+ * @param {Function} getJSONFunc Function to retrieve a JSON file from a bucket
+ * @param {string} bucket Name of bucket
+ * @param {string} key Object key
+ * @param {Object} client An Instance of an S3 client
+ * @returns {Object} Parsed JSON object
+ */
 export const retrieveAndParseJSON = async (
   getJSONFunc,
   bucket,
@@ -133,7 +169,13 @@ export const retrieveAndParseJSON = async (
   return JSON.parse(JSONMsgStr);
 };
 
-// Get JSON File from the bucket
+/**
+ * Get JSON file from the bucket
+ * @param {string} bucketName Name of bucket
+ * @param {string} key Object key
+ * @param {Object} client An Instance of an S3 client
+ * @returns {string} Body of file transformed into a string
+ */
 export async function getJSONFromS3(bucketName, key, client) {
   console.log(`Getting object key ${key} from bucket ${bucketName}`);
   try {
@@ -152,7 +194,12 @@ export async function getJSONFromS3(bucketName, key, client) {
   }
 }
 
-//Return 'Secret value' from secrets manager by passing in 'Secret name'
+/**
+ * Get secret from SSM
+ * @param {string} secretName Name of secret to be retrieved
+ * @param {Object} client An instance of an Secrets Manager client
+ * @returns Value of secret
+ */
 export const getSecret = async (secretName, client) => {
   try {
     const response = await client.send(

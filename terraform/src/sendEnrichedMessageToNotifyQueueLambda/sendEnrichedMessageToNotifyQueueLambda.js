@@ -36,6 +36,16 @@ export const handler = async (event) => {
 };
 
 //FUNCTIONS
+/**
+ * This function is used to process records that are picked up from the queue.
+ * Each message in enriched with further information depending on the type of episode event and
+ * then send to the next queue.
+ * @param {Array} records The array of records picked up from the SQS queue
+ * @param {Object} sqsClient Instance of an SQS client
+ * @param {Object} dynamoDbClient Instance of a DynamoDB client
+ * @param {*} ssmClient Instance of an SSM client
+ * @param {string} environment Environment name
+ */
 export async function processRecords(
   records,
   sqsClient,
@@ -99,6 +109,15 @@ export async function processRecords(
   );
 }
 
+/**
+ * Enriches message with data from the tables given
+ * @param {Object} message Raw message
+ * @param {*} tables Tables to be queried to enrich message
+ * @param {*} routingId Routing Id to enrich message with
+ * @param {*} dynamoDbClient Instance of a DynamoDB client
+ * @param {*} environment Environment name
+ * @returns {Object} Enriched message
+ */
 export async function enrichMessage(
   message,
   tables,
@@ -170,6 +189,13 @@ export async function enrichMessage(
   }
 }
 
+/**
+ * Send message to specified SQS queue
+ * @param {Object} message Message to be sent
+ * @param {Object} record Record to be used for logging
+ * @param {string} queue Url of the queue
+ * @param {Object} sqsClient An instance of an SQS client
+ */
 export async function sendMessageToQueue(message, record, queue, sqsClient) {
   const sendMessageCommand = new SendMessageCommand({
     QueueUrl: queue,
@@ -190,6 +216,13 @@ export async function sendMessageToQueue(message, record, queue, sqsClient) {
   }
 }
 
+/**
+ * Delete message in SQS queue
+ * @param {Object} message Message to be deleted
+ * @param {Object} record Record picked up from the queue
+ * @param {string} queue Url of the queue
+ * @param {Object} sqsClient An instance of an SQS client
+ */
 export async function deleteMessageInQueue(message, record, queue, sqsClient) {
   const deleteMessageCommand = new DeleteMessageCommand({
     QueueUrl: queue,
@@ -209,6 +242,15 @@ export async function deleteMessageInQueue(message, record, queue, sqsClient) {
   }
 }
 
+/**
+ * Queries DynamoDB table and returns items found based on primary key field/value
+ * @param {Object} dynamoDbClient An instance of a DynamoDB client
+ * @param {string} tableName Table name
+ * @param {string} pKeyField Primary key field name
+ * @param {string} pKeyValue Primary key value
+ * @param {string} environment Environment name
+ * @returns {Array} Items returned from query
+ */
 export async function queryTable(
   dynamoDbClient,
   tableName,
@@ -239,7 +281,11 @@ export async function queryTable(
   }
 }
 
-// Converts the Episode Type given by the message from the queue into a format used to lookup the event in the parameter store
+/**
+ * Converts the Episode Type given by the message from the queue into a format used to lookup the event in the parameter store
+ * @param {string} type Episode event type from message
+ * @returns {string} Formatted episode type
+ */
 export function formatEpisodeType(type) {
   return type
     .toLowerCase()
@@ -247,6 +293,12 @@ export function formatEpisodeType(type) {
     .replace(/(^-)|(-$)/g, "");
 }
 
+/**
+ * Get the parameter value from SSM
+ * @param {string} parameterName Parameter to be retrieved
+ * @param {Object} ssmClient An instance of an SSM client
+ * @returns {string} Retrieved parameter value
+ */
 export async function getParameterValue(parameterName, ssmClient) {
   const params = {
     Name: parameterName,
