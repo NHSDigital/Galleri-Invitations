@@ -1600,6 +1600,92 @@ module "test_result_report_fhir_validation_lambda_trigger" {
   filter_prefix = "record_"
 }
 
+# Send Ack Message
+module "send_ack_message_lambda" {
+  source          = "./modules/lambda"
+  environment     = var.environment
+  bucket_id       = module.s3_bucket.bucket_id
+  lambda_iam_role = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+
+  lambda_function_name = "sendAckMessageLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "send_ack_message_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                   = "${var.environment}"
+    MESH_SANDBOX                  = "false"
+    WORKFLOW_ID                   = "GRAIL_RESULT_ACK"
+    MESH_URL                      = jsondecode(data.aws_secretsmanager_secret_version.mesh_url.secret_string)["MESH_URL"]
+    MESH_SHARED_KEY               = jsondecode(data.aws_secretsmanager_secret_version.mesh_shared_key.secret_string)["MESH_SHARED_KEY"]
+    MESH_SENDER_MAILBOX_ID        = jsondecode(data.aws_secretsmanager_secret_version.nrds_mesh_mailbox_id.secret_string)["NRDS_MESH_MAILBOX_ID"]
+    MESH_SENDER_MAILBOX_PASSWORD  = jsondecode(data.aws_secretsmanager_secret_version.nrds_mesh_mailbox_password.secret_string)["NRDS_MESH_MAILBOX_PASSWORD"]
+    NRDS_MESH_RECEIVER_MAILBOX_ID = jsondecode(data.aws_secretsmanager_secret_version.nrds_mesh_receiver_mailbox_id.secret_string)["NRDS_MESH_RECEIVER_MAILBOX_ID"]
+    TEST_RESULT_ACK_QUEUE_URL     = module.test_result_ack_queue_sqs.sqs_queue_url
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+module "send_ack_message_SQS_trigger" {
+  source           = "./modules/lambda_sqs_trigger"
+  event_source_arn = module.test_result_ack_queue_sqs.sqs_queue_arn
+  lambda_arn       = module.send_ack_message_lambda.lambda_arn
+}
+
+# Validate Test Cross-check Report using appointment Validation Service
+module "test_cross_check_report_appointment_validation_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "testCrossCheckReportAppointmentValidationLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "test_cross_check_report_appointment_validation_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT                = "${var.environment}"
+    CR_TRR_SUCCESSFUL_BUCKET   = "inbound-nrds-galleritestresult-step3-success"
+    CR_TRR_UNSUCCESSFUL_BUCKET = "inbound-nrds-galleritestresult-step3-error"
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+
+module "test_cross_check_report_appointment_validation_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_arn    = module.inbound_nrds_galleritestresult_step2_success.bucket_arn
+  bucket_id     = module.inbound_nrds_galleritestresult_step2_success.bucket_id
+  lambda_arn    = module.test_cross_check_report_appointment_validation_lambda.lambda_arn
+  filter_prefix = "record_"
+}
+
+# Publish test results Lambda
+module "publish_test_results_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "publishTestResultsLambda"
+  lambda_timeout       = 900
+  memory_size          = 1024
+  lambda_s3_object_key = "publish_test_results_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT   = "${var.environment}"
+    SNS_TOPIC_ARN = module.test_result_topic.sns_topic_arn
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+
+module "publish_test_results_dynamodb_stream" {
+  source                             = "./modules/dynamodb_stream"
+  enabled                            = true
+  event_source_arn                   = module.galleri_blood_test_result_table.dynamodb_stream_arn
+  function_name                      = module.publish_test_results_lambda.lambda_function_name
+  starting_position                  = "LATEST"
+  batch_size                         = 200
+  maximum_batching_window_in_seconds = 30
+}
+
 # Dynamodb tables
 module "sdrs_table" {
   source      = "./modules/dynamodb"
@@ -1754,6 +1840,19 @@ data "aws_secretsmanager_secret_version" "sand_mesh_mailbox_id" {
 data "aws_secretsmanager_secret_version" "sand_mesh_mailbox_password" {
   secret_id = "SAND_MESH_MAILBOX_PASSWORD"
 }
+
+data "aws_secretsmanager_secret_version" "nrds_mesh_mailbox_id" {
+  secret_id = "NRDS_MESH_MAILBOX_ID"
+}
+
+data "aws_secretsmanager_secret_version" "nrds_mesh_mailbox_password" {
+  secret_id = "NRDS_MESH_MAILBOX_PASSWORD"
+}
+
+data "aws_secretsmanager_secret_version" "nrds_mesh_receiver_mailbox_id" {
+  secret_id = "NRDS_MESH_RECEIVER_MAILBOX_ID"
+}
+
 #END of MESH keys
 
 module "validate_caas_feed_lambda" {
@@ -2287,11 +2386,19 @@ module "appointment_table" {
 }
 
 module "galleri_blood_test_result_table" {
-  source      = "./modules/dynamodb"
-  table_name  = "GalleriBloodTestResult"
-  hash_key    = "Participant_Id"
-  range_key   = "Grail_Id"
-  environment = var.environment
+  source                   = "./modules/dynamodb"
+  billing_mode             = "PROVISIONED"
+  stream_enabled           = true
+  stream_view_type         = "NEW_AND_OLD_IMAGES"
+  table_name               = "GalleriBloodTestResult"
+  hash_key                 = "Participant_Id"
+  range_key                = "Grail_Id"
+  read_capacity            = 10
+  write_capacity           = 10
+  secondary_write_capacity = 10
+  secondary_read_capacity  = 10
+  environment              = var.environment
+  projection_type          = "ALL"
   attributes = [
     {
       name = "Participant_Id"
@@ -2303,8 +2410,7 @@ module "galleri_blood_test_result_table" {
     }
   ]
   tags = {
-    Name        = "Dynamodb Table Galleri Blood Test Result"
-    Environment = var.environment
+    Name = "Dynamodb Table Galleri Blood Test Result"
   }
 }
 
@@ -2362,7 +2468,7 @@ resource "aws_ssm_parameter" "invited-notify" {
 resource "aws_ssm_parameter" "invited-routing-id" {
   name      = "invited-routing-id"
   type      = "String"
-  value     = "a91601f5-ed53-4472-bbaa-580f418c7091"
+  value     = "cf66590a-c6bd-4b29-b571-67a63e33ff0e"
   overwrite = true
 }
 
@@ -2383,7 +2489,7 @@ resource "aws_ssm_parameter" "withdrawn-notify" {
 resource "aws_ssm_parameter" "withdrawn-routing-id" {
   name      = "withdrawn-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "687f4bb8-7fb4-4814-96c1-1ee23299b6d1"
   overwrite = true
 }
 
@@ -2404,7 +2510,7 @@ resource "aws_ssm_parameter" "appointment-booked-letter-notify" {
 resource "aws_ssm_parameter" "appointment-booked-letter-routing-id" {
   name      = "appointment-booked-letter-routing-id"
   type      = "String"
-  value     = "4c4c4c06-0f6d-465a-ab6a-ca358c2721b0"
+  value     = "5a966acc-69c8-4596-8071-60ba3fa6696f"
   overwrite = true
 }
 
@@ -2425,7 +2531,7 @@ resource "aws_ssm_parameter" "appointment-booked-text-notify" {
 resource "aws_ssm_parameter" "appointment-booked-text-routing-id" {
   name      = "appointment-booked-text-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "37fb0375-5acc-454b-ac61-ad2d064a9c8a"
   overwrite = true
 }
 
@@ -2446,7 +2552,7 @@ resource "aws_ssm_parameter" "appointment-rebooked-letter-notify" {
 resource "aws_ssm_parameter" "appointment-rebooked-letter-routing-id" {
   name      = "appointment-rebooked-letter-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "5a966acc-69c8-4596-8071-60ba3fa6696f"
   overwrite = true
 }
 
@@ -2467,7 +2573,7 @@ resource "aws_ssm_parameter" "appointment-rebooked-text-notify" {
 resource "aws_ssm_parameter" "appointment-rebooked-text-routing-id" {
   name      = "appointment-rebooked-text-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "37fb0375-5acc-454b-ac61-ad2d064a9c8a"
   overwrite = true
 }
 
@@ -2488,7 +2594,7 @@ resource "aws_ssm_parameter" "appointment-cancelled-by-nhs-notify" {
 resource "aws_ssm_parameter" "appointment-cancelled-by-nhs-routing-id" {
   name      = "appointment-cancelled-by-nhs-routing-id"
   type      = "String"
-  value     = "841ebf60-4ffa-45d3-874b-b3e9db895c70"
+  value     = "14075266-e14a-4aec-8ddb-a8e9bab15963"
   overwrite = true
 }
 
@@ -2508,7 +2614,7 @@ resource "aws_ssm_parameter" "appointment-cancelled-by-participant-notify" {
 resource "aws_ssm_parameter" "appointment-cancelled-by-participant-routing-id" {
   name      = "appointment-cancelled-by-participant-routing-id"
   type      = "String"
-  value     = "841ebf60-4ffa-45d3-874b-b3e9db895c70"
+  value     = "d966ae5c-ff4b-4472-8270-ab8d2c88a245"
   overwrite = true
 }
 
@@ -2539,7 +2645,6 @@ resource "aws_ssm_parameter" "appointment-cancelled-by-participant-withdrawn-tab
   value     = "Null"
   overwrite = true
 }
-
 
 resource "aws_ssm_parameter" "appointment-attended-sample-taken-notify" {
   name      = "appointment-attended-sample-taken-notify"
@@ -2593,14 +2698,14 @@ resource "aws_ssm_parameter" "result-no-csd-notify" {
 resource "aws_ssm_parameter" "result-no-csd-routing-id" {
   name      = "result-no-csd-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "3f2a604a-b6ac-40bd-bc56-68f7d3618422"
   overwrite = true
 }
 
 resource "aws_ssm_parameter" "result-no-csd-tables" {
   name      = "result-no-csd-tables"
   type      = "StringList"
-  value     = "appointment, phlebotomy"
+  value     = "appointment"
   overwrite = true
 }
 
@@ -2614,14 +2719,14 @@ resource "aws_ssm_parameter" "result-cancelled-test-notify" {
 resource "aws_ssm_parameter" "result-cancelled-test-routing-id" {
   name      = "result-cancelled-test-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "f8bd0e2c-f10a-4134-8d07-09b8cef6d290"
   overwrite = true
 }
 
 resource "aws_ssm_parameter" "result-cancelled-test-tables" {
   name      = "result-cancelled-test-tables"
   type      = "StringList"
-  value     = "appointment, phlebotomy"
+  value     = "appointment"
   overwrite = true
 }
 
@@ -2635,7 +2740,7 @@ resource "aws_ssm_parameter" "referred-notify" {
 resource "aws_ssm_parameter" "referred-routing-id" {
   name      = "referred-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "03ac0e78-be6b-4dd8-9339-56e6a6bbc793"
   overwrite = true
 }
 
@@ -2715,7 +2820,7 @@ resource "aws_ssm_parameter" "contact-escalation-notify" {
 resource "aws_ssm_parameter" "contact-escalation-routing-id" {
   name      = "contact-escalation-routing-id"
   type      = "String"
-  value     = "Unavailable"
+  value     = "b99e52d3-2c20-4750-98ff-6b1c6c3bacb9"
   overwrite = true
 }
 
