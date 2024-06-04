@@ -200,12 +200,16 @@ export const lookupParticipantsInfo = async (participantList, client, lastEvalua
 
       console.log("------222222222-------");
 
-      let ExpressionAttributeValues2 = {};
-      let filter = "";
-      participantIds.forEach((element, index) => {
-        filter += `:val${index}, `;
-        ExpressionAttributeValues2[`:val${index}`] = element;
+      var idsObject = {};
+      var index = 0;
+      participantIds.forEach(function (id) {
+        index++;
+        var titleKey = ":pId" + index;
+        idsObject[titleKey.toString()] = {S: id};
       });
+
+      console.log("------idsObject-------", JSON.stringify(idsObject));
+      console.log("------Object.keys(idsObject).toString()-------", Object.keys(idsObject).toString());
 
       const input2 = {
         ExpressionAttributeNames: {
@@ -215,7 +219,7 @@ export const lookupParticipantsInfo = async (participantList, client, lastEvalua
           "#PN": "Participant_Name",
         },
         ExpressionAttributeValues: ExpressionAttributeValues2,
-        FilterExpression: "#PI IN (" + filter.substring(0, filter.length - 2) + ")",
+        FilterExpression: "#PI IN (" + Object.keys(idsObject).toString() + ")",
         ProjectionExpression: "#PI, #BDD, #RC, #PN",
         TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
       };
