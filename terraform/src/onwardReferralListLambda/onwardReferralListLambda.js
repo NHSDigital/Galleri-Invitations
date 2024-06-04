@@ -153,7 +153,12 @@ export const lookupParticipantsInfo = async (participantList, client, lastEvalua
           "#RC": "Result_Creation",
           "#PN": "Participant_Name",
         },
-        FilterExpression: "Participant_Id IN ( NHS-DL50-ER34 )",
+        ExpressionAttributeValues: {
+          ":a": {
+            S: "NHS-DL50-ER34",
+          },
+        },
+        FilterExpression: "Participant_Id = :a",
         ProjectionExpression: "#PI, #BDD, #RC, #PN",
         TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
       };
@@ -164,17 +169,44 @@ export const lookupParticipantsInfo = async (participantList, client, lastEvalua
 
 
 
+      console.log("------1111111222-------");
 
-      
+      var abc = "NHS-DL50-ER34";
+      const input12 = {
+        ExpressionAttributeNames: {
+          "#PI": "Participant_Id",
+          "#BDD": "Blood_Draw_Date",
+          "#RC": "Result_Creation",
+          "#PN": "Participant_Name",
+        },
+        ExpressionAttributeValues: {
+          ":a": {
+            S: "NHS-DL50-ER34",
+          },
+        },
+        FilterExpression: "Participant_Id IN (:a)",
+        ProjectionExpression: "#PI, #BDD, #RC, #PN",
+        TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
+      };
+
+      const command12 = new ScanCommand(input12);
+      const response12 = await client.send(command12);
+      console.log("------response122-------", response12.Items);
+
+
+
+
+
+
       console.log("------222222222-------");
 
-        let ExpressionAttributeValues2 = {};
-        let filter = "";
-        participantIds.forEach((element, index) => {
-          filter += `:val${index}, `;
-          ExpressionAttributeValues2[`:val${index}`] = element;
-        });
-      
+      let ExpressionAttributeValues2 = {};
+      let filter = "";
+      participantIds.forEach((element, index) => {
+        filter += `:val${index}, `;
+        ExpressionAttributeValues2[`:val${index}`] = element;
+      });
+
       const input2 = {
         ExpressionAttributeNames: {
           "#PI": "Participant_Id",
