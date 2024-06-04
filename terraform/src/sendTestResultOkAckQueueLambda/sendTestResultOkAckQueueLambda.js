@@ -1,7 +1,13 @@
 //IMPORTS
 import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 
-//HANDLER
+/**
+ * Lambda handler function to process SNS messages and send them to an SQS queue.
+ *
+ * @function handler
+ * @async
+ * @param {Object} event - The Lambda event object containing SNS message details.
+ */
 export const handler = async (event) => {
   // VARIABLES
   const QUEUE_URL = process.env.TEST_RESULT_ACK_QUEUE_URL;
@@ -27,7 +33,18 @@ export const handler = async (event) => {
 };
 
 //FUNCTIONS
-// Function to process the message published on SNS Topic and send Message to SQS Queue
+
+/**
+ * process the message published on SNS Topic and sends a message to the SQS Queue.
+ *
+ * @function processSnsMessage
+ * @async
+ * @param {Object} message - The message object to be sent to the SQS queue.
+ * @param {string} queue - The SQS queue URL.
+ * @param {Object} sqsClient - The SQS client.
+ * @param {string} snsMessageId - The SNS message ID.
+ * @throws {Error}  Will throw an error if sending message to SQS fails.
+ */
 export async function processSnsMessage(
   event,
   sendMsgToSqs,
@@ -60,7 +77,17 @@ export async function processSnsMessage(
   }
 }
 
-// Function to send Message to SQS Queue
+/**
+ * Sends a message to the SQS Queue.
+ *
+ * @function sendMessageToQueue
+ * @async
+ * @param {Object} message - The message object to be sent to the SQS queue.
+ * @param {string} queue - The SQS queue URL.
+ * @param {Object} sqsClient - The SQS client.
+ * @param {string} snsMessageId - The SNS message ID.
+ * @throws {Error} Will throw an error if sending message to SQS fails.
+ */
 export async function sendMessageToQueue(
   message,
   queue,

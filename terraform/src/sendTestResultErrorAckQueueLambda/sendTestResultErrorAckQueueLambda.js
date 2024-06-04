@@ -3,6 +3,13 @@ import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 //HANDLER
+/**
+ * Lambda handler function to process S3 events and send messages to an SQS queue.
+ *
+ * @function handler
+ * @async
+ * @param {Object} event - The Lambda event object containing S3 event details.
+ */
 export const handler = async (event) => {
   // VARIABLES
   const QUEUE_URL = process.env.TEST_RESULT_ACK_QUEUE_URL;
@@ -43,7 +50,18 @@ export const handler = async (event) => {
 };
 
 //FUNCTIONS
-// Function to send Message to SQS Queue
+
+/**
+ * Sends a message to the SQS Queue.
+ *
+ * @function sendMessageToQueue
+ * @async
+ * @param {Object} message - The message object to be sent to the SQS queue.
+ * @param {string} queue - The SQS queue URL.
+ * @param {Object} sqsClient - The SQS client.
+ * @param {string} snsMessageId - The SNS message ID.
+ * @throws {Error} Will throw an error if sending message to SQS fails.
+ */
 export async function sendMessageToQueue(message, queue, sqsClient, key) {
   const sendMessageCommand = new SendMessageCommand({
     QueueUrl: queue,
@@ -60,7 +78,18 @@ export async function sendMessageToQueue(message, queue, sqsClient, key) {
   }
 }
 
-// Retrieve and Parse the JSON file
+/**
+ * This function retrieves and parse JSON file from S3 bucket
+ *
+ * @function retrieveAndParseJSON
+ * @async
+ * @param {Function} getJSONFunc - Function to get JSON from S3
+ * @param {string} bucket - S3 bucket name
+ * @param {string} key - S3 object key
+ * @param {Object} client - S3 client
+ * @returns {Object} Parsed JSON object
+ * @throws {Error} If there is an error retrieving or parsing the JSON file
+ */
 export const retrieveAndParseJSON = async (
   getJSONFunc,
   bucket,
@@ -78,7 +107,17 @@ export const retrieveAndParseJSON = async (
   }
 };
 
-// Get JSON File from the bucket
+/**
+ * This function retrieves a JSON file from the S3 bucket
+ *
+ * @function getJSONFromS3
+ * @async
+ * @param {string} bucketName - Name of the S3 bucket
+ * @param {string} key - Key of the object in the S3 bucket
+ * @param {Object} client - S3 client
+ * @returns {string} JSON string from the S3 object
+ * @throws {Error} If there is an error retrieving the JSON file
+ */
 export async function getJSONFromS3(bucketName, key, client) {
   console.log(`Getting object key ${key} from bucket ${bucketName}`);
   try {
