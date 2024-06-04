@@ -29,7 +29,12 @@ export const handler = async (event) => {
   }
 };
 
-// METHODS
+/**
+ * Processes the incoming population records.
+ * @param {Object[]} incomingRecordsArr - The modified population records to be processed.
+ * @param {DynamoDBClient} dbClient - The DynamoDB client used for database interactions.
+ * @returns {Object} The newly episode records upload with the necessary fields.
+ */
 export async function processIncomingRecords(incomingRecordsArr, dbClient) {
   console.log("Entered function processIncomingRecords");
   const episodeRecordsUpload = await Promise.allSettled(
@@ -74,6 +79,11 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient) {
   return episodeRecordsUpload;
 }
 
+/**
+ * Creates a new episode record.
+ * @param {Object} record -Record containing the data to create the new episode record.
+ * @returns {Object} The newly created episode record with the necessary fields.
+ */
 export function createEpisodeRecord(record) {
   console.log("Entered function createEpisodeRecord");
   const createTime = new Date(Date.now()).toISOString();
@@ -117,6 +127,10 @@ export function createEpisodeRecord(record) {
   return item;
 }
 
+/**
+ * @param {string} table - Episode table name.
+ * @param {Object} item - The item to be added to the Episode table.
+ */
 async function addEpisodeRecord(table, item) {
   console.log("Entered function addEpisodeRecord");
   const input = {
@@ -134,6 +148,12 @@ async function addEpisodeRecord(table, item) {
 }
 
 // look into episode table and see if there exists a participant
+/**
+ * Looks into the episode table to check if a participant record with the given participant ID exists.
+ * @param {string} participantId - The participant ID to look up in the table.
+ * @param {string} table - The name of the DynamoDB table to query.
+ * @param {DynamoDBClient} dbClient - The DynamoDB client used for querying the table.
+ */
 export const lookupParticipantId = async (participantId, table, dbClient) => {
   console.log("Entered function lookupParticipantId");
   const input = {
