@@ -133,6 +133,10 @@ export const lookupParticipantsInfo = async (participantList, client, lastEvalua
         TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
       };
 
+      if (Object.keys(lastEvaluatedItem).length != 0) {
+        input.ExclusiveStartKey = lastEvaluatedItem;
+      }
+      
       const command = new ScanCommand(input);
       const response = await client.send(command);
       console.log("------response-------", response.Items);
