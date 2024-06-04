@@ -28,7 +28,7 @@
     "axios": "^1.7.2",
     "csv": "^6.3.8",
     "csv-parser": "^3.0.0",
-    "csv-stringify": "^6.4.4",
+    "csv-stringify": "^6.5.0",
     "date-fns": "^3.6.0",
     "fetch-retry": "^6.0.0",
     "dayjs": "^1.11.11",
