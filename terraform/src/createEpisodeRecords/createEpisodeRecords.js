@@ -128,6 +128,7 @@ export function createEpisodeRecord(record) {
 }
 
 /**
+ * Add new a record to the Episode table
  * @param {string} table - Episode table name.
  * @param {Object} item - The item to be added to the Episode table.
  */
@@ -147,12 +148,11 @@ async function addEpisodeRecord(table, item) {
   return response;
 }
 
-// look into episode table and see if there exists a participant
 /**
- * Looks into the episode table to check if a participant record with the given participant ID exists.
- * @param {string} participantId - The participant ID to look up in the table.
- * @param {string} table - The name of the DynamoDB table to query.
- * @param {DynamoDBClient} dbClient - The DynamoDB client used for querying the table.
+ * look into Episode table and see if there exists a participant
+ * @param {string} participantId - The participant ID to look up in the Episode table.
+ * @param {string} table - The name of the Episode table.
+ * @param {DynamoDBClient} dbClient - The DynamoDB client used for querying the Episode table.
  */
 export const lookupParticipantId = async (participantId, table, dbClient) => {
   console.log("Entered function lookupParticipantId");
