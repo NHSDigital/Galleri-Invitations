@@ -143,39 +143,9 @@ export const lookupParticipantsInfo = async (participantList, client, lastEvalua
 
 
 
-      console.log("------2222222-------");
+      console.log("------1111111-------");
 
       var abc = "NHS-DL50-ER34";
-      const input2 = {
-        ExpressionAttributeNames: {
-          "#PI": "Participant_Id",
-          "#BDD": "Blood_Draw_Date",
-          "#RC": "Result_Creation",
-          "#PN": "Participant_Name",
-        },
-        ExpressionAttributeValues: abc,
-        FilterExpression: "#PI IN (" + abc.toString() + ")",
-        ProjectionExpression: "#PI, #BDD, #RC, #PN",
-        TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
-      };
-
-      const command2 = new ScanCommand(input2);
-      const response2 = await client.send(command2);
-      console.log("------response2-------", response2.Items);
-
-
-
-
-      
-      console.log("------111111-------");
-
-        let ExpressionAttributeValues1 = {};
-        let filter = "";
-        participantIds.forEach((element, index) => {
-          filter += `:val${index}, `;
-          ExpressionAttributeValues1[`:val${index}`] = element;
-        });
-      
       const input1 = {
         ExpressionAttributeNames: {
           "#PI": "Participant_Id",
@@ -183,8 +153,7 @@ export const lookupParticipantsInfo = async (participantList, client, lastEvalua
           "#RC": "Result_Creation",
           "#PN": "Participant_Name",
         },
-        ExpressionAttributeValues: ExpressionAttributeValues1,
-        FilterExpression: "#PI IN (" + filter.substring(0, filter.length - 2) + ")",
+        FilterExpression: "Participant_Id IN ( NHS-DL50-ER34 )",
         ProjectionExpression: "#PI, #BDD, #RC, #PN",
         TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
       };
@@ -192,6 +161,36 @@ export const lookupParticipantsInfo = async (participantList, client, lastEvalua
       const command1 = new ScanCommand(input1);
       const response1 = await client.send(command1);
       console.log("------response1-------", response1.Items);
+
+
+
+
+      
+      console.log("------222222222-------");
+
+        let ExpressionAttributeValues2 = {};
+        let filter = "";
+        participantIds.forEach((element, index) => {
+          filter += `:val${index}, `;
+          ExpressionAttributeValues2[`:val${index}`] = element;
+        });
+      
+      const input2 = {
+        ExpressionAttributeNames: {
+          "#PI": "Participant_Id",
+          "#BDD": "Blood_Draw_Date",
+          "#RC": "Result_Creation",
+          "#PN": "Participant_Name",
+        },
+        ExpressionAttributeValues: ExpressionAttributeValues2,
+        FilterExpression: "#PI IN (" + filter.substring(0, filter.length - 2) + ")",
+        ProjectionExpression: "#PI, #BDD, #RC, #PN",
+        TableName: `${ENVIRONMENT}-GalleriBloodTestResult`,
+      };
+
+      const command2 = new ScanCommand(input2);
+      const response2 = await client.send(command2);
+      console.log("------response2-------", response2.Items);
 
 
 
