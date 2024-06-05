@@ -31,7 +31,7 @@ export const handler = async (event, context) => {
 
     let responseObject = {};
 
-    if (participantsInfo.hasOwnProperty("Items")) {
+    if (participantsInfo.length !== 0) {
       responseObject.statusCode = 200;
       responseObject.isBase64Encoded = true;
       responseObject.headers = {
@@ -40,7 +40,7 @@ export const handler = async (event, context) => {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "OPTIONS,GET",
       };
-      responseObject.body = JSON.stringify(participantsInfo.Items);
+      responseObject.body = JSON.stringify(participantsInfo);
     } else {
       responseObject.statusCode = 404;
       responseObject.headers = {
