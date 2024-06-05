@@ -13,6 +13,8 @@ export const handler = async (event, context) => {
       client
     );
 
+    console.log(`Number of participants: ${participantList.length}`);
+
     const tableItems = [];
     let lastEvaluatedItem = {};
     await lookupParticipantsInfo(
@@ -22,6 +24,7 @@ export const handler = async (event, context) => {
       tableItems
     );
     const participantsInfo = tableItems.flat();
+    console.log(`Number of participant info records: ${participantsInfo.length}`);
 
     let responseObject = {};
 
