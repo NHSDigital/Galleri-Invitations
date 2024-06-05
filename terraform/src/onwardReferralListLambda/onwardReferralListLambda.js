@@ -7,14 +7,11 @@ const ENVIRONMENT = process.env.ENVIRONMENT;
   Lambda to load participant info for participants with result - CSD
 */
 export const handler = async (event, context) => {
-
   console.log("Entered OnwardReferralList lambda");
   try {
     const participantList = await lookupParticipantsCsd(
       client
     );
-
-    console.log("------participantList-------", JSON.stringify(participantList));
 
     const tableItems = [];
     let lastEvaluatedItem = {};
@@ -25,9 +22,6 @@ export const handler = async (event, context) => {
       tableItems
     );
     const participantsInfo = tableItems.flat();
-
-
-    console.log("------participantsInfo-------", JSON.stringify(participantsInfo));
 
     let responseObject = {};
 
@@ -52,15 +46,12 @@ export const handler = async (event, context) => {
       responseObject.isBase64Encoded = true;
       responseObject.body = "error";
     }
-
-    console.log("------responseObject-------", JSON.stringify(responseObject));
     return responseObject;
 
   } catch (error) {
     console.log("Error occured in OnwardReferralList lambda");
     console.error(`Error: ${error}`);
   }
-
 };
 
 // look into episode table and see which participants have latest result as CSD
@@ -91,34 +82,24 @@ export const lookupParticipantsCsd = async (client) => {
     console.log("Error in lookupParticipantsCsd");
     throw error;
   }
-
 };
 
 export const lookupParticipantsInfo = async (participantList, client, lastEvaluatedItem, tableItems) => {
   console.log("Entered function lookupParticipantsInfo");
-
   try {
     let participantIds = [];
-
     if (participantList.length) {
-
       participantList.forEach((obj) => {
         participantIds.push(obj.Participant_Id.S);
       });
-
-      console.log("------participantIds-------", JSON.stringify(participantIds));
-      console.log("------participantIds[0]-------", JSON.stringify(participantIds[0]));
 
       var idsObject = {};
       var index = 0;
       participantIds.forEach(function (id) {
         index++;
-        var titleKey = ":pId" + index;
-        idsObject[titleKey.toString()] = { S: id };
+        var idKey = ":pId" + index;
+        idsObject[idKey.toString()] = { S: id };
       });
-
-      console.log("------idsObject-------", JSON.stringify(idsObject));
-      console.log("------Object.keys(idsObject).toString()-------", Object.keys(idsObject).toString());
 
       const input = {
         ExpressionAttributeNames: {
@@ -139,10 +120,8 @@ export const lookupParticipantsInfo = async (participantList, client, lastEvalua
 
       const command = new ScanCommand(input);
       const response = await client.send(command);
-      console.log("------response-------", JSON.stringify(response));
 
       if (response.LastEvaluatedKey) {
-        console.log("------1-------", response.LastEvaluatedKey);
         if (response.$metadata.httpStatusCode == 200) {
           console.log(
             "Table is larger than 1Mb hence recursively routing through to obtain all data"
@@ -152,34 +131,27 @@ export const lookupParticipantsInfo = async (participantList, client, lastEvalua
           await lookupParticipantsInfo(client, lastEvaluatedItem, tableItems);
         } else {
           console.log("Unsuccess");
-          console.error("Response from table encountered an error");
+          console.error("Error: Response from table encountered an error");
         }
       } else {
-        console.log("------2-------");
         // run last invocation
         console.log("at last bit");
-        //input.ExclusiveStartKey = lastEvaluatedItem;
-        console.log("------11111111-------");
         const command = new ScanCommand(input);
-        console.log("------222222-------", JSON.stringify(command));
         const response = await client.send(command);
-        console.log("------3333333-------", JSON.stringify(response));
-
 
         if (response.$metadata.httpStatusCode == 200) {
           tableItems.push(response.Items);
           return `Galleri Test Results table scanned. Returning ${tableItems.length} records`;
         } else {
-          console.error("Something went wrong with last request");
+          console.error("Error: Something went wrong with last request");
         }
       }
-
       console.log("Exiting function lookupParticipantsInfo");
       return response;
     }
 
   } catch (error) {
-    console.log("Error in lookupParticipantsInfo");
+    console.error("Error in lookupParticipantsInfo");
     throw error;
   }
 
