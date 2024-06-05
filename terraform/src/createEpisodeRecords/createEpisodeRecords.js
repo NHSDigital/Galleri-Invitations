@@ -31,9 +31,11 @@ export const handler = async (event) => {
 
 /**
  * Processes the incoming population records.
+ * @async
+ * @function processIncomingRecords
  * @param {Object[]} incomingRecordsArr - The modified population records to be processed.
  * @param {DynamoDBClient} dbClient - The DynamoDB client used for database interactions.
- * @returns {Object} The newly episode records upload with the necessary fields.
+ * @returns {Promise<Object>} The newly episode records upload with the necessary fields.
  */
 export async function processIncomingRecords(incomingRecordsArr, dbClient) {
   console.log("Entered function processIncomingRecords");
@@ -131,6 +133,7 @@ export function createEpisodeRecord(record) {
  * Add new a record to the Episode table
  * @param {string} table - Episode table name.
  * @param {Object} item - The item to be added to the Episode table.
+ * @returns {Promise<Object>} The newly added episode records with the necessary fields.
  */
 async function addEpisodeRecord(table, item) {
   console.log("Entered function addEpisodeRecord");
@@ -153,6 +156,7 @@ async function addEpisodeRecord(table, item) {
  * @param {string} participantId - The participant ID to look up in the Episode table.
  * @param {string} table - The name of the Episode table.
  * @param {DynamoDBClient} dbClient - The DynamoDB client used for querying the Episode table.
+ * @returns {boolean} If there exists a participant in Episode table.
  */
 export const lookupParticipantId = async (participantId, table, dbClient) => {
   console.log("Entered function lookupParticipantId");
