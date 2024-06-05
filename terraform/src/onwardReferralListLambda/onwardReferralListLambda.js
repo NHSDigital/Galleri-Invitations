@@ -158,7 +158,7 @@ export const lookupParticipantsInfo = async (participantList, client, lastEvalua
         console.log("------2-------");
         // run last invocation
         console.log("at last bit");
-        input.ExclusiveStartKey = lastEvaluatedItem;
+        //input.ExclusiveStartKey = lastEvaluatedItem;
         console.log("------11111111-------");
         const command = new ScanCommand(input);
         console.log("------222222-------", JSON.stringify(command));
