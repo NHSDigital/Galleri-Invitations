@@ -131,6 +131,7 @@ export function createEpisodeRecord(record) {
 
 /**
  * Add new a record to the Episode table
+ * @async
  * @param {string} table - Episode table name.
  * @param {Object} item - The item to be added to the Episode table.
  * @returns {Promise<Object>} The newly added episode records with the necessary fields.
@@ -153,6 +154,7 @@ async function addEpisodeRecord(table, item) {
 
 /**
  * look into Episode table and see if there exists a participant
+ * @async
  * @param {string} participantId - The participant ID to look up in the Episode table.
  * @param {string} table - The name of the Episode table.
  * @param {DynamoDBClient} dbClient - The DynamoDB client used for querying the Episode table.
