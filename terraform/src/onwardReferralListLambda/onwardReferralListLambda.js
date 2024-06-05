@@ -114,7 +114,7 @@ export const lookupParticipantsInfo = async (participantList, client, lastEvalua
       participantIds.forEach(function (id) {
         index++;
         var titleKey = ":pId" + index;
-        idsObject[titleKey.toString()] = {S: id};
+        idsObject[titleKey.toString()] = { S: id };
       });
 
       console.log("------idsObject-------", JSON.stringify(idsObject));
@@ -136,10 +136,10 @@ export const lookupParticipantsInfo = async (participantList, client, lastEvalua
       if (Object.keys(lastEvaluatedItem).length != 0) {
         input.ExclusiveStartKey = lastEvaluatedItem;
       }
-      
+
       const command = new ScanCommand(input);
       const response = await client.send(command);
-      console.log("------response-------", response.Items);
+      console.log("------response-------", JSON.stringify(response));
 
       if (response.LastEvaluatedKey) {
         console.log("------1-------", response.LastEvaluatedKey);
@@ -159,8 +159,12 @@ export const lookupParticipantsInfo = async (participantList, client, lastEvalua
         // run last invocation
         console.log("at last bit");
         input.ExclusiveStartKey = lastEvaluatedItem;
+        console.log("------11111111-------");
         const command = new ScanCommand(input);
+        console.log("------222222-------", JSON.stringify(command));
         const response = await client.send(command);
+        console.log("------3333333-------", JSON.stringify(response));
+
 
         if (response.$metadata.httpStatusCode == 200) {
           tableItems.push(response.Items);
