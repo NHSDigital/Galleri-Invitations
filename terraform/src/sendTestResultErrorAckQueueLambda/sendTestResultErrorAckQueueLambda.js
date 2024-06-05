@@ -58,7 +58,7 @@ export const handler = async (event) => {
  * @async
  * @param {Object} message - The message object to be sent to the SQS queue.
  * @param {string} queue - The SQS queue URL.
- * @param {Object} sqsClient - The SQS client.
+ * @param {SQSClient} sqsClient - The SQS client.
  * @param {string} snsMessageId - The SNS message ID.
  * @throws {Error} Will throw an error if sending message to SQS fails.
  */
@@ -86,7 +86,7 @@ export async function sendMessageToQueue(message, queue, sqsClient, key) {
  * @param {Function} getJSONFunc - Function to get JSON from S3
  * @param {string} bucket - S3 bucket name
  * @param {string} key - S3 object key
- * @param {Object} client - S3 client
+ * @param {S3Client} client - S3 client
  * @returns {Object} Parsed JSON object
  * @throws {Error} If there is an error retrieving or parsing the JSON file
  */
@@ -114,7 +114,7 @@ export const retrieveAndParseJSON = async (
  * @async
  * @param {string} bucketName - Name of the S3 bucket
  * @param {string} key - Key of the object in the S3 bucket
- * @param {Object} client - S3 client
+ * @param {S3Client} client - S3 client
  * @returns {string} JSON string from the S3 object
  * @throws {Error} If there is an error retrieving the JSON file
  */

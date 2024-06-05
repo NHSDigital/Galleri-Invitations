@@ -108,10 +108,11 @@ export const handler = async (event) => {
  * @function generateAPIGatewayLockdownSession
  * @async
  * @param {string} environment - The environment name.
- * @param {Object} client - The DynamoDB client.
+ * @param {DynamoDBClient} client - The DynamoDB client.
  * @param {string} apiSessionId - The API session ID.
  * @param {string} userId - The user ID.
  * @param {Function} updateAPISessionTable - The function to update the API session table.
+ * @throws {Error} If there is an error creating session.
  */
 export async function generateAPIGatewayLockdownSession(
   environment,
@@ -161,7 +162,7 @@ export async function generateAPIGatewayLockdownSession(
  * @function updateAPIGatewayLockdownSessionTable
  * @async
  * @param {string} environment - The environment name.
- * @param {Object} client - The DynamoDB client.
+ * @param {DynamoDBClient} client - The DynamoDB client.
  * @param {string} apiSessionId - The API session ID.
  * @param {string} userId - The user ID.
  * @param {number} timeToLive - The time to live for the session.
@@ -274,7 +275,7 @@ export async function getCIS2SignedJWT(
  * @function getSecret
  * @async
  * @param {string} secretName - Name of the secret to retrieve
- * @param {Object} client - Secrets Manager client
+ * @param {SecretsManagerClient} client - Secrets Manager client
  * @returns {string} Secret value
  * @throws {Error} If there is an error retrieving the secret
  */
@@ -462,13 +463,13 @@ export async function getUserRole(uuid) {
  *
  * @function checkAuthorization
  * @async
- * @param {Object} userAuthData - The user authentication data.
- * @param {Object} tokens - The tokens object.
- * @param {string} activityCode - The required activity code for authorization.
+ * @param {Object} user - The user authentication data.
+ * @param {Object} account - The object containing tokens.
+ * @param {string} galleriActivityCode - The required activity code for authorization.
  * @param {string} clientID - The client ID.
- * @param {Function} extractClaims - The function to extract claims from the ID token.
- * @param {Function} validateTokenExpiration - The function to validate token expiration with auth time.
- * @param {Function} validateTokenSignature - The function to validate the token signature.
+ * @param {Function} parseTokenClaims - The function to extract claims from the ID token.
+ * @param {Function} checkTokenExpirationWithAuthTime - The function to validate token expiration with auth time.
+ * @param {Function} verifyTokenSignature - The function to validate the token signature.
  * @returns {boolean|string} True if authorized, otherwise an error message.
  */
 export async function checkAuthorization(
@@ -558,8 +559,7 @@ export async function extractClaims(idToken) {
  *
  * @function validateTokenExpirationWithAuthTime
  * @async
- * @param {string} idToken - The ID token.
- * @param {number} authTime - The authentication time.
+ * @param {string} token - The ID token.
  * @returns {boolean} True if the token is valid, otherwise false.
  */
 export async function validateTokenExpirationWithAuthTime(token) {
@@ -583,6 +583,7 @@ export async function validateTokenExpirationWithAuthTime(token) {
  * @function validateTokenSignature
  * @async
  * @param {string} idToken - The ID token.
+ * @param {string} jwksUri - The endpoints to a set of JSON Web Keys (JWKs) which are used for verifying the signatures of JSON Web Tokens (JWTs).
  * @returns {boolean} True if the signature is valid, otherwise false.
  * @throws {Error}
  */

@@ -40,9 +40,10 @@ export const handler = async (event) => {
  * @function processSnsMessage
  * @async
  * @param {Object} message - The message object to be sent to the SQS queue.
- * @param {string} queue - The SQS queue URL.
- * @param {Object} sqsClient - The SQS client.
+ * @param {string} queue - The SQS queue URL where the message is published.
+ * @param {SQSClient} sqsClient - The SQS client.
  * @param {string} snsMessageId - The SNS message ID.
+ * @param {string} QUEUE_NAME - The name of the SQS Queue where the message is published.
  * @throws {Error}  Will throw an error if sending message to SQS fails.
  */
 export async function processSnsMessage(
@@ -84,7 +85,7 @@ export async function processSnsMessage(
  * @async
  * @param {Object} message - The message object to be sent to the SQS queue.
  * @param {string} queue - The SQS queue URL.
- * @param {Object} sqsClient - The SQS client.
+ * @param {SQSClient} sqsClient - The SQS client.
  * @param {string} snsMessageId - The SNS message ID.
  * @throws {Error} Will throw an error if sending message to SQS fails.
  */

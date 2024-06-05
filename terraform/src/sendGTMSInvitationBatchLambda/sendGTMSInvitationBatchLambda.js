@@ -114,7 +114,7 @@ export const handler = async (event, context) => {
  * @param {Function} getJSONFunc - Function to get JSON from S3
  * @param {string} bucket - S3 bucket name
  * @param {string} key - S3 object key
- * @param {Object} client - S3 client
+ * @param {S3Client} client - S3 client
  * @returns {Object} Parsed JSON object
  * @throws {Error} If there is an error retrieving or parsing the JSON file
  */
@@ -175,7 +175,7 @@ export const sendMessageToMesh = async (
  * @param {number} sentMsgStatus - Status of the sent message
  * @param {string} bucket - S3 bucket name
  * @param {string} key - S3 object key
- * @param {Object} client - S3 client
+ * @param {S3Client} client - S3 client
  */
 export const handleSentMessageFile = async (
   pushJsonFunc,
@@ -208,7 +208,7 @@ export const handleSentMessageFile = async (
  * @async
  * @param {string} bucketName - Name of the S3 bucket
  * @param {string} key - Key of the object in the S3 bucket
- * @param {Object} client - S3 client
+ * @param {S3Client} client - S3 client
  * @returns {string} JSON string from the S3 object
  * @throws {Error} If there is an error retrieving the JSON file
  */
@@ -234,7 +234,7 @@ export async function getJSONFromS3(bucketName, key, client) {
  *
  * @function pushJsonToS3
  * @async
- * @param {Object} client - S3 client
+ * @param {S3Client} client - S3 client
  * @param {string} bucketName - Name of the S3 bucket
  * @param {string} key - Key for the object in the S3 bucket
  * @param {Object} jsonArr - JSON object to push
@@ -266,7 +266,7 @@ export const pushJsonToS3 = async (client, bucketName, key, jsonArr) => {
  * @async
  * @param {string} bucketName - Name of the S3 bucket
  * @param {string} objectKey - Key of the object in the S3 bucket
- * @param {Object} client - S3 client
+ * @param {S3Client} client - S3 client
  * @returns {number} HTTP status code of the response
  * @throws {Error} If there is an error deleting the object from S3
  */
@@ -299,6 +299,7 @@ export async function deleteObjectFromS3(bucketName, objectKey, client) {
  * @async
  * @param {Object} config - Configuration object
  * @param {Object} msg - Message object
+ * @param {string} filename - Name of the file retrieved from S3 bucket. (file that triggered the lambda)
  * @returns {number} HTTP status code of the response
  * @throws {Error} If there is an error sending the uncompressed message
  */
@@ -354,7 +355,7 @@ export async function sendUncompressed(
  * @function getSecret
  * @async
  * @param {string} secretName - Name of the secret to retrieve
- * @param {Object} client - Secrets Manager client
+ * @param {SecretsManagerClient} client - Secrets Manager client
  * @returns {string} Secret value
  * @throws {Error} If there is an error retrieving the secret
  */
