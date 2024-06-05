@@ -16,6 +16,7 @@ const ENVIRONMENT = process.env.ENVIRONMENT;
  * @function handler
  * @async
  * @param {Object} event - The Lambda event object containing S3 event details.
+ * @returns {string} - The validation successful message  after handler is executed successful.
  * @throws {Error}
  */
 export const handler = async (event) => {
