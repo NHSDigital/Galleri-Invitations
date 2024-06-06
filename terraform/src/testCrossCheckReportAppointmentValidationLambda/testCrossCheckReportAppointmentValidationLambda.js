@@ -81,7 +81,7 @@ function extractFHIRMessage(js) {
  * Retrieves the most recent appointment with its timestamp.
  * @async
  * @function getLastAppointment
- * @returns {Promise<Array>} A promise that resolves to an object containing the most recent appointment and its timestamp.
+ * @returns {Array} A promise that resolves to an object containing the most recent appointment and its timestamp.
  */
 export async function getLastAppointment() {
   const appointmentParticipant = await lookUp(
@@ -166,7 +166,7 @@ export async function validateTRR(fhirPayload, appointmentParticipantItems) {
  * @param {Object} js FHIR message to be put in a bucket
  * @param {string} reportName Name of the FHIR message file
  * @param {string} bucketName Name of the S3 bucket to be used
- * @param {Object} s3Client An instance of an S3 client
+ * @param {S3Client} s3Client An instance of an S3 client
  * @returns {Object} Response from the S3 send command
  * @throws {Error} Error pushing TRR to S3 bucket
  */
@@ -195,7 +195,7 @@ export async function putTRRInS3Bucket(js, reportName, bucketName, s3Client) {
  * @function deleteTRRinS3Bucket
  * @param {string} reportName Test result report to be deleted from a bucket
  * @param {string} bucketName Name of the S3 bucket to be used
- * @param {Object} s3Client An instance of an S3 client
+ * @param {S3Client} s3Client An instance of an S3 client
  * @returns {Object} Response from the S3 send command
  * @throws {Error} Error deleting TRR from S3 bucket
  */
@@ -223,7 +223,7 @@ export async function deleteTRRinS3Bucket(reportName, bucketName, s3Client) {
  * @param {Function} getJSONFunc Function to retrieve a JSON file from a bucket
  * @param {string} bucket Name of bucket
  * @param {string} key Object key
- * @param {Object} s3Client An Instance of an S3 client
+ * @param {S3Client} s3Client An Instance of an S3 client
  * @returns {Object} Parsed JSON object
  */
 export const retrieveAndParseJSON = async (
@@ -242,7 +242,7 @@ export const retrieveAndParseJSON = async (
  * @function getJSONFromS3
  * @param {string} bucketName Name of bucket
  * @param {string} key Object key
- * @param {Object} s3Client An Instance of an S3 s3Client
+ * @param {S3Client} s3Client An Instance of an S3 s3Client
  * @returns {string} Body of file transformed into a string
  * @throws {Error} Failed to get object from S3
  */
