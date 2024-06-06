@@ -81,7 +81,7 @@ function extractFHIRMessage(js) {
  * Retrieves the most recent appointment with its timestamp.
  * @async
  * @function getLastAppointment
- * @returns {Array} An Array that resolves to an object containing the most recent appointment and its timestamp.
+ * @returns {Array} An array of appointment items.
  */
 export async function getLastAppointment() {
   const appointmentParticipant = await lookUp(
