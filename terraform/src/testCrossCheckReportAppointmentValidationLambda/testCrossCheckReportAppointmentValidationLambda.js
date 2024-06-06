@@ -46,7 +46,11 @@ export const handler = async (event, context) => {
   }
 };
 
-//Extract ParticipantID, GrailID, BloodCollectionDate fields
+/**
+ * Extracts the ParticipantID, GrailID, BloodCollectionDate fields from a FHIR message JSON object.
+ * @function processIncomingRecords
+ * @param {Object} js - The JSON object containing the FHIR message.
+ */
 function extractFHIRMessage(js) {
   for (let objs in js.entry) {
     //Grail_Id
@@ -73,7 +77,12 @@ function extractFHIRMessage(js) {
   }
 }
 
-//bring back most recent appointment, with timestamp
+/**
+ * Retrieves the most recent appointment with its timestamp.
+ * @async
+ * @function getLastAppointment
+ * @returns {Promise<Object>} A promise that resolves to an object containing the most recent appointment and its timestamp.
+ */
 export async function getLastAppointment() {
   const appointmentParticipant = await lookUp(
     dbClient,
@@ -97,7 +106,16 @@ export async function getLastAppointment() {
   return sortedApptParticipants;
 }
 
-//process TRR
+/**
+ * Validated the FHIR message with appointment participant Items and depending on outcome put it into the correct s3 bucket.
+ * @async
+ * @function processTRR
+ * @param {Object} js FHIR message as a JSON object
+ * @param {string} reportName Name of the test report file
+ * @param {string} originalBucket Name of originating bucket
+ * @param {Object} s3 An instance of an S3 client
+ * @param {boolean} isValidTRR valid/invalid TRR
+ */
 export async function processTRR(
   js,
   reportName,
@@ -116,7 +134,14 @@ export async function processTRR(
   await deleteTRRinS3Bucket(reportName, originalBucket, s3);
 }
 
-// Validate TRR
+/**
+ * Validated the FHIR message with appointment participant Items and depending on outcome put it into the correct s3 bucket.
+ * @async
+ * @function validateTRR
+ * @param {Object} fhirPayload FHIR message as a JSON object
+ * @param {Object} appointmentParticipantItems most recent appointment, with timestamp
+ * @returns {Promise<boolean>} A promise that resolves to true if the validation is successful, otherwise false.
+ */
 export async function validateTRR(fhirPayload, appointmentParticipantItems) {
   if (
     appointmentParticipantItems?.Participant_Id.S ===
@@ -134,6 +159,17 @@ export async function validateTRR(fhirPayload, appointmentParticipantItems) {
 }
 
 // Move TRR to S3 bucket
+/**
+ * Put FHIR message in an S3 bucket
+ * @async
+ * @function putTRRInS3Bucket
+ * @param {Object} js FHIR message to be put in a bucket
+ * @param {string} reportName Name of the FHIR message file
+ * @param {string} bucketName Name of the S3 bucket to be used
+ * @param {Object} client An instance of an S3 client
+ * @returns {Object} Response from the S3 send command
+ * @throws {Error} Error pushing TRR to S3 bucket
+ */
 export async function putTRRInS3Bucket(js, reportName, bucketName, client) {
   try {
     const response = await client.send(
@@ -152,7 +188,17 @@ export async function putTRRInS3Bucket(js, reportName, bucketName, client) {
     throw err;
   }
 }
-//Delete TRR from Step 2 validated successfully bucket
+
+/**
+ * Delete TRR from Step 2 validated successfully bucket
+ * @async
+ * @function deleteTRRinS3Bucket
+ * @param {string} reportName Test result report to be deleted from a bucket
+ * @param {string} bucketName Name of the S3 bucket to be used
+ * @param {Object} client An instance of an S3 client
+ * @returns {Object} Response from the S3 send command
+ * @throws {Error} Error deleting TRR from S3 bucket
+ */
 export async function deleteTRRinS3Bucket(reportName, bucketName, client) {
   try {
     const response = await client.send(
@@ -170,7 +216,16 @@ export async function deleteTRRinS3Bucket(reportName, bucketName, client) {
   }
 }
 
-// Retrieve and Parse the JSON file
+/**
+ * Retrieve and parse the JSON file
+ * @async
+ * @function retrieveAndParseJSON
+ * @param {Function} getJSONFunc Function to retrieve a JSON file from a bucket
+ * @param {string} bucket Name of bucket
+ * @param {string} key Object key
+ * @param {Object} client An Instance of an S3 client
+ * @returns {Object} Parsed JSON object
+ */
 export const retrieveAndParseJSON = async (
   getJSONFunc,
   bucket,
@@ -181,7 +236,16 @@ export const retrieveAndParseJSON = async (
   return JSON.parse(JSONMsgStr);
 };
 
-// Get JSON File from the bucket
+/**
+ * Get JSON file from the bucket
+ * @async
+ * @function getJSONFromS3
+ * @param {string} bucketName Name of bucket
+ * @param {string} key Object key
+ * @param {Object} client An Instance of an S3 client
+ * @returns {string} Body of file transformed into a string
+ * @throws {Error} Failed to get object from S3
+ */
 export async function getJSONFromS3(bucketName, key, client) {
   console.log(`Getting object key ${key} from bucket ${bucketName}`);
   try {
