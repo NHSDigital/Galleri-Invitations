@@ -81,7 +81,7 @@ function extractFHIRMessage(js) {
  * Retrieves the most recent appointment with its timestamp.
  * @async
  * @function getLastAppointment
- * @returns {Promise<Object>} A promise that resolves to an object containing the most recent appointment and its timestamp.
+ * @returns {Promise<Array>} A promise that resolves to an object containing the most recent appointment and its timestamp.
  */
 export async function getLastAppointment() {
   const appointmentParticipant = await lookUp(
@@ -140,7 +140,7 @@ export async function processTRR(
  * @function validateTRR
  * @param {Object} fhirPayload FHIR message as a JSON object
  * @param {Object} appointmentParticipantItems most recent appointment, with timestamp
- * @returns {Promise<boolean>} A promise that resolves to true if the validation is successful, otherwise false.
+ * @returns {boolean} A promise that resolves to true if the validation is successful, otherwise false.
  */
 export async function validateTRR(fhirPayload, appointmentParticipantItems) {
   if (
@@ -166,13 +166,13 @@ export async function validateTRR(fhirPayload, appointmentParticipantItems) {
  * @param {Object} js FHIR message to be put in a bucket
  * @param {string} reportName Name of the FHIR message file
  * @param {string} bucketName Name of the S3 bucket to be used
- * @param {Object} client An instance of an S3 client
+ * @param {Object} s3Client An instance of an S3 client
  * @returns {Object} Response from the S3 send command
  * @throws {Error} Error pushing TRR to S3 bucket
  */
-export async function putTRRInS3Bucket(js, reportName, bucketName, client) {
+export async function putTRRInS3Bucket(js, reportName, bucketName, s3Client) {
   try {
-    const response = await client.send(
+    const response = await s3Client.send(
       new PutObjectCommand({
         Bucket: `${ENVIRONMENT}-${bucketName}`,
         Key: reportName,
@@ -195,13 +195,13 @@ export async function putTRRInS3Bucket(js, reportName, bucketName, client) {
  * @function deleteTRRinS3Bucket
  * @param {string} reportName Test result report to be deleted from a bucket
  * @param {string} bucketName Name of the S3 bucket to be used
- * @param {Object} client An instance of an S3 client
+ * @param {Object} s3Client An instance of an S3 client
  * @returns {Object} Response from the S3 send command
  * @throws {Error} Error deleting TRR from S3 bucket
  */
-export async function deleteTRRinS3Bucket(reportName, bucketName, client) {
+export async function deleteTRRinS3Bucket(reportName, bucketName, s3Client) {
   try {
-    const response = await client.send(
+    const response = await s3Client.send(
       new DeleteObjectCommand({
         Bucket: bucketName,
         Key: reportName,
@@ -223,16 +223,16 @@ export async function deleteTRRinS3Bucket(reportName, bucketName, client) {
  * @param {Function} getJSONFunc Function to retrieve a JSON file from a bucket
  * @param {string} bucket Name of bucket
  * @param {string} key Object key
- * @param {Object} client An Instance of an S3 client
+ * @param {Object} s3Client An Instance of an S3 client
  * @returns {Object} Parsed JSON object
  */
 export const retrieveAndParseJSON = async (
   getJSONFunc,
   bucket,
   key,
-  client
+  s3Client
 ) => {
-  const JSONMsgStr = await getJSONFunc(bucket, key, client);
+  const JSONMsgStr = await getJSONFunc(bucket, key, s3Client);
   return JSON.parse(JSONMsgStr);
 };
 
@@ -242,14 +242,14 @@ export const retrieveAndParseJSON = async (
  * @function getJSONFromS3
  * @param {string} bucketName Name of bucket
  * @param {string} key Object key
- * @param {Object} client An Instance of an S3 client
+ * @param {Object} s3Client An Instance of an S3 s3Client
  * @returns {string} Body of file transformed into a string
  * @throws {Error} Failed to get object from S3
  */
-export async function getJSONFromS3(bucketName, key, client) {
+export async function getJSONFromS3(bucketName, key, s3Client) {
   console.log(`Getting object key ${key} from bucket ${bucketName}`);
   try {
-    const response = await client.send(
+    const response = await s3Client.send(
       new GetObjectCommand({
         Bucket: bucketName,
         Key: key,
@@ -268,13 +268,14 @@ export async function getJSONFromS3(bucketName, key, client) {
 
 /**
  * This function allows the user to query against DynamoDB.
- *
+ * @async
+ * @function lookUp
  * @param {Object} dbClient Instance of DynamoDB client
  * @param  {...any} params params is destructed to id, which is the value you use to query against.
  * The table is the table name (type String), attribute is the column you search against (type String),
  * attributeType is the type of data stored within that column and useIndex is toggled to true if you want to use
  * an existing index (type boolean)
- * @returns {Object} metadata about the request, including httpStatusCode
+ * @returns {Object} metadata about the response, including httpStatusCode
  */
 export const lookUp = async (dbClient, ...params) => {
   const [id, table, attribute, attributeType, useIndex] = params;
