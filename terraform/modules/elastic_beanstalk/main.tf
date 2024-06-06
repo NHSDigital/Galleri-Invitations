@@ -311,6 +311,12 @@ resource "aws_elastic_beanstalk_environment" "screens" {
 
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_ONWARD_REFERRAL_LIST"
+    value     = var.NEXT_PUBLIC_ONWARD_REFERRAL_LIST
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
     name      = "NEXT_PUBLIC_TARGET_PERCENTAGE"
     value     = var.NEXT_PUBLIC_TARGET_PERCENTAGE
   }

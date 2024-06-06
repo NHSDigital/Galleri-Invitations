@@ -1,0 +1,10 @@
+{
+  "name": "OnwardReferralList",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "OnwardReferralList.js",
+  "author": "",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.398.0"
+  }
+}
