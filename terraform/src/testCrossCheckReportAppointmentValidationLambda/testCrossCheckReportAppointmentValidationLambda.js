@@ -81,7 +81,7 @@ function extractFHIRMessage(js) {
  * Retrieves the most recent appointment with its timestamp.
  * @async
  * @function getLastAppointment
- * @returns {Array} A promise that resolves to an object containing the most recent appointment and its timestamp.
+ * @returns {Array} An Array that resolves to an object containing the most recent appointment and its timestamp.
  */
 export async function getLastAppointment() {
   const appointmentParticipant = await lookUp(
@@ -113,7 +113,7 @@ export async function getLastAppointment() {
  * @param {Object} js FHIR message as a JSON object
  * @param {string} reportName Name of the test report file
  * @param {string} originalBucket Name of originating bucket
- * @param {Object} s3 An instance of an S3 client
+ * @param {S3Client} s3 An instance of an S3 client
  * @param {boolean} isValidTRR valid/invalid TRR
  */
 export async function processTRR(
