@@ -2020,7 +2020,7 @@ module "cancer_signal_origin_add_lambda_trigger" {
   bucket_id     = module.proccessed_appointments.bucket_id
   bucket_arn    = module.proccessed_appointments.bucket_arn
   lambda_arn    = module.cancer_signal_origin_add_lambda.lambda_arn
-  filter_prefix = "snowmedCode/"
+  filter_prefix = "snomedCode/"
 }
 module "gp_practice_table" {
   source                   = "./modules/dynamodb"
