@@ -201,7 +201,7 @@ export const validateSnomedCodes = async (
       console.log(`Match found for ${sortedJoinedSnomedCodes}`);
       return items;
     } else {
-      console.log(`No match found for ${sortedJoinedSnomedCodes}`);
+      console.error(`Error: No match found for ${sortedJoinedSnomedCodes}`);
       return null;
     }
   } catch (err) {
