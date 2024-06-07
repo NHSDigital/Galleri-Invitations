@@ -1,12 +1,9 @@
-import {
-  DynamoDBClient,
-  TransactWriteItemsCommand,
-  QueryCommand,
-} from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 import {
   S3Client,
   GetObjectCommand,
   PutObjectCommand,
+  PutObjectTaggingCommand,
 } from "@aws-sdk/client-s3";
 
 const dbClient = new DynamoDBClient();
@@ -24,7 +21,6 @@ export const handler = async (event) => {
   const { entry } = trrJson;
 
   try {
-    // Find the entry with the "Multi-cancer early detection signal detected" result
     const csdResult = entry.find(
       (entry) =>
         entry.resource.resourceType === "Observation" &&
@@ -36,8 +32,11 @@ export const handler = async (event) => {
         )
     );
 
-    if (csdResult === "1854981000000108") {
-      // Find the entry with the highest scored cancer signal origin (CSO1)
+    if (
+      csdResult &&
+      csdResult.resource.valueCodeableConcept.coding[0].code ===
+        "1854981000000108"
+    ) {
       const cso1 = entry.find(
         (entry) =>
           entry.resource.resourceType === "Observation" &&
@@ -58,69 +57,61 @@ export const handler = async (event) => {
         );
 
         if (cso1Match) {
-          // AC1: CSO1 matches approved combinations
           await uploadToS3(
             trrJson,
-            "inbound_nrds_galleritestresult_step2_success"
+            "inbound-nrds-galleritestresult-step2-success"
           );
           await addS3ObjectTag(
             trrJson,
             "CSO1",
-            cso1Match.participantFriendlyDescription
+            cso1Match[0].Cso_Result_Friendly.S
           );
+          const cso2 = entry.find(
+            (entry) =>
+              entry.resource.resourceType === "Observation" &&
+              entry.resource.code.coding.some(
+                (coding) =>
+                  coding.display ===
+                  "Multi-cancer early detection second highest scored cancer signal origin by machine learning-based classifier"
+              )
+          );
+
+          if (cso2) {
+            const cso2Codes = cso2.resource.component.map(
+              (component) => component.valueCodeableConcept.coding[0].code
+            );
+            const cso2Match = await validateSnomedCodes(
+              cso2Codes,
+              "CancerSignalOrigin"
+            );
+
+            if (cso2Match) {
+              await addS3ObjectTag(
+                trrJson,
+                "CSO2",
+                cso2Match[0].Cso_Result_Friendly.S
+              );
+            } else {
+              await uploadToS3(
+                trrJson,
+                "inbound-nrds-galleritestresult-step2-error"
+              );
+            }
+          }
         } else {
-          // AC3: CSO1 does not match approved combinations
           await uploadToS3(
             trrJson,
-            "inbound_nrds_galleritestresult_step2_error"
-          );
-        }
-      }
-
-      // Find the entry with the second highest scored cancer signal origin (CSO2)
-      const cso2 = entry.find(
-        (entry) =>
-          entry.resource.resourceType === "Observation" &&
-          entry.resource.code.coding.some(
-            (coding) =>
-              coding.display ===
-              "Multi-cancer early detection second highest scored cancer signal origin by machine learning-based classifier"
-          )
-      );
-
-      if (cso2) {
-        const cso2Codes = cso2.resource.component.map(
-          (component) => component.valueCodeableConcept.coding[0].code
-        );
-        const cso2Match = await validateSnomedCodes(
-          cso2Codes,
-          "CancerSignalOrigin"
-        );
-
-        if (cso1Match && cso2Match) {
-          // AC2: Both CSO1 and CSO2 match approved combinations
-          await uploadToS3(
-            trrJson,
-            "inbound_nrds_galleritestresult_step2_success"
-          );
-          await addS3ObjectTag(trrJson, "CSO1", cso1Match.Cso_Result_Friendly);
-          await addS3ObjectTag(trrJson, "CSO2", cso2Match.Cso_Result_Friendly);
-        } else {
-          // AC4: One or both of CSO1 and CSO2 do not match approved combinations
-          await uploadToS3(
-            trrJson,
-            "inbound_nrds_galleritestresult_step2_success"
+            "inbound-nrds-galleritestresult-step2-error"
           );
         }
       }
     } else {
-      // AC5: No CSD result
-      await uploadToS3(trrJson, "inbound_nrds_galleritestresult_step2_error");
+      await uploadToS3(trrJson, "inbound-nrds-galleritestresult-step2-success");
     }
   } catch (error) {
-    const message = `Error processing object ${key} in bucket ${bucket}: ${error}`;
-    console.error(message);
-    throw new Error(message);
+    console.error(
+      `Error processing object ${key} in bucket ${bucket}: ${error}`
+    );
   }
 };
 
@@ -135,7 +126,7 @@ export const readFromS3 = async (bucketName, key, client) => {
 
     return response.Body.transformToString();
   } catch (err) {
-    console.log("Failed: ", err);
+    console.error("Error: ", err);
     throw err;
   }
 };
@@ -150,27 +141,37 @@ export const uploadToS3 = async (trrJson, bucket) => {
       s3
     );
   } catch (err) {
-    console.log("Failed: ", err);
+    console.error("Error: ", err);
     throw err;
   }
 };
 
+const sanitizeTagValue = (value) => {
+  value.replace(`"`, "").substring(0, 128);
+  return value.replace(",", " ");
+};
+
 export const addS3ObjectTag = async (trrJson, tagKey, tagValue) => {
   try {
-    await s3.putObjectTagging({
-      Bucket: `${ENVIRONMENT}-inbound_nrds_galleritestresult_step2_success`,
+    const sanitizedValue = sanitizeTagValue(String(tagValue));
+
+    const params = {
+      Bucket: `${ENVIRONMENT}-inbound-nrds-galleritestresult-step2-success`,
       Key: `${trrJson.id}.json`,
       Tagging: {
         TagSet: [
           {
             Key: tagKey,
-            Value: tagValue,
+            Value: sanitizedValue,
           },
         ],
       },
-    });
+    };
+
+    const command = new PutObjectTaggingCommand(params);
+    const response = await s3.send(command);
   } catch (err) {
-    console.log("Failed: ", err);
+    console.error("Error: ", err);
     throw err;
   }
 };
@@ -180,24 +181,53 @@ export const validateSnomedCodes = async (
   tableName = "CancerSignalOrigin"
 ) => {
   try {
-    const params = {
-      TableName: `${ENVIRONMENT}-${tableName}`,
-      FilterExpression: "Cso_Result_Snomed_Code_Sorted = :snomedCodes",
-      ExpressionAttributeValues: {
-        ":snomedCodes": { S: JSON.stringify(snomedCodes) },
-      },
-    };
+    const results = [];
 
-    const response = await dbClient.send(new QueryCommand(params));
-    const items = response.Items;
+    for (const snomedCode of snomedCodes) {
+      const params = {
+        TableName: `${ENVIRONMENT}-${tableName}`,
+        FilterExpression:
+          "contains(Cso_Result_Snomed_Code_Sorted, :snomedCode)",
+        ExpressionAttributeValues: {
+          ":snomedCode": { S: snomedCode },
+        },
+      };
 
-    if (items.length > 0) {
-      return items[0];
+      const response = await dbClient.send(new ScanCommand(params));
+      const items = response.Items;
+
+      if (items.length > 0) {
+        console.log(`Match found for ${snomedCode}`);
+        results.push(items[0]);
+      } else {
+        console.log(`No match found for ${snomedCode}`);
+      }
+    }
+
+    if (results.length === snomedCodes.length) {
+      return results;
     } else {
       return null;
     }
   } catch (err) {
-    console.log("Failed: ", err);
+    console.error("Error: ", err);
+    throw err;
+  }
+};
+
+export const pushToS3 = async (bucketName, key, body, client) => {
+  try {
+    const response = await client.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+        Body: body,
+      })
+    );
+
+    return response;
+  } catch (err) {
+    console.error("Error: ", err);
     throw err;
   }
 };

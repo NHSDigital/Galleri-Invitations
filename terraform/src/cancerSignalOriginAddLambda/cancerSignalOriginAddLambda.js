@@ -119,3 +119,20 @@ export async function batchWriteCancerSignalOriginTable(
     }
   });
 }
+
+export const pushToS3 = async (bucketName, key, body, client) => {
+  try {
+    const response = await client.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+        Body: body,
+      })
+    );
+
+    return response;
+  } catch (err) {
+    console.error("Error: ", err);
+    throw err;
+  }
+};
