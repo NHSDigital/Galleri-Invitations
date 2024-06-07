@@ -76,6 +76,7 @@ export async function batchWriteCancerSignalOriginTable(
 
   for (let i = 0; i < cancerSignalOrigins.length; i += batchSize) {
     const batch = cancerSignalOrigins.slice(i, i + batchSize);
+    const timeNow = new Date(Date.now()).toISOString();
     const putRequests = batch.map((item) => ({
       PutRequest: {
         Item: {
@@ -91,8 +92,8 @@ export async function batchWriteCancerSignalOriginTable(
           },
           Cso_Result_Friendly: { S: item.Cso_Result_Friendly || "" },
           Created_By: { S: item.Created_By || "" },
-          Start_Date: { S: "Date Now" },
-          End_Date: { S: "End date" },
+          Start_Date: { S: timeNow },
+          End_Date: { S: "" },
         },
       },
     }));
