@@ -20,7 +20,7 @@ runs:
     - name: Configure AWS credentials from AWS account
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        role-to-assume: "arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/github-oidc-invitations-role"
+        role-to-assume: "arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/github-oidc-role"
         aws-region: ${{ env.aws-region }}
         role-session-name: GitHub-OIDC-TERRAFORM
 

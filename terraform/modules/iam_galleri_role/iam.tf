@@ -448,7 +448,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 #           ],
 #           "Resource" : [
 #             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_URL*",
-#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SHARED_KEY_1*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SHARED_KEY*",
 #             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:GTMS_MESH_MAILBOX_ID*",
 #             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:GTMS_MESH_MAILBOX_PASSWORD*",
 #             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:GTMS_MESH_CERT*",
@@ -460,7 +460,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
 #             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_RECEIVER_KEY*",
 #             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_RECEIVER_CERT*",
 #             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SENDER_CERT*",
-#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_INT_1*"
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_INT*"
 #           ]
 #         }
 #      ],
@@ -722,7 +722,7 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
           ],
           "Resource" : [
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_URL*",
-            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SHARED_KEY_1*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SHARED_KEY*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:GTMS_MESH_MAILBOX_ID*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:GTMS_MESH_MAILBOX_PASSWORD*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:GTMS_MESH_RECEIVER_MAILBOX_ID*",
@@ -738,13 +738,13 @@ resource "aws_iam_policy" "iam_policy_for_participants_in_lsoa_lambda" {
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CAAS_MESH_MAILBOX_ID*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CAAS_MESH_MAILBOX_PASSWORD*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CAAS_MESH_CERT*",
-            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_INT_1*",
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_INT*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_CLIENT_ID*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:SAND_MESH_MAILBOX_ID*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:SAND_MESH_MAILBOX_PASSWORD*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:FHIR_VALIDATION_SERVICE_URL*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:NHS_NOTIFY_API_KEY*",
-            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:COMMS_MANAGER_PRIVATE_KEY_TEST_1*"
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:COMMS_MANAGER_PRIVATE_KEY_TEST*"
           ]
         },
         {
@@ -941,7 +941,7 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
 #             "secretsmanager:ListSecretVersionIds"
 #           ],
 #           "Resource" : [
-#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_INT_1*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_INT*",
 #             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:CIS2_CLIENT_ID*",
 #           ]
 #         },
@@ -1111,7 +1111,7 @@ resource "aws_iam_policy" "iam_policy_for_create_episode_record_lambda" {
 #             "secretsmanager:ListSecretVersionIds"
 #           ],
 #           "Resource" : [
-#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SHARED_KEY_1*",
+#             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:MESH_SHARED_KEY*",
 #             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:SAND_MESH_MAILBOX_ID*",
 #             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:SAND_MESH_MAILBOX_PASSWORD*",
 #           ]
