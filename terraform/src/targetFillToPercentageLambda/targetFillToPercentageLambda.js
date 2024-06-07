@@ -8,9 +8,13 @@ let responseObject = {};
 
 const CONFIG_ID_VALUE = 1;
 
-/*
-  Lambda to load target percentage from DynamoDB for clinic invitation screen
-*/
+/**
+ * Lambda function to load target percentage from DynamoDB for clinic invitation screen.
+ *
+ * @function handler
+ * @async
+ * @returns {Promise<Object>} - A promise that resolves to an object containing the target percentage.
+ */
 export const handler = async () => {
   const params = {
     Key: {

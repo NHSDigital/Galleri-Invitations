@@ -46,7 +46,11 @@ export const handler = async (event, context) => {
   }
 };
 
-//Extract ParticipantID, GrailID, BloodCollectionDate fields
+/**
+ * Extracts the ParticipantID, GrailID, BloodCollectionDate fields from a FHIR message JSON object.
+ * @function processIncomingRecords
+ * @param {Object} js - The JSON object containing the FHIR message.
+ */
 function extractFHIRMessage(js) {
   for (let objs in js.entry) {
     //Grail_Id
@@ -73,7 +77,12 @@ function extractFHIRMessage(js) {
   }
 }
 
-//bring back most recent appointment, with timestamp
+/**
+ * Retrieves the most recent appointment with its timestamp.
+ * @async
+ * @function getLastAppointment
+ * @returns {Array} An array of appointment items.
+ */
 export async function getLastAppointment() {
   const appointmentParticipant = await lookUp(
     dbClient,
@@ -97,7 +106,16 @@ export async function getLastAppointment() {
   return sortedApptParticipants;
 }
 
-//process TRR
+/**
+ * Validated the FHIR message with appointment participant Items and depending on outcome put it into the correct s3 bucket.
+ * @async
+ * @function processTRR
+ * @param {Object} js FHIR message as a JSON object
+ * @param {string} reportName Name of the test report file
+ * @param {string} originalBucket Name of originating bucket
+ * @param {S3Client} s3 An instance of an S3 client
+ * @param {boolean} isValidTRR valid/invalid TRR
+ */
 export async function processTRR(
   js,
   reportName,
@@ -116,7 +134,14 @@ export async function processTRR(
   await deleteTRRinS3Bucket(reportName, originalBucket, s3);
 }
 
-// Validate TRR
+/**
+ * Validated the FHIR message with appointment participant Items and depending on outcome put it into the correct s3 bucket.
+ * @async
+ * @function validateTRR
+ * @param {Object} fhirPayload FHIR message as a JSON object
+ * @param {Object} appointmentParticipantItems most recent appointment, with timestamp
+ * @returns {boolean} A promise that resolves to true if the validation is successful, otherwise false.
+ */
 export async function validateTRR(fhirPayload, appointmentParticipantItems) {
   if (
     appointmentParticipantItems?.Participant_Id.S ===
@@ -134,9 +159,20 @@ export async function validateTRR(fhirPayload, appointmentParticipantItems) {
 }
 
 // Move TRR to S3 bucket
-export async function putTRRInS3Bucket(js, reportName, bucketName, client) {
+/**
+ * Put FHIR message in an S3 bucket
+ * @async
+ * @function putTRRInS3Bucket
+ * @param {Object} js FHIR message to be put in a bucket
+ * @param {string} reportName Name of the FHIR message file
+ * @param {string} bucketName Name of the S3 bucket to be used
+ * @param {S3Client} s3Client An instance of an S3 client
+ * @returns {Object} Response from the S3 send command
+ * @throws {Error} Error pushing TRR to S3 bucket
+ */
+export async function putTRRInS3Bucket(js, reportName, bucketName, s3Client) {
   try {
-    const response = await client.send(
+    const response = await s3Client.send(
       new PutObjectCommand({
         Bucket: `${ENVIRONMENT}-${bucketName}`,
         Key: reportName,
@@ -152,10 +188,20 @@ export async function putTRRInS3Bucket(js, reportName, bucketName, client) {
     throw err;
   }
 }
-//Delete TRR from Step 2 validated successfully bucket
-export async function deleteTRRinS3Bucket(reportName, bucketName, client) {
+
+/**
+ * Delete TRR from Step 2 validated successfully bucket
+ * @async
+ * @function deleteTRRinS3Bucket
+ * @param {string} reportName Test result report to be deleted from a bucket
+ * @param {string} bucketName Name of the S3 bucket to be used
+ * @param {S3Client} s3Client An instance of an S3 client
+ * @returns {Object} Response from the S3 send command
+ * @throws {Error} Error deleting TRR from S3 bucket
+ */
+export async function deleteTRRinS3Bucket(reportName, bucketName, s3Client) {
   try {
-    const response = await client.send(
+    const response = await s3Client.send(
       new DeleteObjectCommand({
         Bucket: bucketName,
         Key: reportName,
@@ -170,22 +216,40 @@ export async function deleteTRRinS3Bucket(reportName, bucketName, client) {
   }
 }
 
-// Retrieve and Parse the JSON file
+/**
+ * Retrieve and parse the JSON file
+ * @async
+ * @function retrieveAndParseJSON
+ * @param {Function} getJSONFunc Function to retrieve a JSON file from a bucket
+ * @param {string} bucket Name of bucket
+ * @param {string} key Object key
+ * @param {S3Client} s3Client An Instance of an S3 client
+ * @returns {Object} Parsed JSON object
+ */
 export const retrieveAndParseJSON = async (
   getJSONFunc,
   bucket,
   key,
-  client
+  s3Client
 ) => {
-  const JSONMsgStr = await getJSONFunc(bucket, key, client);
+  const JSONMsgStr = await getJSONFunc(bucket, key, s3Client);
   return JSON.parse(JSONMsgStr);
 };
 
-// Get JSON File from the bucket
-export async function getJSONFromS3(bucketName, key, client) {
+/**
+ * Get JSON file from the bucket
+ * @async
+ * @function getJSONFromS3
+ * @param {string} bucketName Name of bucket
+ * @param {string} key Object key
+ * @param {S3Client} s3Client An Instance of an S3 s3Client
+ * @returns {string} Body of file transformed into a string
+ * @throws {Error} Failed to get object from S3
+ */
+export async function getJSONFromS3(bucketName, key, s3Client) {
   console.log(`Getting object key ${key} from bucket ${bucketName}`);
   try {
-    const response = await client.send(
+    const response = await s3Client.send(
       new GetObjectCommand({
         Bucket: bucketName,
         Key: key,
@@ -204,13 +268,14 @@ export async function getJSONFromS3(bucketName, key, client) {
 
 /**
  * This function allows the user to query against DynamoDB.
- *
+ * @async
+ * @function lookUp
  * @param {Object} dbClient Instance of DynamoDB client
  * @param  {...any} params params is destructed to id, which is the value you use to query against.
  * The table is the table name (type String), attribute is the column you search against (type String),
  * attributeType is the type of data stored within that column and useIndex is toggled to true if you want to use
  * an existing index (type boolean)
- * @returns {Object} metadata about the request, including httpStatusCode
+ * @returns {Object} metadata about the response, including httpStatusCode
  */
 export const lookUp = async (dbClient, ...params) => {
   const [id, table, attribute, attributeType, useIndex] = params;

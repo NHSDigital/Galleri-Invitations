@@ -2,9 +2,14 @@ import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
-/*
-  Lambda to PUT target fill to percentage value to Dynamo DB config table
-*/
+/**
+ * Lambda function to update target fill percentage value in DynamoDB config table.
+ *
+ * @function handler
+ * @param {Object} event - The event object containing information about the HTTP request.
+ * @param {Object} context - The context object representing the runtime information.
+ * @returns {Object} - The response object containing the status code, headers, and body.
+ */
 export const handler = async (event, context) => {
   const client = new DynamoDBClient({ region: "eu-west-2" });
 
