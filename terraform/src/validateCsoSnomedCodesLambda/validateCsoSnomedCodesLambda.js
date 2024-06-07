@@ -1,4 +1,4 @@
-import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 import {
   S3Client,
   GetObjectCommand,
@@ -48,9 +48,11 @@ export const handler = async (event) => {
       );
 
       if (cso1) {
-        const cso1Codes = cso1.resource.component.map(
-          (component) => component.valueCodeableConcept.coding[0].code
-        );
+        const cso1Codes = cso1.resource.component
+          .map((component) => component.valueCodeableConcept.coding[0].code)
+          .sort()
+          .join("-");
+
         const cso1Match = await validateSnomedCodes(
           cso1Codes,
           "CancerSignalOrigin"
@@ -77,9 +79,11 @@ export const handler = async (event) => {
           );
 
           if (cso2) {
-            const cso2Codes = cso2.resource.component.map(
-              (component) => component.valueCodeableConcept.coding[0].code
-            );
+            const cso2Codes = cso2.resource.component
+              .map((component) => component.valueCodeableConcept.coding[0].code)
+              .sort()
+              .join("-");
+
             const cso2Match = await validateSnomedCodes(
               cso2Codes,
               "CancerSignalOrigin"
@@ -177,36 +181,27 @@ export const addS3ObjectTag = async (trrJson, tagKey, tagValue) => {
 };
 
 export const validateSnomedCodes = async (
-  snomedCodes,
+  sortedJoinedSnomedCodes,
   tableName = "CancerSignalOrigin"
 ) => {
   try {
-    const results = [];
+    const params = {
+      TableName: `${ENVIRONMENT}-${tableName}`,
+      KeyConditionExpression:
+        "Cso_Result_Snomed_Code_Sorted = :sortedJoinedSnomedCodes",
+      ExpressionAttributeValues: {
+        ":sortedJoinedSnomedCodes": { S: sortedJoinedSnomedCodes },
+      },
+    };
 
-    for (const snomedCode of snomedCodes) {
-      const params = {
-        TableName: `${ENVIRONMENT}-${tableName}`,
-        FilterExpression:
-          "contains(Cso_Result_Snomed_Code_Sorted, :snomedCode)",
-        ExpressionAttributeValues: {
-          ":snomedCode": { S: snomedCode },
-        },
-      };
+    const response = await dbClient.send(new QueryCommand(params));
+    const items = response.Items;
 
-      const response = await dbClient.send(new ScanCommand(params));
-      const items = response.Items;
-
-      if (items.length > 0) {
-        console.log(`Match found for ${snomedCode}`);
-        results.push(items[0]);
-      } else {
-        console.log(`No match found for ${snomedCode}`);
-      }
-    }
-
-    if (results.length === snomedCodes.length) {
-      return results;
+    if (items.length > 0) {
+      console.log(`Match found for ${sortedJoinedSnomedCodes}`);
+      return items;
     } else {
+      console.error(`Error: No match found for ${sortedJoinedSnomedCodes}`);
       return null;
     }
   } catch (err) {
