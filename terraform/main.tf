@@ -50,6 +50,7 @@ module "galleri_invitations_screen" {
   NEXT_PUBLIC_INVITATION_PARAMETERS                     = module.invitation_parameters_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_FORECAST_UPTAKE = module.invitation_parameters_put_forecast_uptake_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_INVITATION_PARAMETERS_PUT_QUINTILES       = module.invitation_parameters_put_quintiles_api_gateway.rest_api_galleri_id
+  NEXT_PUBLIC_ONWARD_REFERRAL_LIST                      = module.onward_referral_list_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_PARTICIPATING_ICB_LIST                    = module.participating_icb_list_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_PUT_TARGET_PERCENTAGE                     = module.target_fill_to_percentage_put_api_gateway.rest_api_galleri_id
   NEXT_PUBLIC_TARGET_PERCENTAGE                         = module.target_fill_to_percentage_get_api_gateway.rest_api_galleri_id
@@ -1686,6 +1687,34 @@ module "publish_test_results_dynamodb_stream" {
   maximum_batching_window_in_seconds = 30
 }
 
+# Onward Referral List Lambda
+module "onward_referral_list_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "onwardReferralListLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "onward_referral_list_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+
+module "onward_referral_list_api_gateway" {
+  source                 = "./modules/api-gateway"
+  environment            = var.environment
+  lambda_invoke_arn      = module.onward_referral_list_lambda.lambda_invoke_arn
+  path_part              = "onward-referral-list"
+  method_http_parameters = {}
+  lambda_function_name   = module.onward_referral_list_lambda.lambda_function_name
+  hostname               = var.invitations_hostname
+  dns_zone               = var.dns_zone
+}
+
 # Dynamodb tables
 module "sdrs_table" {
   source      = "./modules/dynamodb"
@@ -2336,6 +2365,10 @@ module "episode_table" {
     {
       name = "Participant_Id"
       type = "S"
+    },
+    {
+      name = "Episode_Event"
+      type = "S"
     }
   ]
   global_secondary_index = [
@@ -2343,6 +2376,12 @@ module "episode_table" {
       name      = "Participant_Id-index"
       hash_key  = "Participant_Id"
       range_key = null
+    },
+    {
+      name            = "Episode_Event-index"
+      hash_key        = "Episode_Event"
+      range_key       = null
+      projection_type = "ALL"
     }
   ]
   tags = {

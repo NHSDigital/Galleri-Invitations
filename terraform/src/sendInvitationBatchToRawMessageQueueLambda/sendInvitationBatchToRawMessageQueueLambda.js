@@ -23,7 +23,12 @@ export const handler = async (event, context) => {
 };
 
 //FUNCTIONS
-// Process JSON file and send to SQS queue
+/**
+ * Process JSON file and send to SQS queue
+ * @async
+ * @param {Object} jsonObj Batch of records to be processed
+ * @param {Object} client An instance of an SQS client
+ */
 export async function processJSONObj(jsonObj, client) {
   const totalRecords = jsonObj.InvitedParticipantBatch.length;
   let recordsSuccessfullySent = 0;
@@ -62,7 +67,15 @@ export async function processJSONObj(jsonObj, client) {
   );
 }
 
-// Retrieve and Parse the JSON file
+/**
+ * Retrieve and parse the JSON file
+ * @async
+ * @param {Function} getJSONFunc Function to retrieve a JSON file from a bucket
+ * @param {string} bucket Name of bucket
+ * @param {string} key Object key
+ * @param {Object} client An Instance of an S3 client
+ * @returns {Object} Parsed JSON object
+ */
 export const retrieveAndParseJSON = async (
   getJSONFunc,
   bucket,
@@ -73,7 +86,15 @@ export const retrieveAndParseJSON = async (
   return JSON.parse(JSONMsgStr);
 };
 
-// Get JSON File from the bucket
+/**
+ * Get JSON file from the bucket
+ * @async
+ * @param {string} bucketName Name of bucket
+ * @param {string} key Object key
+ * @param {Object} client An Instance of an S3 client
+ * @returns {string} Body of file transformed into a string
+ * @throws {Error} Failed to get object from S3
+ */
 export async function getJSONFromS3(bucketName, key, client) {
   console.log(`Getting object key ${key} from bucket ${bucketName}`);
   try {

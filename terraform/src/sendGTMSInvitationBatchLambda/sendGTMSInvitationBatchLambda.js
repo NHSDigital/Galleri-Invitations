@@ -19,6 +19,16 @@ const WORKFLOW_ID = process.env.WORKFLOW_ID;
 const SENT_BUCKET = `${ENVIRONMENT}-sent-gtms-invited-participant-batch`;
 const GTMS_MESH_RECEIVER_MAILBOX_ID = process.env.GTMS_MESH_RECEIVER_MAILBOX_ID;
 
+/**
+ * Lambda handler function to process JSON File uploaded to
+ * S3 bucket, send the file via Mesh mailbox. After the file is
+ * sent, upload it to the sent bucket and delete the file from initial bucket.
+ *
+ * @function handler
+ * @async
+ * @param {Object} event - S3 event triggering the Lambda function.
+ * @param {Object} context - The context of the Lambda function
+ */
 //HANDLER
 export const handler = async (event, context) => {
   const bucket = event.Records[0].s3.bucket.name;
@@ -96,7 +106,18 @@ export const handler = async (event, context) => {
 
 //FUNCTIONS
 
-// Retrieve and Parse the JSON file
+/**
+ * This function retrieves and parse JSON file from S3 bucket
+ *
+ * @function retrieveAndParseJSON
+ * @async
+ * @param {Function} getJSONFunc - Function to get JSON from S3
+ * @param {string} bucket - S3 bucket name
+ * @param {string} key - S3 object key
+ * @param {S3Client} client - S3 client
+ * @returns {Object} Parsed JSON object
+ * @throws {Error} If there is an error retrieving or parsing the JSON file
+ */
 export const retrieveAndParseJSON = async (
   getJSONFunc,
   bucket,
@@ -107,7 +128,18 @@ export const retrieveAndParseJSON = async (
   return JSON.parse(JSONMsgStr);
 };
 
-// Send Message to Mesh Mailbox, returns the length of the object prior and sent Message ID
+/**
+ * Sends Message to Mesh Mailbox, returns the length of the object prior and sent Message ID
+ *
+ * @function sendMessageToMesh
+ * @async
+ * @param {Function} sendFunc - Function to send message
+ * @param {string} KEY_PREFIX - Prefix for the key
+ * @param {string} timestamp - Timestamp for the message
+ * @param {Object} CONFIG - Configuration object
+ * @param {Object} JSONMsgObj - JSON message object
+ * @returns {number} Status of the sent message
+ */
 export const sendMessageToMesh = async (
   sendFunc,
   KEY_PREFIX,
@@ -127,8 +159,24 @@ export const sendMessageToMesh = async (
   return sentMsgStatus;
 };
 
-// If the status after sending the JSON message is 202, push the sent object to SENT Bucket and delete the fetched
-// object from the outbound bucket
+/**
+ * Handles the sent message file.
+ * If the status after sending the JSON message is 202,
+ * push the sent object to SENT Bucket and delete the
+ * fetched object from the outbound bucket.
+ *
+ * @function handleSentMessageFile
+ * @async
+ * @param {Function} pushJsonFunc - Function to push JSON to S3
+ * @param {Function} deleteObjectFunc - Function to delete object from S3
+ * @param {string} KEY_PREFIX - Prefix for the key
+ * @param {string} timestamp - Timestamp for the message
+ * @param {Object} JSONMsgObj - JSON message object
+ * @param {number} sentMsgStatus - Status of the sent message
+ * @param {string} bucket - S3 bucket name
+ * @param {string} key - S3 object key
+ * @param {S3Client} client - S3 client
+ */
 export const handleSentMessageFile = async (
   pushJsonFunc,
   deleteObjectFunc,
@@ -153,7 +201,17 @@ export const handleSentMessageFile = async (
   }
 };
 
-// Get JSON File from the bucket
+/**
+ * This function retrieves a JSON file from the S3 bucket
+ *
+ * @function getJSONFromS3
+ * @async
+ * @param {string} bucketName - Name of the S3 bucket
+ * @param {string} key - Key of the object in the S3 bucket
+ * @param {S3Client} client - S3 client
+ * @returns {string} JSON string from the S3 object
+ * @throws {Error} If there is an error retrieving the JSON file
+ */
 export async function getJSONFromS3(bucketName, key, client) {
   console.log(`Getting object key ${key} from bucket ${bucketName}`);
   try {
@@ -170,7 +228,19 @@ export async function getJSONFromS3(bucketName, key, client) {
     throw err;
   }
 }
-// PUSH JSON File to an S3 bucket
+
+/**
+ * Pushes a JSON file to the S3 bucket
+ *
+ * @function pushJsonToS3
+ * @async
+ * @param {S3Client} client - S3 client
+ * @param {string} bucketName - Name of the S3 bucket
+ * @param {string} key - Key for the object in the S3 bucket
+ * @param {Object} jsonArr - JSON object to push
+ * @returns {number} HTTP status code of the response
+ * @throws {Error} If there is an error pushing the JSON file to S3
+ */
 export const pushJsonToS3 = async (client, bucketName, key, jsonArr) => {
   console.log(`Pushing object key ${key} to bucket ${bucketName}`);
   try {
@@ -189,7 +259,17 @@ export const pushJsonToS3 = async (client, bucketName, key, jsonArr) => {
   }
 };
 
-// Delete an object from an S3 bucket
+/**
+ * Deletes an object from an S3 bucket
+ *
+ * @function deleteObjectFromS3
+ * @async
+ * @param {string} bucketName - Name of the S3 bucket
+ * @param {string} objectKey - Key of the object in the S3 bucket
+ * @param {S3Client} client - S3 client
+ * @returns {number} HTTP status code of the response
+ * @throws {Error} If there is an error deleting the object from S3
+ */
 export async function deleteObjectFromS3(bucketName, objectKey, client) {
   try {
     const response = await client.send(
@@ -211,7 +291,18 @@ export async function deleteObjectFromS3(bucketName, objectKey, client) {
   }
 }
 
-//Send Message based on the MailBox ID from the config
+/**
+ * Sends an uncompressed message to the MESH mailbox,
+ * based on the MailBox ID from the config.
+ *
+ * @function sendUncompressed
+ * @async
+ * @param {Object} config - Configuration object
+ * @param {Object} msg - Message object
+ * @param {string} filename - Name of the file retrieved from S3 bucket. (file that triggered the lambda)
+ * @returns {number} HTTP status code of the response
+ * @throws {Error} If there is an error sending the uncompressed message
+ */
 export async function sendUncompressed(
   config,
   msg,
@@ -258,7 +349,16 @@ export async function sendUncompressed(
   }
 }
 
-//Return 'Secret value' from secrets manager by passing in 'Secret name'
+/**
+ * Retrieves 'Secret value' from secrets manager by passing in 'Secret name' from AWS Secrets Manager
+ *
+ * @function getSecret
+ * @async
+ * @param {string} secretName - Name of the secret to retrieve
+ * @param {SecretsManagerClient} client - Secrets Manager client
+ * @returns {string} Secret value
+ * @throws {Error} If there is an error retrieving the secret
+ */
 export const getSecret = async (secretName, client) => {
   try {
     const response = await client.send(
@@ -274,6 +374,16 @@ export const getSecret = async (secretName, client) => {
   }
 };
 
+/**
+ * Reads a secret from AWS Secrets Manager
+ *
+ * @function readSecret
+ * @async
+ * @param {Function} fetchSecret - Function to get the secret
+ * @param {string} secretName - Name of the secret to retrieve
+ * @param {Object} client - Secrets Manager client
+ * @returns {string} Secret value
+ */
 export async function readSecret(fetchSecret, secretName, client) {
   return Buffer.from(await fetchSecret(secretName, client), "base64").toString(
     "utf8"
