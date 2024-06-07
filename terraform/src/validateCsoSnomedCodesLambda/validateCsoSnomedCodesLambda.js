@@ -36,10 +36,7 @@ export const handler = async (event) => {
         )
     );
 
-    if (
-      csdResult.resource.valueCodeableConcept.coding[0].code ===
-      "1854981000000108"
-    ) {
+    if (csdResult === "1854981000000108") {
       // Find the entry with the highest scored cancer signal origin (CSO1)
       const cso1 = entry.find(
         (entry) =>
@@ -66,43 +63,11 @@ export const handler = async (event) => {
             trrJson,
             "inbound_nrds_galleritestresult_step2_success"
           );
-          await addS3ObjectTag(trrJson, "CSO1", cso1Match.Cso_Result_Friendly);
-
-          // Find the entry with the second highest scored cancer signal origin (CSO2)
-          const cso2 = entry.find(
-            (entry) =>
-              entry.resource.resourceType === "Observation" &&
-              entry.resource.code.coding.some(
-                (coding) =>
-                  coding.display ===
-                  "Multi-cancer early detection second highest scored cancer signal origin by machine learning-based classifier"
-              )
+          await addS3ObjectTag(
+            trrJson,
+            "CSO1",
+            cso1Match.participantFriendlyDescription
           );
-
-          if (cso2) {
-            const cso2Codes = cso2.resource.component.map(
-              (component) => component.valueCodeableConcept.coding[0].code
-            );
-            const cso2Match = await validateSnomedCodes(
-              cso2Codes,
-              "CancerSignalOrigin"
-            );
-
-            if (cso2Match) {
-              // AC2: Both CSO1 and CSO2 match approved combinations
-              await addS3ObjectTag(
-                trrJson,
-                "CSO2",
-                cso2Match.Cso_Result_Friendly
-              );
-            } else {
-              // AC4: One or both of CSO1 and CSO2 do not match approved combinations
-              await uploadToS3(
-                trrJson,
-                "inbound_nrds_galleritestresult_step2_error"
-              );
-            }
-          }
         } else {
           // AC3: CSO1 does not match approved combinations
           await uploadToS3(
@@ -111,9 +76,46 @@ export const handler = async (event) => {
           );
         }
       }
+
+      // Find the entry with the second highest scored cancer signal origin (CSO2)
+      const cso2 = entry.find(
+        (entry) =>
+          entry.resource.resourceType === "Observation" &&
+          entry.resource.code.coding.some(
+            (coding) =>
+              coding.display ===
+              "Multi-cancer early detection second highest scored cancer signal origin by machine learning-based classifier"
+          )
+      );
+
+      if (cso2) {
+        const cso2Codes = cso2.resource.component.map(
+          (component) => component.valueCodeableConcept.coding[0].code
+        );
+        const cso2Match = await validateSnomedCodes(
+          cso2Codes,
+          "CancerSignalOrigin"
+        );
+
+        if (cso1Match && cso2Match) {
+          // AC2: Both CSO1 and CSO2 match approved combinations
+          await uploadToS3(
+            trrJson,
+            "inbound_nrds_galleritestresult_step2_success"
+          );
+          await addS3ObjectTag(trrJson, "CSO1", cso1Match.Cso_Result_Friendly);
+          await addS3ObjectTag(trrJson, "CSO2", cso2Match.Cso_Result_Friendly);
+        } else {
+          // AC4: One or both of CSO1 and CSO2 do not match approved combinations
+          await uploadToS3(
+            trrJson,
+            "inbound_nrds_galleritestresult_step2_success"
+          );
+        }
+      }
     } else {
       // AC5: No CSD result
-      await uploadToS3(trrJson, "inbound_nrds_galleritestresult_step2_success");
+      await uploadToS3(trrJson, "inbound_nrds_galleritestresult_step2_error");
     }
   } catch (error) {
     const message = `Error processing object ${key} in bucket ${bucket}: ${error}`;
@@ -180,7 +182,7 @@ export const validateSnomedCodes = async (
   try {
     const params = {
       TableName: `${ENVIRONMENT}-${tableName}`,
-      KeyConditionExpression: "Cso_Result_Snomed_Code_Sorted = :snomedCodes",
+      FilterExpression: "Cso_Result_Snomed_Code_Sorted = :snomedCodes",
       ExpressionAttributeValues: {
         ":snomedCodes": { S: JSON.stringify(snomedCodes) },
       },
@@ -194,23 +196,6 @@ export const validateSnomedCodes = async (
     } else {
       return null;
     }
-  } catch (err) {
-    console.log("Failed: ", err);
-    throw err;
-  }
-};
-
-export const pushToS3 = async (bucketName, key, body, client) => {
-  try {
-    const response = await client.send(
-      new PutObjectCommand({
-        Bucket: bucketName,
-        Key: key,
-        Body: body,
-      })
-    );
-
-    return response;
   } catch (err) {
     console.log("Failed: ", err);
     throw err;

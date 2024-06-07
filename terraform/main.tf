@@ -1001,6 +1001,30 @@ module "validate_gtms_appointment_lambda_trigger" {
   lambda_arn = module.validate_gtms_appointment_lambda.lambda_arn
 }
 
+# Validate CSO SnomedCodes
+module "validate_cso_snomed_codes_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "validateCsoSnomedCodesLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "validate_cso_snomed_codes_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+
+module "validate_cso_snomed_codes_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.inbound_nrds_galleritestresult_step1_success.bucket_id
+  bucket_arn = module.inbound_nrds_galleritestresult_step1_success.bucket_arn
+  lambda_arn = module.validate_cso_snomed_codes_lambda.lambda_arn
+}
+
 # Validate Appointment Common Data Lambda
 module "validate_appointment_common_data_lambda" {
   source               = "./modules/lambda"
