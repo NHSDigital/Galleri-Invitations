@@ -81,11 +81,13 @@ export const handler = async (event, context) => {
 /**
  * This function is used to retrieve an object from S3,
  * and allow the data retrieved to be used in your code.
+ * @async
  * @function readCsvFromS3
  * @param {string} bucketName The name of the bucket you are querying
  * @param {string} key The name of the object you are retrieving
  * @param {S3Client} client Instance of S3 client
- * @returns {Object} The data of the file you retrieved
+ * @throws {Error} Failed to read from ${bucketName}/${key}
+ * @returns {string} The data of the file you retrieved
  */
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
@@ -103,13 +105,15 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
 };
 /**
  * This function is used to write a new object in S3
+ * @async
  * @function pushCsvToS3
  * @param {string} bucketName The name of the bucket you are pushing to
  * @param {string} body The data you will be writing to S3
  * @param {string} key The name you want to give to the file you will write to S3
  * @param {string} rejectedReason The rejected reason
  * @param {S3Client} client Instance of S3 client
- * @returns {Object} metadata about the request, including httpStatusCode
+ * @throws {Error} Error pushing CSV to S3 bucket
+ * @returns {Object} metadata about the response, including httpStatusCode
  */
 export const pushCsvToS3 = async (
   bucketName,
@@ -142,7 +146,7 @@ export const pushCsvToS3 = async (
  * @param {string} table Table name
  * @param {DynamoDBClient} client Instance of DynamoDB client
  * @param {string} key Primary key value
- * @returns {Array} Items returned from query
+ * @returns {Object} Items returned from query
  */
 export async function getItemsFromTable(table, client, key) {
   const params = {
@@ -187,7 +191,7 @@ const checkPhlebotomy = async (payload, arr) => {
  * @param {string} environment - The environment name.
  * @param {DynamoDBClient} client - The database client used to interact with the Phlebotomy table.
  * @param {string} clinicName - The name of the clinic associated with the object.
- * @returns {Array} updated Clinic with item to the Phlebotomy table.
+ * @returns {boolean} updated Clinic with item to the Phlebotomy table.
  */
 export const saveObjToPhlebotomyTable = async (
   MeshObj,
