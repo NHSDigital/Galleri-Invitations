@@ -1774,7 +1774,13 @@ module "sdrs_table" {
     Name = "Dynamodb Table Sdrs"
   }
 }
-
+module "cancer_signal_origin_files" {
+  source                  = "./modules/s3"
+  bucket_name             = "cancer-signal-origin-files"
+  galleri_lambda_role_arn = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  environment             = var.environment
+  account_id              = var.account_id
+}
 module "inbound_nrds_galleritestresult_step1_success" {
   source                  = "./modules/s3"
   bucket_name             = "inbound-nrds-galleritestresult-step1-success"
@@ -2070,8 +2076,8 @@ module "cancer_signal_origin_add_lambda" {
 }
 module "cancer_signal_origin_add_lambda_trigger" {
   source        = "./modules/lambda_trigger"
-  bucket_id     = module.proccessed_appointments.bucket_id
-  bucket_arn    = module.proccessed_appointments.bucket_arn
+  bucket_id     = module.cancer_signal_origin_files.bucket_id
+  bucket_arn    = module.cancer_signal_origin_files.bucket_arn
   lambda_arn    = module.cancer_signal_origin_add_lambda.lambda_arn
   filter_prefix = "snomedCode/"
 }
