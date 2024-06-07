@@ -1002,6 +1002,30 @@ module "validate_gtms_appointment_lambda_trigger" {
   lambda_arn = module.validate_gtms_appointment_lambda.lambda_arn
 }
 
+# Validate CSO SnomedCodes
+module "validate_cso_snomed_codes_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "validateCsoSnomedCodesLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "validate_cso_snomed_codes_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+
+module "validate_cso_snomed_codes_lambda_trigger" {
+  source     = "./modules/lambda_trigger"
+  bucket_id  = module.inbound_nrds_galleritestresult_step1_success.bucket_id
+  bucket_arn = module.inbound_nrds_galleritestresult_step1_success.bucket_arn
+  lambda_arn = module.validate_cso_snomed_codes_lambda.lambda_arn
+}
+
 # Validate Appointment Common Data Lambda
 module "validate_appointment_common_data_lambda" {
   source               = "./modules/lambda"
@@ -2029,6 +2053,28 @@ module "event_type_triggers" {
   }
 }
 
+module "cancer_signal_origin_add_lambda" {
+  source               = "./modules/lambda"
+  environment          = var.environment
+  bucket_id            = module.s3_bucket.bucket_id
+  lambda_iam_role      = module.iam_galleri_lambda_role.galleri_lambda_role_arn
+  lambda_function_name = "cancerSignalOriginAddLambda"
+  lambda_timeout       = 100
+  memory_size          = 1024
+  lambda_s3_object_key = "cancer_signal_origin_add_lambda.zip"
+  environment_vars = {
+    ENVIRONMENT = "${var.environment}"
+  }
+  sns_lambda_arn = module.sns_alert_lambda.lambda_arn
+  sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
+}
+module "cancer_signal_origin_add_lambda_trigger" {
+  source        = "./modules/lambda_trigger"
+  bucket_id     = module.proccessed_appointments.bucket_id
+  bucket_arn    = module.proccessed_appointments.bucket_arn
+  lambda_arn    = module.cancer_signal_origin_add_lambda.lambda_arn
+  filter_prefix = "snomedCode/"
+}
 module "gp_practice_table" {
   source                   = "./modules/dynamodb"
   billing_mode             = "PAY_PER_REQUEST"
@@ -2450,6 +2496,29 @@ module "galleri_blood_test_result_table" {
   ]
   tags = {
     Name = "Dynamodb Table Galleri Blood Test Result"
+  }
+}
+
+module "cancer_signal_origin_table" {
+  source          = "./modules/dynamodb"
+  table_name      = "CancerSignalOrigin"
+  hash_key        = "Cso_Result_Snomed_Code_Sorted"
+  range_key       = "Grail_Prd_Version"
+  projection_type = "ALL"
+  environment     = var.environment
+  attributes = [
+    {
+      name = "Cso_Result_Snomed_Code_Sorted"
+      type = "S"
+    },
+    {
+      name = "Grail_Prd_Version"
+      type = "S"
+    },
+  ]
+  tags = {
+    Name        = "Dynamodb Table Cancer Signal Origin"
+    Environment = var.environment
   }
 }
 

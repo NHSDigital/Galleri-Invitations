@@ -331,7 +331,9 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
             "dynamodb:*"
           ],
           "Resource" : [
-            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-UniqueLsoa"
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-UniqueLsoa",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-CancerSignalOrigin",
+            "arn:aws:dynamodb:eu-west-2:${var.account_id}:table/${var.environment}-CancerSignalOrigin/*/*"
           ]
         },
         {
@@ -355,7 +357,7 @@ resource "aws_iam_policy" "iam_policy_for_get_lsoa_in_range_lambda" {
           "Resource" : [
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:NRDS_MESH_MAILBOX_ID*",
             "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:NRDS_MESH_MAILBOX_PASSWORD*",
-            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:NRDS_MESH_RECEIVER_MAILBOX_ID*"
+            "arn:aws:secretsmanager:eu-west-2:${var.account_id}:secret:NRDS_MESH_RECEIVER_MAILBOX_ID*",
           ]
         },
       ],
