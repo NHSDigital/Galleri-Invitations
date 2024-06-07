@@ -1,0 +1,16 @@
+{
+  "name": "cancersignaloriginaddlambda",
+  "version": "1.0.0",
+  "main": "cancerSignalOriginAddLambda.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "csv-parser": "^3.0.0"
+  },
+  "devDependencies": {},
+  "description": ""
+}

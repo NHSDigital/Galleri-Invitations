@@ -61,12 +61,21 @@ export const handler = async (event) => {
       await rejectRecord(appointmentJson);
       throw new Error("Invalid Appointment - no participant appointment found");
     }
-    const sortedAppointments = sortBy(appointmentResponse.Items, "Time_stamp", "S", false);
-    if (sortedAppointments[0].Appointment_Id.S !== AppointmentID ||
-      sortedAppointments[0].Time_stamp.S > Timestamp) {
+    const sortedAppointments = sortBy(
+      appointmentResponse.Items,
+      "Time_stamp",
+      "S",
+      false
+    );
+    if (
+      sortedAppointments[0].Appointment_Id.S !== AppointmentID ||
+      sortedAppointments[0].Time_stamp.S > Timestamp
+    ) {
       await rejectRecord(appointmentJson);
-      throw new Error("Invalid Appointment - does not match or timestamp is earlier" +
-      " than latest participant appointment");
+      throw new Error(
+        "Invalid Appointment - does not match or timestamp is earlier" +
+          " than latest participant appointment"
+      );
     }
 
     let response = false;
@@ -276,7 +285,7 @@ export const transactionalWrite = async (
             ":eventType": { S: eventType },
             ":appointmentTimestamp": { S: appointmentTimestamp },
             ":grailId": { S: grailId },
-            ":bloodCollectionDate": { S: bloodCollectionDate},
+            ":bloodCollectionDate": { S: bloodCollectionDate },
             ":bloodNotCollectedReason": { S: eventDescription },
           },
         },
@@ -294,13 +303,19 @@ export const transactionalWrite = async (
 };
 
 export const sortBy = (items, key, keyType, asc = true) => {
-  items.sort( (a,b) => {
+  items.sort((a, b) => {
     if (asc) {
-      return (a[key][keyType] > b[key][keyType]) ? 1 :
-        ((a[key][keyType] < b[key][keyType]) ? -1 : 0);
+      return a[key][keyType] > b[key][keyType]
+        ? 1
+        : a[key][keyType] < b[key][keyType]
+        ? -1
+        : 0;
     } else {
-      return (b[key][keyType] > a[key][keyType]) ? 1 :
-        ((b[key][keyType] < a[key][keyType]) ? -1 : 0);
+      return b[key][keyType] > a[key][keyType]
+        ? 1
+        : b[key][keyType] < a[key][keyType]
+        ? -1
+        : 0;
     }
   });
   return items;
