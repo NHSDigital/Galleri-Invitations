@@ -159,7 +159,15 @@ export const handler = async (event, context) => {
   }
 };
 
-//METHODS
+/**
+ * Queries DynamoDB table and returns items found based on primary key field/value
+ * @async
+ * @function getItemsFromTable
+ * @param {string} table Table name
+ * @param {DynamoDBClient} client Instance of DynamoDB client
+ * @param {string} key Primary key value
+ * @returns {Object} Items returned from query
+ */
 export async function getItemsFromTable(table, client, key) {
   const params = {
     Key: {
@@ -175,6 +183,15 @@ export async function getItemsFromTable(table, client, key) {
   return response;
 }
 
+/**
+ * Invokes participant list lambda.
+ * @async
+ * @function invokeParticipantListLambda
+ * @param {string} lambdaName - The name of the lambda to be invoked.
+ * @param {Object} payload - The payload to send to the participantList.
+ * @param {LambdaClient} lambdaClient - Lambda client used to invoke the function.
+ * @returns {Array} Return participants available to invite.
+ */
 export async function invokeParticipantListLambda(
   lamdaName,
   payload,
@@ -196,6 +213,15 @@ export async function invokeParticipantListLambda(
 // Add their forecast uptake to count
 // Remove them from the object
 // Store the personId in selectedParticipants set
+
+/**
+ * @function getParticipantsInQuintile
+ * @param {Array} quintilePopulation - An array of objects representing the quintile population.
+ * @param {number} quintileTarget - The target number of participants to select.
+ * @param {number} nationalForecastUptake - The national forecast uptake value.
+ * @param {string} Q - A string representing the quintile block.
+ * @returns {Set|Error} An Array containing the selected participants or Error unable to generate enough invitations.
+ */
 export const getParticipantsInQuintile = (
   quintilePopulation,
   quintileTarget,
@@ -270,6 +296,16 @@ export const getParticipantsInQuintile = (
   return selectedParticipants;
 };
 
+/**
+ * Generates a block of items from the participantList within the specified bounds for a given quintile.
+ *
+ * @function generateQuintileBlocks
+ * @param {Array} participantList - The list of items to generate the quintile block from.
+ * @param {number} lowerBound - The lower bound index for slicing the list.
+ * @param {number} upperBound - The upper bound index for slicing the list.
+ * @param {string} quintile - A string representing the quintile block.
+ * @returns {Array} A slice of the participantList from lowerBound to upperBound.
+ */
 export const generateQuintileBlocks = (
   participantList,
   lowerBound,
