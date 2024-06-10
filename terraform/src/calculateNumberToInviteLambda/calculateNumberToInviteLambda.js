@@ -184,12 +184,12 @@ export async function getItemsFromTable(table, client, key) {
 }
 
 /**
- * Invokes a participant list lambda with the provided payload.
+ * Invokes a participant list with the provided payload.
  * @async
  * @function invokeParticipantListLambda
- * @param {string} lambdaName - The name of the participantList Lambda.
- * @param {Object} payload - The payload to send to the participantList Lambda.
- * @param {LambdaClient} lambdaClient - The AWS Lambda client used to invoke the function.
+ * @param {string} lambdaName - The name of the participantList.
+ * @param {Object} payload - The payload to send to the participantList.
+ * @param {LambdaClient} lambdaClient - Lambda client used to invoke the function.
  * @returns {Array} Return participants available to invite.
  */
 export async function invokeParticipantListLambda(
