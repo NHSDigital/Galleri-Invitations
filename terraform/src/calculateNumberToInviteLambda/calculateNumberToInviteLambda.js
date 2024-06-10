@@ -184,10 +184,10 @@ export async function getItemsFromTable(table, client, key) {
 }
 
 /**
- * Invokes a participant list with the provided payload.
+ * Invokes participant list lambda.
  * @async
  * @function invokeParticipantListLambda
- * @param {string} lambdaName - The name of the participantList.
+ * @param {string} lambdaName - The name of the lambda to be invoked.
  * @param {Object} payload - The payload to send to the participantList.
  * @param {LambdaClient} lambdaClient - Lambda client used to invoke the function.
  * @returns {Array} Return participants available to invite.
@@ -220,7 +220,7 @@ export async function invokeParticipantListLambda(
  * @param {number} quintileTarget - The target number of participants to select.
  * @param {number} nationalForecastUptake - The national forecast uptake value.
  * @param {string} Q - A string representing the quintile block.
- * @returns {Array} An Array containing the selected participants.
+ * @returns {Set|Error} An Array containing the selected participants or Error unable to generate enough invitations.
  */
 export const getParticipantsInQuintile = (
   quintilePopulation,
@@ -303,7 +303,7 @@ export const getParticipantsInQuintile = (
  * @param {Array} participantList - The list of items to generate the quintile block from.
  * @param {number} lowerBound - The lower bound index for slicing the list.
  * @param {number} upperBound - The upper bound index for slicing the list.
- * @param {number} quintile - The quintile number for which the block is generated.
+ * @param {string} quintile - A string representing the quintile block.
  * @returns {Array} A slice of the participantList from lowerBound to upperBound.
  */
 export const generateQuintileBlocks = (
