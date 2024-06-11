@@ -278,10 +278,12 @@ export const handler = async (event) => {
  * This function is used to retrieve an object from S3,
  * and allow the data retrieved to be used in your code.
  *
- * @param {string} bucketName The name of the bucket you are querying
- * @param {string} key The name of the object you are retrieving
- * @param {Object} client Instance of S3 client
- * @returns {Object} The data of the file you retrieved
+ * @function readCsvFromS3
+ * @async
+ * @param {string} bucketName - The name of the bucket you are querying
+ * @param {string} key - The name of the object you are retrieving
+ * @param {Object} client - Instance of S3 client
+ * @returns {Promise<Object>} The data of the file you retrieved
  */
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
@@ -301,10 +303,12 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
 /**
  * This function is used to retrieve the tags associated to an object in S3
  *
- * @param {String} bucketName The name of the bucket you are querying
- * @param {String} key The name of the object you are retrieving
- * @param {Object} client Instance of S3 client
- * @returns {Array} An array of all tags on object being returned
+ * @function getTagFromS3
+ * @async
+ * @param {string} bucketName - The name of the bucket you are querying
+ * @param {string} key - The name of the object you are retrieving
+ * @param {Object} client - Instance of S3 client
+ * @returns {Promise<Array>} An array of all tags on object being returned
  */
 export const getTagFromS3 = async (bucketName, key, client) => {
   try {
@@ -323,11 +327,13 @@ export const getTagFromS3 = async (bucketName, key, client) => {
 /**
  * This function is used to write a new object in S3
  *
- * @param {string} bucketName The name of the bucket you are pushing to
- * @param {string} key The name you want to give to the file you will write to S3
- * @param {string} body The data you will be writing to S3
- * @param {Object} client Instance of S3 client
- * @returns {Object} metadata about the request, including httpStatusCode
+ * @function pushCsvToS3
+ * @async
+ * @param {string} bucketName - The name of the bucket you are pushing to
+ * @param {string} key - The name you want to give to the file you will write to S3
+ * @param {string} body - The data you will be writing to S3
+ * @param {Object} client - Instance of S3 client
+ * @returns {Promise<Object>} metadata about the request, including httpStatusCode
  */
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
   try {
@@ -352,12 +358,14 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
 /**
  * This function allows the user to query against DynamoDB.
  *
- * @param {Object} dbClient Instance of DynamoDB client
- * @param  {...any} params params is destructed to id, which is the value you use to query against.
+ * @function lookUp
+ * @async
+ * @param {Object} dbClient - Instance of DynamoDB client
+ * @param  {...any} params - params is destructed to id, which is the value you use to query against.
  * The table is the table name (type String), attribute is the column you search against (type String),
  * attributeType is the type of data stored within that column and useIndex is toggled to true if you want to use
  * an existing index (type boolean)
- * @returns {Object} metadata about the request, including httpStatusCode
+ * @returns {Promise<Object>} metadata about the request, including httpStatusCode
  */
 export const lookUp = async (dbClient, ...params) => {
   const [id, table, attribute, attributeType, useIndex] = params;
@@ -393,12 +401,14 @@ export const lookUp = async (dbClient, ...params) => {
 /**
  * This function is used to write to both episode and GalleriBloodTestResult table depending on the received payload
  *
- * @param {Object} client Instance of DynamoDB client
- * @param {String} participantId Sort Key for Episode table
- * @param {String} batchId Partition Key for Episode table
- * @param {Object} fhirPayload Object containing attributes from payload
- * @param {String} episodeStatus Status to set in Episode table
- * @returns {Boolean}
+ * @function transactionalWrite
+ * @async
+ * @param {Object} client - Instance of DynamoDB client
+ * @param {string} participantId - Sort Key for Episode table
+ * @param {string} batchId - Partition Key for Episode table
+ * @param {Object} fhirPayload - Object containing attributes from payload
+ * @param {string} episodeStatus - Status to set in Episode table
+ * @returns {Promise<Boolean>}
  */
 export const transactionalWrite = async (
   client,
@@ -497,6 +507,19 @@ export const transactionalWrite = async (
   }
 };
 
+/**
+ * identify what action to be perform based on payload type received
+ *
+ * @function checkResult
+ * @async
+ * @param {Object} payload - entry payload
+ * @param {string} episodeItemStatus - status to be set by function
+ * @param {Object} dbClient - Instance of DynamoDB client
+ * @param {string} episodeParticipantId - participant id extracted from dynamo
+ * @param {string} episodeBatchId - batch id
+ * @param {Object} fhirPayload - fhir object used for comparison
+ * @returns {Promise<Object>}
+ */
 export const checkResult = async (
   payload,
   episodeItemStatus,
@@ -618,7 +641,9 @@ export const checkResult = async (
  * This function is used to remove any undefined values from the object so that
  * so that it can be passed into a ddb command without any errors
  *
- * @param {Object} obj Object to be formatted
+ * @function checkProperties
+ * @async
+ * @param {Promise<Object>} obj - Object to be formatted
  */
 export const checkProperties = async (obj) => {
   for (var key in obj) {
