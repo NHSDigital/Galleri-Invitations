@@ -101,7 +101,6 @@ export const handler = async (event) => {
  * @param {string} key - The key of the object in the S3 bucket.
  * @param {S3Client} client - An instance of the S3 client.
  * @returns {Promise<string>} Resolves to the contents of the S3 object as a string.
- * @throws {Error} Will throw an error if reading from S3 fails.
  */
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
@@ -128,7 +127,6 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
  * @param {string} body - The contents of the object to be saved in the S3 bucket.
  * @param {S3Client} client - An instance of the S3 client.
  * @returns {Promise<Object>} Resolves to the response from the S3 client.
- * @throws {Error} Will throw an error if pushing to S3 fails.
  */
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
   try {
@@ -156,7 +154,6 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
  * @async
  * @param {string} csvString - The CSV string to parse.
  * @returns {Promise<Array<Object>>} Resolves to an array of parsed CSV records.
- * @throws {Error} Will throw an error if parsing the CSV fails.
  */
 export const parseCsvToArray = async (csvString) => {
   const dataArray = [];
@@ -220,7 +217,6 @@ export const filterUniqueEntries = (caasFeed) => {
  * @param {string} nhsNumber - The NHS number to look up.
  * @param {string} [table] - The name of the DynamoDB table.
  * @returns {Promise<Object>} Resolves to the response from DynamoDB.
- * @throws {Error} Will throw an error if the DynamoDB query fails.
  */
 export async function getParticipantId(
   client,
@@ -256,7 +252,6 @@ export async function getParticipantId(
  * @param {string} participantId - The participant ID to look up.
  * @param {string} [table] - The name of the DynamoDB table.
  * @returns {Promise<Object>} Resolves to the response from DynamoDB.
- * @throws {Error} Will throw an error if the DynamoDB query fails.
  */
 export async function hasAppointment(
   client,
@@ -287,7 +282,6 @@ export async function hasAppointment(
  * @param {string} personId - The person ID to update.
  * @param {string} [table] - The name of the DynamoDB table.
  * @returns {Promise<number>} Resolves to the HTTP status code of the response.
- * @throws {Error} Will throw an error if the DynamoDB update fails.
  */
 export async function updatePopulationTable(
   client,
@@ -328,7 +322,6 @@ export async function updatePopulationTable(
  * @param {string} participantId - The participant ID to update.
  * @param {string} [table] - The name of the DynamoDB table.
  * @returns {Promise<number>} Resolves to the HTTP status code of the response.
- * @throws {Error} Will throw an error if the DynamoDB update fails.
  */
 export async function updateAppointmentTable(
   client,
