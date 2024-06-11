@@ -95,7 +95,7 @@ export const handler = async (event, context) => {
  *
  * @function getHealthStatusCode
  * @async
- * @returns {String} Status code of handshake, expecting 200
+ * @returns {Promise<String>} Status code of handshake, expecting 200
  */
 async function getHealthStatusCode() {
   try {
@@ -118,7 +118,7 @@ async function getHealthStatusCode() {
  *
  * @function getMessageArray
  * @async
- * @returns {Array} Returns an array of message ids read from the mailbox
+ * @returns {Promise<Array>} Returns an array of message ids read from the mailbox
  */
 async function getMessageArray() {
   try {
@@ -147,7 +147,7 @@ async function getMessageArray() {
  * @function markRead
  * @async
  * @param {string} msgID - The message which you want to mark as read
- * @returns {Object} Object containing data about request, including if it was successful
+ * @returns {Promise<Object>} Object containing data about request, including if it was successful
  */
 async function markRead(msgID) {
   try {
@@ -171,7 +171,7 @@ async function markRead(msgID) {
  * @function ReadMsg
  * @async
  * @param {string} msgID - The message which you want to read
- * @returns {String} The message body
+ * @returns {Promise<String>} The message body
  */
 async function readMsg(msgID) {
   try {
@@ -196,7 +196,7 @@ async function readMsg(msgID) {
  * @async
  * @param {string} secretName - Secret name stored in AWS
  * @param {SecretsManagerClient} client - An instance of secrets manager client
- * @returns {String} secret value
+ * @returns {Promise<String>} secret value
  */
 async function readSecret(secretName, client) {
   return Buffer.from(await getSecret(secretName, client), "base64").toString(
