@@ -38,17 +38,16 @@ export const handler = async (event) => {
             record.nhs_number
           );
 
-          if (participantIdResponse.Items.length > 0) {
-            const participantId =
-              participantIdResponse.Items[0].Participant_Id.S;
-            await updatePopulationTable(dbClient, participantId);
+          if (participantIdResponse.Items > 0) {
+            const participantId = participantIdResponse.Item.Participant_Id.S;
+            updatePopulationTable(dbClient, participantId);
             const appointmentStatus = await hasAppointment(
               dbClient,
               participantId
             );
 
-            if (appointmentStatus.Item) {
-              await updateAppointmentTable(dbClient, participantId);
+            if (appointmentStatus.Items > 0) {
+              updateAppointmentTable(dbClient, participantId);
             }
           } else {
             return {
@@ -59,39 +58,30 @@ export const handler = async (event) => {
           }
         })
       );
+    }
 
-      const filteredRejectedRecords = recordsToUploadSettled.filter(
-        (record) => {
-          return !record?.rejected;
-        }
+    const filteredRejectedRecords = recordsToUploadSettled.filter((record) => {
+      return !record?.rejected;
+    });
+    console.log(
+      "----------------------------------------------------------------"
+    );
+
+    if (filteredRejectedRecords) {
+      const timeNow = Date.now();
+      const fileName = `validRecords/rejectedRecords/delete/rejectedRecords-${timeNow}.csv`;
+      console.error(
+        `Error: ${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-${bucket}/${fileName}`
+      );
+      // Generate the CSV format
+      const rejectedRecordsString = generateCsvString(
+        `nhs_number,rejected,reason`,
+        filteredRejectedRecords
       );
 
-      console.log(
-        "----------------------------------------------------------------"
-      );
-
-      if (filteredRejectedRecords.length > 0) {
-        const timeNow = Date.now();
-        const fileName = `validRecords/rejectedRecords/delete/rejectedRecords-${timeNow}.csv`;
-        console.error(
-          `Error: ${filteredRejectedRecords.length} records failed. A failure report will be uploaded to ${ENVIRONMENT}-${bucket}/${fileName}`
-        );
-
-        // Generate the CSV format
-        const rejectedRecordsString = generateCsvString(
-          `nhs_number,rejected,reason`,
-          filteredRejectedRecords
-        );
-
-        await pushCsvToS3(
-          `${bucket}`,
-          `${fileName}`,
-          rejectedRecordsString,
-          s3
-        );
-      } else {
-        console.log("No valid Caas Feed data to delete");
-      }
+      await pushCsvToS3(`${bucket}`, `${fileName}`, rejectedRecordsString, s3);
+    } else {
+      console.log("No valid Caas Feed data to delete");
     }
   } catch (error) {
     console.error(
