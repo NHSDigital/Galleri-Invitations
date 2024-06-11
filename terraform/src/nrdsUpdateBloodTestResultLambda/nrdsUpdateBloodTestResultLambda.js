@@ -301,8 +301,8 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
 /**
  * This function is used to retrieve the tags associated to an object in S3
  *
- * @param {String} bucketName The name of the bucket you are querying
- * @param {String} key The name of the object you are retrieving
+ * @param {string} bucketName The name of the bucket you are querying
+ * @param {string} key The name of the object you are retrieving
  * @param {Object} client Instance of S3 client
  * @returns {Array} An array of all tags on object being returned
  */
@@ -394,10 +394,10 @@ export const lookUp = async (dbClient, ...params) => {
  * This function is used to write to both episode and GalleriBloodTestResult table depending on the received payload
  *
  * @param {Object} client Instance of DynamoDB client
- * @param {String} participantId Sort Key for Episode table
- * @param {String} batchId Partition Key for Episode table
+ * @param {string} participantId Sort Key for Episode table
+ * @param {string} batchId Partition Key for Episode table
  * @param {Object} fhirPayload Object containing attributes from payload
- * @param {String} episodeStatus Status to set in Episode table
+ * @param {string} episodeStatus Status to set in Episode table
  * @returns {Boolean}
  */
 export const transactionalWrite = async (

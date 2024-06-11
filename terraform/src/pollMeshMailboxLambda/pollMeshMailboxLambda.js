@@ -146,7 +146,7 @@ async function getMessageArray() {
  *
  * @function markRead
  * @async
- * @param {String} msgID - The message which you want to mark as read
+ * @param {string} msgID - The message which you want to mark as read
  * @returns {Object} Object containing data about request, including if it was successful
  */
 async function markRead(msgID) {
@@ -170,7 +170,7 @@ async function markRead(msgID) {
  *
  * @function ReadMsg
  * @async
- * @param {String} msgID - The message which you want to read
+ * @param {string} msgID - The message which you want to read
  * @returns {String} The message body
  */
 async function readMsg(msgID) {
@@ -194,7 +194,7 @@ async function readMsg(msgID) {
  *
  * @function readSecret
  * @async
- * @param {String} secretName - Secret name stored in AWS
+ * @param {string} secretName - Secret name stored in AWS
  * @param {SecretsManagerClient} client - An instance of secrets manager client
  * @returns {String} secret value
  */
