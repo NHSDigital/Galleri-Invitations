@@ -61,7 +61,9 @@ export const handler = async (event) => {
 
   const episodeItems = episodeResponse.Items?.[0];
   console.log(
-    `episodeItems for participant: ${JSON.stringify(episodeItems?.Participant_Id)} loaded.`
+    `episodeItems for participant: ${JSON.stringify(
+      episodeItems?.Participant_Id
+    )} loaded.`
   );
 
   const appointmentResponse = await lookUp(
@@ -75,28 +77,39 @@ export const handler = async (event) => {
   // Get latest appointment for participant
   let appointmentItems;
   if (appointmentResponse.Items?.length) {
-    const sortedAppointments = sortBy(appointmentResponse.Items, "Time_stamp", "S", false);
+    const sortedAppointments = sortBy(
+      appointmentResponse.Items,
+      "Time_stamp",
+      "S",
+      false
+    );
     appointmentItems = sortedAppointments[0];
   }
   console.log(
-    `appointmentItems for appointment: ${JSON.stringify(appointmentItems?.Appointment_Id)} loaded.`
+    `appointmentItems for appointment: ${JSON.stringify(
+      appointmentItems?.Appointment_Id
+    )} loaded.`
   );
 
   const dateTime = new Date(Date.now()).toISOString();
 
   if (episodeItems && appointmentItems && EventType === "CANCELLED") {
     //if both queries are not undefined
-    if (appointmentItems.Appointment_Id.S !== AppointmentID ||
-      appointmentItems.Time_stamp.S > Timestamp) {
-      console.error("Error: Cancelled appointment does not match or the timestamp is earlier",
-      " than latest participant appointment");
-        const confirmation = await pushCsvToS3(
-          `${bucket}`,
-          `not_latest_participant_appointment/invalidRecord_${dateTime}.json`,
-          csvString,
-          s3
-        );
-        return confirmation;
+    if (
+      appointmentItems.Appointment_Id.S !== AppointmentID ||
+      appointmentItems.Time_stamp.S > Timestamp
+    ) {
+      console.error(
+        "Error: Cancelled appointment does not match or the timestamp is earlier",
+        " than latest participant appointment"
+      );
+      const confirmation = await pushCsvToS3(
+        `${bucket}`,
+        `not_latest_participant_appointment/invalidRecord_${dateTime}.json`,
+        csvString,
+        s3
+      );
+      return confirmation;
     }
 
     if (CancellationReason) {
@@ -152,7 +165,9 @@ export const handler = async (event) => {
         !Object.values(participantWithdrawn).includes(CancellationReason)
       ) {
         //edge case, reason is populated but incorrect
-        console.error("Error: Invalid cancellation reason for CANCELLED appointment");
+        console.error(
+          "Error: Invalid cancellation reason for CANCELLED appointment"
+        );
         const confirmation = await pushCsvToS3(
           `${bucket}`,
           `invalid_cancellation_reason/invalidRecord_${dateTime}.json`,
@@ -163,7 +178,9 @@ export const handler = async (event) => {
       }
     } else {
       //Cancellation Reason not supplied
-      console.error("Error: Cancellation reason not supplied for CANCELLED appointment");
+      console.error(
+        "Error: Cancellation reason not supplied for CANCELLED appointment"
+      );
       const confirmation = await pushCsvToS3(
         `${bucket}`,
         `cancellation_reason_not_provided/invalidRecord_${dateTime}.json`,
@@ -184,20 +201,44 @@ export const handler = async (event) => {
   }
 };
 
-//FUNCTIONS
+/**
+ * Sorts a items by a specified key and key type, in either ascending or descending order.
+ *
+ * @function sortBy
+ * @param {Array} items - The items to be sorted.
+ * @param {string} key - Name of item key to sort by.
+ * @param {string} keyType - A string indicating the type of the key.
+ * @param {boolean} [asc=true] - Whether to sort in ascending order (default is true).
+ * @returns {Array} The sorted items.
+ */
 export const sortBy = (items, key, keyType, asc = true) => {
-  items.sort( (a,b) => {
+  items.sort((a, b) => {
     if (asc) {
-      return (a[key][keyType] > b[key][keyType]) ? 1 :
-        ((a[key][keyType] < b[key][keyType]) ? -1 : 0);
+      return a[key][keyType] > b[key][keyType]
+        ? 1
+        : a[key][keyType] < b[key][keyType]
+        ? -1
+        : 0;
     } else {
-      return (b[key][keyType] > a[key][keyType]) ? 1 :
-        ((b[key][keyType] < a[key][keyType]) ? -1 : 0);
+      return b[key][keyType] > a[key][keyType]
+        ? 1
+        : b[key][keyType] < a[key][keyType]
+        ? -1
+        : 0;
     }
   });
   return items;
 };
-
+/**
+ * Reads a CSV file from S3.
+ * @async
+ * @function readCsvFromS3
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key of the object in the S3 bucket.
+ * @param {S3Client} client Instance of S3 client
+ * @throws {Error} Failed to read from ${bucketName}/${key}
+ * @returns {string} The data of the file you retrieved
+ */
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -213,6 +254,17 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
   }
 };
 
+/**
+ * This function is used to write a new object in S3
+ * @async
+ * @function pushCsvToS3
+ * @param {string} bucketName The name of the bucket you are pushing to
+ * @param {string} body The data you will be writing to S3
+ * @param {string} key The name you want to give to the file you will write to S3
+ * @param {S3Client} client Instance of S3 client
+ * @throws {Error} Error pushing CSV to S3 bucket
+ * @returns {Object} metadata about the response, including httpStatusCode
+ */
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
   try {
     const response = await client.send(
@@ -233,6 +285,17 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
   }
 };
 
+/**
+ * This function allows the user to query against DynamoDB.
+ * @async
+ * @function lookUp
+ * @param {DynamoDBClient} dbClient Instance of DynamoDB client
+ * @param  {...any} params params is destructed to id, which is the value you use to query against.
+ * The table is the table name (type String), attribute is the column you search against (type String),
+ * attributeType is the type of data stored within that column and useIndex is toggled to true if you want to use
+ * an existing index (type boolean)
+ * @returns {Object} metadata about the response, including httpStatusCode
+ */
 export const lookUp = async (dbClient, ...params) => {
   const [id, table, attribute, attributeType, useIndex] = params;
 
@@ -264,6 +327,20 @@ export const lookUp = async (dbClient, ...params) => {
   return response;
 };
 
+/**
+ * This function is used to write to both episode and appointments table depending on the received payload
+ *
+ * @param {DynamoDBClient} client Instance of DynamoDB client
+ * @param {string} participantId The id of the participant
+ * @param {string} batchId The batch id attached to the episode record
+ * @param {string} appointmentId The appointment id relating to the entry payload
+ * @param {string} eventType The eventType extracted from the payload from GTMS
+ * @param {string} timestamp - Timestamp for the appointments
+ * @param {string} episodeEvent Text which is added to the episode record to signify the type of Episode event update
+ * @param {string} cancellationReason - cancellation reason of participant
+ * @param {string} status -  Episode status, default is "Open".
+ * @returns {boolean} Returns either true of false depending on the success writing to 2 DynamoDB's
+ */
 export const transactionalWrite = async (
   client,
   participantId,
