@@ -202,11 +202,11 @@ export const handler = async (event) => {
 };
 
 /**
- * Sorts a items of appointment for participant by a specified key and key type, in either ascending or descending order.
+ * Sorts a items by a specified key and key type, in either ascending or descending order.
  *
  * @function sortBy
- * @param {Array} list - The items of appointment for participant to be sorted.
- * @param {string} key - The time stamp of the appointment for participant to sort by.
+ * @param {Array} items - The items to be sorted.
+ * @param {string} key - Name of item key to sort by.
  * @param {string} keyType - A string indicating the type of the key.
  * @param {boolean} [asc=true] - Whether to sort in ascending order (default is true).
  * @returns {Array} The sorted items.
@@ -338,7 +338,7 @@ export const lookUp = async (dbClient, ...params) => {
  * @param {string} timestamp - Timestamp for the appointments
  * @param {string} episodeEvent Text which is added to the episode record to signify the type of Episode event update
  * @param {string} cancellationReason - cancellation reason of participant
- * @param {string} status - The status of appointment should be open
+ * @param {string} status -  Episode status, default is "Open".
  * @returns {boolean} Returns either true of false depending on the success writing to 2 DynamoDB's
  */
 export const transactionalWrite = async (
