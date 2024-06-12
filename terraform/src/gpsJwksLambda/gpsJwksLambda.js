@@ -9,6 +9,13 @@ import { createPublicKey } from "crypto";
 const client = new S3Client({});
 const JWK_EXTENSION = "json";
 
+/**
+ * Lambda handler.
+ *
+ * @function getObjectKeys
+ * @async
+ * @returns {Promise<Object>} Promise resolves to API Gateway response.
+ */
 export const handler = async () => {
   try {
     console.log("Getting GPS public key jwks");
@@ -38,7 +45,7 @@ export const handler = async () => {
  * @async
  * @param {S3Client} client - An instance of the S3 client.
  * @param {string} bucket - Name of the bucket.
- * @returns {Promise<Array>} The sorted items.
+ * @returns {Promise<Array>} Promise resolves to array of object key strings.
  */
 export const getObjectKeys = async (client, bucket) => {
   console.log("Getting object keys in bucket: ", bucket);
@@ -79,7 +86,7 @@ export const isJwk = (objectKey) => {
  * @param {S3Client} client - An instance of the S3 client.
  * @param {string} bucket - Bucket name.
  * @param {string} key - Object key.
- * @returns {Promise<string>} The sorted items.
+ * @returns {Promise<string>} Promise resolves to object string.
  */
 export const getObjectString = async (client, bucket, key) => {
   console.log("Getting object string for key: ", key);
@@ -102,7 +109,7 @@ export const getObjectString = async (client, bucket, key) => {
  * @param {S3Client} client - An instance of the S3 client.
  * @param {string} bucket - Bucket name.
  * @param {Array} keys - Array of object keys.
- * @returns {Promise<Array<string>>} The sorted items.
+ * @returns {Promise<Array<string>>} Promise resolves to array of object strings.
  */
 export const getObjectStrings = async (client, bucket, keys) => {
   console.log("Getting object strings for keys: ", keys);
