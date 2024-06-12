@@ -22,7 +22,7 @@ const client = new DynamoDBClient({ region: "eu-west-2" });
  * @async
  * @param {Object} event - The S3 event triggering the Lambda.
  * @param {Object} context - The context object provided by AWS Lambda.
- * @returns {Promise<void>} - A promise that resolves when the function has completed.
+ * @returns {Promise<Object|void>} - A promise that resolves with the response from pushCsvToS3 if a record is rejected - if episode or Participant ID does not exist on DB table, otherwise void.
  */
 export const handler = async (event, context) => {
   const bucket = event.Records[0].s3.bucket.name;
