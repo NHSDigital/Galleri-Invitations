@@ -65,6 +65,8 @@ export const getSecret = async (secretName, client) => {
 /**
  * Establish connection with MESH
  *
+ * @function getHealthStatusCode
+ * @async
  * @param {Object} CONFIG - Configuration obj includes mailbox id, certs etc
  * @param {Function} handshake - Replace handshake with handShake fn
  * @returns {Promise<string>}
@@ -88,6 +90,8 @@ export const getHealthStatusCode = async (CONFIG, handshake) => {
 /**
  * Return an array of message IDs from MESH
  *
+ * @function getMessageArray
+ * @async
  * @param {Object} CONFIG - Configuration obj includes mailbox id, certs etc
  * @param {Function} msgCount - Replace msgCount with getMessageCount fn
  * @returns {Promise<Array>}
@@ -116,6 +120,8 @@ export const getMessageArray = async (CONFIG, msgCount) => {
 /**
  * Marks messaged as read based on the message ID passed in, subsequently removing message from MESH mailbox
  *
+ * @function markRead
+ * @async
  * @param {Object} CONFIG - Configuration obj includes mailbox id, certs etc
  * @param {Function} marked - Replace marked with markAsRead fn
  * @param {string} msgID - Message you want to querying
@@ -138,11 +144,14 @@ export const markRead = async (CONFIG, marked, msgID) => {
 };
 
 /**
+ * Reads message data from Mesh based on message ID
  *
+ * @function readMsg
+ * @async
  * @param {Object} CONFIG - Configuration obj includes mailbox id, certs etc
  * @param {Function} readingMsg - Replace readingMsg with readMessage fn
  * @param {string} msgID - Message you want to querying
- * @returns {Promise<Object}
+ * @returns {Promise<string}
  */
 export const readMsg = async (CONFIG, readingMsg, msgID) => {
   try {
