@@ -65,8 +65,8 @@ export const getSecret = async (secretName, client) => {
 /**
  * Establish connection with MESH
  *
- * @param {Object} CONFIG - configuration obj includes mailbox id, certs etc
- * @param {string} handshake - handshake to be replaced with handShake fn
+ * @param {Object} CONFIG - Configuration obj includes mailbox id, certs etc
+ * @param {string} handshake - Replace handshake with handShake fn
  * @returns {Promise<string>}
  */
 export const getHealthStatusCode = async (CONFIG, handshake) => {
@@ -88,8 +88,8 @@ export const getHealthStatusCode = async (CONFIG, handshake) => {
 /**
  * Return an array of message IDs from MESH
  *
- * @param {Object} CONFIG - configuration obj includes mailbox id, certs etc
- * @param {string} msgCount - msgCount to be replaced with getMessageCount fn
+ * @param {Object} CONFIG - Configuration obj includes mailbox id, certs etc
+ * @param {string} msgCount - Replace msgCount with getMessageCount fn
  * @returns {Promise<Array>}
  */
 export const getMessageArray = async (CONFIG, msgCount) => {
@@ -116,9 +116,9 @@ export const getMessageArray = async (CONFIG, msgCount) => {
 /**
  * Marks messaged as read based on the message ID passed in, subsequently removing message from MESH mailbox
  *
- * @param {*} CONFIG - configuration obj includes mailbox id, certs etc
- * @param {*} marked - marked to be replaced with markAsRead fn
- * @param {*} msgID - message you want to querying
+ * @param {*} CONFIG - Configuration obj includes mailbox id, certs etc
+ * @param {*} marked - Replace marked with markAsRead fn
+ * @param {*} msgID - Message you want to querying
  * @returns {Promise<Object>}
  */
 export const markRead = async (CONFIG, marked, msgID) => {
@@ -139,9 +139,9 @@ export const markRead = async (CONFIG, marked, msgID) => {
 
 /**
  *
- * @param {*} CONFIG - configuration obj includes mailbox id, certs etc
- * @param {*} readingMsg - readingMsg to be replaced with readMessage fn
- * @param {*} msgID - message you want to querying
+ * @param {*} CONFIG - Configuration obj includes mailbox id, certs etc
+ * @param {*} readingMsg - Replace readingMsg with readMessage fn
+ * @param {*} msgID - Message you want to querying
  * @returns {Promise<Object}
  */
 export const readMsg = async (CONFIG, readingMsg, msgID) => {

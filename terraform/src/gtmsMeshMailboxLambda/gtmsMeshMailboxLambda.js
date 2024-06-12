@@ -97,7 +97,7 @@ export const handler = async (event, context) => {
  * @async
  * @param {string} secretName - Secret name stored in AWS
  * @param {SecretsManagerClient} client - An instance of secrets manager client
- * @returns {Promise<String>} secret value
+ * @returns {Promise<String>} Secret value
  */
 export async function readSecret(secretName, client) {
   return Buffer.from(await getSecret(secretName, client), "base64").toString(
@@ -110,11 +110,11 @@ export async function readSecret(secretName, client) {
  *
  * @function processMessage
  * @async
- * @param {Object} message - the payload received
- * @param {string} environment - which environment the resources are allocated to
+ * @param {Object} message - The payload received
+ * @param {string} environment - Which environment the resources are allocated to
  * @param {Object} S3client - An instance of S3 client
- * @param {Object} workflows - an object of workflows being passed in through the lambda environmental variables
- * @param {string} timestamp - can be changed for testing fixed time values
+ * @param {Object} workflows - An object of workflows being passed in through the lambda environmental variables
+ * @param {string} timestamp - Can be changed for testing fixed time values
  * @returns {Promise<Object>}
  */
 export async function processMessage(
