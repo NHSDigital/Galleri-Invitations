@@ -15,7 +15,15 @@ const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
 const client = new DynamoDBClient({ region: "eu-west-2" });
 
-//HANDLER
+/**
+ * AWS Lambda handler to process S3 events and update DynamoDB tables accordingly.
+ *
+ * @function handler
+ * @async
+ * @param {Object} event - The S3 event triggering the Lambda.
+ * @param {Object} context - The context object provided by AWS Lambda.
+ * @returns {Promise<void>} - A promise that resolves when the function has completed.
+ */
 export const handler = async (event, context) => {
   const bucket = event.Records[0].s3.bucket.name;
   const key = decodeURIComponent(
@@ -78,7 +86,17 @@ export const handler = async (event, context) => {
   }
 };
 
-//FUNCTIONS
+/**
+ * Reads a CSV file from an S3 bucket and returns its content as a string.
+ *
+ * @function readCsvFromS3
+ * @async
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key of the CSV file in the S3 bucket.
+ * @param {S3Client} client - An instance of the AWS S3 client.
+ * @returns {Promise<string>} - A promise that resolves to the CSV file content as a string.
+ * @throws {Error} If there is an error reading the CSV file from S3.
+ */
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -94,6 +112,18 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
   }
 };
 
+/**
+ * Pushes a CSV file to an S3 bucket.
+ *
+ * @function pushCsvToS3
+ * @async
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key for the CSV file in the S3 bucket.
+ * @param {string} body - The content of the CSV file.
+ * @param {S3Client} client - An instance of the AWS S3 client.
+ * @returns {Promise<Object>} - A promise that resolves to the response from the S3 PutObject command.
+ * @throws {Error} If there is an error pushing the CSV file to S3.
+ */
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
   try {
     const response = await client.send(
@@ -114,7 +144,18 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
   }
 };
 
-//Used to lookup participant from episode table
+/**
+ * Looks up a participant ID in a specified DynamoDB table(episode Table) and retrieves the corresponding batch ID.
+ *
+ * @function lookupParticipantId
+ * @async
+ * @param {string} participantId - The participant ID to look up.
+ * @param {string} table - The name of the DynamoDB table.
+ * @param {DynamoDBClient} dbClient - An instance of the AWS DynamoDB client.
+ * @param {string} environment - The environment name used as prefix for the DynamoDB table.
+ * @returns {Promise<string>} - A promise that resolves to the batch ID if found, or an empty string if not found.
+ * @throws {Error} If there is an error querying the DynamoDB table.
+ */
 export const lookupParticipantId = async (
   participantId,
   table,
@@ -146,7 +187,18 @@ export const lookupParticipantId = async (
   }
 };
 
-//Used to lookup participant from population table
+/**
+ * Looks up a participant ID in a specified DynamoDB table(population Table).
+ *
+ * @function lookupParticipant
+ * @async
+ * @param {string} participantId - The participant ID to look up.
+ * @param {string} table - The name of the DynamoDB table.
+ * @param {DynamoDBClient} dbClient - An instance of the AWS DynamoDB client.
+ * @param {string} environment - The environment name used as prefix for the DynamoDB table.
+ * @returns {Promise<boolean>} - A promise that resolves to true if the participant ID is found, or false if not found.
+ * @throws {Error} If there is an error querying the DynamoDB table.
+ */
 export const lookupParticipant = async (
   participantId,
   table,
@@ -179,6 +231,20 @@ export const lookupParticipant = async (
   }
 };
 
+/**
+ * Saves an object to the Episode table in DynamoDB.
+ *
+ * @function saveObjToEpisodeTable
+ * @async
+ * @param {string} csvString - The CSV string to be saved.
+ * @param {string} environment - The environment name used as prefix for the DynamoDB table.
+ * @param {DynamoDBClient} client - An instance of the AWS DynamoDB client.
+ * @param {string} batchId - The batch ID associated with the episode.
+ * @param {string} reason - The reason for withdrawal.
+ * @param {string} personId - The participant ID.
+ * @returns {Promise<boolean>} - A promise that resolves to true if the object was successfully saved, or false if there was an error.
+ * @throws {Error} If there is an error updating the DynamoDB table.
+ */
 export const saveObjToEpisodeTable = async (
   csvString,
   environment,
