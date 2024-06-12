@@ -8,6 +8,7 @@ import {
   GetObjectCommand,
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
+
 const dbClient = new DynamoDBClient();
 const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
@@ -156,8 +157,14 @@ export const handler = async (event) => {
   }
 };
 
-//METHODS
-//S3 Methods
+/**
+ * Reads a file from S3.
+ *
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key of the S3 object.
+ * @param {S3Client} client - An instance of the S3 client.
+ * @returns {Promise<string>}
+ */
 export const readFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -174,6 +181,15 @@ export const readFromS3 = async (bucketName, key, client) => {
   }
 };
 
+/**
+ * Pushes a file to S3.
+ *
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key of the S3 object.
+ * @param {string} body - The content to be uploaded.
+ * @param {S3Client} client - An instance of the S3 client.
+ * @returns {Promise<Object>}
+ */
 export const pushToS3 = async (bucketName, key, body, client) => {
   try {
     const response = await client.send(
@@ -191,6 +207,12 @@ export const pushToS3 = async (bucketName, key, body, client) => {
   }
 };
 
+/**
+ * Rejects a record and uploads it to S3.
+ *
+ * @param {Object} appointmentJson - The appointment data.
+ * @returns {Promise<void>}
+ */
 export const rejectRecord = async (appointmentJson) => {
   try {
     const timeNow = new Date().toISOString();
@@ -208,7 +230,13 @@ export const rejectRecord = async (appointmentJson) => {
   }
 };
 
-//Dynamo Methods
+/**
+ * Looks up an item in DynamoDB.
+ *
+ * @param {DynamoDBClient} dbClient - An instance of the DynamoDB client.
+ * @param {...string} params - The parameters for the lookup.
+ * @returns {Promise<Object>}
+ */
 export const lookUp = async (dbClient, ...params) => {
   const [id, table, attribute, attributeType, useIndex] = params;
 
@@ -239,7 +267,22 @@ export const lookUp = async (dbClient, ...params) => {
 
   return response;
 };
-// Updates Episode and appointment
+
+/**
+ * Performs a transactional write to update Episode and Appointment tables in DynamoDB.
+ *
+ * @param {DynamoDBClient} client - An instance of the DynamoDB client.
+ * @param {string} participantId - The ID of the participant.
+ * @param {string} batchId - The batch ID.
+ * @param {string} appointmentId - The ID of the appointment.
+ * @param {string} eventType - The event type.
+ * @param {string} appointmentTimestamp - The timestamp of the appointment.
+ * @param {string} episodeEvent - The episode event.
+ * @param {string} [eventDescription="null"] - The event description.
+ * @param {string} [grailId="null"] - The Grail ID.
+ * @param {string} [bloodCollectionDate="null"] - The blood collection date.
+ * @returns {Promise<boolean>} Resolves to true if the transaction is successful.
+ */
 export const transactionalWrite = async (
   client,
   participantId,
@@ -302,6 +345,15 @@ export const transactionalWrite = async (
   }
 };
 
+/**
+ * Sorts an array of items by a specified key.
+ *
+ * @param {Array} items - The array of items to sort.
+ * @param {string} key - The key to sort by.
+ * @param {string} keyType - The type of the key.
+ * @param {boolean} [asc=true] - Whether to sort in ascending order.
+ * @returns {Array} The sorted array.
+ */
 export const sortBy = (items, key, keyType, asc = true) => {
   items.sort((a, b) => {
     if (asc) {
