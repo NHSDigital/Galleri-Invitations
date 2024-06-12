@@ -13,6 +13,7 @@ const ENVIRONMENT = process.env.ENVIRONMENT;
 
 /**
  * Reads a CSV file from S3.
+ *
  * @async
  * @function readCsvFromS3
  * @param {string} bucketName - The name of the S3 bucket.
@@ -71,6 +72,7 @@ export const parseCsvToArray = async (csvString) => {
 
 /**
  * Saves new or updates existing GP practice records to the GpPractice table.
+ *
  * @function saveArrayToTable
  * @async
  * @param {Array} dataArray - Array of csv objects.
@@ -165,6 +167,7 @@ export const saveArrayToTable = async (dataArray, environment, client) => {
 
 /**
  * Gets lsoa from the Postcode table for a postcode key value
+ *
  * @async
  * @function getItemFromTable
  * @param {string} key Postcode primary key value
@@ -190,6 +193,7 @@ export const getItemFromTable = async (key, environment, client) => {
 
 /**
  * Lambda handler
+ *
  * @async
  * @function handler
  * @param {Object} event S3 put event trigger
