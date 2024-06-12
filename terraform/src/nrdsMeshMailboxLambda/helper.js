@@ -90,7 +90,7 @@ export const getHealthStatusCode = async (CONFIG, handshake) => {
  *
  * @param {Object} CONFIG - configuration obj includes mailbox id, certs etc
  * @param {string} msgCount - msgCount to be replaced with getMessageCount fn
- * @returns
+ * @returns {Promise<Array>}
  */
 export const getMessageArray = async (CONFIG, msgCount) => {
   try {
@@ -119,7 +119,7 @@ export const getMessageArray = async (CONFIG, msgCount) => {
  * @param {*} CONFIG - configuration obj includes mailbox id, certs etc
  * @param {*} marked - marked to be replaced with markAsRead fn
  * @param {*} msgID - message you want to querying
- * @returns
+ * @returns {Promise<Object>}
  */
 export const markRead = async (CONFIG, marked, msgID) => {
   try {
@@ -142,7 +142,7 @@ export const markRead = async (CONFIG, marked, msgID) => {
  * @param {*} CONFIG - configuration obj includes mailbox id, certs etc
  * @param {*} readingMsg - readingMsg to be replaced with readMessage fn
  * @param {*} msgID - message you want to querying
- * @returns
+ * @returns {Promise<Object}
  */
 export const readMsg = async (CONFIG, readingMsg, msgID) => {
   try {
