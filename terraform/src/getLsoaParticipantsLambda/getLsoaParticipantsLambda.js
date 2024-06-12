@@ -34,6 +34,7 @@ export const handler = async (event, context) => {
 
 /**
  * Populate eligible people
+ *
  * @async
  * @function populateEligibleArray
  * @param {DynamoDBClient} client - Instance of DynamoDB client
@@ -48,6 +49,7 @@ export async function populateEligibleArray(client, lsoaCode) {
 
 /**
  * Query eligible people
+ *
  * @async
  * @function queryEligiblePopulation
  * @param {DynamoDBClient} client - Instance of DynamoDB client
@@ -82,6 +84,7 @@ export async function queryEligiblePopulation(client, lsoaCode, tableItems) {
 }
 /**
  * Get population
+ *
  * @async
  * @function getPopulation
  * @param {Array} lsoaList - List of Lower layer Super Output Areas
@@ -132,6 +135,7 @@ export async function getPopulation(lsoaList, client) {
 
 /**
  * Get eligible people
+ *
  * @async
  * @function getEligiblePopulation
  * @param {Array} lsoaList - List of Lower layer Super Output Areas
