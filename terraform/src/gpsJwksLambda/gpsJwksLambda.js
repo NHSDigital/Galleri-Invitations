@@ -31,6 +31,15 @@ export const handler = async () => {
   }
 };
 
+/**
+ * Gets list of JWK object keys in a bucket.
+ *
+ * @function getObjectKeys
+ * @async
+ * @param {S3Client} client - An instance of the S3 client.
+ * @param {String} bucket - Name of the bucket.
+ * @returns {Promise<Array>} The sorted items.
+ */
 export const getObjectKeys = async (client, bucket) => {
   console.log("Getting object keys in bucket: ", bucket);
   const command = new ListObjectsV2Command({
@@ -62,6 +71,16 @@ export const isJwk = (objectKey) => {
   return keyElements.pop() === JWK_EXTENSION;
 };
 
+/**
+ * Gets content of an object key.
+ *
+ * @function getObjectString
+ * @async
+ * @param {S3Client} client - An instance of the S3 client.
+ * @param {String} bucket - Bucket name.
+ * @param {String} key - Object key.
+ * @returns {Promise<String>} The sorted items.
+ */
 export const getObjectString = async (client, bucket, key) => {
   console.log("Getting object string for key: ", key);
   const command = new GetObjectCommand({
@@ -75,6 +94,16 @@ export const getObjectString = async (client, bucket, key) => {
   return str;
 };
 
+/**
+ * Gets contents of a list of object keys.
+ *
+ * @function getObjectStrings
+ * @async
+ * @param {S3Client} client - An instance of the S3 client.
+ * @param {String} bucket - Bucket name.
+ * @param {Array} keys - Array of object keys.
+ * @returns {Promise<Array<String>>} The sorted items.
+ */
 export const getObjectStrings = async (client, bucket, keys) => {
   console.log("Getting object strings for keys: ", keys);
   const objectStrings = [];
@@ -88,6 +117,13 @@ export const getObjectStrings = async (client, bucket, keys) => {
   return objectStrings;
 };
 
+/**
+ * Exports a list of JWK public keys.
+ *
+ * @function exportJwks
+ * @param {Array} keyStrings - Array of JWK key content strings.
+ * @returns {Object} Object containing the list of JWK public keys.
+ */
 export const exportJwks = (keyStrings) => {
   console.log("Exporting jwks");
   const jwkArray = keyStrings.map((keyStr) => {
@@ -100,6 +136,14 @@ export const exportJwks = (keyStrings) => {
   return jwks;
 };
 
+/**
+ * Creates an api gateway response object.
+ *
+ * @function createResponse
+ * @param {Number} httpStatusCode - Http status code.
+ * @param {Object|String} body - Body of http response.
+ * @returns {Object} Http response object.
+ */
 export const createResponse = (httpStatusCode, body) => {
   const responseObject = {};
   responseObject.statusCode = httpStatusCode;
