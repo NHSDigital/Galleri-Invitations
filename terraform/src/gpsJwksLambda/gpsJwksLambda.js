@@ -37,7 +37,7 @@ export const handler = async () => {
  * @function getObjectKeys
  * @async
  * @param {S3Client} client - An instance of the S3 client.
- * @param {String} bucket - Name of the bucket.
+ * @param {string} bucket - Name of the bucket.
  * @returns {Promise<Array>} The sorted items.
  */
 export const getObjectKeys = async (client, bucket) => {
@@ -77,9 +77,9 @@ export const isJwk = (objectKey) => {
  * @function getObjectString
  * @async
  * @param {S3Client} client - An instance of the S3 client.
- * @param {String} bucket - Bucket name.
- * @param {String} key - Object key.
- * @returns {Promise<String>} The sorted items.
+ * @param {string} bucket - Bucket name.
+ * @param {string} key - Object key.
+ * @returns {Promise<string>} The sorted items.
  */
 export const getObjectString = async (client, bucket, key) => {
   console.log("Getting object string for key: ", key);
@@ -100,9 +100,9 @@ export const getObjectString = async (client, bucket, key) => {
  * @function getObjectStrings
  * @async
  * @param {S3Client} client - An instance of the S3 client.
- * @param {String} bucket - Bucket name.
+ * @param {string} bucket - Bucket name.
  * @param {Array} keys - Array of object keys.
- * @returns {Promise<Array<String>>} The sorted items.
+ * @returns {Promise<Array<string>>} The sorted items.
  */
 export const getObjectStrings = async (client, bucket, keys) => {
   console.log("Getting object strings for keys: ", keys);
@@ -140,7 +140,7 @@ export const exportJwks = (keyStrings) => {
  * Creates an api gateway response object.
  *
  * @function createResponse
- * @param {Number} httpStatusCode - Http status code.
+ * @param {number} httpStatusCode - Http status code.
  * @param {Object|String} body - Body of http response.
  * @returns {Object} Http response object.
  */
