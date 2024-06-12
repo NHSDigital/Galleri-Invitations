@@ -112,7 +112,7 @@ export async function readSecret(secretName, client) {
  * @async
  * @param {Object} message - The payload received
  * @param {string} environment - Which environment the resources are allocated to
- * @param {Object} S3client - An instance of S3 client
+ * @param {S3Client} S3client - An instance of S3 client
  * @param {Object} workflows - An object of workflows being passed in through the lambda environmental variables
  * @param {string} timestamp - Can be changed for testing fixed time values
  * @returns {Promise<Object>}
