@@ -99,7 +99,16 @@ export const handler = async (event, context) => {
   }
 };
 
-// METHODS
+/**
+ * Reads a CSV file from S3.
+ *
+ * @function readCsvFromS3
+ * @async
+ * @param {string} bucketName The name of the S3 bucket.
+ * @param {string} key The key of the object in the S3 bucket.
+ * @param {S3Client} client An instance of the S3 client.
+ * @returns {Promise<string>} Resolves to the contents of the S3 object as a string.
+ */
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -115,6 +124,17 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
   }
 };
 
+/**
+ * Pushes a CSV file to S3.
+ *
+ * @function pushCsvToS3
+ * @async
+ * @param {string} bucketName The name of the S3 bucket.
+ * @param {string} key The key of the object to be saved in the S3 bucket.
+ * @param {string} body The contents of the object to be saved in the S3 bucket.
+ * @param {S3Client} client An instance of the S3 client.
+ * @returns {Promise<Object>} Resolves to the response from the S3 client.
+ */
 export const pushCsvToS3 = async (
   bucketName,
   body,
@@ -141,6 +161,13 @@ export const pushCsvToS3 = async (
   }
 };
 
+/**
+ * Creates a Phlebotomy Site object to be put in a DynamoDB table.
+ *
+ * @function createPhlebotomySite
+ * @param {Object} site Object containing data about the site.
+ * @returns {Promise<Object>} Put request object for a Phlebotomy site.
+ */
 export const createPhlebotomySite = (site) => {
   const item = {
     PutRequest: {
@@ -188,6 +215,17 @@ export const createPhlebotomySite = (site) => {
   return Promise.resolve(item);
 };
 
+/**
+ * Delete a table record from PhlebotomySite table with given clinicId and clinicName.
+ *
+ * @function deleteTableRecord
+ * @async
+ * @param {DynamoDBClient} client The DynamoDB client.
+ * @param {string} environment The environment name.
+ * @param {string} clinicId The clinic Id.
+ * @param {string} clinicName The clinic name.
+ * @returns {Promise<Object>} Response from deleting an item from DynamoDB.
+ */
 export const deleteTableRecord = async (
   client,
   environment,
@@ -208,6 +246,16 @@ export const deleteTableRecord = async (
   return response;
 };
 
+/**
+ * Put a table record into the Phlebotomy site table.
+ *
+ * @function putTableRecord
+ * @async
+ * @param {DynamoDBClient} client The DynamoDB client.
+ * @param {string} environment The environment name.
+ * @param {Object} js Object containing phlebotomy site information.
+ * @returns {Promise<Object>} Response from putting an item in DynamoDB.
+ */
 export const putTableRecord = async (client, environment, js) => {
   const create = await createPhlebotomySite(js);
   let RequestItems = {};
@@ -220,6 +268,16 @@ export const putTableRecord = async (client, environment, js) => {
   return response;
 };
 
+/**
+ * Update Phlebotomy site record
+ *
+ * @function saveObjToPhlebotomyTable
+ * @async
+ * @param {Object} MeshObj Object containing information to update record with.
+ * @param {string} environment The environment name.
+ * @param {DynamoDBClient} client The DynamoDB client.
+ * @returns {Promise<boolean>} True if item is updated or false if failed to update.
+ */
 export const saveObjToPhlebotomyTable = async (
   MeshObj,
   environment,
@@ -278,6 +336,16 @@ export const saveObjToPhlebotomyTable = async (
   }
 };
 
+/**
+ * Query to check a Phlebotomy site based on a given Clinic Id.
+ *
+ * @function checkPhlebotomy
+ * @async
+ * @param {string} record Clinic Id of Phlebotomy site.
+ * @param {DynamoDBClient} client The DynamoDB client.
+ * @param {string} environment The environment name.
+ * @returns {Promise<Object>} Response from DynamoDB command.
+ */
 export async function checkPhlebotomy(record, client, environment) {
   const input = {
     ExpressionAttributeValues: {
