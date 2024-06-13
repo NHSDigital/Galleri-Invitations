@@ -130,8 +130,9 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
  * @function pushCsvToS3
  * @async
  * @param {string} bucketName The name of the S3 bucket.
- * @param {string} key The key of the object to be saved in the S3 bucket.
  * @param {string} body The contents of the object to be saved in the S3 bucket.
+ * @param {string} key The key of the object to be saved in the S3 bucket.
+ * @param {string} rejectedReason Reason for rejection.
  * @param {S3Client} client An instance of the S3 client.
  * @returns {Promise<Object>} Resolves to the response from the S3 client.
  */
