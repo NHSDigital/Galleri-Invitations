@@ -973,6 +973,8 @@ module "poll_mesh_mailbox_lambda" {
     CAAS_MESH_MAILBOX_ID         = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_id.secret_string)["CAAS_MESH_MAILBOX_ID"],
     CAAS_MESH_MAILBOX_PASSWORD   = jsondecode(data.aws_secretsmanager_secret_version.caas_mesh_mailbox_password.secret_string)["CAAS_MESH_MAILBOX_PASSWORD"],
     EXIT_TIME                    = "12",
+    FILE_PATH                    = "/tmp",
+    FILE_EXTENSION               = "csv"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
   sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn
@@ -1130,6 +1132,8 @@ module "gtms_mesh_mailbox_lambda" {
     CLINIC_SCHEDULE_WORKFLOW   = "GTMS_CLINIC_SCHEDULE",
     APPOINTMENT_WORKFLOW       = "GTMS_APPOINTMENT",
     WITHDRAW_WORKFLOW          = "GTMS_WITHDRAW",
+    FILE_PATH                  = "/tmp",
+    FILE_EXTENSION             = "json"
   }
   sns_lambda_arn = module.sns_alert_lambda.lambda_arn
   sns_topic_arn  = module.sns_alert_lambda.sns_topic_arn

@@ -1,4 +1,4 @@
-import { getSecret, chunking, multipleUpload } from "./helper.js";
+import { getSecret, chunking, multipleUpload, pushCsvToS3 } from "./helper.js";
 import {
   handShake,
   loadConfig,
@@ -8,6 +8,8 @@ import {
 } from "nhs-mesh-client";
 import { S3Client } from "@aws-sdk/client-s3";
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
+import fs from "fs";
+import chunkCsv from "chunk-csv";
 
 //VARIABLES
 const smClient = new SecretsManagerClient({ region: "eu-west-2" });
@@ -21,6 +23,8 @@ const MESH_SENDER_CERT = await readSecret("MESH_SENDER_CERT", smClient);
 const MESH_SENDER_KEY = await readSecret("MESH_SENDER_KEY", smClient);
 const CAAS_MESH_CERT = await readSecret("CAAS_MESH_CERT", smClient); //fetching caas cert, was receiver
 const MESH_CAAS_KEY = await readSecret("MESH_SENDER_KEY", smClient);
+const FILE_PATH = process.env.FILE_OUTPUT_PATH;
+const FILE_EXTENSION = process.env.FILE_EXTENSION;
 
 // Set environment variables
 const CONFIG = await loadConfig({
@@ -53,19 +57,8 @@ export const handler = async (event, context) => {
         console.log(`messageArr ${messageArr}`);
         if (messageArr.length > 0) {
           for (let i = 0; i < messageArr.length; i++) {
-            let message = await readMsg(messageArr[i]); //returns messages based on id, iteratively from message list arr
-            finalMsgArr.push(message);
-            const meshString = finalMsgArr[i];
-            const splitMeshString = meshString.split("\n");
-            const header = splitMeshString[0];
-            const messageBody = splitMeshString.splice(1); //data - header
-            const x = new Set(messageBody);
-            let chunk = [...chunking(x, Number(MESH_CHUNK_VALUE), header)]; //includes header, buffer and 2000 records
-            const upload = await multipleUpload(chunk, clientS3, ENVIRONMENT);
-            if (upload[0].$metadata.httpStatusCode === 200) {
-              const response = await markRead(messageArr[i]); //remove message after actioned message
-              console.log(`${response.status} ${response.statusText}`);
-            }
+            let message = await readMsg(messageArr[i]); //reads the message and save it in /tmp folder of lambda
+            await uploadChunkedCsvToS3(messageArr[i]); // from /tmp, save the message after breaking them into chunks
             timeTaken = performance.now() - startTime;
             console.log(`Time taken: ${timeTaken} milliseconds`);
             if (timeTaken >= EXIT_TIME * 1000 * 60) {
@@ -88,6 +81,38 @@ export const handler = async (event, context) => {
     console.error("Error occurred:", error);
   }
 };
+
+async function uploadChunkedCsvToS3(msgID) {
+  return chunkCsv
+    .split(
+      fs.createReadStream(`${FILE_PATH}/${msgID}.${FILE_EXTENSION}`),
+      {
+        lineLimit: MESH_CHUNK_VALUE,
+      },
+      async (chunk, index) => {
+        const dateTime = new Date(Date.now()).toISOString();
+        const filename = `mesh_chunk_data_${index}_${dateTime}`;
+        let response = await pushCsvToS3(
+          `${ENVIRONMENT}-galleri-caas-data`,
+          `${filename}.csv`,
+          chunk,
+          clientS3
+        );
+        if (response.$metadata.httpStatusCode === 200) {
+          const response1 = await markRead(msgID); //remove message after actioned message
+          console.log(`${response1.status} ${response1.statusText}`);
+        } else {
+          console.error("Error uploading item ");
+        }
+      }
+    )
+    .then((csvSplitResponse) => {
+      console.log("csvSplitStream succeeded.", csvSplitResponse);
+    })
+    .catch((csvSplitError) => {
+      console.log("csvSplitStream failed!", csvSplitError);
+    });
+}
 
 //FUNCTIONS
 /**
@@ -161,7 +186,7 @@ async function markRead(msgID) {
     });
     return markMsg;
   } catch (error) {
-    console.error("Error occurred:", error);
+    console.error(`Error marking message ${messageID} as read: ${err}`);
   }
 }
 
@@ -182,8 +207,9 @@ async function readMsg(msgID) {
       sharedKey: CONFIG.sharedKey,
       messageID: msgID,
       agent: CONFIG.receiverAgent,
+      outputFilePath: `${FILE_PATH}/${msgID}.${FILE_EXTENSION}`,
     });
-    return messages.data;
+    return messages;
   } catch (error) {
     console.error("Error occurred:", error);
   }

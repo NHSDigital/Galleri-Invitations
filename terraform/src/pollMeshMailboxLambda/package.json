@@ -5,9 +5,11 @@
   "main": "pollMeshMailboxLambda.js",
   "author": "",
   "dependencies": {
-    "nhs-mesh-client": "1.1.0"
+    "nhs-mesh-client": "1.2.0",
+    "chunk-csv": "^1.0.2",
+    "fs": "^0.0.1-security"
   },
   "engines": {
-    "nhs-mesh-client": ">=1.1.0"
+    "nhs-mesh-client": ">=1.2.0"
   }
 }
