@@ -13,6 +13,12 @@ const dbClient = new DynamoDBClient();
 const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
+/**
+ * AWS Lambda handler function.
+ *
+ * @param {Object} event - The Lambda event payload.
+ * @async
+ */
 export const handler = async (event) => {
   const record = event.Records[0];
   const bucket = record.s3.bucket.name;
@@ -164,6 +170,7 @@ export const handler = async (event) => {
  * @param {string} key - The key of the S3 object.
  * @param {S3Client} client - An instance of the S3 client.
  * @returns {Promise<string>}
+ * @async
  */
 export const readFromS3 = async (bucketName, key, client) => {
   try {
@@ -189,6 +196,7 @@ export const readFromS3 = async (bucketName, key, client) => {
  * @param {string} body - The content to be uploaded.
  * @param {S3Client} client - An instance of the S3 client.
  * @returns {Promise<Object>}
+ * @async
  */
 export const pushToS3 = async (bucketName, key, body, client) => {
   try {
@@ -212,6 +220,7 @@ export const pushToS3 = async (bucketName, key, body, client) => {
  *
  * @param {Object} appointmentJson - The appointment data.
  * @returns {Promise<void>}
+ * @async
  */
 export const rejectRecord = async (appointmentJson) => {
   try {
@@ -236,6 +245,7 @@ export const rejectRecord = async (appointmentJson) => {
  * @param {DynamoDBClient} dbClient - An instance of the DynamoDB client.
  * @param {...string} params - The parameters for the lookup.
  * @returns {Promise<Object>}
+ * @async
  */
 export const lookUp = async (dbClient, ...params) => {
   const [id, table, attribute, attributeType, useIndex] = params;
@@ -282,6 +292,7 @@ export const lookUp = async (dbClient, ...params) => {
  * @param {string} [grailId="null"] - The Grail ID.
  * @param {string} [bloodCollectionDate="null"] - The blood collection date.
  * @returns {Promise<boolean>} Resolves to true if the transaction is successful.
+ * @async
  */
 export const transactionalWrite = async (
   client,
