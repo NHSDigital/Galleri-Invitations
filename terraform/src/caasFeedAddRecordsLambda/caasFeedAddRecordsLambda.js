@@ -13,6 +13,7 @@ import RandExp from "randexp";
 import { Readable } from "stream";
 import csv from "csv-parser";
 
+// VARIABLES
 const s3 = new S3Client();
 const client = new DynamoDBClient({
   region: "eu-west-2",
@@ -26,7 +27,15 @@ const UNSUCCESSFULL_REPSONSE = 400;
 
 let participantIdStore = {};
 
-// Lambda Entry Point
+/**
+ * AWS Lambda handler to load participant info for participants with result - CSD.
+ *
+ * @async
+ * @function handler
+ * @param {Object} event - The event triggering the Lambda.
+ * @returns {Promise<Object>} - A promise that resolves to the response object containing participant info or an error message.
+ */
+
 export const handler = async (event) => {
   const bucket = event.Records[0].s3.bucket.name;
   const key = decodeURIComponent(
@@ -108,7 +117,17 @@ export const handler = async (event) => {
   return "Exiting Lambda";
 };
 
-// METHODS
+/**
+ * Reads a CSV file from S3.
+ * @async
+ * @function readCsvFromS3
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key of the object in the S3 bucket.
+ * @param {S3Client} client Instance of S3 client
+ * @throws {Error} Failed to read from ${bucketName}/${key}
+ * @returns {string} The data of the file you retrieved
+ */
+
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -124,6 +143,19 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
     throw err;
   }
 };
+
+/**
+ * This function is used to write a new object in S3
+ *
+ * @async
+ * @function pushCsvToS3
+ * @param {string} bucketName The name of the bucket you are pushing to
+ * @param {string} key The name you want to give to the file you will write to S3
+ * @param {string} body The data you will be writing to S3
+ * @param {S3Client} client Instance of S3 client
+ * @throws {Error} Error pushing CSV to S3 bucket
+ * @returns {Object} metadata about the response, including httpStatusCode
+ */
 
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
   try {
@@ -145,6 +177,17 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
   }
 };
 
+/**
+ * Processes Csv data read in from the S3 bucket,
+ * and generates an array of filtered objects for each row of data.
+ *
+ * @async
+ * @function parseCsvToArray
+ * @param {string} csvString - The CSV data as a string.
+ * @returns {Array} An array of objects that passed the filter function.
+ * @throws {Error} If an error occurs during the CSV processing.
+ */
+
 export const parseCsvToArray = async (csvString) => {
   const dataArray = [];
 
@@ -163,7 +206,14 @@ export const parseCsvToArray = async (csvString) => {
   });
 };
 
-// returns unique records array and an array that contains all the duplicate
+/**
+ * Filters unique entries based on NHS number.
+ *
+ * @function filterUniqueEntries
+ * @param {Array<Object>} caasFeed - The array of records to filter.
+ * @returns {Array<Object>} An array of unique records and an array that contains all the duplicate.
+ */
+
 export const filterUniqueEntries = (cassFeed) => {
   const flag = {};
   const unique = [];
@@ -180,7 +230,18 @@ export const filterUniqueEntries = (cassFeed) => {
   return [unique, duplicate];
 };
 
-// returns formatted dynamodb record or rejected record object
+/**
+ * Check if the nhs_number of the record is present in Population Table.
+ * If yes, is is rejected. If no, its superseded_by_nhs_number value is checked.
+ * If thats null, record is added to table, else
+ * Check if the superseded_by_nhs_number of the record is present in Population Table.
+ * If yes, is is rejected. else added to table.
+ *
+ * @function processingData
+ * @param {Object} record - details of participant.
+ * @returns {Object} returns formatted dynamodb record or rejected record object.
+ */
+
 const processingData = async (record) => {
   const checkingNHSNumber = await checkDynamoTable(
     client,
@@ -218,7 +279,19 @@ const processingData = async (record) => {
   };
 };
 
-// returns true if item exists in dynamodb table
+/**
+ * returns true if item exists in dynamodb table
+ *
+ * @function checkDynamoTable
+ * @param {DynamoDBClient} dbClient Instance of DynamoDB client
+ * @param {string} attribute Value of the field in the DynamoDB table
+ * @param {string} table Name of the DynamoDB table
+ * @param {string} attributeName Name of the field in the DynamoDB table
+ * @param {string} attributeType Type of the field in the DynamoDB table
+ * @param {boolean} useIndex tells if the DynamoDB search need to be made on index or key.
+ * @returns {boolean} True if the attribute exists in the DynamoDB table, otherwise false.
+ */
+
 export const checkDynamoTable = async (
   dbClient,
   attribute,
@@ -248,7 +321,14 @@ export const checkDynamoTable = async (
   }
 };
 
-// returns formatted dynamodb json to be uploaded or rejected object
+/**
+ * @async
+ * @function generateRecord
+ * @param {Object} record - details of participant.
+ * @param {DynamoDBClient} client Instance of DynamoDB client
+ * @returns {Object} returns formatted dynamodb json to be uploaded or rejected object
+ */
+
 const generateRecord = async (record, client) => {
   record.participant_id = await generateParticipantID(client);
   const lsoaCheck = await getLsoa(record, client);
@@ -280,8 +360,16 @@ const generateRecord = async (record, client) => {
   return await formatDynamoDbRecord(record);
 };
 
-// returns unique participant id using NHS regex
-// unique in both population table and this stream
+/**
+ * Generates unique participant id using NHS regex
+ * unique in both population table and this stream
+ * @async
+ * @function generateParticipantID
+ * @param {DynamoDBClient} dbClient Instance of DynamoDB client
+ * @returns {String} participant id
+ * @throws {Error} Error: generating participant id.
+ */
+
 export const generateParticipantID = async (dbClient) => {
   const participantIdRandExp = new RandExp(
     /NHS-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]-[A-HJ-NP-Z][A-HJ-NP-Z][0-9][0-9]/
@@ -311,8 +399,17 @@ export const generateParticipantID = async (dbClient) => {
   }
 };
 
-// returns LSOA using patient postcode or the LSOA from GP practice
-// or returns error message
+/**
+ * Try to find LSOA from patient Postcode, then from Patient's GP Practice.
+ * If not found, then error message is returned
+ *
+ * @async
+ * @function getLsoa
+ * @param {Object} record - details of participant.
+ * @param {DynamoDBClient} dbClient Instance of DynamoDB client
+ * @returns {String} returns LSOA using patient postcode or the LSOA from GP practice
+ * @throws {Error} Failed to get LSOA from external tables.
+ */
 export const getLsoa = async (record, dbClient) => {
   const { postcode, primary_care_provider } = record;
   const lsoaObject = {
@@ -363,7 +460,17 @@ export const getLsoa = async (record, dbClient) => {
   }
 };
 
-// returns item and metadata from dynamodb table
+/**
+ * returns item and metadata from dynamodb table
+ *
+ * @async
+ * @function getItemFromTable
+ * @param {DynamoDBClient} dbClient Instance of DynamoDB client
+ * @param {string} table Name of the DynamoDB table
+ * @param {...any} keys name, type and value of partition and/or sort key.
+ * @returns {Object} Object with the postcode lsoa if found
+ */
+
 export const getItemFromTable = async (dbClient, table, ...keys) => {
   const [
     partitionKeyName,
@@ -399,7 +506,18 @@ export const getItemFromTable = async (dbClient, table, ...keys) => {
   return response;
 };
 
-// returns successful response if attribute doesn't exist in table
+/**
+ * This function allows the user to query against DynamoDB.
+ * @async
+ * @function lookUp
+ * @param {DynamoDBClient} dbClient Instance of DynamoDB client
+ * @param  {...any} params params is destructed to id, which is the value you use to query against.
+ * The table is the table name (type String), attribute is the column you search against (type String),
+ * attributeType is the type of data stored within that column and useIndex is toggled to true if you want to use
+ * an existing index (type boolean)
+ * @returns {boolean} returns successful response if attribute doesn't exist in table
+ */
+
 export const lookUp = async (dbClient, ...params) => {
   const [id, table, attribute, attributeType, useIndex] = params;
 
@@ -436,7 +554,19 @@ export const lookUp = async (dbClient, ...params) => {
   return SUCCESSFULL_REPSONSE;
 };
 
-// returns response from batch write to dynamodb table
+//
+
+/**
+ * Uploads the records to DynamoDB
+ *
+ * @async
+ * @function uploadToDynamoDb
+ * @param {DynamoDBClient} dbClient Instance of DynamoDB client
+ * @param {string} table Name of the DynamoDB table
+ * @param {Object} batch - records to be written to DynamoDB.
+ * @returns {number} The HTTP status code of the update operation.
+ */
+
 export const uploadToDynamoDb = async (dbClient, table, batch) => {
   let requestItemsObject = {};
   requestItemsObject[`${ENVIRONMENT}-${table}`] = batch;
@@ -449,7 +579,17 @@ export const uploadToDynamoDb = async (dbClient, table, batch) => {
   return response.$metadata.httpStatusCode;
 };
 
-// returns array with each element representing response of batch upload status
+/**
+ * Writes the records to DynamoDB
+ *
+ * @async
+ * @function batchWriteRecords
+ * @param {Object} record - records to be written to DynamoDB.
+ * @param {Number} chunkSize size of the chunks.
+ * @param {DynamoDBClient} dbClient Instance of DynamoDB client
+ * @returns {Array<Object>} returns array with each element representing response of batch upload status.
+ */
+
 export async function batchWriteRecords(records, chunkSize, dbClient) {
   console.log(`Number of records to push to db = ${records.length}`);
   const sendRequest = [];
@@ -471,7 +611,15 @@ export async function batchWriteRecords(records, chunkSize, dbClient) {
   return sendRequest;
 }
 
-// returns formatted dynamodb json to be uploaded
+/**
+ * Formats the record in the format that can be uploaded to DynamoDB
+ *
+ * @async
+ * @function formatDynamoDbRecord
+ * @param {Object} record - record with Participant details.
+ * @returns {Object} returns formatted dynamodb json to be uploaded.
+ */
+
 export const formatDynamoDbRecord = async (record) => {
   // nhs_number: {N: record.nhs_number}, -> 0
   if (record.nhs_number === "null") record.nhs_number = "0";
@@ -533,7 +681,15 @@ export const formatDynamoDbRecord = async (record) => {
   };
 };
 
-// returns string to upload to s3
+/**
+ * Generates a CSV string from an array of objects.
+ *
+ * @function generateCsvString
+ * @param {string} header - The header row for the CSV.
+ * @param {Array<Object>} dataArray - The array of objects to convert to CSV.
+ * @returns {string} The generated CSV string.
+ */
+
 export const generateCsvString = (header, dataArray) => {
   return [
     header,
