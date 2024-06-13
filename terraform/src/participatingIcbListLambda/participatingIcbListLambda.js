@@ -3,7 +3,7 @@ import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
 /**
- * Lambda to load icb information and pass on to GPS client.
+ * Queries DynamoDB table and returns items found based on primary key field/value
  *
  * @async
  * @function getItemsFromTable
