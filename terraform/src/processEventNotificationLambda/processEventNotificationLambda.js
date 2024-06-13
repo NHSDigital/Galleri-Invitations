@@ -50,6 +50,14 @@ export const handler = async (event, context) => {
   }
 };
 
+/**
+ * Retrieves parameter store value for given episode event
+ *
+ * @function getParameterStore
+ * @async
+ * @param {string} episodeEvent Episode event type.
+ * @returns {Promise<string>} Parameter value returned.
+ */
 export async function getParameterStore(episodeEvent) {
   try {
     let parameterName = "";
@@ -78,6 +86,14 @@ export async function getParameterStore(episodeEvent) {
   }
 }
 
+/**
+ * Retrieves Participant from DB based on participant id
+ *
+ * @function getParticipantFromDB
+ * @async
+ * @param {string} participantId Participant id.
+ * @returns {Promise<Object>} Item from DynamoDB for the given participant id.
+ */
 export async function getParticipantFromDB(participantId) {
   try {
     const {
@@ -100,6 +116,14 @@ export async function getParticipantFromDB(participantId) {
   }
 }
 
+/**
+ * Send message to SQS queue
+ *
+ * @function sendToSQS
+ * @async
+ * @param {Object} item Object containing participant id and NHS number.
+ * @param {string} episodeEvent Episode event type.
+ */
 export async function sendToSQS(item, episodeEvent) {
   try {
     const messageBody = {
