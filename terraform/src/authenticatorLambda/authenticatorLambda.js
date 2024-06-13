@@ -1,6 +1,10 @@
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
-import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBClient,
+  UpdateItemCommand,
+  GetItemCommand,
+} from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import axios from "axios";
 import jwksClient from "jwks-rsa";
@@ -20,8 +24,19 @@ const PRIVATE_KEY_SECRET_NAME = process.env.CIS2_KEY_NAME;
 const CIS2_REDIRECT_URL = process.env.CIS2_REDIRECT_URL;
 const GALLERI_ACTIVITY_CODE = process.env.GALLERI_ACTIVITY_CODE;
 
+/**
+ * Lambda handler function for Oauth authentication token handling,
+ * userinfo exchange, perform authorization checks and creates
+ * API Gateway lockdown sessions.
+ *
+ * @function handler
+ * @async
+ * @param {Object} event - The event object containing the query parameters and other details.
+ * @returns {Object} HTTP response object with user authentication and authorization details.
+ */
 export const handler = async (event) => {
   try {
+    let apiSessionId;
     const cis2ClientID = await getSecret(CLIENT_ID, smClient);
     const code = event.queryStringParameters.code; // getting authorization code from Query parameter
     // getting signed private key JWT
@@ -53,30 +68,177 @@ export const handler = async (event) => {
       validateTokenExpirationWithAuthTime,
       validateTokenSignature
     );
-    const authResponse = {
-      id: userInfo.uid,
-      name: userRole.Name,
-      email: userRole.Email,
-      role: userRole.Role,
-      isAuthorized: checkAuthorizationResult,
-    };
     if (checkAuthorizationResult !== true) {
       const errorMessage = checkAuthorizationResult
         .split("error=")[1]
         .replace(/\+/g, " ");
       console.error("Error: ", errorMessage);
     } else {
+      apiSessionId = uuidv4();
+      await generateAPIGatewayLockdownSession(
+        environment,
+        dynamoDBClient,
+        apiSessionId,
+        userInfo.uid,
+        updateAPIGatewayLockdownSessionTable
+      );
       console.log(
-        `This User has been authenticated and is authorized to access the Galleri App with role - ${userRole.Role}`
+        `This User has been authenticated and is authorized to access the MCBT App with role - ${userRole.Role}`
       );
     }
+    const authResponse = {
+      id: userInfo.uid,
+      name: userRole.Name,
+      email: userRole.Email,
+      role: userRole.Role,
+      isAuthorized: checkAuthorizationResult,
+      apiSessionId: apiSessionId,
+    };
     return { statusCode: 200, body: JSON.stringify(authResponse) };
   } catch (error) {
     console.error("Error: ", error);
   }
 };
 
-// Function to return the generated JWT signed by a private Key
+//FUNCTIONS
+
+/**
+ * Generates a session for API Gateway Lock-down.
+ *
+ * @function generateAPIGatewayLockdownSession
+ * @async
+ * @param {string} environment - The environment name.
+ * @param {DynamoDBClient} client - The DynamoDB client.
+ * @param {string} apiSessionId - The API session ID.
+ * @param {string} userId - The user ID.
+ * @param {Function} updateAPISessionTable - The function to update the API session table.
+ * @throws {Error} If there is an error creating session.
+ */
+export async function generateAPIGatewayLockdownSession(
+  environment,
+  client,
+  apiSessionId,
+  userId,
+  updateAPISessionTable
+) {
+  try {
+    // Current DateTime
+    const dateTime = new Date(Date.now()).toISOString();
+
+    // TODO: After confirming the session duration update the timeToLive & expirationDateTime below
+    // Unix epoch timestamp that is 20 minutes (1200 seconds) in the future from the current time
+    const timeToLive = Math.floor(Date.now() / 1000) + 1200;
+
+    // ISO string format timestamp that is 20 minutes (1200 seconds) in the future from the current time
+    const expirationDateTime = new Date(Date.now() + 20 * 60000).toISOString();
+
+    const updateSessionTable = await updateAPISessionTable(
+      environment,
+      client,
+      apiSessionId,
+      userId,
+      timeToLive,
+      expirationDateTime,
+      dateTime,
+      dateTime
+    );
+    if (updateSessionTable !== 200) {
+      console.error(`Error: Failed to generate session for for User ${userId}`);
+      return;
+    }
+    console.log(
+      `API Gateway Lockdown session ${apiSessionId}, generated successfully for User ${userId}`
+    );
+  } catch (error) {
+    console.error(`Error: Failed to generate session for for User ${userId}`);
+    console.error(`Error:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Updates the API Gateway Lock-down Session Table.
+ *
+ * @function updateAPIGatewayLockdownSessionTable
+ * @async
+ * @param {string} environment - The environment name.
+ * @param {DynamoDBClient} client - The DynamoDB client.
+ * @param {string} apiSessionId - The API session ID.
+ * @param {string} userId - The user ID.
+ * @param {number} timeToLive - The time to live for the session.
+ * @param {string} expirationDateTime - The expiration date and time.
+ * @param {string} creationDateTime - The creation date and time.
+ * @param {string} updatedDateTime - The last updated date and time.
+ * @returns {number} The HTTP status code of the update operation.
+ */
+export async function updateAPIGatewayLockdownSessionTable(
+  environment,
+  client,
+  apiSessionId,
+  userId,
+  timeToLive,
+  expirationDateTime,
+  creationDateTime,
+  updatedDateTime
+) {
+  const params = {
+    TableName: `${environment}-APIGatewayLockdownSession`,
+    Key: {
+      API_Session_Id: {
+        S: apiSessionId,
+      },
+    },
+    ExpressionAttributeNames: {
+      "#USER": "User_UUID",
+      "#TTL": "Expires_At",
+      "#EXPIRES": "Expiration_DateTime",
+      "#CREATED": "Creation_DateTime",
+      "#UPDATED": "Last_Updated_DateTime",
+    },
+    ExpressionAttributeValues: {
+      ":user": {
+        S: userId,
+      },
+      ":ttl": {
+        N: timeToLive.toString(),
+      },
+      ":expires": {
+        S: expirationDateTime,
+      },
+      ":created": {
+        S: creationDateTime,
+      },
+      ":updated": {
+        S: updatedDateTime,
+      },
+    },
+    UpdateExpression:
+      "SET #USER = :user, #TTL = :ttl, #EXPIRES = :expires, #CREATED = :created, #UPDATED = :updated",
+  };
+  const command = new UpdateItemCommand(params);
+  const response = await client.send(command);
+  if (response.$metadata.httpStatusCode != 200) {
+    console.error(
+      `Error: Failed to update the API Gateway Lockdown Session for User ${userId}`
+    );
+  }
+  return response.$metadata.httpStatusCode;
+}
+
+/**
+ * Generates a JWT signed by a private key.
+ *
+ * @function getCIS2SignedJWT
+ * @async
+ * @param {string} cis2ClientID - The CIS2 client ID.
+ * @param {Function} getSecret - The function to retrieve a secret.
+ * @param {Function} generateJWT - The function to generate a JWT.
+ * @param {Function} createResponse - The function to create an HTTP response.
+ * @param {string} PRIVATE_KEY_SECRET_NAME - The name of the secret containing the private key.
+ * @param {string} TOKEN_ENDPOINT_URL - The token endpoint URL.
+ * @param {string} KID - The key ID.
+ * @returns {Object} The HTTP response object containing the signed JWT.
+ */
 export async function getCIS2SignedJWT(
   cis2ClientID,
   getSecret,
@@ -107,7 +269,16 @@ export async function getCIS2SignedJWT(
   }
 }
 
-// Function to get Secrets
+/**
+ * Retrieves 'Secret value' from secrets manager by passing in 'Secret name' from AWS Secrets Manager
+ *
+ * @function getSecret
+ * @async
+ * @param {string} secretName - Name of the secret to retrieve
+ * @param {SecretsManagerClient} client - Secrets Manager client
+ * @returns {string} Secret value
+ * @throws {Error} If there is an error retrieving the secret
+ */
 export const getSecret = async (secretName, client) => {
   try {
     const response = await client.send(
@@ -123,7 +294,16 @@ export const getSecret = async (secretName, client) => {
   }
 };
 
-// Function to generate a JWT and sign it with a private key
+/**
+ * Generates a JSON Web Token (JWT) signed with the provided private key.
+ *
+ * @function generateJWT
+ * @param {string} clientID - The client ID for the JWT payload.
+ * @param {string} tokenEndpointUrl - The token endpoint URL for the JWT payload.
+ * @param {string} keyId - The key ID for the JWT header.
+ * @param {string} privateKey - The private key to sign the JWT.
+ * @returns {string} The signed JWT.
+ */
 export const generateJWT = (
   clientId,
   tokenEndpointUrl,
@@ -146,7 +326,14 @@ export const generateJWT = (
   return signedJwt;
 };
 
-// Function to generate and return an HTTP response object
+/**
+ * Creates an HTTP response object.
+ *
+ * @function createResponse
+ * @param {number} statusCode - The HTTP status code.
+ * @param {Object|string} body - The body of the HTTP response.
+ * @returns {Object} The HTTP response object.
+ */
 export const createResponse = (httpStatusCode, body) => {
   const responseObject = {};
   responseObject.statusCode = httpStatusCode;
@@ -161,7 +348,17 @@ export const createResponse = (httpStatusCode, body) => {
   return responseObject;
 };
 
-// Function to exchange an authorization code for tokens from an OAuth provider(CIS2)
+/**
+ * Retrieves tokens from the authorization server using the authorization code from an OAuth provider(CIS2).
+ *
+ * @function getTokens
+ * @async
+ * @param {string} code - The authorization code.
+ * @param {string} signedJWT - The signed JWT for client authentication.
+ * @param {string} clientID - The client ID.
+ * @returns {Object} The response object containing tokens.
+ * @throws {Error}
+ */
 export async function getTokens(authCode, signedJWT, cis2ClientID) {
   const body = {
     grant_type: "authorization_code",
@@ -191,6 +388,15 @@ export async function getTokens(authCode, signedJWT, cis2ClientID) {
   }
 }
 
+/**
+ * Retrieves user information using the access token.
+ *
+ * @function getUserinfo
+ * @async
+ * @param {Object} tokens - The tokens object containing the access token.
+ * @returns {Object} The user information.
+ * @throws {Error}
+ */
 export async function getUserinfo(tokens) {
   try {
     const response = await axios({
@@ -209,7 +415,15 @@ export async function getUserinfo(tokens) {
   }
 }
 
-// Function to exchange the access token for user information from an OAuth provider(CIS2)
+/**
+ * Retrieves the user's role from the database.
+ *
+ * @function getUserRole
+ * @async
+ * @param {string} uuid - The user's UUID.
+ * @returns {Object} The user role object.
+ * @throws {Error}
+ */
 export async function getUserRole(uuid) {
   const params = {
     TableName: `${environment}-UserAccounts`,
@@ -217,7 +431,7 @@ export async function getUserRole(uuid) {
       User_UUID: { S: uuid },
     },
   };
-  console.log("UUID from query string parameters is: ", uuid);
+  console.log("User UUID from query string parameters is: ", uuid);
 
   try {
     const command = new GetItemCommand(params);
@@ -234,17 +448,30 @@ export async function getUserRole(uuid) {
       };
     }
     const item = unmarshall(data.Item);
-    console.log("UUID exists on Galleri User database");
+    console.log("User exists on Galleri User database");
 
     return item;
   } catch (error) {
-    console.error("Error getting item from DynamoDB");
+    console.error("Error getting User data from Galleri User database");
     console.error("Error: ", error);
     throw new Error(error);
   }
 }
 
-// Function to check the authorization requirement and validate the token claims and signature received from CIS2
+/**
+ * Checks the authorization requirement of the user and validate the token claims and signature received from CIS2
+ *
+ * @function checkAuthorization
+ * @async
+ * @param {Object} user - The user authentication data.
+ * @param {Object} account - The object containing tokens.
+ * @param {string} galleriActivityCode - The required activity code for authorization.
+ * @param {string} clientID - The client ID.
+ * @param {Function} parseTokenClaims - The function to extract claims from the ID token.
+ * @param {Function} checkTokenExpirationWithAuthTime - The function to validate token expiration with auth time.
+ * @param {Function} verifyTokenSignature - The function to validate the token signature.
+ * @returns {boolean|string} True if authorized, otherwise an error message.
+ */
 export async function checkAuthorization(
   user,
   account,
@@ -292,10 +519,7 @@ export async function checkAuthorization(
   }
 
   // not active or user account does not exist
-  if (
-    user.accountStatus === "Inactive" ||
-    user.accountStatus === "User Not Found"
-  ) {
+  if (user.accountStatus !== "Active") {
     return "/autherror/account_not_found?error=User+Account+does+not+exist+or+is+inactive";
     // Keeping this here in case we want to route different users to different pages for referrals repo
   } else if (
@@ -310,7 +534,14 @@ export async function checkAuthorization(
   }
 }
 
-// Function to extract the Token ID claims
+/**
+ * Extracts claims from the ID token.
+ *
+ * @function extractClaims
+ * @async
+ * @param {string} idToken - The ID token.
+ * @returns {Object} The extracted claims.
+ */
 export async function extractClaims(idToken) {
   // Split the ID token into its parts: header, payload, and signature
   const [header, payload, signature] = idToken.split(".");
@@ -323,7 +554,14 @@ export async function extractClaims(idToken) {
   return claims;
 }
 
-// Function to validate the expiration time (exp claim)
+/**
+ * Validates the expiration of the token with the authentication time(exp claim).
+ *
+ * @function validateTokenExpirationWithAuthTime
+ * @async
+ * @param {string} token - The ID token.
+ * @returns {boolean} True if the token is valid, otherwise false.
+ */
 export async function validateTokenExpirationWithAuthTime(token) {
   const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
   const expirationTime = token?.exp; // Expiration time from the token's exp claim
@@ -339,7 +577,16 @@ export async function validateTokenExpirationWithAuthTime(token) {
   );
 }
 
-// Function to validate the signature of id token received
+/**
+ * Validates the signature of the id token received.
+ *
+ * @function validateTokenSignature
+ * @async
+ * @param {string} idToken - The ID token.
+ * @param {string} jwksUri - The endpoints to a set of JSON Web Keys (JWKs) which are used for verifying the signatures of JSON Web Tokens (JWTs).
+ * @returns {boolean} True if the signature is valid, otherwise false.
+ * @throws {Error}
+ */
 export async function validateTokenSignature(idToken, jwksUri) {
   try {
     // Function to get the key for verification
@@ -375,3 +622,4 @@ export async function validateTokenSignature(idToken, jwksUri) {
     throw new Error(error);
   }
 }
+//END OF FUNCTIONS

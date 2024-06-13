@@ -215,8 +215,8 @@ resource "aws_elastic_beanstalk_environment" "screens" {
   setting {
     namespace = "aws:elasticbeanstalk:environment"
     name      = "EnvironmentType"
-    # value     = "LoadBalanced"
-    value = "SingleInstance"
+    value     = "LoadBalanced"
+    # value = "SingleInstance"
   }
 
   setting {
@@ -307,6 +307,12 @@ resource "aws_elastic_beanstalk_environment" "screens" {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "NEXT_PUBLIC_CLINIC_SUMMARY_LIST"
     value     = var.NEXT_PUBLIC_CLINIC_SUMMARY_LIST
+  }
+
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEXT_PUBLIC_ONWARD_REFERRAL_LIST"
+    value     = var.NEXT_PUBLIC_ONWARD_REFERRAL_LIST
   }
 
   setting {

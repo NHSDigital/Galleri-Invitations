@@ -115,7 +115,13 @@ async function uploadChunkedCsvToS3(msgID) {
 }
 
 //FUNCTIONS
-//Read in MESH data
+/**
+ * Read in MESH data
+ *
+ * @function getHealthStatusCode
+ * @async
+ * @returns {Promise<String>} Status code of handshake, expecting 200
+ */
 async function getHealthStatusCode() {
   try {
     let healthCheck = await handShake({
@@ -132,7 +138,13 @@ async function getHealthStatusCode() {
   }
 }
 
-//Return an array of message IDs
+/**
+ * Return an array of message IDs
+ *
+ * @function getMessageArray
+ * @async
+ * @returns {Promise<Array>} Returns an array of message ids read from the mailbox
+ */
 async function getMessageArray() {
   try {
     let messageCount = await getMessageCount({
@@ -154,7 +166,14 @@ async function getMessageArray() {
   }
 }
 
-//Marks messaged as read based on the message ID passed in
+/**
+ * Marks messaged as read based on the message ID passed in
+ *
+ * @function markRead
+ * @async
+ * @param {string} msgID - The message which you want to mark as read
+ * @returns {Promise<Object>} Object containing data about request, including if it was successful
+ */
 async function markRead(msgID) {
   try {
     let markMsg = await markAsRead({
@@ -171,7 +190,14 @@ async function markRead(msgID) {
   }
 }
 
-//Reads message data based on message ID
+/**
+ * Reads message data based on message ID
+ *
+ * @function ReadMsg
+ * @async
+ * @param {string} msgID - The message which you want to read
+ * @returns {Promise<String>} The message body
+ */
 async function readMsg(msgID) {
   try {
     let messages = await readMessage({
@@ -189,6 +215,15 @@ async function readMsg(msgID) {
   }
 }
 
+/**
+ * Retrieves large secrets into lambda
+ *
+ * @function readSecret
+ * @async
+ * @param {string} secretName - Secret name stored in AWS
+ * @param {SecretsManagerClient} client - An instance of secrets manager client
+ * @returns {Promise<String>} secret value
+ */
 async function readSecret(secretName, client) {
   return Buffer.from(await getSecret(secretName, client), "base64").toString(
     "utf8"

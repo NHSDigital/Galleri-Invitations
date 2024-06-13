@@ -138,6 +138,7 @@ runs:
         npm install --prefix src/gtmsStatusUpdateLambda
         npm install --prefix src/appointmentsEventCancelledLambda
         npm install --prefix src/processAppointmentEventTypeLambda
+        npm install --prefix src/publishTestResultsLambda
         npm install --prefix src/validateGtmsWithdrawalLambda
         npm install --prefix src/authenticatorLambda
         npm install --prefix src/processEventNotificationLambda
@@ -150,7 +151,12 @@ runs:
         npm install --prefix src/sendTestResultErrorAckQueueLambda
         npm install --prefix src/sendTestResultOkAckQueueLambda
         npm install --prefix src/testResultReportFhirValidationLambda
-
+        npm install --prefix src/testCrossCheckReportAppointmentValidationLambda
+        npm install --prefix src/nrdsUpdateBloodTestResultLambda
+        npm install --prefix src/onwardReferralListLambda
+        npm install --prefix src/sendAckMessageLambda
+        npm install --prefix src/validateCsoSnomedCodesLambda
+        npm install --prefix src/cancerSignalOriginAddLambda
 
         if [[ ${{ env.environment }} != prod ]]; then
           {

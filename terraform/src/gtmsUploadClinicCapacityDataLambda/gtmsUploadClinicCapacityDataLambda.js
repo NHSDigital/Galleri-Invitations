@@ -78,7 +78,17 @@ export const handler = async (event, context) => {
   }
 };
 
-// METHODS
+/**
+ * This function is used to retrieve an object from S3,
+ * and allow the data retrieved to be used in your code.
+ * @async
+ * @function readCsvFromS3
+ * @param {string} bucketName The name of the bucket you are querying
+ * @param {string} key The name of the object you are retrieving
+ * @param {S3Client} client Instance of S3 client
+ * @throws {Error} Failed to read from ${bucketName}/${key}
+ * @returns {string} The data of the file you retrieved
+ */
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -93,7 +103,18 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
     throw err;
   }
 };
-
+/**
+ * This function is used to write a new object in S3
+ * @async
+ * @function pushCsvToS3
+ * @param {string} bucketName The name of the bucket you are pushing to
+ * @param {string} body The data you will be writing to S3
+ * @param {string} key The name you want to give to the file you will write to S3
+ * @param {string} rejectedReason The rejected reason
+ * @param {S3Client} client Instance of S3 client
+ * @throws {Error} Error pushing CSV to S3 bucket
+ * @returns {Object} metadata about the response, including httpStatusCode
+ */
 export const pushCsvToS3 = async (
   bucketName,
   body,
@@ -118,6 +139,15 @@ export const pushCsvToS3 = async (
   }
 };
 
+/**
+ * Queries DynamoDB table and returns items found based on primary key field/value
+ * @async
+ * @function getItemsFromTable
+ * @param {string} table Table name
+ * @param {DynamoDBClient} client Instance of DynamoDB client
+ * @param {string} key Primary key value
+ * @returns {Object} Items returned from query
+ */
 export async function getItemsFromTable(table, client, key) {
   const params = {
     ExpressionAttributeValues: {
@@ -135,6 +165,15 @@ export async function getItemsFromTable(table, client, key) {
   return response;
 }
 
+/**
+ * Checks if the payload's ClinicID matches the specified item's ClinicId.
+ *
+ * @async
+ * @function checkPhlebotomy
+ * @param {Object} payload - The payload object containing the ClinicID.
+ * @param {Object} arr - The item object from result.Items[0].
+ * @returns {Array|boolean} An array containing true and the ClinicName if the ClinicName matches, otherwise false.
+ */
 const checkPhlebotomy = async (payload, arr) => {
   if (payload?.["ClinicID"] === arr["ClinicId"]["S"]) {
     console.log(`ClinicName matched: ${payload?.["ClinicID"]}`);
@@ -143,7 +182,17 @@ const checkPhlebotomy = async (payload, arr) => {
     return false; //reject record from mesh
   }
 };
-
+/**
+ * Saves an object to the Phlebotomy table.
+ *
+ * @async
+ * @function saveObjToPhlebotomyTable
+ * @param {Object} MeshObj - The mesh object to be saved to the Phlebotomy table.
+ * @param {string} environment - The environment name.
+ * @param {DynamoDBClient} client - The database client used to interact with the Phlebotomy table.
+ * @param {string} clinicName - The name of the clinic associated with the object.
+ * @returns {boolean} updated Clinic with item to the Phlebotomy table.
+ */
 export const saveObjToPhlebotomyTable = async (
   MeshObj,
   environment,

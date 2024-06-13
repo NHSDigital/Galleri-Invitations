@@ -10,6 +10,15 @@ const s3 = new S3Client();
 
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
+/**
+ * Lambda handler function to process CSV files from S3 and perform validation checks.
+ *
+ * @function handler
+ * @async
+ * @param {Object} event - The Lambda event object containing S3 event details.
+ * @returns {string} - The validation successful message  after handler is executed successful.
+ * @throws {Error}
+ */
 export const handler = async (event) => {
   const bucket = event.Records[0].s3.bucket.name;
   const key = decodeURIComponent(
@@ -111,6 +120,17 @@ export const handler = async (event) => {
   }
 };
 
+/**
+ * Retrieves a CSV file from S3.
+ *
+ * @function readCsvFromS3
+ * @async
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key of the S3 object.
+ * @param {Object} client - The S3 client.
+ * @returns {Promise<string>} - A promise that resolves to the CSV file content.
+ * @throws {Error} Will throw an error if reading from S3 fails.
+ */
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -127,6 +147,18 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
   }
 };
 
+/**
+ * Pushes a CSV file to S3.
+ *
+ * @function pushCsvToS3
+ * @async
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key of the S3 object.
+ * @param {string} body - The content of the CSV file.
+ * @param {Object} client - The S3 client.
+ * @returns {Promise<Object>} - A promise that resolves to the S3 response.
+ * @throws {Error} Will throw an error if pushing to S3 fails.
+ */
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
   try {
     const response = await client.send(
@@ -147,7 +179,15 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
   }
 };
 
-// Takes Csv data read in from the S3 bucket to generate an array of filtered objects
+/**
+ * Parses a CSV string into an array of objects.
+ *
+ * @function parseCsvToArray
+ * @async
+ * @param {string} csvString - The CSV string to parse.
+ * @returns {Promise<Array<Object>>} - A promise that resolves to an array of objects.
+ * @throws Will throw an error if parsing the CSV fails.
+ */
 export const parseCsvToArray = async (csvString) => {
   console.log("Parsing csv string");
   const dataArray = [];
@@ -169,6 +209,13 @@ export const parseCsvToArray = async (csvString) => {
   });
 };
 
+/**
+ * Converts an array of objects into a CSV format.
+ *
+ * @function convertArrayOfObjectsToCSV
+ * @param {Array<Object>} data - The array of objects to be converted.
+ * @returns {string} - The CSV formatted string.
+ */
 export const convertArrayOfObjectsToCSV = (data) => {
   const csvContent = [];
 
@@ -204,7 +251,13 @@ export const convertArrayOfObjectsToCSV = (data) => {
   return csvContent.join("\n");
 };
 
-// Main Validation function which will iterate through the records
+/**
+ * Validates records and separates them into successful and unsuccessful categories.
+ *
+ * @function validateRecords
+ * @param {Array<Object>} records - The array of records to be validated.
+ * @returns {Array<Array<Object>>} - An array containing two arrays: successful and unsuccessful records.
+ */
 export default function validateRecords(records) {
   const outputSuccess = [];
   const outputUnsuccess = [];
@@ -228,6 +281,13 @@ export default function validateRecords(records) {
   return [outputSuccess, outputUnsuccess];
 }
 
+/**
+ * Validates a single record.
+ *
+ * @function validateRecord
+ * @param {Object} record - The record to be validated.
+ * @returns {Object} - An object containing the validation results (success and message).
+ */
 export function validateRecord(record) {
   const validationResults = {
     success: true,
@@ -321,8 +381,9 @@ export function validateRecord(record) {
   }
   // AC7 - Date of Birth is an invalid format or is in the future
   if (
-    !record.date_of_birth ||
-    !isValidDateFormatOrInTheFuture(record.date_of_birth)
+    record.action != "DEL" &&
+    (!record.date_of_birth ||
+      !isValidDateFormatOrInTheFuture(record.date_of_birth))
   ) {
     validationResults.success = false;
     validationResults.message =
@@ -331,14 +392,17 @@ export function validateRecord(record) {
   }
 
   // AC3 - Missing or Invalid Gender provided
-  if (!isValidGender(record.gender)) {
+  if (record.action != "DEL" && !isValidGender(record.gender)) {
     validationResults.success = false;
     validationResults.message = "Technical error - Missing or invalid Gender";
     return validationResults;
   }
 
   // AC?? - postcode is not supplied
-  if (!record.postcode || record.postcode === "null") {
+  if (
+    record.action != "DEL" &&
+    (!record.postcode || record.postcode === "null")
+  ) {
     validationResults.success = false;
     validationResults.message = "Technical error - Postcode was not supplied";
     return validationResults;
@@ -382,15 +446,42 @@ export function validateRecord(record) {
     return validationResults;
   }
 
+  //GAL-1366
+  if (
+    record.action != "DEL" &&
+    (record.is_interpreter_required === null ||
+      record.is_interpreter_required.trim().length === 0)
+  ) {
+    validationResults.success = false;
+    validationResults.message =
+      "Technical error - is_interpreter_required is invalid";
+    return validationResults;
+  }
   return validationResults;
 }
 
+/**
+ * Checks if an NHS number is in a valid format.
+ *
+ * @function isValidNHSNumberFormat
+ * @param {string} nhsNumber - The NHS number to be validated.
+ * @returns {boolean} - A boolean indicating whether the NHS number is in a valid format.
+ */
 export function isValidNHSNumberFormat(nhsNumber) {
   // AC1 - NHS Number is not a valid format (n10),
   // check if it's a numeric string with a length of 10
   return /^\d{10}$/.test(nhsNumber);
 }
 
+/**
+ * Checks if a name has a valid format.
+ *
+ * @function isValidNameFormat
+ * @param {string} given_name - The name to be validated.
+ * @param {number} limit - The character limit for the name.
+ * @param {number} flag - A flag indicating the type of name validation.
+ * @returns {boolean} - A boolean indicating whether the name has a valid format.
+ */
 export function isValidNameFormat(given_name, limit, flag) {
   //Check Valid name format
   const isValidFormat = /^[\wŽžÀ-ÿ ,.\-']+$/gim.test(given_name);
@@ -414,6 +505,13 @@ export function isValidNameFormat(given_name, limit, flag) {
   }
 }
 
+/**
+ * Checks if a reason for removal code is valid.
+ *
+ * @function isValidRemovalReasonCode
+ * @param {string} reasonCode - The reason for removal code to be validated.
+ * @returns {boolean} - A boolean indicating whether the reason for removal code is valid.
+ */
 export function isValidRemovalReasonCode(reasonCode) {
   // AC4 - Incorrect Reason for Removal code provided (if supplied)
   // check if it's one of the specified valid codes
@@ -440,12 +538,26 @@ export function isValidRemovalReasonCode(reasonCode) {
   return validCodes.includes(reasonCode);
 }
 
+/**
+ * Checks if a gender value is valid.
+ *
+ * @function isValidGender
+ * @param {string} gender - The gender value to be validated.
+ * @returns {boolean} - A boolean indicating whether the gender value is valid.
+ */
 export function isValidGender(gender) {
   // AC3 - Missing or Invalid Gender provided
   // check if it's one of the specified valid values
   return ["0", "1", "2", "9"].includes(gender);
 }
 
+/**
+ * Checks if a date has a valid format.
+ *
+ * @function isValidDateFormat
+ * @param {string} dateString - The date string to be validated.
+ * @returns {boolean} - A boolean indicating whether the date string has a valid format.
+ */
 export function isValidDateFormat(dateString) {
   // AC7 - Date of Birth is an invalid format or is in the future
   // AC10 - Date of Death (if supplied is invalid format or is in the future
@@ -460,6 +572,13 @@ export function isValidDateFormat(dateString) {
   return true;
 }
 
+/**
+ * Checks if a date has a valid format and is not in the future.
+ *
+ * @function isValidDateFormatOrInTheFuture
+ * @param {string} dateString - The date string to be validated.
+ * @returns {boolean} - A boolean indicating whether the date string has a valid format and is not in the future.
+ */
 export function isValidDateFormatOrInTheFuture(dateString) {
   // AC7 - Date of Birth is an invalid format or is in the future
   // AC10 - Date of Death (if supplied is invalid format or is in the future
@@ -489,13 +608,26 @@ export function isValidDateFormatOrInTheFuture(dateString) {
   return true;
 }
 
+/**
+ * Checks if an action value is valid.
+ *
+ * @function isValidAction
+ * @param {string} action - The action value to be validated.
+ * @returns {boolean} - A boolean indicating whether the action value is valid.
+ */
 export function isValidAction(action) {
   // AC3 - Missing or Invalid Gender provided
   // check if it's one of the specified valid values
   return ["ADD", "DEL", "UPDATE"].includes(action);
 }
 
-//Spread records into 3 arrays. ADD, UPDATE and DELETE array
+/**
+ * Filters records based on their action status arrays - ADD, UPDATE and DELETE array.
+ *
+ * @function filterRecordStatus
+ * @param {Array<Object>} records - The array of records to be filtered.
+ * @returns {Array<Array<Object>>} - An array containing three arrays: ADD, UPDATE, and DELETE.
+ */
 export const filterRecordStatus = (records) => {
   const recordsAdd = [];
   const recordsUpdate = [];

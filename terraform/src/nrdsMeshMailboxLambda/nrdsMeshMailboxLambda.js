@@ -76,6 +76,15 @@ export const handler = async (event, context) => {
 };
 
 //FUNCTIONS
+/**
+ * Retrieves large secrets into lambda
+ *
+ * @function readSecret
+ * @async
+ * @param {string} secretName - Secret name stored in AWS
+ * @param {SecretsManagerClient} client - An instance of secrets manager client
+ * @returns {Promise<String>} Secret value
+ */
 export async function readSecret(secretName, client) {
   return Buffer.from(await getSecret(secretName, client), "base64").toString(
     "utf8"

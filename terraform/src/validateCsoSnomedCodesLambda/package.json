@@ -1,0 +1,12 @@
+{
+  "name": "validatecsosnowmedcodes",
+  "version": "1.0.0",
+  "description": "",
+  "main": "validateCsoSnowmedCodes.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "type": "module",
+  "license": "ISC"
+}

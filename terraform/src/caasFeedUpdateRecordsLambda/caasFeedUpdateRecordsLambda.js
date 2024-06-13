@@ -72,9 +72,7 @@ export const handler = async (event) => {
       );
 
       const filteredRejectedRecords = recordsToUploadSettled.filter(
-        (record) => {
-          return Object.keys(record?.reason).length > 0;
-        }
+        (record) => record.value.rejected === true
       );
 
       console.log(
@@ -134,7 +132,9 @@ export const processingData = async (
     incomingUpdateData.superseded_by_nhs_number === "null" ||
     incomingUpdateData.superseded_by_nhs_number == 0
   ) {
-    console.log("Entered if");
+    console.log(
+      "superseded_by_nhs_number is either null or 0 for the payload that will be used to update the record"
+    );
     return await updateRecord(incomingUpdateData, populationTableRecord); // AC1, 2, 4
   } else {
     // a merge case has been recognised. Handle below
@@ -287,154 +287,283 @@ const mergeRecords = async (
 };
 
 const updateRecord = async (record, recordFromTable) => {
-  console.log("Entered function updateRecord");
-  const { PersonId } = recordFromTable;
-
-  if (record.date_of_death !== recordFromTable.date_of_death.S) {
-    // AC1a and AC1b
-    const episodeRecord = await lookUp(
-      client,
-      PersonId.S,
-      "Episode",
-      "Participant_Id",
-      "S",
-      true
-    );
-    // close open Episode record
-    if (episodeRecord?.Items.length > 0) {
-      const batchId = episodeRecord.Items[0].Batch_Id.S;
-      const participantId = episodeRecord.Items[0].Participant_Id.S;
-
-      const updateEpisodeRecord = ["Episode_Status", "S", "Deceased"];
-      await updateRecordInTable(
+  try {
+    console.log("Entered function updateRecord");
+    const { PersonId } = recordFromTable;
+    if (record.date_of_death !== recordFromTable.date_of_death.S) {
+      // AC1a and AC1b
+      const episodeRecord = await lookUp(
         client,
+        PersonId.S,
         "Episode",
-        batchId,
-        "Batch_Id",
-        participantId,
         "Participant_Id",
-        updateEpisodeRecord
+        "S",
+        true
       );
-    } else {
-      console.log("No open Episode record");
+      // close open Episode record
+      if (episodeRecord?.Items.length > 0) {
+        const batchId = episodeRecord.Items[0].Batch_Id.S;
+        const participantId = episodeRecord.Items[0].Participant_Id.S;
+
+        const updateEpisodeEvent = ["Episode_Event", "S", "Deceased"];
+        const updateEpisodeStatus = ["Episode_Status", "S", "Closed"];
+        await updateRecordInTable(
+          client,
+          "Episode",
+          batchId,
+          "Batch_Id",
+          participantId,
+          "Participant_Id",
+          updateEpisodeRecord,
+          updateEpisodeStatus
+        );
+      } else {
+        console.log("No open Episode record");
+      }
     }
-  }
 
-  if (
-    record.primary_care_provider !== recordFromTable.primary_care_provider.S
-  ) {
-    // AC2
-    record.participant_id = PersonId.S;
+    if (
+      record.primary_care_provider !== recordFromTable.primary_care_provider.S
+    ) {
+      // AC2
+      record.participant_id = PersonId.S;
 
-    const lsoaCheck = await getLsoa(record, client);
-    if (lsoaCheck.rejected) {
-      return {
-        rejectedRecordNhsNumber: record.nhs_number,
-        rejected: true,
-        reason: lsoaCheck.reason,
-      };
-    }
-    record.lsoa_2011 = lsoaCheck;
+      const lsoaCheck = await getLsoa(record, client);
+      if (lsoaCheck.rejected) {
+        return {
+          rejectedRecordNhsNumber: record.nhs_number,
+          rejected: true,
+          reason: lsoaCheck.reason,
+        };
+      }
+      record.lsoa_2011 = lsoaCheck;
 
-    const responsibleIcb = await getItemFromTable(
-      client,
-      "GpPractice",
-      "gp_practice_code",
-      "S",
-      record.primary_care_provider
-    );
-    record.responsible_icb = responsibleIcb.Item?.icb_id.S;
-
-    if (!record.responsible_icb) {
-      return {
-        rejectedRecordNhsNumber: record.nhs_number,
-        rejected: true,
-        reason: `Rejecting record ${record.nhs_number} as could not find ICB in participating ICB for GP Practice code ${record.primary_care_provider}`,
-      };
-    }
-  }
-
-  if (record.postcode !== recordFromTable.postcode.S) {
-    //AC43
-    record.participant_id = PersonId.S;
-
-    const lsoaCheck = await getLsoa(record, client);
-    if (!record.participant_id || lsoaCheck.rejected) {
-      return {
-        rejectedRecordNhsNumber: record.nhs_number,
-        rejected: true,
-        reason: lsoaCheck.reason,
-      };
-    }
-    record.lsoa_2011 = lsoaCheck;
-  }
-
-  if (
-    recordFromTable.reason_for_removal.S !== "DEA" &&
-    record.reason_for_removal === "DEA"
-  ) {
-    // check if episode record exists
-    const episodeRecordCheck = await lookUp(
-      client,
-      recordFromTable.PersonId.S,
-      "Episode",
-      "Participant_Id",
-      "S",
-      true
-    );
-    if (episodeRecordCheck.Items.length > 0) {
-      const episodeRecord = episodeRecordCheck.Items[0];
-      const batchId = episodeRecord.Batch_Id.S;
-      const participantId = episodeRecord.Participant_Id.S;
-
-      const timeNow = new Date(Date.now()).toISOString();
-
-      const updateEpisodeEvent = ["Episode_Event", "S", "Deceased"];
-      const updateEpisodeEventUpdated = [
-        "Episode_Event_Updated",
-        "N",
-        String(timeNow),
-      ];
-      const updateEpisodeStatus = ["Episode_Status", "S", "Closed"];
-      const updateEpisodeEventDescription = [
-        "Episode_Event_Description",
-        "S",
-        "NULL",
-      ];
-      const updateEpisodeEventNotes = ["Episode_Event_Notes", "S", "NULL"];
-      const updateEpisodeEventUpdatedBy = [
-        "Episode_Event_Updated_By",
-        "S",
-        "CaaS",
-      ];
-      const updateEpisodeStatusUpdated = [
-        "Episode_Status_Updated",
-        "N",
-        String(timeNow),
-      ];
-
-      await updateRecordInTable(
+      const responsibleIcb = await getItemFromTable(
         client,
-        "Episode",
-        batchId,
-        "Batch_Id",
-        participantId,
-        "Participant_Id",
-        updateEpisodeEvent,
-        updateEpisodeEventUpdated,
-        updateEpisodeStatus,
-        updateEpisodeEventDescription,
-        updateEpisodeEventNotes,
-        updateEpisodeEventUpdatedBy,
-        updateEpisodeStatusUpdated
+        "GpPractice",
+        "gp_practice_code",
+        "S",
+        record.primary_care_provider
       );
-    }
-  }
+      record.responsible_icb = responsibleIcb.Item?.icb_id.S;
 
-  await overwriteRecordInTable(client, "Population", record, recordFromTable);
-  return {
-    rejected: false,
-  };
+      if (!record.responsible_icb) {
+        console.error("Error:", {
+          rejectedRecordNhsNumber: record.nhs_number,
+          rejected: true,
+          reason: `Rejecting record ${record.nhs_number} as could not find ICB in participating ICB for GP Practice code ${record.primary_care_provider}`,
+        });
+        return {
+          rejectedRecordNhsNumber: record.nhs_number,
+          rejected: true,
+          reason: `Rejecting record ${record.nhs_number} as could not find ICB in participating ICB for GP Practice code ${record.primary_care_provider}`,
+        };
+      }
+    }
+
+    if (record.postcode !== recordFromTable.postcode.S) {
+      //AC43
+      record.participant_id = PersonId.S;
+
+      const lsoaCheck = await getLsoa(record, client);
+      if (!record.participant_id || lsoaCheck.rejected) {
+        return {
+          rejectedRecordNhsNumber: record.nhs_number,
+          rejected: true,
+          reason: lsoaCheck.reason,
+        };
+      }
+      record.lsoa_2011 = lsoaCheck;
+    }
+
+    if (
+      recordFromTable.reason_for_removal.S !== "DEA" &&
+      record.reason_for_removal === "DEA"
+    ) {
+      console.log(
+        "record reason_for_removal is moving from something other than DEA to DEA"
+      );
+      // check if episode record exists
+      const episodeRecordCheck = await lookUp(
+        client,
+        recordFromTable.PersonId.S,
+        "Episode",
+        "Participant_Id",
+        "S",
+        true
+      );
+      if (episodeRecordCheck.Items.length > 0) {
+        const episodeRecord = episodeRecordCheck.Items[0];
+        const batchId = episodeRecord.Batch_Id.S;
+        const participantId = episodeRecord.Participant_Id.S;
+
+        const timeNow = new Date(Date.now()).toISOString();
+
+        const updateEpisodeEvent = ["Episode_Event", "S", "Deceased"];
+        const updateEpisodeEventUpdated = [
+          "Episode_Event_Updated",
+          "N",
+          String(timeNow),
+        ];
+        const updateEpisodeStatus = ["Episode_Status", "S", "Closed"];
+        const updateEpisodeEventDescription = [
+          "Episode_Event_Description",
+          "S",
+          "NULL",
+        ];
+        const updateEpisodeEventNotes = ["Episode_Event_Notes", "S", "NULL"];
+        const updateEpisodeEventUpdatedBy = [
+          "Episode_Event_Updated_By",
+          "S",
+          "CaaS",
+        ];
+        const updateEpisodeStatusUpdated = [
+          "Episode_Status_Updated",
+          "N",
+          String(timeNow),
+        ];
+
+        await updateRecordInTable(
+          client,
+          "Episode",
+          batchId,
+          "Batch_Id",
+          participantId,
+          "Participant_Id",
+          updateEpisodeEvent,
+          updateEpisodeEventUpdated,
+          updateEpisodeStatus,
+          updateEpisodeEventDescription,
+          updateEpisodeEventNotes,
+          updateEpisodeEventUpdatedBy,
+          updateEpisodeStatusUpdated
+        );
+      }
+    }
+
+    if (
+      recordFromTable.reason_for_removal.S === "DEA" &&
+      record.reason_for_removal !== "DEA"
+    ) {
+      console.log(
+        "record reason_for_removal is moving from DEA to something else"
+      );
+      // check if episode record exists
+      const episodeRecordCheck = await lookUp(
+        client,
+        recordFromTable.PersonId.S,
+        "Episode",
+        "Participant_Id",
+        "S",
+        true
+      );
+      if (episodeRecordCheck.Items.length > 0) {
+        const episodeRecord = episodeRecordCheck.Items[0];
+        const batchId = episodeRecord.Batch_Id.S;
+        const participantId = episodeRecord.Participant_Id.S;
+
+        const timeNow = new Date().toISOString();
+
+        const updateEpisodeEvent = ["Episode_Event", "S", "Death Reversal"];
+        const updateEpisodeEventUpdated = [
+          "Episode_Event_Updated",
+          "S",
+          String(timeNow),
+        ];
+        const updateEpisodeStatus = ["Episode_Status", "S", "Open"];
+        const updateEpisodeEventDescription = [
+          "Episode_Event_Description",
+          "S",
+          "NULL",
+        ];
+        const updateEpisodeEventNotes = ["Episode_Event_Notes", "S", "NULL"];
+        const updateEpisodeEventUpdatedBy = [
+          "Episode_Event_Updated_By",
+          "S",
+          "CaaS",
+        ];
+        const updateEpisodeStatusUpdated = [
+          "Episode_Status_Updated",
+          "S",
+          String(timeNow),
+        ];
+
+        await updateRecordInTable(
+          client,
+          "Episode",
+          batchId,
+          "Batch_Id",
+          participantId,
+          "Participant_Id",
+          updateEpisodeEvent,
+          updateEpisodeEventUpdated,
+          updateEpisodeStatus,
+          updateEpisodeEventDescription,
+          updateEpisodeEventNotes,
+          updateEpisodeEventUpdatedBy,
+          updateEpisodeStatusUpdated
+        );
+
+        const episodeHistoryParticipants = await lookUp(
+          client,
+          participantId,
+          "EpisodeHistory",
+          "Participant_Id",
+          "S",
+          true
+        );
+
+        const items =
+          episodeHistoryParticipants?.Items || episodeHistoryParticipants?.Item;
+
+        const sortedEpisodeHistoryParticipants = items.sort((a, b) => {
+          const dateA = new Date(a.Episode_Event_Updated.S);
+          const dateB = new Date(b.Episode_Event_Updated.S);
+          return dateA - dateB;
+        });
+
+        const index = items.findIndex(
+          (item) => item.Episode_Event.S === "Deceased"
+        );
+        const recordBeforeDeath =
+          index > 0
+            ? sortedEpisodeHistoryParticipants[index - 1]
+            : console.error(
+                "Error: Could not find record for participant which occurred one before Episode_Event = deceased"
+              );
+        console.log("recordBeforeDeath ", recordBeforeDeath);
+
+        await updateRecordInTable(
+          client,
+          "Episode",
+          batchId,
+          "Batch_Id",
+          recordBeforeDeath.Participant_Id.S,
+          "Participant_Id",
+          ["Episode_Event", "S", "Death Reversal"],
+          ["Episode_Event_Updated", "S", String(Date.now())],
+          [
+            "Episode_Event_Updated_By",
+            "S",
+            recordBeforeDeath.Episode_Event_Updated_By.S,
+          ],
+          [
+            "Episode_Event_Description",
+            "S",
+            recordBeforeDeath.Episode_Event_Description.S,
+          ],
+          ["Episode_Event_Notes", "S", recordBeforeDeath.Episode_Event_Notes.S]
+        );
+      }
+    }
+
+    await overwriteRecordInTable(client, "Population", record, recordFromTable);
+    return {
+      rejected: false,
+    };
+  } catch (error) {
+    console.error("Error:", error);
+  }
 };
 
 export async function updateRecordInTable(
@@ -446,59 +575,63 @@ export async function updateRecordInTable(
   sortKeyName,
   ...itemsToUpdate
 ) {
-  console.log("Entered function updateRecordInTable");
-  let updateItemCommandKey = {};
-  updateItemCommandKey[partitionKeyName] = { S: `${partitionKey}` };
-  updateItemCommandKey[sortKeyName] = { S: `${sortKey}` };
+  try {
+    console.log("Entered function updateRecordInTable");
+    let updateItemCommandKey = {};
+    updateItemCommandKey[partitionKeyName] = { S: `${partitionKey}` };
+    updateItemCommandKey[sortKeyName] = { S: `${sortKey}` };
 
-  let updateItemCommandExpressionAttributeNames = {};
+    let updateItemCommandExpressionAttributeNames = {};
 
-  let updateItemCommandExpressionAttributeValues = {};
+    let updateItemCommandExpressionAttributeValues = {};
 
-  let updateItemCommandExpressionAttributeValuesNested = {};
+    let updateItemCommandExpressionAttributeValuesNested = {};
 
-  let updateItemCommandUpdateExpression = `SET `;
+    let updateItemCommandUpdateExpression = `SET `;
 
-  itemsToUpdate.forEach((updateItem, index) => {
-    const [itemName, itemType, item] = updateItem;
+    itemsToUpdate.forEach((updateItem, index) => {
+      const [itemName, itemType, item] = updateItem;
 
-    // ExpressionAttributeNames
-    const localAttributeName = `#${itemName.toUpperCase()}`;
-    updateItemCommandExpressionAttributeNames[localAttributeName] = itemName;
+      // ExpressionAttributeNames
+      const localAttributeName = `#${itemName.toUpperCase()}`;
+      updateItemCommandExpressionAttributeNames[localAttributeName] = itemName;
 
-    const localItemName = `local_${itemName}`;
+      const localItemName = `local_${itemName}`;
 
-    // ExpressionAttributeValues
-    updateItemCommandExpressionAttributeValuesNested = {
-      ...updateItemCommandExpressionAttributeValuesNested,
-      [itemType]: item,
+      // ExpressionAttributeValues
+      updateItemCommandExpressionAttributeValuesNested = {
+        ...updateItemCommandExpressionAttributeValuesNested,
+        [itemType]: item,
+      };
+      updateItemCommandExpressionAttributeValues[`:${localItemName}`] =
+        updateItemCommandExpressionAttributeValuesNested;
+
+      // UpdateExpression
+      if (index > 0) {
+        updateItemCommandUpdateExpression += `,${localAttributeName} = :${localItemName}`;
+      } else {
+        updateItemCommandUpdateExpression += `${localAttributeName} = :${localItemName}`;
+      }
+    });
+
+    const input = {
+      ExpressionAttributeNames: updateItemCommandExpressionAttributeNames,
+      ExpressionAttributeValues: updateItemCommandExpressionAttributeValues,
+      Key: updateItemCommandKey,
+      TableName: `${ENVIRONMENT}-${table}`,
+      UpdateExpression: updateItemCommandUpdateExpression,
     };
-    updateItemCommandExpressionAttributeValues[`:${localItemName}`] =
-      updateItemCommandExpressionAttributeValuesNested;
 
-    // UpdateExpression
-    if (index > 0) {
-      updateItemCommandUpdateExpression += `,${localAttributeName} = :${localItemName}`;
-    } else {
-      updateItemCommandUpdateExpression += `${localAttributeName} = :${localItemName}`;
+    const command = new UpdateItemCommand(input);
+    const response = await client.send(command);
+    if (response.$metadata.httpStatusCode != 200) {
+      console.error(`Error: record update failed for person ${partitionKey}`);
     }
-  });
-
-  const input = {
-    ExpressionAttributeNames: updateItemCommandExpressionAttributeNames,
-    ExpressionAttributeValues: updateItemCommandExpressionAttributeValues,
-    Key: updateItemCommandKey,
-    TableName: `${ENVIRONMENT}-${table}`,
-    UpdateExpression: updateItemCommandUpdateExpression,
-  };
-
-  const command = new UpdateItemCommand(input);
-  const response = await client.send(command);
-  if (response.$metadata.httpStatusCode != 200) {
-    console.error(`Error: record update failed for person ${partitionKey}`);
+    console.log("Exiting function updateRecordInTable");
+    return response.$metadata.httpStatusCode;
+  } catch (error) {
+    console.error("Error:", error);
   }
-  console.log("Exiting function updateRecordInTable");
-  return response.$metadata.httpStatusCode;
 }
 
 export async function overwriteRecordInTable(
@@ -546,12 +679,11 @@ export async function deleteTableRecord(client, table, oldRecord) {
 
 function formatPopulationDeleteItem(table, record) {
   console.log("Entered function formatPopulationDeleteItem");
-  const { PersonId, LsoaCode } = record;
+  const { PersonId } = record;
 
   const input = {
     Key: {
       PersonId: { S: PersonId.S },
-      LsoaCode: { S: LsoaCode.S },
     },
     TableName: `${ENVIRONMENT}-${table}`,
   };
@@ -820,68 +952,76 @@ export const generateCsvString = (header, dataArray) => {
 // DYNAMODB FUNCTIONS
 // returns successful response if attribute doesn't exist in table
 export const lookUp = async (dbClient, ...params) => {
-  const [id, table, attribute, attributeType, useIndex] = params;
+  try {
+    const [id, table, attribute, attributeType, useIndex] = params;
 
-  const ExpressionAttributeValuesKey = `:${attribute}`;
-  let expressionAttributeValuesObj = {};
-  let expressionAttributeValuesNestObj = {};
+    const ExpressionAttributeValuesKey = `:${attribute}`;
+    let expressionAttributeValuesObj = {};
+    let expressionAttributeValuesNestObj = {};
 
-  expressionAttributeValuesNestObj[attributeType] = id;
-  expressionAttributeValuesObj[ExpressionAttributeValuesKey] =
-    expressionAttributeValuesNestObj;
+    expressionAttributeValuesNestObj[attributeType] = id;
+    expressionAttributeValuesObj[ExpressionAttributeValuesKey] =
+      expressionAttributeValuesNestObj;
 
-  const input = {
-    ExpressionAttributeValues: expressionAttributeValuesObj,
-    KeyConditionExpression: `${attribute} = :${attribute}`,
-    TableName: `${ENVIRONMENT}-${table}`,
-  };
+    const input = {
+      ExpressionAttributeValues: expressionAttributeValuesObj,
+      KeyConditionExpression: `${attribute} = :${attribute}`,
+      TableName: `${ENVIRONMENT}-${table}`,
+    };
 
-  if (useIndex) {
-    input.IndexName = `${attribute}-index`;
+    if (useIndex) {
+      input.IndexName = `${attribute}-index`;
+    }
+
+    const getCommand = new QueryCommand(input);
+    const response = await dbClient.send(getCommand);
+
+    if (response.$metadata.httpStatusCode != 200) {
+      console.log(`look up item input = ${JSON.stringify(input, null, 2)}`);
+    }
+    return response;
+  } catch (error) {
+    console.error("Error:", error);
   }
-
-  const getCommand = new QueryCommand(input);
-  const response = await dbClient.send(getCommand);
-
-  if (response.$metadata.httpStatusCode != 200) {
-    console.log(`look up item input = ${JSON.stringify(input, null, 2)}`);
-  }
-
-  return response;
 };
 
 // returns item and metadata from dynamodb table
 export const getItemFromTable = async (dbClient, table, ...keys) => {
-  const [
-    partitionKeyName,
-    partitionKeyType,
-    partitionKeyValue,
-    sortKeyName,
-    sortKeyType,
-    sortKeyValue,
-  ] = keys;
+  try {
+    const [
+      partitionKeyName,
+      partitionKeyType,
+      partitionKeyValue,
+      sortKeyName,
+      sortKeyType,
+      sortKeyValue,
+    ] = keys;
 
-  let partitionKeyNameObject = {};
-  let partitionKeyNameNestedObject = {};
-  partitionKeyNameNestedObject[partitionKeyType] = partitionKeyValue;
-  partitionKeyNameObject[partitionKeyName] = partitionKeyNameNestedObject;
+    let partitionKeyNameObject = {};
+    let partitionKeyNameNestedObject = {};
+    partitionKeyNameNestedObject[partitionKeyType] = partitionKeyValue;
+    partitionKeyNameObject[partitionKeyName] = partitionKeyNameNestedObject;
 
-  const keyObject = {
-    key: partitionKeyNameObject,
-  };
-
-  if (sortKeyName !== undefined) {
-    keyObject.key.sortKeyName = {
-      sortKeyType: sortKeyValue,
+    const keyObject = {
+      key: partitionKeyNameObject,
     };
+
+    if (sortKeyName !== undefined) {
+      keyObject.key.sortKeyName = {
+        sortKeyType: sortKeyValue,
+      };
+    }
+
+    const params = {
+      Key: partitionKeyNameObject,
+      TableName: `${ENVIRONMENT}-${table}`,
+    };
+
+    const command = new GetItemCommand(params);
+    const response = await dbClient.send(command);
+    console.log(response);
+    return response;
+  } catch (error) {
+    console.error(error);
   }
-
-  const params = {
-    Key: partitionKeyNameObject,
-    TableName: `${ENVIRONMENT}-${table}`,
-  };
-
-  const command = new GetItemCommand(params);
-  const response = await dbClient.send(command);
-  return response;
 };

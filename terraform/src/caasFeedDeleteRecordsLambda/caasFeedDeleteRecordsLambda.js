@@ -92,7 +92,16 @@ export const handler = async (event) => {
   return "Exiting Lambda";
 };
 
-//METHODS
+/**
+ * Reads a CSV file from S3.
+ *
+ * @function readCsvFromS3
+ * @async
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key of the object in the S3 bucket.
+ * @param {S3Client} client - An instance of the S3 client.
+ * @returns {Promise<string>} Resolves to the contents of the S3 object as a string.
+ */
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -108,6 +117,17 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
   }
 };
 
+/**
+ * Pushes a CSV file to S3.
+ *
+ * @function pushCsvToS3
+ * @async
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key of the object to be saved in the S3 bucket.
+ * @param {string} body - The contents of the object to be saved in the S3 bucket.
+ * @param {S3Client} client - An instance of the S3 client.
+ * @returns {Promise<Object>} Resolves to the response from the S3 client.
+ */
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
   try {
     const response = await client.send(
@@ -127,6 +147,14 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
   }
 };
 
+/**
+ * Parses a CSV string into an array of objects.
+ *
+ * @function parseCsvToArray
+ * @async
+ * @param {string} csvString - The CSV string to parse.
+ * @returns {Promise<Array<Object>>} Resolves to an array of parsed CSV records.
+ */
 export const parseCsvToArray = async (csvString) => {
   const dataArray = [];
 
@@ -145,6 +173,14 @@ export const parseCsvToArray = async (csvString) => {
   });
 };
 
+/**
+ * Generates a CSV string from an array of objects.
+ *
+ * @function generateCsvString
+ * @param {string} header - The header row for the CSV.
+ * @param {Array<Object>} dataArray - The array of objects to convert to CSV.
+ * @returns {string} The generated CSV string.
+ */
 export const generateCsvString = (header, dataArray) => {
   return [
     header,
@@ -152,6 +188,13 @@ export const generateCsvString = (header, dataArray) => {
   ].join("\n");
 };
 
+/**
+ * Filters unique entries based on NHS number.
+ *
+ * @function filterUniqueEntries
+ * @param {Array<Object>} caasFeed - The array of records to filter.
+ * @returns {Array<Object>} An array of unique records.
+ */
 export const filterUniqueEntries = (caasFeed) => {
   const flag = {};
   const unique = [];
@@ -165,6 +208,16 @@ export const filterUniqueEntries = (caasFeed) => {
   return unique;
 };
 
+/**
+ * Retrieves the participant ID from the DynamoDB table.
+ *
+ * @function getParticipantId
+ * @async
+ * @param {DynamoDBClient} client - An instance of the DynamoDB client.
+ * @param {string} nhsNumber - The NHS number to look up.
+ * @param {string} [table] - The name of the DynamoDB table.
+ * @returns {Promise<Object>} Resolves to the response from DynamoDB.
+ */
 export async function getParticipantId(
   client,
   nhsNumber,
@@ -190,6 +243,16 @@ export async function getParticipantId(
   return response;
 }
 
+/**
+ * Checks if the participant has an appointment.
+ *
+ * @function hasAppointment
+ * @async
+ * @param {DynamoDBClient} client - An instance of the DynamoDB client.
+ * @param {string} participantId - The participant ID to look up.
+ * @param {string} [table] - The name of the DynamoDB table.
+ * @returns {Promise<Object>} Resolves to the response from DynamoDB.
+ */
 export async function hasAppointment(
   client,
   participantId,
@@ -210,6 +273,16 @@ export async function hasAppointment(
   return response;
 }
 
+/**
+ * Updates the population table in DynamoDB.
+ *
+ * @function updatePopulationTable
+ * @async
+ * @param {DynamoDBClient} client - An instance of the DynamoDB client.
+ * @param {string} personId - The person ID to update.
+ * @param {string} [table] - The name of the DynamoDB table.
+ * @returns {Promise<number>} Resolves to the HTTP status code of the response.
+ */
 export async function updatePopulationTable(
   client,
   personId,
@@ -232,7 +305,7 @@ export async function updatePopulationTable(
   };
   const command = new UpdateItemCommand(params);
   const response = await client.send(command);
-  if (response.$metadata.httpStatusCode != 200) {
+  if (response.$metadata.httpStatusCode !== 200) {
     console.error(
       `Error: record update failed for person ${partitionKeyValue}`
     );
@@ -240,6 +313,16 @@ export async function updatePopulationTable(
   return response.$metadata.httpStatusCode;
 }
 
+/**
+ * Updates the appointment table in DynamoDB.
+ *
+ * @function updateAppointmentTable
+ * @async
+ * @param {DynamoDBClient} client - An instance of the DynamoDB client.
+ * @param {string} participantId - The participant ID to update.
+ * @param {string} [table] - The name of the DynamoDB table.
+ * @returns {Promise<number>} Resolves to the HTTP status code of the response.
+ */
 export async function updateAppointmentTable(
   client,
   participantId,
@@ -261,7 +344,7 @@ export async function updateAppointmentTable(
 
   const command = new UpdateItemCommand(params);
   const response = await client.send(command);
-  if (response.$metadata.httpStatusCode != 200) {
+  if (response.$metadata.httpStatusCode !== 200) {
     console.error(
       `Error: record update failed for person ${partitionKeyValue}`
     );

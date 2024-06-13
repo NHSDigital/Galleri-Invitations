@@ -7,6 +7,14 @@ const sqsClient = new SQSClient({ region: "eu-west-2" });
 const ssmClient = new SSMClient({ region: "eu-west-2" });
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
+/**
+ * Lambda handler function for sending participants to a SQS queue.
+ *
+ * @function handler
+ * @async
+ * @param {Object} event - The event object containing the query parameters and other details.
+ * @returns {Object} HTTP response object with outcome of whether participants have been sent to queue successfully or not
+ */
 export const handler = async (event, context) => {
   try {
     console.log("No. of episodes inserted: ", event.Records.length);
@@ -50,11 +58,30 @@ export const handler = async (event, context) => {
   }
 };
 
+/**
+ * Retrieves a parameter from AWS Systems Manager Parameter Store based on the provided episode event.
+ *
+ * @param {string} episodeEvent - The episode event string used to construct the parameter name.
+ * @returns {Promise<string>} - A promise that resolves to the value of the retrieved parameter.
+ * @throws {Error} - Throws an error if the parameter retrieval fails.
+ */
 export async function getParameterStore(episodeEvent) {
   try {
-    const parameterName = `${episodeEvent
-      ?.replace(/\s+/g, "-")
-      ?.toLowerCase()}-notify`;
+    let parameterName = "";
+    if (episodeEvent.indexOf("-") == -1) {
+      parameterName = `${episodeEvent
+        ?.replace(/\s+/g, "-")
+        ?.toLowerCase()}-notify`;
+    } else {
+      const param = episodeEvent.split("-");
+      for (let item of param) {
+        parameterName += item;
+      }
+      parameterName = `${parameterName
+        .replace(/\s+/g, "-")
+        .toLowerCase()}-notify`;
+    }
+    console.log(parameterName);
     const { Parameter } = await ssmClient.send(
       new GetParameterCommand({ Name: parameterName })
     );
@@ -66,6 +93,13 @@ export async function getParameterStore(episodeEvent) {
   }
 }
 
+/**
+ * Retrieves a participant's information from population table by participant ID.
+ *
+ * @param {string} participantId - The ID of the participant to retrieve.
+ * @returns {Promise<Object>} - A promise that resolves to the participant's information, or null if not found.
+ * @throws {Error} - Throws an error if the query to the DynamoDB table fails.
+ */
 export async function getParticipantFromDB(participantId) {
   try {
     const {
@@ -88,6 +122,16 @@ export async function getParticipantFromDB(participantId) {
   }
 }
 
+/**
+ * Sends a message to an SQS queue with participant information and episode event details.
+ *
+ * @param {Object} item - The participant information to be sent to the SQS queue.
+ * @param {string} item.participantId - The ID of the participant.
+ * @param {string} item.nhsNumber - The NHS number of the participant.
+ * @param {string} episodeEvent - The episode event details to be included in the message.
+ * @returns {Promise<void>} - A promise that resolves when the message is successfully sent to the SQS queue.
+ * @throws {Error} - Throws an error if sending the message to the SQS queue fails.
+ */
 export async function sendToSQS(item, episodeEvent) {
   try {
     const messageBody = {

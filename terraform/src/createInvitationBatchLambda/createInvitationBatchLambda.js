@@ -7,6 +7,14 @@ const ENVIRONMENT = process.env.ENVIRONMENT;
 const BUCKET = `${ENVIRONMENT}-outbound-gtms-invited-participant-batch`;
 const KEY_PREFIX = "invitation_batch_";
 
+/**
+ * Lambda handler to create an invitation batch and push to S3.
+ * @function handler
+ * @async
+ * @param {Object} event - Episode table insert dynamodb stream event.
+ * @returns {string} Message that batch has been created or not.
+ * @throws {Error} Processing error.
+ */
 export const handler = async (event) => {
   console.log("No. of episodes inserted: ", event.Records.length);
   try {
@@ -40,6 +48,12 @@ export const handler = async (event) => {
   }
 };
 
+/**
+ * Extracts participant ids in Episode table insert dynamodb stream.
+ * @function extractParticipantIds
+ * @param {Array} insertedRecordsArray - Array of inserted records.
+ * @returns {Array} Participant ids.
+ */
 export const extractParticipantIds = (insertedRecordsArray) => {
   console.log("Extracting participant ids.");
   const participantIdArray = [];
@@ -50,6 +64,15 @@ export const extractParticipantIds = (insertedRecordsArray) => {
   return participantIdArray;
 };
 
+/**
+ * Creates invitation batch array from participant ids.
+ * @function getInvitationBatch
+ * @async
+ * @param {DynamoDBClient} dbClient - Dynamodb client.
+ * @param {string} environment - Environment name.
+ * @param {Array} idArray - Array of participant ids.
+ * @returns {Array} Array of participant objects (participant id, nhs number, dob).
+ */
 export const getInvitationBatch = async (dbClient, environment, idArray) => {
   console.log("Generating invitation batch.");
   const invitationBatch = [];
@@ -74,6 +97,15 @@ export const getInvitationBatch = async (dbClient, environment, idArray) => {
   return invitationBatch;
 };
 
+/**
+ * Queries the Population table for a participant id.
+ * @function lookupParticipant
+ * @async
+ * @param {DynamoDBClient} dbClient - Dynamodb client.
+ * @param {string} environment - Environment name.
+ * @param {string} participantId - Participant id.
+ * @returns {Object} Participant object (nhs number, superseded nhs number, dob) if found.
+ */
 export const lookupParticipant = async (
   dbClient,
   environment,
@@ -105,6 +137,17 @@ export const lookupParticipant = async (
   return response.Items[0];
 };
 
+/**
+ * Puts object to S3.
+ * @function pushJsonToS3
+ * @async
+ * @param {S3Client} client - S3 client.
+ * @param {string} bucketName - S3 bucket name.
+ * @param {string} key - S3 object key.
+ * @param {Array} jsonArr - Array of participant objects.
+ * @returns {Object} S3 put response.
+ * @throws {Error}
+ */
 export const pushJsonToS3 = async (client, bucketName, key, jsonArr) => {
   console.log(`Pushing object key ${key} to bucket ${bucketName}`);
   try {

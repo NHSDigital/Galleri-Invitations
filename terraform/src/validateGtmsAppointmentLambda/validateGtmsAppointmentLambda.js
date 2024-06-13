@@ -58,7 +58,16 @@ export const handler = async (event) => {
   }
 };
 
-//METHODS
+/**
+ * Reads an object from S3.
+ *
+ * @function readS3
+ * @async
+ * @param {string} bucket - The name of the S3 bucket.
+ * @param {string} key - The key of the object in the S3 bucket.
+ * @param {S3Client} client - An instance of the S3 client.
+ * @returns {Promise<string>} The contents of the S3 object as a string.
+ */
 export const readS3 = async (bucket, key, client) => {
   try {
     const result = await client.send(
@@ -74,6 +83,17 @@ export const readS3 = async (bucket, key, client) => {
   }
 };
 
+/**
+ * Pushes an object to S3.
+ *
+ * @function pushS3
+ * @async
+ * @param {string} bucket - The name of the S3 bucket.
+ * @param {string} key - The key of the object to be saved in the S3 bucket.
+ * @param {string} body - The contents of the object to be saved in the S3 bucket.
+ * @param {S3Client} client - An instance of the S3 client.
+ * @returns {Promise<Object>} The response from the S3 client.
+ */
 export const pushS3 = async (bucket, key, body, client) => {
   try {
     const result = await client.send(

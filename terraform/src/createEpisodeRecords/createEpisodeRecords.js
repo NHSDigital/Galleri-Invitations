@@ -6,7 +6,6 @@ import {
 
 const client = new DynamoDBClient({ region: "eu-west-2" });
 const ENVIRONMENT = process.env.ENVIRONMENT;
-const UNSUCCESSFUL_RESPONSE = 400;
 /*
   Lambda to get create episode records for modified population records
 */
@@ -30,7 +29,14 @@ export const handler = async (event) => {
   }
 };
 
-// METHODS
+/**
+ * Processes the incoming population records.
+ * @async
+ * @function processIncomingRecords
+ * @param {Object[]} incomingRecordsArr - The modified population records to be processed.
+ * @param {DynamoDBClient} dbClient - The DynamoDB client used for database interactions.
+ * @returns {Promise<Object>} The newly episode records upload with the necessary fields.
+ */
 export async function processIncomingRecords(incomingRecordsArr, dbClient) {
   console.log("Entered function processIncomingRecords");
   const episodeRecordsUpload = await Promise.allSettled(
@@ -54,11 +60,9 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient) {
           if (addEpisodeRecordResponse.$metadata.httpStatusCode === 200) {
             return Promise.resolve("Successfully added");
           } else {
-            const errorMsg = `Unable to add record ${record.dynamodb.OldImage.participantId.S}`
+            const errorMsg = `Unable to add record ${record.dynamodb.OldImage.participantId.S}`;
             console.error("Error: ", errorMsg);
-            return Promise.reject(
-              errorMsg
-            );
+            return Promise.reject(errorMsg);
           }
         } else {
           console.warn("RECORD ALREADY EXISTS");
@@ -77,7 +81,13 @@ export async function processIncomingRecords(incomingRecordsArr, dbClient) {
   return episodeRecordsUpload;
 }
 
-function createEpisodeRecord(record) {
+/**
+ * Creates a new episode record.
+ * @function createEpisodeRecord
+ * @param {Object} record -Record containing the data to create the new episode record.
+ * @returns {Object} The newly created episode record with the necessary fields.
+ */
+export function createEpisodeRecord(record) {
   console.log("Entered function createEpisodeRecord");
   const createTime = new Date(Date.now()).toISOString();
   const item = {
@@ -111,12 +121,23 @@ function createEpisodeRecord(record) {
     Episode_Event_Updated: {
       S: createTime,
     },
+    Episode_Event_Updated_By: {
+      S: "GPS",
+    },
   };
 
   console.log("Exiting function createEpisodeRecord");
   return item;
 }
 
+/**
+ * Add new a record to the Episode table
+ * @async
+ * @function addEpisodeRecord
+ * @param {string} table - Episode table name.
+ * @param {Object} item - The item to be added to the Episode table.
+ * @returns {Promise<Object>} The newly added episode records with the necessary fields.
+ */
 async function addEpisodeRecord(table, item) {
   console.log("Entered function addEpisodeRecord");
   const input = {
@@ -133,7 +154,15 @@ async function addEpisodeRecord(table, item) {
   return response;
 }
 
-// look into episode table and see if there exists a participant
+/**
+ * look into Episode table and see if there exists a participant
+ * @async
+ * @function lookupParticipantId
+ * @param {string} participantId - The participant ID to look up in the Episode table.
+ * @param {string} table - The name of the Episode table.
+ * @param {DynamoDBClient} dbClient - The DynamoDB client used for querying the Episode table.
+ * @returns {boolean} If there exists a participant in Episode table.
+ */
 export const lookupParticipantId = async (participantId, table, dbClient) => {
   console.log("Entered function lookupParticipantId");
   const input = {

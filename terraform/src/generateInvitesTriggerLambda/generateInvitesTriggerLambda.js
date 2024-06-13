@@ -126,9 +126,6 @@ export async function updateRecord(record, batchId, client, createdBy) {
       PersonId: {
         S: `${record}`,
       },
-      LsoaCode: {
-        S: `${lsoaCode}`,
-      },
     },
     TableName: `${ENVIRONMENT}-Population`,
     UpdateExpression: `SET

@@ -60,9 +60,22 @@ export const handler = async (event) => {
     if (!numAppointments) {
       await rejectRecord(appointmentJson);
       throw new Error("Invalid Appointment - no participant appointment found");
-    } else if (appointmentResponse.Items.sort()[numAppointments - 1].Appointment_Id.S !== AppointmentID) {
+    }
+    const sortedAppointments = sortBy(
+      appointmentResponse.Items,
+      "Time_stamp",
+      "S",
+      false
+    );
+    if (
+      sortedAppointments[0].Appointment_Id.S !== AppointmentID ||
+      sortedAppointments[0].Time_stamp.S > Timestamp
+    ) {
       await rejectRecord(appointmentJson);
-      throw new Error("Invalid Appointment - does not match latest participant appointment");
+      throw new Error(
+        "Invalid Appointment - does not match or timestamp is earlier" +
+          " than latest participant appointment"
+      );
     }
 
     let response = false;
@@ -79,7 +92,7 @@ export const handler = async (event) => {
             EventType,
             Timestamp,
             episodeEvent.complete,
-            "NULL",
+            "null",
             GrailID,
             BloodCollectionDate
           );
@@ -235,7 +248,7 @@ export const transactionalWrite = async (
   eventType,
   appointmentTimestamp,
   episodeEvent,
-  eventDescription = "Null",
+  eventDescription = "null",
   grailId = "null",
   bloodCollectionDate = "null"
 ) => {
@@ -266,13 +279,14 @@ export const transactionalWrite = async (
             Participant_Id: { S: participantId },
             Appointment_Id: { S: appointmentId },
           },
-          UpdateExpression: `SET event_type = :eventType, Time_stamp = :appointmentTimestamp, grail_id = :grailId, blood_collection_date = :bloodCollectionDate`,
+          UpdateExpression: `SET event_type = :eventType, Time_stamp = :appointmentTimestamp, grail_id = :grailId, blood_collection_date = :bloodCollectionDate, blood_not_collected_reason = :bloodNotCollectedReason`,
           TableName: `${ENVIRONMENT}-Appointments`,
           ExpressionAttributeValues: {
             ":eventType": { S: eventType },
             ":appointmentTimestamp": { S: appointmentTimestamp },
             ":grailId": { S: grailId },
-            ":bloodCollectionDate": { S: bloodCollectionDate},
+            ":bloodCollectionDate": { S: bloodCollectionDate },
+            ":bloodNotCollectedReason": { S: eventDescription },
           },
         },
       },
@@ -286,4 +300,23 @@ export const transactionalWrite = async (
   } catch (error) {
     console.error("Error: Transactional write failed:", error);
   }
+};
+
+export const sortBy = (items, key, keyType, asc = true) => {
+  items.sort((a, b) => {
+    if (asc) {
+      return a[key][keyType] > b[key][keyType]
+        ? 1
+        : a[key][keyType] < b[key][keyType]
+        ? -1
+        : 0;
+    } else {
+      return b[key][keyType] > a[key][keyType]
+        ? 1
+        : b[key][keyType] < a[key][keyType]
+        ? -1
+        : 0;
+    }
+  });
+  return items;
 };

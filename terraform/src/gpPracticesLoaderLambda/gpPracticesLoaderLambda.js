@@ -11,6 +11,17 @@ const s3 = new S3Client();
 const dbClient = new DynamoDBClient({ convertEmptyValues: true });
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
+/**
+ * Reads a CSV file from S3.
+ *
+ * @async
+ * @function readCsvFromS3
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key of the object in the S3 bucket.
+ * @param {S3Client} client Instance of S3 client
+ * @throws {Error} Failed to read from ${bucketName}/${key}
+ * @returns {string} The data of the file you retrieved
+ */
 export const readCsvFromS3 = async (bucketName, key, client) => {
   console.log(`Reading object ${key} from bucket ${bucketName}`);
   try {
@@ -30,6 +41,14 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
   }
 };
 
+/**
+ * Parses a CSV string into an array of objects.
+ *
+ * @function parseCsvToArray
+ * @async
+ * @param {string} csvString - The CSV string to parse.
+ * @returns {Promise<Array<Object>>} Resolves to an array of parsed CSV records.
+ */
 export const parseCsvToArray = async (csvString) => {
   console.log("Parsing csv string");
   const dataArray = [];
@@ -51,6 +70,16 @@ export const parseCsvToArray = async (csvString) => {
   });
 };
 
+/**
+ * Saves new or updates existing GP practice records to the GpPractice table.
+ *
+ * @function saveArrayToTable
+ * @async
+ * @param {Array} dataArray - Array of csv objects.
+ * @param {string} environment - Name of environment.
+ * @param {DynamoDBClient} client - Dynamodb client.
+ * @returns {Promise<void>} Promise resolves when all updates resolve
+ */
 export const saveArrayToTable = async (dataArray, environment, client) => {
   console.log(`Populating database table`);
   const dateTime = new Date(Date.now()).toISOString();
@@ -136,6 +165,16 @@ export const saveArrayToTable = async (dataArray, environment, client) => {
   );
 };
 
+/**
+ * Gets lsoa from the Postcode table for a postcode key value
+ *
+ * @async
+ * @function getItemFromTable
+ * @param {string} key Postcode primary key value
+ * @param {string} environment Environment name of the table
+ * @param {DynamoDBClient} client Instance of DynamoDB client
+ * @returns {Object} Object with the postcode lsoa if found
+ */
 export const getItemFromTable = async (key, environment, client) => {
   const getParams = {
     TableName: `${environment}-Postcode`,
@@ -152,6 +191,15 @@ export const getItemFromTable = async (key, environment, client) => {
   return response.Item;
 };
 
+/**
+ * Lambda handler
+ *
+ * @async
+ * @function handler
+ * @param {Object} event S3 put event trigger
+ * @returns {string} Success message
+ * @throws {Error} Error with failure message
+ */
 export const handler = async (event) => {
   const bucket = event.Records[0].s3.bucket.name;
   const key = decodeURIComponent(

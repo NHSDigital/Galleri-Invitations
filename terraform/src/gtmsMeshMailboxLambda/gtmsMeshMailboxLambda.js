@@ -97,17 +97,32 @@ export const handler = async (event, context) => {
 };
 
 //FUNCTIONS
+/**
+ * Retrieves large secrets into lambda
+ *
+ * @function readSecret
+ * @async
+ * @param {string} secretName - Secret name stored in AWS
+ * @param {SecretsManagerClient} client - An instance of secrets manager client
+ * @returns {Promise<String>} Secret value
+ */
 export async function readSecret(secretName, client) {
   return Buffer.from(await getSecret(secretName, client), "base64").toString(
     "utf8"
   );
 }
 
-/*
- * Processing incoming messages from GTMS (MESH mailbox)
- * @params timestamp can be changed for testing fixed time values
- * The outbound-gtms-invited-participant-batch bucket is not included here as it is
- * an outbound bucket, where GPS will be sending info to GTMS
+/**
+ * Processing incoming messages from GTMS (MESH mailbox) based on workflow ids
+ *
+ * @function processMessage
+ * @async
+ * @param {Object} message - The payload received
+ * @param {string} environment - Which environment the resources are allocated to
+ * @param {S3Client} S3client - An instance of S3 client
+ * @param {Object} workflows - An object of workflows being passed in through the lambda environmental variables
+ * @param {string} timestamp - Can be changed for testing fixed time values
+ * @returns {Promise<Object>}
  */
 export async function processMessage(
   message,
