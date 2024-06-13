@@ -13,12 +13,6 @@ const dbClient = new DynamoDBClient();
 const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
-/**
- * AWS Lambda handler function.
- *
- * @param {Object} event - The Lambda event payload.
- * @async
- */
 export const handler = async (event) => {
   const record = event.Records[0];
   const bucket = record.s3.bucket.name;
@@ -166,6 +160,7 @@ export const handler = async (event) => {
 /**
  * Reads a file from S3.
  *
+ * @function readFromS3
  * @param {string} bucketName - The name of the S3 bucket.
  * @param {string} key - The key of the S3 object.
  * @param {S3Client} client - An instance of the S3 client.
@@ -191,6 +186,7 @@ export const readFromS3 = async (bucketName, key, client) => {
 /**
  * Pushes a file to S3.
  *
+ * @function pushToS3
  * @param {string} bucketName - The name of the S3 bucket.
  * @param {string} key - The key of the S3 object.
  * @param {string} body - The content to be uploaded.
@@ -218,6 +214,7 @@ export const pushToS3 = async (bucketName, key, body, client) => {
 /**
  * Rejects a record and uploads it to S3.
  *
+ * @function rejectRecord
  * @param {Object} appointmentJson - The appointment data.
  * @returns {Promise<void>}
  * @async
@@ -242,6 +239,7 @@ export const rejectRecord = async (appointmentJson) => {
 /**
  * Looks up an item in DynamoDB.
  *
+ * @function lookUp
  * @param {DynamoDBClient} dbClient - An instance of the DynamoDB client.
  * @param {...string} params - The parameters for the lookup.
  * @returns {Promise<Object>}
@@ -281,6 +279,7 @@ export const lookUp = async (dbClient, ...params) => {
 /**
  * Performs a transactional write to update Episode and Appointment tables in DynamoDB.
  *
+ * @function transactionalWrite
  * @param {DynamoDBClient} client - An instance of the DynamoDB client.
  * @param {string} participantId - The ID of the participant.
  * @param {string} batchId - The batch ID.
@@ -359,6 +358,7 @@ export const transactionalWrite = async (
 /**
  * Sorts an array of items by a specified key.
  *
+ * @function sortBy
  * @param {Array} items - The array of items to sort.
  * @param {string} key - The key to sort by.
  * @param {string} keyType - The type of the key.
