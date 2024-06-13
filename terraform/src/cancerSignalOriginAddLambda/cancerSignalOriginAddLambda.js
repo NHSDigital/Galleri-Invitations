@@ -32,7 +32,14 @@ export const handler = async (event) => {
   }
 };
 
-// METHODS
+/**
+ * Reads a CSV file from S3.
+ *
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key of the object in the S3 bucket.
+ * @param {S3Client} client - The S3 client.
+ * @returns {Promise<string>} The content of the CSV file as a string.
+ */
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -48,6 +55,12 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
   }
 };
 
+/**
+ * Parses a CSV string to an array of objects.
+ *
+ * @param {string} csvString - The CSV content as a string.
+ * @returns {Promise<Object[]>} The parsed CSV content as an array of objects.
+ */
 export const parseCsvToArray = async (csvString) => {
   return new Promise((resolve, reject) => {
     const dataArray = [];
@@ -65,7 +78,13 @@ export const parseCsvToArray = async (csvString) => {
   });
 };
 
-// DYNAMODB FUNCTIONS
+/**
+ * Writes an array of cancer signal origins to a DynamoDB table in batches.
+ *
+ * @param {DynamoDBClient} client - The DynamoDB client.
+ * @param {Object[]} cancerSignalOrigins - The array of cancer signal origin objects.
+ * @param {string} [table=`${ENVIRONMENT}-CancerSignalOrigin`] - The name of the DynamoDB table.
+ */
 export async function batchWriteCancerSignalOriginTable(
   client,
   cancerSignalOrigins,
@@ -120,6 +139,15 @@ export async function batchWriteCancerSignalOriginTable(
   });
 }
 
+/**
+ * Pushes an object to S3.
+ *
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key of the object in the S3 bucket.
+ * @param {string} body - The content of the object.
+ * @param {S3Client} client - The S3 client.
+ * @returns {Promise<Object>} The response from the S3 put operation.
+ */
 export const pushToS3 = async (bucketName, key, body, client) => {
   try {
     const response = await client.send(
