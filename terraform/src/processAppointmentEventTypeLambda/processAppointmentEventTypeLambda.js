@@ -19,152 +19,109 @@ export const handler = async (event) => {
   const key = decodeURIComponent(record.s3.object.key.replace(/\+/g, " "));
   console.log(`Triggered by object ${key} in bucket ${bucket}`);
 
-  const appointmentString = await readFromS3(bucket, key, s3);
-  const appointmentJson = JSON.parse(appointmentString);
-  const { Appointment } = appointmentJson;
-  const {
-    ParticipantID,
-    AppointmentID,
-    BloodCollectionDate,
-    GrailID,
-    BloodNotCollectedReason,
-    EventType,
-    Timestamp,
-  } = Appointment;
+  const trrString = await readFromS3(bucket, key, s3);
+  const trrJson = JSON.parse(trrString);
+  const { entry } = trrJson;
 
-  // Appointment must match latest participant appointment
-  const appointmentResponse = await lookUp(
-    dbClient,
-    ParticipantID,
-    "Appointments",
-    "Participant_Id",
-    "S",
-    false
-  );
-
-  const episodeResponse = await lookUp(
-    dbClient,
-    ParticipantID,
-    "Episode",
-    "Participant_Id",
-    "S",
-    true
-  );
-  const episodeItems = episodeResponse.Items[0];
-  const episodeEvent = {
-    complete: "Appointment Attended - Sample Taken",
-    no_show: "Did Not Attend Appointment",
-    aborted: "Appointment Attended – No Sample Taken",
-  };
   try {
-    const numAppointments = appointmentResponse.Items?.length;
-    if (!numAppointments) {
-      await rejectRecord(appointmentJson);
-      throw new Error("Invalid Appointment - no participant appointment found");
-    }
-    const sortedAppointments = sortBy(
-      appointmentResponse.Items,
-      "Time_stamp",
-      "S",
-      false
+    // Find the entry with the "Multi-cancer early detection signal detected" result
+    const csdResult = entry.find(
+      (entry) =>
+        entry.resource.resourceType === "Observation" &&
+        entry.resource.valueCodeableConcept &&
+        entry.resource.valueCodeableConcept.coding.some(
+          (coding) =>
+            coding.code === "1854981000000108" ||
+            coding.code === "1854991000000105"
+        )
     );
+
     if (
-      sortedAppointments[0].Appointment_Id.S !== AppointmentID ||
-      sortedAppointments[0].Time_stamp.S > Timestamp
+      csdResult.resource.valueCodeableConcept.coding[0].code ===
+      "1854981000000108"
     ) {
-      await rejectRecord(appointmentJson);
-      throw new Error(
-        "Invalid Appointment - does not match or timestamp is earlier" +
-          " than latest participant appointment"
+      // Find the entry with the highest scored cancer signal origin (CSO1)
+      const cso1 = entry.find(
+        (entry) =>
+          entry.resource.resourceType === "Observation" &&
+          entry.resource.code.coding.some(
+            (coding) =>
+              coding.display ===
+              "Multi-cancer early detection highest scored cancer signal origin by machine learning-based classifier"
+          )
       );
-    }
 
-    let response = false;
+      if (cso1) {
+        const cso1Codes = cso1.resource.component.map(
+          (component) => component.valueCodeableConcept.coding[0].code
+        );
+        const cso1Match = await validateSnomedCodes(
+          cso1Codes,
+          "CancerSignalOrigin"
+        );
 
-    switch (EventType) {
-      case "COMPLETE":
-        console.log(`This was a ${EventType}`);
-        if (BloodCollectionDate && GrailID) {
-          response = await transactionalWrite(
-            dbClient,
-            ParticipantID,
-            episodeItems.Batch_Id.S,
-            AppointmentID,
-            EventType,
-            Timestamp,
-            episodeEvent.complete,
-            "null",
-            GrailID,
-            BloodCollectionDate
+        if (cso1Match) {
+          // AC1: CSO1 matches approved combinations
+          await uploadToS3(
+            trrJson,
+            "inbound_nrds_galleritestresult_step2_success"
           );
+          await addS3ObjectTag(trrJson, "CSO1", cso1Match.Cso_Result_Friendly);
+
+          // Find the entry with the second highest scored cancer signal origin (CSO2)
+          const cso2 = entry.find(
+            (entry) =>
+              entry.resource.resourceType === "Observation" &&
+              entry.resource.code.coding.some(
+                (coding) =>
+                  coding.display ===
+                  "Multi-cancer early detection second highest scored cancer signal origin by machine learning-based classifier"
+              )
+          );
+
+          if (cso2) {
+            const cso2Codes = cso2.resource.component.map(
+              (component) => component.valueCodeableConcept.coding[0].code
+            );
+            const cso2Match = await validateSnomedCodes(
+              cso2Codes,
+              "CancerSignalOrigin"
+            );
+
+            if (cso2Match) {
+              // AC2: Both CSO1 and CSO2 match approved combinations
+              await addS3ObjectTag(
+                trrJson,
+                "CSO2",
+                cso2Match.Cso_Result_Friendly
+              );
+            } else {
+              // AC4: One or both of CSO1 and CSO2 do not match approved combinations
+              await uploadToS3(
+                trrJson,
+                "inbound_nrds_galleritestresult_step2_error"
+              );
+            }
+          }
         } else {
-          await rejectRecord(appointmentJson);
-          console.error(
-            "Error: Invalid Appointment - Blood collection date and Grail ID not both supplied for complete"
+          // AC3: CSO1 does not match approved combinations
+          await uploadToS3(
+            trrJson,
+            "inbound_nrds_galleritestresult_step2_error"
           );
         }
-        break;
-
-      case "NO_SHOW":
-        console.log(`This was a ${EventType}`);
-        response = await transactionalWrite(
-          dbClient,
-          ParticipantID,
-          episodeItems.Batch_Id.S,
-          AppointmentID,
-          EventType,
-          Timestamp,
-          episodeEvent.no_show
-        );
-        break;
-
-      case "ABORTED":
-        console.log(`This was a ${EventType}`);
-        if (BloodNotCollectedReason) {
-          response = await transactionalWrite(
-            dbClient,
-            ParticipantID,
-            episodeItems.Batch_Id.S,
-            AppointmentID,
-            EventType,
-            Timestamp,
-            episodeEvent.aborted,
-            BloodNotCollectedReason
-          );
-        } else {
-          await rejectRecord(appointmentJson);
-          console.error(
-            "Error: Invalid Appointment - Blood not collected reason not supplied for aborted"
-          );
-        }
-        break;
-
-      default:
-        await rejectRecord(appointmentJson);
-        console.error(
-          `Error: This was a ${EventType}, which is not an expected Event Type`
-        );
-        break;
-    }
-    if (!response) {
-      await rejectRecord(appointmentJson);
-      console.error("Error: Could not Update Episode and Appointment Table");
+      }
+    } else {
+      // AC5: No CSD result
+      await uploadToS3(trrJson, "inbound_nrds_galleritestresult_step2_success");
     }
   } catch (error) {
-    const message = `Error: processing object ${key} in bucket ${bucket}: ${error}`;
+    const message = `Error processing object ${key} in bucket ${bucket}: ${error}`;
     console.error(message);
     throw new Error(message);
   }
 };
 
-/**
- * Reads a file from S3.
- *
- * @param {string} bucketName - The name of the S3 bucket.
- * @param {string} key - The key of the S3 object.
- * @param {S3Client} client - An instance of the S3 client.
- * @returns {Promise<string>}
- */
 export const readFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -181,15 +138,68 @@ export const readFromS3 = async (bucketName, key, client) => {
   }
 };
 
-/**
- * Pushes a file to S3.
- *
- * @param {string} bucketName - The name of the S3 bucket.
- * @param {string} key - The key of the S3 object.
- * @param {string} body - The content to be uploaded.
- * @param {S3Client} client - An instance of the S3 client.
- * @returns {Promise<Object>}
- */
+export const uploadToS3 = async (trrJson, bucket) => {
+  try {
+    const jsonString = JSON.stringify(trrJson);
+    await pushToS3(
+      `${ENVIRONMENT}-${bucket}`,
+      `${trrJson.id}.json`,
+      jsonString,
+      s3
+    );
+  } catch (err) {
+    console.log("Failed: ", err);
+    throw err;
+  }
+};
+
+export const addS3ObjectTag = async (trrJson, tagKey, tagValue) => {
+  try {
+    await s3.putObjectTagging({
+      Bucket: `${ENVIRONMENT}-inbound_nrds_galleritestresult_step2_success`,
+      Key: `${trrJson.id}.json`,
+      Tagging: {
+        TagSet: [
+          {
+            Key: tagKey,
+            Value: tagValue,
+          },
+        ],
+      },
+    });
+  } catch (err) {
+    console.log("Failed: ", err);
+    throw err;
+  }
+};
+
+export const validateSnomedCodes = async (
+  snomedCodes,
+  tableName = "CancerSignalOrigin"
+) => {
+  try {
+    const params = {
+      TableName: `${ENVIRONMENT}-${tableName}`,
+      KeyConditionExpression: "Cso_Result_Snomed_Code_Sorted = :snomedCodes",
+      ExpressionAttributeValues: {
+        ":snomedCodes": { S: JSON.stringify(snomedCodes) },
+      },
+    };
+
+    const response = await dbClient.send(new QueryCommand(params));
+    const items = response.Items;
+
+    if (items.length > 0) {
+      return items[0];
+    } else {
+      return null;
+    }
+  } catch (err) {
+    console.log("Failed: ", err);
+    throw err;
+  }
+};
+
 export const pushToS3 = async (bucketName, key, body, client) => {
   try {
     const response = await client.send(
@@ -205,170 +215,4 @@ export const pushToS3 = async (bucketName, key, body, client) => {
     console.log("Failed: ", err);
     throw err;
   }
-};
-
-/**
- * Rejects a record and uploads it to S3.
- *
- * @param {Object} appointmentJson - The appointment data.
- * @returns {Promise<void>}
- */
-export const rejectRecord = async (appointmentJson) => {
-  try {
-    const timeNow = new Date().toISOString();
-    const jsonString = JSON.stringify(appointmentJson);
-    await pushToS3(
-      `${ENVIRONMENT}-processed-appointments`,
-      `invalidRecords/invalid_records-${timeNow}.json`,
-      jsonString,
-      s3
-    );
-    return;
-  } catch (err) {
-    console.log("Failed: ", err);
-    throw err;
-  }
-};
-
-/**
- * Looks up an item in DynamoDB.
- *
- * @param {DynamoDBClient} dbClient - An instance of the DynamoDB client.
- * @param {...string} params - The parameters for the lookup.
- * @returns {Promise<Object>}
- */
-export const lookUp = async (dbClient, ...params) => {
-  const [id, table, attribute, attributeType, useIndex] = params;
-
-  const ExpressionAttributeValuesKey = `:${attribute}`;
-  let expressionAttributeValuesObj = {};
-  let expressionAttributeValuesNestObj = {};
-
-  expressionAttributeValuesNestObj[attributeType] = id;
-  expressionAttributeValuesObj[ExpressionAttributeValuesKey] =
-    expressionAttributeValuesNestObj;
-
-  const input = {
-    ExpressionAttributeValues: expressionAttributeValuesObj,
-    KeyConditionExpression: `${attribute} = :${attribute}`,
-    TableName: `${ENVIRONMENT}-${table}`,
-  };
-
-  if (useIndex) {
-    input.IndexName = `${attribute}-index`;
-  }
-
-  const getCommand = new QueryCommand(input);
-  const response = await dbClient.send(getCommand);
-
-  if (response.$metadata.httpStatusCode != 200) {
-    console.log(`look up item input = ${JSON.stringify(input, null, 2)}`);
-  }
-
-  return response;
-};
-
-/**
- * Performs a transactional write to update Episode and Appointment tables in DynamoDB.
- *
- * @param {DynamoDBClient} client - An instance of the DynamoDB client.
- * @param {string} participantId - The ID of the participant.
- * @param {string} batchId - The batch ID.
- * @param {string} appointmentId - The ID of the appointment.
- * @param {string} eventType - The event type.
- * @param {string} appointmentTimestamp - The timestamp of the appointment.
- * @param {string} episodeEvent - The episode event.
- * @param {string} [eventDescription="null"] - The event description.
- * @param {string} [grailId="null"] - The Grail ID.
- * @param {string} [bloodCollectionDate="null"] - The blood collection date.
- * @returns {Promise<boolean>} Resolves to true if the transaction is successful.
- */
-export const transactionalWrite = async (
-  client,
-  participantId,
-  batchId,
-  appointmentId,
-  eventType,
-  appointmentTimestamp,
-  episodeEvent,
-  eventDescription = "null",
-  grailId = "null",
-  bloodCollectionDate = "null"
-) => {
-  const timeNow = new Date(Date.now()).toISOString();
-  const params = {
-    TransactItems: [
-      {
-        Update: {
-          Key: {
-            Batch_Id: { S: batchId },
-            Participant_Id: { S: participantId },
-          },
-          UpdateExpression: `SET Episode_Event = :episodeEvent, Episode_Event_Updated = :timeNow, Episode_Event_Description = :eventDescription, Episode_Status = :open, Episode_Event_Notes = :null, Episode_Event_Updated_By = :gtms, Episode_Status_Updated = :timeNow`,
-          TableName: `${ENVIRONMENT}-Episode`,
-          ExpressionAttributeValues: {
-            ":episodeEvent": { S: episodeEvent },
-            ":timeNow": { S: timeNow },
-            ":eventDescription": { S: eventDescription },
-            ":open": { S: "Open" },
-            ":null": { S: "Null" },
-            ":gtms": { S: "GTMS" },
-          },
-        },
-      },
-      {
-        Update: {
-          Key: {
-            Participant_Id: { S: participantId },
-            Appointment_Id: { S: appointmentId },
-          },
-          UpdateExpression: `SET event_type = :eventType, Time_stamp = :appointmentTimestamp, grail_id = :grailId, blood_collection_date = :bloodCollectionDate, blood_not_collected_reason = :bloodNotCollectedReason`,
-          TableName: `${ENVIRONMENT}-Appointments`,
-          ExpressionAttributeValues: {
-            ":eventType": { S: eventType },
-            ":appointmentTimestamp": { S: appointmentTimestamp },
-            ":grailId": { S: grailId },
-            ":bloodCollectionDate": { S: bloodCollectionDate },
-            ":bloodNotCollectedReason": { S: eventDescription },
-          },
-        },
-      },
-    ],
-  };
-
-  try {
-    const command = new TransactWriteItemsCommand(params);
-    const response = await client.send(command);
-    return true;
-  } catch (error) {
-    console.error("Error: Transactional write failed:", error);
-  }
-};
-
-/**
- * Sorts an array of items by a specified key.
- *
- * @param {Array} items - The array of items to sort.
- * @param {string} key - The key to sort by.
- * @param {string} keyType - The type of the key.
- * @param {boolean} [asc=true] - Whether to sort in ascending order.
- * @returns {Array} The sorted array.
- */
-export const sortBy = (items, key, keyType, asc = true) => {
-  items.sort((a, b) => {
-    if (asc) {
-      return a[key][keyType] > b[key][keyType]
-        ? 1
-        : a[key][keyType] < b[key][keyType]
-        ? -1
-        : 0;
-    } else {
-      return b[key][keyType] > a[key][keyType]
-        ? 1
-        : b[key][keyType] < a[key][keyType]
-        ? -1
-        : 0;
-    }
-  });
-  return items;
 };
