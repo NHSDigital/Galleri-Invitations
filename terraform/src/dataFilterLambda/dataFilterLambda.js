@@ -178,7 +178,6 @@ export const processGridallRow = (dataArray, row, participating_counter) => {
  * @param {Array} dataArray - The array to which filtered records will be added.
  * @param {Object} row - The current row of data being processed.
  * @param {number} participating_counter - A counter tracking the number of records that meet the specified criteria.
- * @returns {number} The updated counter after processing the current row.
  *
  */
 export const processImdRow = (dataArray, row, participating_counter) => {
@@ -217,7 +216,7 @@ export const generateCsvString = (header, dataArray) => {
 /**
  * Attach IMD rank and decile score to gridall record.
  *
- * @function generateCsvString
+ * @function mergeImdGridallData
  * @param {Array} gridallData - The array of gridall records to be processed.
  * @param {Array} imdData - The array of IMD data records to be merged with gridall records.
  * @param {number} startTime - The timestamp indicating the start time.
