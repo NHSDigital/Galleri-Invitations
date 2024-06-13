@@ -32,13 +32,31 @@ export const handler = async (event, context) => {
   }
 };
 
-// METHODS
+/**
+ * Populate eligible people
+ *
+ * @async
+ * @function populateEligibleArray
+ * @param {DynamoDBClient} client - Instance of DynamoDB client
+ * @param {string} lsoaCode - LSOA code
+ * @returns {Array} - Array containing eligible population
+ */
 export async function populateEligibleArray(client, lsoaCode) {
   const tableItems = [];
   await queryEligiblePopulation(client, lsoaCode, tableItems);
   return tableItems.flat();
 }
 
+/**
+ * Query eligible people
+ *
+ * @async
+ * @function queryEligiblePopulation
+ * @param {DynamoDBClient} client - Instance of DynamoDB client
+ * @param {string} lsoaCode - LSOA code
+ * @param {Array} tableItems - Eligible population array
+ * @returns {string} - Success message
+ */
 export async function queryEligiblePopulation(client, lsoaCode, tableItems) {
   const input = {
     ExpressionAttributeValues: {
@@ -64,7 +82,15 @@ export async function queryEligiblePopulation(client, lsoaCode, tableItems) {
     console.error("Response from table encountered an error");
   }
 }
-
+/**
+ * Get population
+ *
+ * @async
+ * @function getPopulation
+ * @param {Array} lsoaList - List of Lower layer Super Output Areas
+ * @param {DynamoDBClient} client - Instance of DynamoDB client
+ * @returns {Object} - get population
+ */
 export async function getPopulation(lsoaList, client) {
   const populationObject = {};
   await Promise.all(
@@ -107,7 +133,15 @@ export async function getPopulation(lsoaList, client) {
   return populationObject;
 }
 
-// Query eligible people
+/**
+ * Get eligible people
+ *
+ * @async
+ * @function getEligiblePopulation
+ * @param {Array} lsoaList - List of Lower layer Super Output Areas
+ * @param {DynamoDBClient} client - Instance of DynamoDB client
+ * @returns {Array} - Array containing eligible population
+ */
 export async function getEligiblePopulation(lsoaList, client) {
   const populationArray = [];
 

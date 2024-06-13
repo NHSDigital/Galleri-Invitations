@@ -27,7 +27,7 @@ export const handler = async (event) => {
     const appointmentString = await readFromS3(bucket, key, s3);
     const appointmentJson = JSON.parse(appointmentString);
     const { Appointment } = appointmentJson;
-    // Check if ParticipantID and Episode exist in respective Dynamo tables
+    //Check if ParticipantID and Episode exist in respective Dynamo tables
     if (Appointment.ParticipantID && Appointment.ParticipantID?.trim() !== "") {
       validateParticipantIdResponse = await lookUp(
         dbClient,
@@ -61,7 +61,7 @@ export const handler = async (event) => {
       await rejectRecord(appointmentJson, "No property ParticipantID found");
       return;
     }
-    // Check if either PDSNHSNumber and InvitationNHSNumber map to an NHS Number
+    //Check if either PDSNHSNumber and InvitationNHSNumber map to an NHS Number
     if (
       Appointment.InvitationNHSNumber &&
       Appointment.InvitationNHSNumber?.trim() !== "" &&
@@ -88,7 +88,7 @@ export const handler = async (event) => {
       );
       return;
     }
-    // Check if ClinicID exists in its respective Dynamo tables
+    //Check if ClinicID exists in its respective Dynamo tables
     if (Appointment.ClinicID && Appointment.ClinicID?.trim() !== "") {
       const validateClinicIdResponse = await lookUp(
         dbClient,
@@ -107,7 +107,7 @@ export const handler = async (event) => {
       await rejectRecord(appointmentJson, "No property ClinicID found");
       return;
     }
-    // Checks to ensure new appointment time is more recent than the old appointment time
+    //Checks to ensure new appointment time is more recent than the old appointment time
     if (Appointment.AppointmentID && Appointment.AppointmentID?.trim() !== "") {
       const validateAppointmentIdResponse = await lookUp(
         dbClient,

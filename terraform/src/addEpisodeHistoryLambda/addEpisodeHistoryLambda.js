@@ -3,9 +3,16 @@ import isEqual from "lodash.isequal";
 
 const client = new DynamoDBClient({ region: "eu-west-2" });
 const ENVIRONMENT = process.env.ENVIRONMENT;
-/*
-  Lambda to get create episode records for modified population records
-*/
+
+/**
+ * Lambda handler to add episode history records when episode records have been
+ * added or modified.
+ *
+ * @async
+ * @function handler
+ * @param {Object} event Dynamodb event trigger
+ * @returns {string} Success message
+ */
 export const handler = async (event) => {
   const changedRecords = event.Records;
   console.log("Amount of modified records", changedRecords.length);
@@ -27,6 +34,15 @@ export const handler = async (event) => {
 };
 
 // METHODS
+/**
+ * Processes new or updated episode records and insert episode history records.
+ *
+ * @async
+ * @function processIncomingRecords
+ * @param {Array} incomingRecordsArr Array of new or modified episode records
+ * @param {DynamoDBClient} dbClient Dynamodb client
+ * @returns {Promise<Array<string>>} Promise resolves to array of success/failure message
+ */
 export const processIncomingRecords = async (incomingRecordsArr, dbClient) => {
   const episodeRecordsUpload = await Promise.allSettled(
     incomingRecordsArr.map(async (record) => {
@@ -62,6 +78,13 @@ export const processIncomingRecords = async (incomingRecordsArr, dbClient) => {
   return episodeRecordsUpload;
 };
 
+/**
+ * Formats an episode history update command parameters object.
+ *
+ * @function formatEpisodeHistoryRecord
+ * @param {Object} record An episode record
+ * @returns {Object} Update command parameters object
+ */
 export const formatEpisodeHistoryRecord = (record) => {
   console.log("*********Record: ", record);
   const params = {
@@ -117,6 +140,15 @@ export const formatEpisodeHistoryRecord = (record) => {
   return params;
 };
 
+/**
+ * Update Dynamodb table with given parameters.
+ *
+ * @async
+ * @function uploadEpisodeHistoryRecord
+ * @param {Object} item Update command parameters
+ * @param {DynamoDBClient} dbClient Dynamodb client
+ * @returns {Promise<Object>} Promise resolves to update command response
+ */
 export const uploadEpisodeHistoryRecord = async (item, dbClient) => {
   const command = new UpdateItemCommand(item);
   const response = await dbClient.send(command);
