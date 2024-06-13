@@ -166,6 +166,7 @@ export const handler = async (event) => {
 /**
  * Reads a file from S3.
  *
+ * @function readFromS3
  * @param {string} bucketName - The name of the S3 bucket.
  * @param {string} key - The key of the S3 object.
  * @param {S3Client} client - An instance of the S3 client.
@@ -191,6 +192,7 @@ export const readFromS3 = async (bucketName, key, client) => {
 /**
  * Pushes a file to S3.
  *
+ * @function pushToS3
  * @param {string} bucketName - The name of the S3 bucket.
  * @param {string} key - The key of the S3 object.
  * @param {string} body - The content to be uploaded.
@@ -218,6 +220,7 @@ export const pushToS3 = async (bucketName, key, body, client) => {
 /**
  * Rejects a record and uploads it to S3.
  *
+ * @function rejectRecord
  * @param {Object} appointmentJson - The appointment data.
  * @param {string} msg - The rejection message.
  * @returns {Promise<void>}
@@ -245,6 +248,7 @@ export const rejectRecord = async (appointmentJson, msg) => {
 /**
  * Accepts a record and uploads it to S3.
  *
+ * @function acceptRecord
  * @param {Object} appointmentJson - The appointment data.
  * @param {string} eventType - The event type.
  * @returns {Promise<void>}
@@ -268,6 +272,7 @@ export const acceptRecord = async (appointmentJson, eventType) => {
 /**
  * Looks up an item in DynamoDB.
  *
+ * @function lookUp
  * @param {DynamoDBClient} dbClient - An instance of the DynamoDB client.
  * @param {...string} params - The parameters for the lookup.
  * @returns {Promise<Object>}
@@ -307,6 +312,7 @@ export const lookUp = async (dbClient, ...params) => {
 /**
  * Updates the appointment table in DynamoDB.
  *
+ * @function updateAppointmentTable
  * @param {DynamoDBClient} client - An instance of the DynamoDB client.
  * @param {Object} appointment - The appointment data.
  * @param {string} [table=`${ENVIRONMENT}-Appointments`] - The name of the DynamoDB table.
