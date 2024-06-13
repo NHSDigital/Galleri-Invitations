@@ -39,6 +39,7 @@ export const handler = async (event) => {
  * @param {string} key - The key of the object in the S3 bucket.
  * @param {S3Client} client - The S3 client.
  * @returns {Promise<string>} The content of the CSV file as a string.
+ * @async
  */
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
@@ -60,6 +61,7 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
  *
  * @param {string} csvString - The CSV content as a string.
  * @returns {Promise<Object[]>} The parsed CSV content as an array of objects.
+ * @async
  */
 export const parseCsvToArray = async (csvString) => {
   return new Promise((resolve, reject) => {
@@ -84,6 +86,7 @@ export const parseCsvToArray = async (csvString) => {
  * @param {DynamoDBClient} client - The DynamoDB client.
  * @param {Object[]} cancerSignalOrigins - The array of cancer signal origin objects.
  * @param {string} [table=`${ENVIRONMENT}-CancerSignalOrigin`] - The name of the DynamoDB table.
+ * @async
  */
 export async function batchWriteCancerSignalOriginTable(
   client,
@@ -147,6 +150,7 @@ export async function batchWriteCancerSignalOriginTable(
  * @param {string} body - The content of the object.
  * @param {S3Client} client - The S3 client.
  * @returns {Promise<Object>} The response from the S3 put operation.
+ * @async
  */
 export const pushToS3 = async (bucketName, key, body, client) => {
   try {
