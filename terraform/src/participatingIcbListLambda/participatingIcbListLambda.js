@@ -22,7 +22,7 @@ export async function getItemsFromTable(table, client) {
 }
 
 /**
- * Lambda to load icb information and pass on to GPS client.
+ * Lambda to load participating Icb list.
  *
  * @function handler
  * @async
