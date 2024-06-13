@@ -8,7 +8,6 @@ import {
   GetObjectCommand,
   PutObjectCommand,
 } from "@aws-sdk/client-s3";
-
 const dbClient = new DynamoDBClient();
 const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
@@ -157,6 +156,7 @@ export const handler = async (event) => {
   }
 };
 
+
 /**
  * Reads a file from S3.
  *
@@ -182,6 +182,7 @@ export const readFromS3 = async (bucketName, key, client) => {
     throw err;
   }
 };
+
 
 /**
  * Pushes a file to S3.
