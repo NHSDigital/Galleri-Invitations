@@ -170,6 +170,7 @@ export const handler = async (event) => {
  * @param {string} key - The key of the S3 object.
  * @param {S3Client} client - An instance of the S3 client.
  * @returns {Promise<string>}
+ * @async
  */
 export const readFromS3 = async (bucketName, key, client) => {
   try {
@@ -195,6 +196,7 @@ export const readFromS3 = async (bucketName, key, client) => {
  * @param {string} body - The content to be uploaded.
  * @param {S3Client} client - An instance of the S3 client.
  * @returns {Promise<Object>}
+ * @async
  */
 export const pushToS3 = async (bucketName, key, body, client) => {
   try {
@@ -219,6 +221,7 @@ export const pushToS3 = async (bucketName, key, body, client) => {
  * @param {Object} appointmentJson - The appointment data.
  * @param {string} msg - The rejection message.
  * @returns {Promise<void>}
+ * @async
  */
 export const rejectRecord = async (appointmentJson, msg) => {
   try {
@@ -245,6 +248,7 @@ export const rejectRecord = async (appointmentJson, msg) => {
  * @param {Object} appointmentJson - The appointment data.
  * @param {string} eventType - The event type.
  * @returns {Promise<void>}
+ * @async
  */
 export const acceptRecord = async (appointmentJson, eventType) => {
   const timeNow = new Date().toISOString();
@@ -267,6 +271,7 @@ export const acceptRecord = async (appointmentJson, eventType) => {
  * @param {DynamoDBClient} dbClient - An instance of the DynamoDB client.
  * @param {...string} params - The parameters for the lookup.
  * @returns {Promise<Object>}
+ * @async
  */
 export const lookUp = async (dbClient, ...params) => {
   const [id, table, attribute, attributeType, useIndex] = params;
@@ -306,6 +311,7 @@ export const lookUp = async (dbClient, ...params) => {
  * @param {Object} appointment - The appointment data.
  * @param {string} [table=`${ENVIRONMENT}-Appointments`] - The name of the DynamoDB table.
  * @returns {Promise<number>} Resolves to the HTTP status code of the response.
+ * @async
  */
 export async function updateAppointmentTable(
   client,
