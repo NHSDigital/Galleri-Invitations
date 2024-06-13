@@ -74,6 +74,17 @@ export const handler = async (event) => {
   }
 };
 
+
+/**
+ * Read object from S3 bucket
+ *
+ * @function readFromS3
+ * @async
+ * @param {string} bucketName Name of bucket.
+ * @param {string} key Key for object in bucket.
+ * @param {S3Client} client Instance of an S3 client
+ * @returns {Promise<string>} String response from get object command.
+ */
 export const readFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -90,6 +101,17 @@ export const readFromS3 = async (bucketName, key, client) => {
   }
 };
 
+/**
+ * Push object to S3
+ *
+ * @function pushToS3
+ * @async
+ * @param {string} bucketName Name of bucket to send object to.
+ * @param {string} key Key of the object to be sent.
+ * @param {string} body Body of the object to be sent.
+ * @param {S3Client} client Instance of an S3 client.
+ * @returns {Promise<Object>} Response from the put object command.
+ */
 export const pushToS3 = async (bucketName, key, body, client) => {
   try {
     const response = await client.send(
@@ -107,6 +129,15 @@ export const pushToS3 = async (bucketName, key, body, client) => {
   }
 };
 
+/**
+ * Validate clinic capacity record
+ *
+ * @function validateRecord
+ * @async
+ * @param {Object} record Record to be validated.
+ * @param {DynamoDBClient} client Instance of a DynamoDB client.
+ * @returns {Promise<Object>} Validation results.
+ */
 export async function validateRecord(record, client) {
   const validationResults = {
     success: true,
