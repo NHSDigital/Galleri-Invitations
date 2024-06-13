@@ -37,6 +37,16 @@ const participatingIcbs = new Set([
   "QNX",
 ]);
 
+/**
+ * Reads a CSV file from S3.
+ * @async
+ * @function readCsvFromS3
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key of the object in the S3 bucket.
+ * @param {S3Client} client Instance of S3 client
+ * @throws {Error} Failed to read from ${bucketName}/${key}
+ * @returns {string} The data of the file you retrieved
+ */
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -53,6 +63,18 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
   }
 };
 
+/**
+ * This function is used to write a new object in S3
+ *
+ * @async
+ * @function pushCsvToS3
+ * @param {string} bucketName The name of the bucket you are pushing to
+ * @param {string} body The data you will be writing to S3
+ * @param {string} key The name you want to give to the file you will write to S3
+ * @param {S3Client} client Instance of S3 client
+ * @throws {Error} Error pushing CSV to S3 bucket
+ * @returns {Object} metadata about the response, including httpStatusCode
+ */
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
   try {
     const response = await client.send(
@@ -71,8 +93,17 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
   }
 };
 
-// Takes Csv data read in from the S3 bucket and applies a processFunction
-// to the data to generate an array of filtered objects
+/**
+ * Processes Csv data read in from the S3 bucket and applies a processFunction
+ * each row of data, and generates an array of filtered objects.
+ *
+ * @async
+ * @function parseCsvToArray
+ * @param {string} csvString - The CSV data as a string.
+ * @param {Function} processFunction - A function to apply to each row of the CSV data.
+ * @returns {Array} An array of objects that passed the filter function.
+ * @throws {Error} If an error occurs during the CSV processing.
+ */
 export const parseCsvToArray = async (csvString, processFunction) => {
   const dataArray = [];
   let row_counter = 0;
@@ -98,9 +129,18 @@ export const parseCsvToArray = async (csvString, processFunction) => {
   });
 };
 
-// Screens for records with; non-terminated postcodes, records only in England
-// and records which are part of a participating ICB
-// Extracts information specified in annotated user guide attached to GAL-288
+/**
+ * Screens for records with; non-terminated postcodes, records only in England
+ * and records which are part of a participating ICB
+ * Extracts information specified in annotated user guide attached to GAL-288
+ *
+ * @function processGridallRow
+ * @param {Array} dataArray - The array to which filtered records will be added.
+ * @param {Object} row - The current row of data being processed.
+ * @param {number} participating_counter - A counter tracking the number of records that meet the specified criteria.
+ * @returns {number} The updated counter after processing the current row.
+ *
+ */
 export const processGridallRow = (dataArray, row, participating_counter) => {
   if (
     row.DOTERM === "" &&
@@ -131,6 +171,16 @@ export const processGridallRow = (dataArray, row, participating_counter) => {
   return participating_counter;
 };
 
+/**
+ * Attempting to extract IMD
+ *
+ * @function processImdRow
+ * @param {Array} dataArray - The array to which filtered records will be added.
+ * @param {Object} row - The current row of data being processed.
+ * @param {number} participating_counter - A counter tracking the number of records that meet the specified criteria.
+ * @returns {number} The updated counter after processing the current row.
+ *
+ */
 export const processImdRow = (dataArray, row, participating_counter) => {
   // Removing comma contained withing value for IMD rank
   const IMD_RANK = row["Index of Multiple Deprivation (IMD) Rank"].replace(
@@ -149,7 +199,14 @@ export const processImdRow = (dataArray, row, participating_counter) => {
   participating_counter++;
 };
 
-// Concatenates header and data into single string - the format S3 looks for
+/**
+ * Concatenates header and data into single string - the format S3 looks for.
+ *
+ * @function generateCsvString
+ * @param {string} header - The header row for the CSV.
+ * @param {Array} dataArray - The array of objects to convert to CSV.
+ * @returns {string} The generated CSV string.
+ */
 export const generateCsvString = (header, dataArray) => {
   return [
     header,
@@ -157,6 +214,16 @@ export const generateCsvString = (header, dataArray) => {
   ].join("\n");
 };
 
+/**
+ * Attach IMD rank and decile score to gridall record.
+ *
+ * @function generateCsvString
+ * @param {Array} gridallData - The array of gridall records to be processed.
+ * @param {Array} imdData - The array of IMD data records to be merged with gridall records.
+ * @param {number} startTime - The timestamp indicating the start time.
+ * @returns {Array} An array of combined records with attached IMD rank and decile score.
+ *
+ */
 export const mergeImdGridallData = (gridallData, imdData, startTime) => {
   console.log("Attempting to format imd dictionary records");
   let imdDict = {};
