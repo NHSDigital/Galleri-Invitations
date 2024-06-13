@@ -2,10 +2,15 @@ import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
-/*
-  Lambda to load icb information and pass on to GPS client.
-*/
-
+/**
+ * Queries DynamoDB table and returns items found based on primary key field/value
+ *
+ * @async
+ * @function getItemsFromTable
+ * @param {string} table Table name
+ * @param {DynamoDBClient} client Instance of DynamoDB client
+ * @returns {Object} return item from table
+ */
 export async function getItemsFromTable(table, client) {
   const response = await client.send(
     new ScanCommand({
@@ -16,6 +21,13 @@ export async function getItemsFromTable(table, client) {
   return response;
 }
 
+/**
+ * Lambda to load participating Icb list.
+ *
+ * @function handler
+ * @async
+ * @returns {Promise<Object>} - A promise that resolves to an object containing the icb information.
+ */
 export const handler = async () => {
   const client = new DynamoDBClient({ region: "eu-west-2" });
   const response = await getItemsFromTable(
