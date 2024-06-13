@@ -163,7 +163,16 @@ export const handler = async (event) => {
   }
 };
 
-//METHODS
+/**
+ * Reads a file from S3.
+ *
+ * @function readFromS3
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key of the S3 object.
+ * @param {S3Client} client - An instance of the S3 client.
+ * @returns {Promise<string>}
+ * @async
+ */
 export const readFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -180,6 +189,17 @@ export const readFromS3 = async (bucketName, key, client) => {
   }
 };
 
+/**
+ * Pushes a file to S3.
+ *
+ * @function pushToS3
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key of the S3 object.
+ * @param {string} body - The content to be uploaded.
+ * @param {S3Client} client - An instance of the S3 client.
+ * @returns {Promise<Object>}
+ * @async
+ */
 export const pushToS3 = async (bucketName, key, body, client) => {
   try {
     const response = await client.send(
@@ -197,6 +217,15 @@ export const pushToS3 = async (bucketName, key, body, client) => {
   }
 };
 
+/**
+ * Rejects a record and uploads it to S3.
+ *
+ * @function rejectRecord
+ * @param {Object} appointmentJson - The appointment data.
+ * @param {string} msg - The rejection message.
+ * @returns {Promise<void>}
+ * @async
+ */
 export const rejectRecord = async (appointmentJson, msg) => {
   try {
     const timeNow = new Date().toISOString();
@@ -216,6 +245,15 @@ export const rejectRecord = async (appointmentJson, msg) => {
   }
 };
 
+/**
+ * Accepts a record and uploads it to S3.
+ *
+ * @function acceptRecord
+ * @param {Object} appointmentJson - The appointment data.
+ * @param {string} eventType - The event type.
+ * @returns {Promise<void>}
+ * @async
+ */
 export const acceptRecord = async (appointmentJson, eventType) => {
   const timeNow = new Date().toISOString();
   const jsonString = JSON.stringify(appointmentJson);
@@ -231,8 +269,15 @@ export const acceptRecord = async (appointmentJson, eventType) => {
   );
 };
 
-// DYNAMODB FUNCTIONS
-// returns successful response if attribute doesn't exist in table
+/**
+ * Looks up an item in DynamoDB.
+ *
+ * @function lookUp
+ * @param {DynamoDBClient} dbClient - An instance of the DynamoDB client.
+ * @param {...string} params - The parameters for the lookup.
+ * @returns {Promise<Object>}
+ * @async
+ */
 export const lookUp = async (dbClient, ...params) => {
   const [id, table, attribute, attributeType, useIndex] = params;
 
@@ -264,6 +309,16 @@ export const lookUp = async (dbClient, ...params) => {
   return response;
 };
 
+/**
+ * Updates the appointment table in DynamoDB.
+ *
+ * @function updateAppointmentTable
+ * @param {DynamoDBClient} client - An instance of the DynamoDB client.
+ * @param {Object} appointment - The appointment data.
+ * @param {string} [table=`${ENVIRONMENT}-Appointments`] - The name of the DynamoDB table.
+ * @returns {Promise<number>} Resolves to the HTTP status code of the response.
+ * @async
+ */
 export async function updateAppointmentTable(
   client,
   appointment,
