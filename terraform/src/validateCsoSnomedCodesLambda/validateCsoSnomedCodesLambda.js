@@ -126,6 +126,7 @@ export const handler = async (event) => {
  * @param {string} key - The key of the object in the S3 bucket.
  * @param {S3Client} client - The S3 client.
  * @returns {Promise<string>} The content of the S3 object as a string.
+ * @async
  */
 export const readFromS3 = async (bucketName, key, client) => {
   try {
@@ -148,6 +149,7 @@ export const readFromS3 = async (bucketName, key, client) => {
  *
  * @param {Object} trrJson - The JSON object to upload.
  * @param {string} bucket - The name of the S3 bucket.
+ * @async
  */
 export const uploadToS3 = async (trrJson, bucket) => {
   try {
@@ -180,6 +182,7 @@ const sanitizeTagValue = (value) => {
  * @param {Object} trrJson - The JSON object associated with the S3 object.
  * @param {string} tagKey - The key of the tag.
  * @param {string} tagValue - The value of the tag.
+ * @async
  */
 export const addS3ObjectTag = async (trrJson, tagKey, tagValue) => {
   try {
@@ -212,6 +215,7 @@ export const addS3ObjectTag = async (trrJson, tagKey, tagValue) => {
  * @param {string} sortedJoinedSnomedCodes - The sorted and joined SNOMED codes.
  * @param {string} [tableName="CancerSignalOrigin"] - The name of the DynamoDB table.
  * @returns {Promise<Object[]>} The matching items from the DynamoDB table.
+ * @async
  */
 export const validateSnomedCodes = async (
   sortedJoinedSnomedCodes,
@@ -251,6 +255,7 @@ export const validateSnomedCodes = async (
  * @param {string} body - The content of the object.
  * @param {S3Client} client - The S3 client.
  * @returns {Promise<Object>} The response from the S3 put operation.
+ * @async
  */
 export const pushToS3 = async (bucketName, key, body, client) => {
   try {
