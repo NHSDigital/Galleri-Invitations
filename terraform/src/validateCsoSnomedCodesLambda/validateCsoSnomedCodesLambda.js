@@ -119,6 +119,14 @@ export const handler = async (event) => {
   }
 };
 
+/**
+ * Reads an object from S3.
+ *
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key of the object in the S3 bucket.
+ * @param {S3Client} client - The S3 client.
+ * @returns {Promise<string>} The content of the S3 object as a string.
+ */
 export const readFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -135,6 +143,12 @@ export const readFromS3 = async (bucketName, key, client) => {
   }
 };
 
+/**
+ * Uploads a JSON object to S3.
+ *
+ * @param {Object} trrJson - The JSON object to upload.
+ * @param {string} bucket - The name of the S3 bucket.
+ */
 export const uploadToS3 = async (trrJson, bucket) => {
   try {
     const jsonString = JSON.stringify(trrJson);
@@ -150,11 +164,23 @@ export const uploadToS3 = async (trrJson, bucket) => {
   }
 };
 
+/**
+ * Sanitizes a tag value for S3.
+ *
+ * @param {string} value - The tag value to sanitize.
+ * @returns {string} The sanitized tag value.
+ */
 const sanitizeTagValue = (value) => {
-  value.replace(`"`, "").substring(0, 128);
-  return value.replace(",", " ");
+  return value.replace(`"`, "").substring(0, 128).replace(",", " ");
 };
 
+/**
+ * Adds a tag to an S3 object.
+ *
+ * @param {Object} trrJson - The JSON object associated with the S3 object.
+ * @param {string} tagKey - The key of the tag.
+ * @param {string} tagValue - The value of the tag.
+ */
 export const addS3ObjectTag = async (trrJson, tagKey, tagValue) => {
   try {
     const sanitizedValue = sanitizeTagValue(String(tagValue));
@@ -180,6 +206,13 @@ export const addS3ObjectTag = async (trrJson, tagKey, tagValue) => {
   }
 };
 
+/**
+ * Validates SNOMED codes against a DynamoDB table.
+ *
+ * @param {string} sortedJoinedSnomedCodes - The sorted and joined SNOMED codes.
+ * @param {string} [tableName="CancerSignalOrigin"] - The name of the DynamoDB table.
+ * @returns {Promise<Object[]>} The matching items from the DynamoDB table.
+ */
 export const validateSnomedCodes = async (
   sortedJoinedSnomedCodes,
   tableName = "CancerSignalOrigin"
@@ -210,6 +243,15 @@ export const validateSnomedCodes = async (
   }
 };
 
+/**
+ * Pushes an object to S3.
+ *
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key of the object in the S3 bucket.
+ * @param {string} body - The content of the object.
+ * @param {S3Client} client - The S3 client.
+ * @returns {Promise<Object>} The response from the S3 put operation.
+ */
 export const pushToS3 = async (bucketName, key, body, client) => {
   try {
     const response = await client.send(
