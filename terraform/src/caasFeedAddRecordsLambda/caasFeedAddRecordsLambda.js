@@ -28,12 +28,12 @@ const UNSUCCESSFULL_REPSONSE = 400;
 let participantIdStore = {};
 
 /**
- * AWS Lambda handler to load participant info for participants with result - CSD.
+ * AWS Lambda handler to load eligible participant info to DynamoDB.
  *
  * @async
  * @function handler
  * @param {Object} event - The event triggering the Lambda.
- * @returns {Promise<Object>} - A promise that resolves to the response object containing participant info or an error message.
+ * @returns {Object} - A promise that resolves to the response object containing participant info or an error message.
  */
 
 export const handler = async (event) => {
@@ -119,6 +119,7 @@ export const handler = async (event) => {
 
 /**
  * Reads a CSV file from S3.
+ *
  * @async
  * @function readCsvFromS3
  * @param {string} bucketName - The name of the S3 bucket.
@@ -184,8 +185,7 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
  * @async
  * @function parseCsvToArray
  * @param {string} csvString - The CSV data as a string.
- * @returns {Array} An array of objects that passed the filter function.
- * @throws {Error} If an error occurs during the CSV processing.
+ * @returns {Promise<Array<Object>>} Resolves to an array of parsed CSV records.
  */
 
 export const parseCsvToArray = async (csvString) => {
@@ -211,7 +211,7 @@ export const parseCsvToArray = async (csvString) => {
  *
  * @function filterUniqueEntries
  * @param {Array<Object>} caasFeed - The array of records to filter.
- * @returns {Array<Object>} An array of unique records and an array that contains all the duplicate.
+ * @returns {Array<Array>} An array of unique records and an array that contains all the duplicate.
  */
 
 export const filterUniqueEntries = (cassFeed) => {
@@ -237,6 +237,7 @@ export const filterUniqueEntries = (cassFeed) => {
  * Check if the superseded_by_nhs_number of the record is present in Population Table.
  * If yes, is is rejected. else added to table.
  *
+ * @async
  * @function processingData
  * @param {Object} record - details of participant.
  * @returns {Object} returns formatted dynamodb record or rejected record object.
@@ -282,6 +283,7 @@ const processingData = async (record) => {
 /**
  * returns true if item exists in dynamodb table
  *
+ * @async
  * @function checkDynamoTable
  * @param {DynamoDBClient} dbClient Instance of DynamoDB client
  * @param {string} attribute Value of the field in the DynamoDB table
@@ -289,7 +291,7 @@ const processingData = async (record) => {
  * @param {string} attributeName Name of the field in the DynamoDB table
  * @param {string} attributeType Type of the field in the DynamoDB table
  * @param {boolean} useIndex tells if the DynamoDB search need to be made on index or key.
- * @returns {boolean} True if the attribute exists in the DynamoDB table, otherwise false.
+ * @returns {boolean|Error} True if the attribute exists in the DynamoDB table, otherwise false.
  */
 
 export const checkDynamoTable = async (
@@ -322,6 +324,10 @@ export const checkDynamoTable = async (
 };
 
 /**
+ * Generates the record by generating PArticipant ID and
+ * finding the missing info - LSOA.
+ * If any info is not found, then rejecting the records.
+ *
  * @async
  * @function generateRecord
  * @param {Object} record - details of participant.
@@ -363,11 +369,11 @@ const generateRecord = async (record, client) => {
 /**
  * Generates unique participant id using NHS regex
  * unique in both population table and this stream
+ *
  * @async
  * @function generateParticipantID
  * @param {DynamoDBClient} dbClient Instance of DynamoDB client
- * @returns {String} participant id
- * @throws {Error} Error: generating participant id.
+ * @returns {String|Error} participant id or Error: generating participant id.
  */
 
 export const generateParticipantID = async (dbClient) => {
@@ -407,8 +413,8 @@ export const generateParticipantID = async (dbClient) => {
  * @function getLsoa
  * @param {Object} record - details of participant.
  * @param {DynamoDBClient} dbClient Instance of DynamoDB client
- * @returns {String} returns LSOA using patient postcode or the LSOA from GP practice
- * @throws {Error} Failed to get LSOA from external tables.
+ * @returns {String|Error} returns LSOA using patient postcode or the LSOA from GP practice
+ * or Error: Failed to get LSOA from external tables.
  */
 export const getLsoa = async (record, dbClient) => {
   const { postcode, primary_care_provider } = record;
@@ -508,6 +514,7 @@ export const getItemFromTable = async (dbClient, table, ...keys) => {
 
 /**
  * This function allows the user to query against DynamoDB.
+ *
  * @async
  * @function lookUp
  * @param {DynamoDBClient} dbClient Instance of DynamoDB client
@@ -515,7 +522,7 @@ export const getItemFromTable = async (dbClient, table, ...keys) => {
  * The table is the table name (type String), attribute is the column you search against (type String),
  * attributeType is the type of data stored within that column and useIndex is toggled to true if you want to use
  * an existing index (type boolean)
- * @returns {boolean} returns successful response if attribute doesn't exist in table
+ * @returns {number} returns successful response if attribute doesn't exist in table
  */
 
 export const lookUp = async (dbClient, ...params) => {
@@ -554,8 +561,6 @@ export const lookUp = async (dbClient, ...params) => {
   return SUCCESSFULL_REPSONSE;
 };
 
-//
-
 /**
  * Uploads the records to DynamoDB
  *
@@ -587,7 +592,7 @@ export const uploadToDynamoDb = async (dbClient, table, batch) => {
  * @param {Object} record - records to be written to DynamoDB.
  * @param {Number} chunkSize size of the chunks.
  * @param {DynamoDBClient} dbClient Instance of DynamoDB client
- * @returns {Array<Object>} returns array with each element representing response of batch upload status.
+ * @returns {Array<Promise>} returns array with each element representing response of batch upload status.
  */
 
 export async function batchWriteRecords(records, chunkSize, dbClient) {
