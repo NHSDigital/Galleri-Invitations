@@ -3,7 +3,6 @@ import {
   UpdateItemCommand,
   QueryCommand,
 } from "@aws-sdk/client-dynamodb";
-
 import uuid4 from "uuid4";
 
 const client = new DynamoDBClient({ region: "eu-west-2" });
@@ -20,7 +19,6 @@ const SUCCESSFULL_REPSONSE = 200;
  * @param {Object} context - The context object provided by AWS Lambda.
  * @returns {Object} - Response object containing success message or an error details.
  */
-
 export const handler = async (event, context) => {
   const eventJson = JSON.parse(event.body);
   const personIdentifiedArray = eventJson.selectedParticipants;
@@ -103,7 +101,6 @@ export const handler = async (event, context) => {
  * @param {DynamoDBClient} client Instance of DynamoDB client
  * @returns {Array<Promise>} Promise of array of each update result.
  */
-
 export async function updatePersonsToBeInvited(recordArray, createdBy, client) {
   const batchId = await generateBatchID(client);
 
@@ -129,7 +126,6 @@ export async function updatePersonsToBeInvited(recordArray, createdBy, client) {
  * @param {String} createdBy createdBy info
  * @returns {number} The HTTP status code of the update operation.
  */
-
 export async function updateRecord(record, batchId, client, createdBy) {
   const lsoaCodeReturn = await getLsoaCode(record, client);
   const items = lsoaCodeReturn.Items;
@@ -181,7 +177,6 @@ export async function updateRecord(record, batchId, client, createdBy) {
  * @param {DynamoDBClient} client Instance of DynamoDB client
  * @returns {Object} Query command response object.
  */
-
 export async function getLsoaCode(record, client) {
   const input = {
     ExpressionAttributeValues: {
@@ -213,7 +208,6 @@ export async function getLsoaCode(record, client) {
  *
  * @returns {number} The HTTP status code of the update operation.
  */
-
 export async function updateClinicFields(clinicInfo, invitesSent, client) {
   const {
     clinicId,
@@ -285,13 +279,12 @@ export async function updateClinicFields(clinicInfo, invitesSent, client) {
 
 /**
  * Generates unique Batch id
-
+ *
  * @async
  * @function generateBatchID
  * @param {DynamoDBClient} client Instance of DynamoDB client
  * @returns {String|Error} batch id or Error: generating batch id.
  */
-
 export const generateBatchID = async (client) => {
   try {
     let batchUuid;
@@ -314,7 +307,7 @@ export const generateBatchID = async (client) => {
 
 /**
  * ensure no duplicate participantIDs
-
+ *
  * @async
  * @function lookupBatchId
  * @param {string} batchId batchId
@@ -322,7 +315,6 @@ export const generateBatchID = async (client) => {
  * @param {DynamoDBClient} client Instance of DynamoDB client
  * @returns {number} The HTTP status code of the update operation.
  */
-
 export async function lookupBatchId(batchId, table, dbClient) {
   const input = {
     ExpressionAttributeValues: {
