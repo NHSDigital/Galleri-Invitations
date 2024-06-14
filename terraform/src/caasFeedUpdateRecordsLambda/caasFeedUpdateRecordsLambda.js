@@ -566,6 +566,20 @@ const updateRecord = async (record, recordFromTable) => {
   }
 };
 
+/**
+ * Updates a record in a specified DynamoDB table.
+ *
+ * @async
+ * @function updateRecordInTable
+ * @param {Object} client - The DynamoDB client.
+ * @param {string} table - The table name.
+ * @param {string} partitionKey - The partition key value.
+ * @param {string} partitionKeyName - The partition key name.
+ * @param {string} sortKey - The sort key value.
+ * @param {string} sortKeyName - The sort key name.
+ * @param {...Array} itemsToUpdate - The items to update.
+ * @returns {number} The HTTP status code of the update operation.
+ */
 export async function updateRecordInTable(
   client,
   table,
@@ -582,11 +596,8 @@ export async function updateRecordInTable(
     updateItemCommandKey[sortKeyName] = { S: `${sortKey}` };
 
     let updateItemCommandExpressionAttributeNames = {};
-
     let updateItemCommandExpressionAttributeValues = {};
-
     let updateItemCommandExpressionAttributeValuesNested = {};
-
     let updateItemCommandUpdateExpression = `SET `;
 
     itemsToUpdate.forEach((updateItem, index) => {
@@ -634,6 +645,17 @@ export async function updateRecordInTable(
   }
 }
 
+/**
+ * Overwrites a record in a specified DynamoDB table.
+ *
+ * @async
+ * @function overwriteRecordInTable
+ * @param {Object} client - The DynamoDB client.
+ * @param {string} table - The table name.
+ * @param {Object} newRecord - The new record to insert.
+ * @param {Object} oldRecord - The old record to delete.
+ * @returns {number} The HTTP status code of the overwrite operation.
+ */
 export async function overwriteRecordInTable(
   client,
   table,
@@ -654,6 +676,16 @@ export async function overwriteRecordInTable(
   }
 }
 
+/**
+ * Deletes a record from a specified DynamoDB table.
+ *
+ * @async
+ * @function deleteTableRecord
+ * @param {Object} client - The DynamoDB client.
+ * @param {string} table - The table name.
+ * @param {Object} oldRecord - The record to delete.
+ * @returns {Object} The response from DynamoDB.
+ */
 export async function deleteTableRecord(client, table, oldRecord) {
   console.log("Entered function deleteTableRecord");
   let input;
@@ -677,6 +709,14 @@ export async function deleteTableRecord(client, table, oldRecord) {
   return response;
 }
 
+/**
+ * Formats a delete item input for the Population table.
+ *
+ * @function formatPopulationDeleteItem
+ * @param {string} table - The table name.
+ * @param {Object} record - The record to delete.
+ * @returns {Object} The formatted input for the delete operation.
+ */
 function formatPopulationDeleteItem(table, record) {
   console.log("Entered function formatPopulationDeleteItem");
   const { PersonId } = record;
@@ -692,6 +732,14 @@ function formatPopulationDeleteItem(table, record) {
   return input;
 }
 
+/**
+ * Formats a delete item input for the Episode table.
+ *
+ * @function formatEpisodeDeleteItem
+ * @param {string} table - The table name.
+ * @param {Object} record - The record to delete.
+ * @returns {Object} The formatted input for the delete operation.
+ */
 function formatEpisodeDeleteItem(table, record) {
   console.log("Entered function formatEpisodeDeleteItem");
   const { Batch_Id, Participant_Id } = record;
@@ -708,6 +756,17 @@ function formatEpisodeDeleteItem(table, record) {
   return input;
 }
 
+/**
+ * Puts a new record into a specified DynamoDB table.
+ *
+ * @async
+ * @function putTableRecord
+ * @param {Object} client - The DynamoDB client.
+ * @param {string} table - The table name.
+ * @param {Object} newRecord - The new record to insert.
+ * @param {Object} oldRecord - The old record.
+ * @returns {Object} The response from DynamoDB.
+ */
 export async function putTableRecord(client, table, newRecord, oldRecord) {
   console.log("Entered putTableRecord");
   let input, unmarshalledRecord, updated_record;
@@ -733,6 +792,14 @@ export async function putTableRecord(client, table, newRecord, oldRecord) {
   return response;
 }
 
+/**
+ * Formats a put item input for the Population table.
+ *
+ * @function formatPopulationPutItem
+ * @param {string} table - The table name.
+ * @param {Object} newRecord - The new record to insert.
+ * @returns {Object} The formatted input for the put operation.
+ */
 function formatPopulationPutItem(table, newRecord) {
   console.log("Entered formatPopulationPutItem");
   // nhs_number: {N: newRecord.nhs_number}, -> 0
@@ -793,6 +860,14 @@ function formatPopulationPutItem(table, newRecord) {
   };
 }
 
+/**
+ * Formats a put item input for the Episode table.
+ *
+ * @function formatEpisodePutItem
+ * @param {string} table - The table name.
+ * @param {Object} newRecord - The new record to insert.
+ * @returns {Object} The formatted input for the put operation.
+ */
 function formatEpisodePutItem(table, newRecord) {
   console.log("Entered formatEpisodePutItem");
 
@@ -813,8 +888,15 @@ function formatEpisodePutItem(table, newRecord) {
   };
 }
 
-// returns LSOA using patient postcode or the LSOA from GP practice
-// or returns error message
+/**
+ * Returns the LSOA code using patient postcode or the LSOA from GP practice, or returns an error message.
+ *
+ * @async
+ * @function getLsoa
+ * @param {Object} record - The record containing postcode and primary care provider.
+ * @param {Object} dbClient - The DynamoDB client.
+ * @returns {Object} The LSOA object with lsoaCode, rejected status, and reason.
+ */
 export const getLsoa = async (record, dbClient) => {
   const { postcode, primary_care_provider } = record;
   const lsoaObject = {
@@ -869,7 +951,13 @@ export const getLsoa = async (record, dbClient) => {
   }
 };
 
-// returns unique records array and an array that contains all the duplicate
+/**
+ * Filters unique entries from a given array and returns unique and duplicate arrays.
+ *
+ * @function filterUniqueEntries
+ * @param {Array} cassFeed - The array to filter.
+ * @returns {Array} An array containing unique records array and an array of duplicates.
+ */
 export const filterUniqueEntries = (cassFeed) => {
   const flag = {};
   const unique = [];
@@ -886,7 +974,16 @@ export const filterUniqueEntries = (cassFeed) => {
   return [unique, duplicate];
 };
 
-// S3 FUNCTIONS
+/**
+ * Reads a CSV file from an S3 bucket.
+ *
+ * @async
+ * @function readCsvFromS3
+ * @param {string} bucketName - The S3 bucket name.
+ * @param {string} key - The key of the CSV file.
+ * @param {Object} client - The S3 client.
+ * @returns {string} The CSV file content as a string.
+ */
 export const readCsvFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -903,6 +1000,17 @@ export const readCsvFromS3 = async (bucketName, key, client) => {
   }
 };
 
+/**
+ * Uploads a CSV file to an S3 bucket.
+ *
+ * @async
+ * @function pushCsvToS3
+ * @param {string} bucketName - The S3 bucket name.
+ * @param {string} key - The key of the CSV file.
+ * @param {string} body - The CSV file content.
+ * @param {Object} client - The S3 client.
+ * @returns {Object} The response from S3.
+ */
 export const pushCsvToS3 = async (bucketName, key, body, client) => {
   try {
     const response = await client.send(
@@ -923,6 +1031,14 @@ export const pushCsvToS3 = async (bucketName, key, body, client) => {
   }
 };
 
+/**
+ * Parses a CSV string to an array of objects.
+ *
+ * @async
+ * @function parseCsvToArray
+ * @param {string} csvString - The CSV string to parse.
+ * @returns {Array} The parsed array of objects.
+ */
 export const parseCsvToArray = async (csvString) => {
   const dataArray = [];
 
@@ -941,7 +1057,14 @@ export const parseCsvToArray = async (csvString) => {
   });
 };
 
-// returns string to upload to s3
+/**
+ * Generates a CSV string from a header and an array of data.
+ *
+ * @function generateCsvString
+ * @param {string} header - The CSV header.
+ * @param {Array} dataArray - The array of data.
+ * @returns {string} The generated CSV string.
+ */
 export const generateCsvString = (header, dataArray) => {
   return [
     header,
@@ -949,8 +1072,15 @@ export const generateCsvString = (header, dataArray) => {
   ].join("\n");
 };
 
-// DYNAMODB FUNCTIONS
-// returns successful response if attribute doesn't exist in table
+/**
+ * Looks up an item in a DynamoDB table.
+ *
+ * @async
+ * @function lookUp
+ * @param {Object} dbClient - The DynamoDB client.
+ * @param {...*} params - The parameters for the lookup.
+ * @returns {Object} The response from DynamoDB.
+ */
 export const lookUp = async (dbClient, ...params) => {
   try {
     const [id, table, attribute, attributeType, useIndex] = params;
@@ -985,7 +1115,16 @@ export const lookUp = async (dbClient, ...params) => {
   }
 };
 
-// returns item and metadata from dynamodb table
+/**
+ * Retrieves an item from a DynamoDB table.
+ *
+ * @async
+ * @function getItemFromTable
+ * @param {Object} dbClient - The DynamoDB client.
+ * @param {string} table - The table name.
+ * @param {...*} keys - The keys for the item retrieval.
+ * @returns {Object} The response from DynamoDB.
+ */
 export const getItemFromTable = async (dbClient, table, ...keys) => {
   try {
     const [
