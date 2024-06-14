@@ -18,7 +18,7 @@ const SUCCESSFULL_REPSONSE = 200;
  * @function handler
  * @param {Object} event - The event triggering the Lambda.
  * @param {Object} context - The context object provided by AWS Lambda.
- * @returns {Object} - Response object containing participant info or an error message.
+ * @returns {Object} - Response object containing success message or an error details.
  */
 
 export const handler = async (event, context) => {
