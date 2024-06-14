@@ -33,7 +33,7 @@ let participantIdStore = {};
  * @async
  * @function handler
  * @param {Object} event - The event triggering the Lambda.
- * @returns {Object} - A promise that resolves to the response object containing participant info or an error message.
+ * @returns {String} - returns a string with message "Exiting Lambda".
  */
 
 export const handler = async (event) => {
