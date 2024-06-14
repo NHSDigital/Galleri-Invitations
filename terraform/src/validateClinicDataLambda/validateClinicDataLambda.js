@@ -11,6 +11,15 @@ const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
 const client = new DynamoDBClient({ region: "eu-west-2" });
 
+/**
+ * Lambda handler to validate clinic datas records a json string record read from S3.
+ *
+ * @async
+ * @function handler
+ * @param {Object} event S3 event trigger
+ * @returns {string} Success message
+ * @throws {Error} Error processing object ${key} in bucket ${bucket}
+ */
 export const handler = async (event) => {
   const bucket = event.Records[0].s3.bucket.name;
   const key = decodeURIComponent(
