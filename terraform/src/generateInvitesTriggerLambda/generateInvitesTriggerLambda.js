@@ -3,7 +3,6 @@ import {
   UpdateItemCommand,
   QueryCommand,
 } from "@aws-sdk/client-dynamodb";
-
 import uuid4 from "uuid4";
 
 const client = new DynamoDBClient({ region: "eu-west-2" });
@@ -11,6 +10,15 @@ const client = new DynamoDBClient({ region: "eu-west-2" });
 const ENVIRONMENT = process.env.ENVIRONMENT;
 const SUCCESSFULL_REPSONSE = 200;
 
+/**
+ * Lambda handler function to process event and context.
+ *
+ * @async
+ * @function handler
+ * @param {Object} event - The event object.
+ * @param {Object} context - The context object.
+ * @returns {Object} The response object.
+ */
 export const handler = async (event, context) => {
   const eventJson = JSON.parse(event.body);
   const personIdentifiedArray = eventJson.selectedParticipants;
@@ -83,9 +91,16 @@ export const handler = async (event, context) => {
   }
 };
 
-// METHODS
-// create a batch id
-// assign it to records array
+/**
+ * Updates multiple persons to be invited.
+ *
+ * @async
+ * @function updatePersonsToBeInvited
+ * @param {Array} recordArray - Array of records to update.
+ * @param {string} createdBy - The user who created the update.
+ * @param {DynamoDBClient} client - The DynamoDB client.
+ * @returns {Promise<Array>} An array of promises indicating the status of each update.
+ */
 export async function updatePersonsToBeInvited(recordArray, createdBy, client) {
   const batchId = await generateBatchID(client);
 
@@ -99,7 +114,17 @@ export async function updatePersonsToBeInvited(recordArray, createdBy, client) {
   );
 }
 
-// Takes single record and update that individual to have a identifiedToBeInvited field = true
+/**
+ * Updates a single record to have an identifiedToBeInvited field set to true.
+ *
+ * @async
+ * @function updateRecord
+ * @param {Object} record - The record to update.
+ * @param {string} batchId - The batch ID.
+ * @param {DynamoDBClient} client - The DynamoDB client.
+ * @param {string} createdBy - The user who created the update.
+ * @returns {Promise<number>} The HTTP status code of the update response.
+ */
 export async function updateRecord(record, batchId, client, createdBy) {
   const lsoaCodeReturn = await getLsoaCode(record, client);
   const items = lsoaCodeReturn.Items;
@@ -142,6 +167,15 @@ export async function updateRecord(record, batchId, client, createdBy) {
   return response.$metadata.httpStatusCode;
 }
 
+/**
+ * Retrieves the LSOA code for a given record.
+ *
+ * @async
+ * @function getLsoaCode
+ * @param {Object} record - The record to look up.
+ * @param {DynamoDBClient} client - The DynamoDB client.
+ * @returns {Promise<Object>} The response from the DynamoDB query.
+ */
 export async function getLsoaCode(record, client) {
   const input = {
     ExpressionAttributeValues: {
@@ -160,6 +194,16 @@ export async function getLsoaCode(record, client) {
   return response;
 }
 
+/**
+ * Updates the fields of a clinic.
+ *
+ * @async
+ * @function updateClinicFields
+ * @param {Object} clinicInfo - The clinic information.
+ * @param {number} invitesSent - The number of invites sent.
+ * @param {DynamoDBClient} client - The DynamoDB client.
+ * @returns {Promise<number>} The HTTP status code of the update response.
+ */
 export async function updateClinicFields(clinicInfo, invitesSent, client) {
   const {
     clinicId,
@@ -229,6 +273,14 @@ export async function updateClinicFields(clinicInfo, invitesSent, client) {
   return response.$metadata.httpStatusCode;
 }
 
+/**
+ * Generates a unique batch ID.
+ *
+ * @async
+ * @function generateBatchID
+ * @param {DynamoDBClient} client - The DynamoDB client.
+ * @returns {Promise<string>} The generated batch ID.
+ */
 export const generateBatchID = async (client) => {
   try {
     let batchUuid;
@@ -249,7 +301,16 @@ export const generateBatchID = async (client) => {
   }
 };
 
-// ensure no duplicate participantIds
+/**
+ * Looks up a batch ID in the specified table to ensure no duplicates.
+ *
+ * @async
+ * @function lookupBatchId
+ * @param {string} batchId - The batch ID to look up.
+ * @param {string} table - The table to look up the batch ID in.
+ * @param {DynamoDBClient} dbClient - The DynamoDB client.
+ * @returns {Promise<number>} The HTTP status code indicating if the batch ID was found.
+ */
 export async function lookupBatchId(batchId, table, dbClient) {
   const input = {
     ExpressionAttributeValues: {
