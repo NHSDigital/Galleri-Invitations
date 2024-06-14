@@ -7,9 +7,15 @@ const ENVIRONMENT = process.env.ENVIRONMENT;
 const KMTOMILES = 1.6;
 const MTOKM = 1000;
 
-/*
-  Lambda to get LSOA in a 100 mile range from the selected clinic
-*/
+/**
+ * Lambda to get LSOA in a 100 mile range from the selected clinic
+ *
+ * @async
+ * @function handler
+ * @param {Object} event Api gateway lambda proxy request object
+ * @param {Object} context Lambda context
+ * @returns {Object} Api gateway response object
+ */
 export const handler = async (event, context) => {
   const start = Date.now();
   // CALCULATE DISTANCE BETWEEN SITE AND LSOAs. RETURN THOSE IN 100 MILE RANGE
@@ -113,6 +119,14 @@ export const handler = async (event, context) => {
 };
 
 // METHODS
+/**
+ * Calculates a postcode's northing and easting values.
+ *
+ * @async
+ * @function getClinicEastingNorthing
+ * @param {string} postcode Postcode value
+ * @returns {Object} Object containing the northing and easting
+ */
 export async function getClinicEastingNorthing(postcode) {
   const startGetClinicEastingNorthing = Date.now();
   try {
@@ -148,6 +162,16 @@ export async function getClinicEastingNorthing(postcode) {
   }
 }
 
+/**
+ * Recursively scans and retrieves all records from the UniqueLsoa table.
+ *
+ * @async
+ * @function scanLsoaTable
+ * @param {DynamoDBClient} client Dynamodb client
+ * @param {Object} lastEvaluatedItem Previous result set's last record's primary key
+ * @param {Array} tableItems Array to which records are added
+ * @returns {Promise<string>} Promise resolving to success message
+ */
 export async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
   const input = {
     ExpressionAttributeNames: {
@@ -196,6 +220,14 @@ export async function scanLsoaTable(client, lastEvaluatedItem, tableItems) {
   }
 }
 
+/**
+ * Gets array of all lsoa records.
+ *
+ * @async
+ * @function populateLsoaArray
+ * @param {DynamoDBClient} client Dynamodb client
+ * @returns {Promise<Array<Object>>} Promise resolving to array of lsoa records
+ */
 async function populateLsoaArray(client) {
   const tableItems = [];
   let lastEvaluatedItem = {};
@@ -203,6 +235,14 @@ async function populateLsoaArray(client) {
   return tableItems.flat();
 }
 
+/**
+ * Calculates the distance between an lsoa and a clinic.
+ *
+ * @function calculateDistance
+ * @param {Object} lsoa Object with an lsoa's northing and easting
+ * @param {Object} clinicGridReference Object with a clinic's northing and easting
+ * @returns {number} Distance in miles
+ */
 export const calculateDistance = (lsoa, clinicGridReference) => {
   // get the easting and northing from clinic
   const clinicEasting = Number(clinicGridReference.easting);
@@ -223,6 +263,14 @@ export const calculateDistance = (lsoa, clinicGridReference) => {
   return distanceMiles;
 };
 
+/**
+ * Combines each lsoa with its elligible and invited population counts.
+ *
+ * @function generateLsoaTableData
+ * @param {Array<Object>} lsoaData Array of lsoa records
+ * @param {Object} populationData Object with each lsoa's elligible and invited population counts
+ * @returns {Array<Object>} Array of objects containing lsoa and population counts data
+ */
 export function generateLsoaTableData(lsoaData, populationData) {
   const tableInfo = [];
   console.log(

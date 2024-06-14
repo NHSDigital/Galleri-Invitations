@@ -3,15 +3,19 @@ import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 const client = new DynamoDBClient({ region: "eu-west-2" });
 const ENVIRONMENT = process.env.ENVIRONMENT;
 
-/*
-  Lambda to load participant info for participants with result - CSD
-*/
+/**
+ * AWS Lambda handler to load participant info for participants with result - CSD.
+ *
+ * @async
+ * @function handler
+ * @param {Object} event - The event triggering the Lambda.
+ * @param {Object} context - The context object provided by AWS Lambda.
+ * @returns {Promise<Object>} - A promise that resolves to the response object containing participant info or an error message.
+ */
 export const handler = async (event, context) => {
   console.log("Entered OnwardReferralList lambda");
   try {
-    const participantList = await lookupParticipantsCsd(
-      client
-    );
+    const participantList = await lookupParticipantsCsd(client);
 
     console.log(`Number of participants: ${participantList.length}`);
 
@@ -24,7 +28,9 @@ export const handler = async (event, context) => {
       tableItems
     );
     const participantsInfo = tableItems.flat();
-    console.log(`Number of participant info records: ${participantsInfo.length}`);
+    console.log(
+      `Number of participant info records: ${participantsInfo.length}`
+    );
 
     let responseObject = {};
 
@@ -50,14 +56,21 @@ export const handler = async (event, context) => {
       responseObject.body = "error";
     }
     return responseObject;
-
   } catch (error) {
     console.log("Error occured in OnwardReferralList lambda");
     console.error(`Error: ${error}`);
   }
 };
 
-// look into episode table and see which participants have latest result as CSD
+/**
+ * Looks up participants with the latest result as CSD from the episode table.
+ *
+ * @async
+ * @function lookupParticipantsCsd
+ * @param {DynamoDBClient} client - The DynamoDB client.
+ * @returns {Promise<Array>} - A promise that resolves to an array of participants.
+ * @throws {Error} - Throws an error if the operation fails.
+ */
 export const lookupParticipantsCsd = async (client) => {
   console.log("Entered function lookupParticipantsCsd");
 
@@ -68,12 +81,12 @@ export const lookupParticipantsCsd = async (client) => {
       ExpressionAttributeValues: {
         ":a": {
           S: `${cancerSignalDetected}`,
-        }
+        },
       },
       FilterExpression: "Episode_Event = :a",
       ProjectionExpression: "Participant_Id",
       TableName: `${ENVIRONMENT}-Episode`,
-      IndexName: "Episode_Event-index"
+      IndexName: "Episode_Event-index",
     };
 
     const command = new ScanCommand(input);
@@ -87,7 +100,24 @@ export const lookupParticipantsCsd = async (client) => {
   }
 };
 
-export const lookupParticipantsInfo = async (participantList, client, lastEvaluatedItem, tableItems) => {
+/**
+ * Looks up participant information based on a list of participant IDs.
+ *
+ * @async
+ * @function lookupParticipantsInfo
+ * @param {Array} participantList - List of participant IDs.
+ * @param {DynamoDBClient} client - The DynamoDB client.
+ * @param {Object} lastEvaluatedItem - The last evaluated item for pagination.
+ * @param {Array} tableItems - The array to store table items.
+ * @returns {Promise<string|void>} - A promise that resolves to a success message or void if recursion occurs.
+ * @throws {Error} - Throws an error if the operation fails.
+ */
+export const lookupParticipantsInfo = async (
+  participantList,
+  client,
+  lastEvaluatedItem,
+  tableItems
+) => {
   console.log("Entered function lookupParticipantsInfo");
   try {
     let participantIds = [];
@@ -144,18 +174,15 @@ export const lookupParticipantsInfo = async (participantList, client, lastEvalua
 
         if (response.$metadata.httpStatusCode == 200) {
           tableItems.push(response.Items);
+          console.log("Exiting function lookupParticipantsInfo");
           return `Galleri Test Results table scanned. Returning ${tableItems.length} records`;
         } else {
           console.error("Error: Something went wrong with last request");
         }
       }
-      console.log("Exiting function lookupParticipantsInfo");
-      return response;
     }
-
   } catch (error) {
     console.error("Error in lookupParticipantsInfo");
     throw error;
   }
-
 };

@@ -11,13 +11,13 @@ const ENVIRONMENT = process.env.ENVIRONMENT;
 const SUCCESSFULL_REPSONSE = 200;
 
 /**
- * Lambda handler function to process event and context.
+ * AWS Lambda handler to set selected participant status to "to be invited" and relevant processing.
  *
  * @async
  * @function handler
- * @param {Object} event - The event object.
- * @param {Object} context - The context object.
- * @returns {Object} The response object.
+ * @param {Object} event - The event triggering the Lambda.
+ * @param {Object} context - The context object provided by AWS Lambda.
+ * @returns {Object} - Response object containing success message or an error details.
  */
 export const handler = async (event, context) => {
   const eventJson = JSON.parse(event.body);
@@ -92,14 +92,14 @@ export const handler = async (event, context) => {
 };
 
 /**
- * Updates multiple persons to be invited.
+ * Update participants status to "to be invited" and assign a batch id in Population table.
  *
  * @async
  * @function updatePersonsToBeInvited
- * @param {Array} recordArray - Array of records to update.
- * @param {string} createdBy - The user who created the update.
- * @param {DynamoDBClient} client - The DynamoDB client.
- * @returns {Promise<Array>} An array of promises indicating the status of each update.
+ * @param {Array<Object>} recordArray - Array of participants records.
+ * @param {String} createdBy createdBy info
+ * @param {DynamoDBClient} client Instance of DynamoDB client
+ * @returns {Array<Promise>} Promise of array of each update result.
  */
 export async function updatePersonsToBeInvited(recordArray, createdBy, client) {
   const batchId = await generateBatchID(client);
@@ -115,15 +115,16 @@ export async function updatePersonsToBeInvited(recordArray, createdBy, client) {
 }
 
 /**
- * Updates a single record to have an identifiedToBeInvited field set to true.
+ * Takes single record from Population DynamoDB table and
+ * update that individual to have a identifiedToBeInvited field set to true
  *
  * @async
  * @function updateRecord
- * @param {Object} record - The record to update.
- * @param {string} batchId - The batch ID.
- * @param {DynamoDBClient} client - The DynamoDB client.
- * @param {string} createdBy - The user who created the update.
- * @returns {Promise<number>} The HTTP status code of the update response.
+ * @param {Object} record - records to be written to DynamoDB.
+ * @param {String} batchId unique batchId.
+ * @param {DynamoDBClient} client Instance of DynamoDB client
+ * @param {String} createdBy createdBy info
+ * @returns {number} The HTTP status code of the update operation.
  */
 export async function updateRecord(record, batchId, client, createdBy) {
   const lsoaCodeReturn = await getLsoaCode(record, client);
@@ -168,13 +169,13 @@ export async function updateRecord(record, batchId, client, createdBy) {
 }
 
 /**
- * Retrieves the LSOA code for a given record.
+ * gets LSOA from the personID from Poulation Table
  *
  * @async
  * @function getLsoaCode
- * @param {Object} record - The record to look up.
- * @param {DynamoDBClient} client - The DynamoDB client.
- * @returns {Promise<Object>} The response from the DynamoDB query.
+ * @param {String} record - personID of participant.
+ * @param {DynamoDBClient} client Instance of DynamoDB client
+ * @returns {Object} Query command response object.
  */
 export async function getLsoaCode(record, client) {
   const input = {
@@ -195,14 +196,17 @@ export async function getLsoaCode(record, client) {
 }
 
 /**
- * Updates the fields of a clinic.
+ * Update the Clinic fields after invites has been sent.
  *
  * @async
  * @function updateClinicFields
- * @param {Object} clinicInfo - The clinic information.
- * @param {number} invitesSent - The number of invites sent.
- * @param {DynamoDBClient} client - The DynamoDB client.
- * @returns {Promise<number>} The HTTP status code of the update response.
+ * @param {...any} clinicInfo Information about clinic - ID of the clinic, Name of the clinic,
+ * Selected range, target Percentage of appointments to fill, target number of appointments to fill,
+ * number of remaining appointments.
+ * @param {number} invitesSent number of invites sent for this clinic
+ * @param {DynamoDBClient} client Instance of DynamoDB client
+ *
+ * @returns {number} The HTTP status code of the update operation.
  */
 export async function updateClinicFields(clinicInfo, invitesSent, client) {
   const {
@@ -274,12 +278,12 @@ export async function updateClinicFields(clinicInfo, invitesSent, client) {
 }
 
 /**
- * Generates a unique batch ID.
+ * Generates unique Batch id
  *
  * @async
  * @function generateBatchID
- * @param {DynamoDBClient} client - The DynamoDB client.
- * @returns {Promise<string>} The generated batch ID.
+ * @param {DynamoDBClient} client Instance of DynamoDB client
+ * @returns {String|Error} batch id or Error: generating batch id.
  */
 export const generateBatchID = async (client) => {
   try {
@@ -302,14 +306,14 @@ export const generateBatchID = async (client) => {
 };
 
 /**
- * Looks up a batch ID in the specified table to ensure no duplicates.
+ * ensure no duplicate participantIDs
  *
  * @async
  * @function lookupBatchId
- * @param {string} batchId - The batch ID to look up.
- * @param {string} table - The table to look up the batch ID in.
- * @param {DynamoDBClient} dbClient - The DynamoDB client.
- * @returns {Promise<number>} The HTTP status code indicating if the batch ID was found.
+ * @param {string} batchId batchId
+ * @param {string} table Name of the DynamoDB table
+ * @param {DynamoDBClient} client Instance of DynamoDB client
+ * @returns {number} The HTTP status code of the update operation.
  */
 export async function lookupBatchId(batchId, table, dbClient) {
   const input = {

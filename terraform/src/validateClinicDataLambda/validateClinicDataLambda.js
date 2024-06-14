@@ -11,6 +11,15 @@ const s3 = new S3Client();
 const ENVIRONMENT = process.env.ENVIRONMENT;
 const client = new DynamoDBClient({ region: "eu-west-2" });
 
+/**
+ * Lambda handler to validate clinic datas records a json string record read from S3.
+ *
+ * @async
+ * @function handler
+ * @param {Object} event S3 event trigger
+ * @returns {string} Success message
+ * @throws {Error} Error processing object ${key} in bucket ${bucket}
+ */
 export const handler = async (event) => {
   const bucket = event.Records[0].s3.bucket.name;
   const key = decodeURIComponent(
@@ -63,6 +72,16 @@ export const handler = async (event) => {
   }
 };
 
+/**
+ * Reads a file from S3.
+ *
+ * @function readFromS3
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key of the S3 object.
+ * @param {S3Client} client - An instance of the S3 client.
+ * @returns {Promise<string>}
+ * @async
+ */
 export const readFromS3 = async (bucketName, key, client) => {
   try {
     const response = await client.send(
@@ -78,7 +97,17 @@ export const readFromS3 = async (bucketName, key, client) => {
     throw err;
   }
 };
-
+/**
+ * Pushes an object to S3.
+ *
+ * @function pushToS3
+ * @param {string} bucketName - The name of the S3 bucket.
+ * @param {string} key - The key of the object in the S3 bucket.
+ * @param {string} body - The content of the object.
+ * @param {S3Client} client - The S3 client.
+ * @returns {Promise<Object>} The response from the S3 put operation.
+ * @async
+ */
 export const pushToS3 = async (bucketName, key, body, client) => {
   try {
     const response = await client.send(
@@ -96,6 +125,18 @@ export const pushToS3 = async (bucketName, key, body, client) => {
   }
 };
 
+/**
+ * Validates a json string record read from S3.
+ *
+ * @async
+ * @function validateRecord
+ * @param {Object} record - The record to be validated.
+ * @param {S3Client} client - The S3 client.
+ * @returns {Object} - Validation results containing:
+ *                     - success: {boolean} Indicates if validation was successful
+ *                     - message: {string} Details about the validation result
+ *                     - record: {Object} The record that was validated.
+ */
 export async function validateRecord(record, client) {
   const validationResults = {
     success: true,
@@ -150,6 +191,15 @@ export async function validateRecord(record, client) {
   return validationResults;
 }
 
+/**
+ * Check if Postcode exists in the Postcode DynamoDB Table
+ *
+ * @async
+ * @function isPostcodeInGridall
+ * @param {string} key - The postcode.
+ * @param {DynamoDBClient} client - The DynamoDB client.
+ * @returns {Object} - An object containing the postcode record.
+ */
 export const isPostcodeInGridall = async (key, client) => {
   //AC - Check if Postcode exists in the Postcode DynamoDB Table
   const getParams = {
@@ -168,6 +218,14 @@ export const isPostcodeInGridall = async (key, client) => {
   return response;
 };
 
+/**
+ * Check if it's one of the specified valid ICB codes
+ *
+ * @async
+ * @function isValidICBCode
+ * @param {string} ICBCode - The ICB code.
+ * @returns {boolean} - Returns true if the ICBCode is valid, otherwise false.
+ */
 export function isValidICBCode(ICBCode) {
   // AC - check if it's one of the specified valid ICB codes
   const validICBCodes = [
