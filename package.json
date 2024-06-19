@@ -21,7 +21,7 @@
     "@aws-sdk/client-sqs": "^3.583.0",
     "@aws-sdk/client-ssm": "^3.574.0",
     "@aws-sdk/config-resolver": "^3.374.0",
-    "@aws-sdk/util-dynamodb": "^3.584.0",
+    "@aws-sdk/util-dynamodb": "^3.600.0",
     "@aws-sdk/util-stream-node": "^3.374.0",
     "@babel/plugin-syntax-import-assertions": "^7.23.3",
     "@babel/preset-env": "^7.24.0",
